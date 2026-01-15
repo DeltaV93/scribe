@@ -1,0 +1,745 @@
+// Scrybe Solutions - Database Schema
+// Version 2.0 - January 2026
+
+generator client {
+  provider = "prisma-client-js"
+  // previewFeatures = ["postgresqlExtensions"]  // Uncomment when pgvector is available
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  // extensions = [pgvector(map: "vector")]  // Requires pgvector extension on PostgreSQL
+}
+
+// ============================================
+// ENUMS
+// ============================================
+
+enum Tier {
+  FREE
+  STARTER
+  PROFESSIONAL
+  ENTERPRISE
+}
+
+enum FormType {
+  INTAKE
+  FOLLOWUP
+  REFERRAL
+  ASSESSMENT
+  CUSTOM
+}
+
+enum FormStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum FieldType {
+  TEXT_SHORT
+  TEXT_LONG
+  NUMBER
+  DATE
+  PHONE
+  EMAIL
+  ADDRESS
+  DROPDOWN
+  CHECKBOX
+  YES_NO
+  FILE
+  SIGNATURE
+}
+
+enum FieldPurpose {
+  GRANT_REQUIREMENT
+  INTERNAL_OPS
+  COMPLIANCE
+  OUTCOME_MEASUREMENT
+  RISK_ASSESSMENT
+  OTHER
+}
+
+enum GranteeType {
+  TEAM
+  USER
+}
+
+enum FormRole {
+  VIEW
+  USE
+  EDIT
+}
+
+// AuditAction is now a string field for flexibility
+
+enum ScanStatus {
+  PENDING
+  SCANNING
+  CLEAN
+  INFECTED
+  ERROR
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  ADMIN
+  PROGRAM_MANAGER
+  CASE_MANAGER
+  VIEWER
+}
+
+// ============================================
+// CLIENT & CALL ENUMS (Spec-2)
+// ============================================
+
+enum ClientStatus {
+  ACTIVE
+  ON_HOLD
+  CLOSED
+  PENDING
+}
+
+enum CallStatus {
+  INITIATING
+  RINGING
+  IN_PROGRESS
+  COMPLETED
+  ABANDONED
+  ATTEMPTED
+  FAILED
+}
+
+enum ProcessingStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  QUEUED_FOR_RETRY
+}
+
+enum NoteType {
+  INTERNAL
+  SHAREABLE
+}
+
+enum ConsentMode {
+  AUTO_RECORDING
+  CASE_MANAGER_SCRIPT
+  DISABLED
+}
+
+// ============================================
+// ORGANIZATION & USERS
+// ============================================
+
+model Organization {
+  id                    String      @id @default(uuid())
+  name                  String
+  slug                  String      @unique
+  tier                  Tier        @default(FREE)
+  purchasedFormPacks    Int         @default(0)
+  encryptionKeyId       String?
+  webhookUrl            String?
+
+  // Settings
+  settings              Json        @default("{}")
+
+  // VOIP Settings (Spec-2)
+  preferredAreaCode     String?
+  recordingRetentionDays Int        @default(30)
+  consentMode           ConsentMode @default(CASE_MANAGER_SCRIPT)
+  consentRecordingUrl   String?
+
+  // Billing
+  stripeCustomerId      String?     @unique
+
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+
+  // Relations
+  users                 User[]
+  teams                 Team[]
+  forms                 Form[]
+  formTemplates         FormTemplate[]
+  auditLogs             AuditLog[]
+  fileUploads           FileUpload[]
+  clients               Client[]
+
+  @@index([slug])
+  @@index([stripeCustomerId])
+}
+
+model User {
+  id              String   @id @default(uuid())
+  orgId           String
+  email           String   @unique
+  name            String?
+  avatarUrl       String?
+  role            UserRole @default(CASE_MANAGER)
+
+  // Supabase Auth
+  supabaseUserId  String   @unique
+
+  // Permissions (CRUD split for forms)
+  canCreateForms  Boolean  @default(false)
+  canReadForms    Boolean  @default(true)
+  canUpdateForms  Boolean  @default(false)
+  canDeleteForms  Boolean  @default(false)
+  canPublishForms Boolean  @default(false)
+
+  // Caseload (Spec-2)
+  maxCaseload     Int?
+
+  isActive        Boolean  @default(true)
+  lastLoginAt     DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  organization    Organization   @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  teamMemberships TeamMember[]
+  createdForms    Form[]         @relation("FormCreator")
+  formVersions    FormVersion[]
+  formAccess      FormAccess[]   @relation("AccessGranter")
+
+  // Client & Call Relations (Spec-2)
+  assignedClients Client[]       @relation("AssignedClients")
+  createdClients  Client[]       @relation("CreatedClients")
+  calls           Call[]
+  notes           Note[]
+  twilioNumber    TwilioNumber?
+  formSubmissions FormSubmission[]
+  formEditLogs    FormEditLog[]
+
+  @@index([orgId])
+  @@index([email])
+  @@index([supabaseUserId])
+}
+
+model Team {
+  id          String   @id @default(uuid())
+  orgId       String
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  organization Organization  @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  members      TeamMember[]
+  formAccess   FormAccess[]
+
+  @@unique([orgId, name])
+  @@index([orgId])
+}
+
+model TeamMember {
+  id        String   @id @default(uuid())
+  teamId    String
+  userId    String
+  createdAt DateTime @default(now())
+
+  // Relations
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([teamId, userId])
+  @@index([teamId])
+  @@index([userId])
+}
+
+// ============================================
+// FORMS & FIELDS
+// ============================================
+
+model Form {
+  id          String     @id @default(uuid())
+  orgId       String
+  name        String
+  description String?
+  type        FormType
+  status      FormStatus @default(DRAFT)
+  version     Int        @default(1)
+
+  // Settings (JSON for flexibility)
+  settings    Json       @default("{\"allowPartialSaves\": true, \"requireSupervisorReview\": false, \"autoArchiveDays\": null, \"activityTriggers\": []}")
+
+  createdById String
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  archivedAt  DateTime?
+  publishedAt DateTime?
+
+  // Relations
+  organization Organization    @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  createdBy    User            @relation("FormCreator", fields: [createdById], references: [id])
+  fields       FormField[]
+  versions     FormVersion[]
+  access       FormAccess[]
+  submissions  FormSubmission[]
+
+  @@index([orgId, status])
+  @@index([createdById])
+  @@index([status])
+}
+
+model FormField {
+  id               String       @id @default(uuid())
+  formId           String
+  slug             String
+  name             String
+  type             FieldType
+  purpose          FieldPurpose
+  purposeNote      String?
+  helpText         String?
+
+  isRequired       Boolean      @default(false)
+  isSensitive      Boolean      @default(false)
+  isAiExtractable  Boolean      @default(true)
+
+  // For dropdown/checkbox - array of options
+  options          Json?
+
+  // Grouping
+  section          String?
+  order            Int          @default(0)
+
+  // Conditional logic (React Flow compatible)
+  conditionalLogic Json?
+
+  // i18n translations
+  translations     Json?
+
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+
+  // Relations
+  form               Form                @relation(fields: [formId], references: [id], onDelete: Cascade)
+  extractionExamples ExtractionExample[]
+
+  @@unique([formId, slug])
+  @@index([formId, order])
+}
+
+model FormVersion {
+  id                  String   @id @default(uuid())
+  formId              String
+  version             Int
+  snapshot            Json
+  aiExtractionPrompt  String   @db.Text
+  publishedById       String
+  publishedAt         DateTime @default(now())
+
+  // Relations
+  form        Form             @relation(fields: [formId], references: [id], onDelete: Cascade)
+  publishedBy User             @relation(fields: [publishedById], references: [id])
+  submissions FormSubmission[]
+
+  @@unique([formId, version])
+  @@index([formId])
+}
+
+model FormAccess {
+  id          String      @id @default(uuid())
+  formId      String
+  granteeType GranteeType
+  granteeId   String
+  role        FormRole
+  grantedById String
+  grantedAt   DateTime    @default(now())
+
+  // Relations
+  form      Form  @relation(fields: [formId], references: [id], onDelete: Cascade)
+  grantedBy User  @relation("AccessGranter", fields: [grantedById], references: [id])
+  team      Team? @relation(fields: [granteeId], references: [id], map: "FormAccess_team_fkey")
+
+  @@unique([formId, granteeType, granteeId])
+  @@index([formId])
+  @@index([granteeId])
+}
+
+// ============================================
+// AI EXTRACTION
+// ============================================
+
+model ExtractionExample {
+  id                String   @id @default(uuid())
+  fieldId           String
+  transcriptSnippet String   @db.Text
+  extractedValue    String
+  // embedding         Unsupported("vector(1536)")?  // Requires pgvector extension
+  createdById       String
+  createdAt         DateTime @default(now())
+
+  // Relations
+  field FormField @relation(fields: [fieldId], references: [id], onDelete: Cascade)
+
+  @@index([fieldId])
+}
+
+// ============================================
+// TEMPLATES
+// ============================================
+
+model FormTemplate {
+  id               String   @id @default(uuid())
+  orgId            String?
+  name             String
+  description      String?
+  tags             String[]
+  thumbnail        String?
+  useCaseExamples  String[]
+  formSnapshot     Json
+  isSystemTemplate Boolean  @default(false)
+  createdById      String
+  createdAt        DateTime @default(now())
+  usageCount       Int      @default(0)
+
+  // Relations
+  organization Organization? @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@index([isSystemTemplate])
+  @@index([orgId])
+}
+
+// ============================================
+// SUBMISSIONS
+// ============================================
+
+model FormSubmission {
+  id              String    @id @default(uuid())
+  orgId           String
+  formId          String
+  formVersionId   String
+  clientId        String?
+  callId          String?
+
+  // Submission data (encrypted sensitive fields)
+  data            Json
+
+  // Status tracking
+  status          String    @default("DRAFT") // DRAFT, SUBMITTED, APPROVED, REJECTED
+  isComplete      Boolean   @default(false)
+  isDraft         Boolean   @default(true)
+
+  // AI extraction metadata
+  aiExtractedData Json?
+  aiConfidence    Json?
+  flaggedFields   String[]  @default([])
+
+  submittedById   String?
+  submittedAt     DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Relations
+  form        Form        @relation(fields: [formId], references: [id], onDelete: Cascade)
+  formVersion FormVersion @relation(fields: [formVersionId], references: [id])
+  signatures  Signature[]
+  client      Client?     @relation(fields: [clientId], references: [id])
+  call        Call?       @relation(fields: [callId], references: [id])
+  submitter   User?       @relation(fields: [submittedById], references: [id])
+  editLogs    FormEditLog[]
+
+  @@index([formId])
+  @@index([formVersionId])
+  @@index([clientId])
+  @@index([callId])
+}
+
+model Signature {
+  id                String   @id @default(uuid())
+  submissionId      String
+  fieldId           String
+  imageData         Bytes
+  imageHash         String
+  timestamp         DateTime @default(now())
+  signerIp          String
+  signerUserAgent   String
+  signerSessionId   String
+  geolocation       Json?
+  deviceFingerprint String?
+  consentRecorded   Boolean  @default(true)
+  consentText       String?
+  documentHash      String?
+
+  // Relations
+  submission FormSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+
+  @@index([submissionId])
+}
+
+// ============================================
+// FILE HANDLING
+// ============================================
+
+model FileUpload {
+  id            String     @id @default(uuid())
+  orgId         String
+  originalName  String
+  storagePath   String
+  mimeType      String
+  sizeBytes     Int
+  scanStatus    ScanStatus @default(PENDING)
+  scanResult    Json?
+  scannedAt     DateTime?
+  extractedText String?    @db.Text
+  uploadedById  String
+  uploadedAt    DateTime   @default(now())
+
+  // Relations
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@index([orgId])
+  @@index([scanStatus])
+}
+
+// ============================================
+// AUDIT & COMPLIANCE
+// ============================================
+
+model AuditLog {
+  id           String   @id @default(uuid())
+  orgId        String
+  userId       String?
+  action       String   // CREATE, UPDATE, DELETE, VIEW, EXPORT, PUBLISH, etc.
+  resource     String   // FORM, SUBMISSION, CLIENT, USER, FILE, etc.
+  resourceId   String
+  resourceName String?
+  details      Json     @default("{}")
+  ipAddress    String?
+  userAgent    String?
+
+  // Hash chain for immutability
+  previousHash String
+  hash         String
+
+  timestamp    DateTime @default(now())
+
+  // Relations
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@index([orgId, timestamp])
+  @@index([resource, resourceId])
+  @@index([userId])
+  @@index([action])
+}
+
+model ComplianceReport {
+  id            String   @id @default(uuid())
+  orgId         String
+  reportType    String   // ACTIVITY_SUMMARY, DATA_ACCESS, USER_ACTIVITY, etc.
+  startDate     DateTime
+  endDate       DateTime
+  generatedAt   DateTime @default(now())
+  generatedById String
+  data          Json
+  hash          String   // For integrity verification
+
+  @@index([orgId, reportType])
+  @@index([orgId, generatedAt])
+}
+
+// ============================================
+// BILLING & SUBSCRIPTIONS
+// ============================================
+
+model Subscription {
+  id                   String   @id @default(uuid())
+  orgId                String
+  stripeSubscriptionId String   @unique
+  stripeCustomerId     String
+  tier                 String   // FREE, STARTER, PROFESSIONAL, ENTERPRISE
+  status               String   // active, past_due, canceled, etc.
+  currentPeriodStart   DateTime
+  currentPeriodEnd     DateTime
+  cancelAtPeriodEnd    Boolean  @default(false)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  @@index([orgId])
+  @@index([stripeCustomerId])
+  @@index([status])
+}
+
+model PaymentHistory {
+  id               String   @id @default(uuid())
+  orgId            String
+  stripePaymentId  String   @unique
+  amount           Int      // Amount in cents
+  currency         String   @default("usd")
+  status           String   // succeeded, pending, failed
+  description      String?
+  type             String   // subscription, form_pack, etc.
+  metadata         Json?
+  createdAt        DateTime @default(now())
+
+  @@index([orgId])
+  @@index([createdAt])
+}
+
+// ============================================
+// CLIENT MANAGEMENT (Spec-2)
+// ============================================
+
+model Client {
+  id               String       @id @default(uuid())
+  orgId            String
+  firstName        String
+  lastName         String
+  phone            String       // Primary phone (10 digits)
+  additionalPhones Json?        // Array of { number, label }
+  email            String?
+  address          Json?        // { street, city, state, zip, formatted, coordinates }
+  internalId       String?      // Org-specific ID for external system sync
+  status           ClientStatus @default(ACTIVE)
+  assignedTo       String       // Case manager user ID
+  createdBy        String
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+  deletedAt        DateTime?    // Soft delete
+
+  // Relations
+  organization    Organization     @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  assignedUser    User             @relation("AssignedClients", fields: [assignedTo], references: [id])
+  creator         User             @relation("CreatedClients", fields: [createdBy], references: [id])
+  calls           Call[]
+  notes           Note[]
+  formSubmissions FormSubmission[]
+
+  @@index([orgId, status])
+  @@index([orgId, phone])
+  @@index([assignedTo])
+}
+
+// ============================================
+// CALL MANAGEMENT (Spec-2)
+// ============================================
+
+model Call {
+  id                  String           @id @default(uuid())
+  clientId            String
+  caseManagerId       String
+  formIds             String[]         // Forms selected for this call
+  status              CallStatus       @default(INITIATING)
+  startedAt           DateTime
+  endedAt             DateTime?
+  durationSeconds     Int?
+
+  // Recording
+  twilioCallSid       String?          @unique
+  recordingUrl        String?          // S3 URL
+  recordingRetention  DateTime?        // When to delete based on org policy
+
+  // Transcript
+  transcriptRaw       String?          @db.Text
+  transcriptJson      Json?            // Array of TranscriptSegment
+
+  // AI Processing
+  aiSummary           Json?            // CallSummary structure
+  extractedFields     Json?            // Field slug -> value
+  confidenceScores    Json?            // Field slug -> ExtractionConfidence
+  manualCorrections   Json?            // Array of FieldCorrection
+
+  // Queue for retry
+  aiProcessingStatus  ProcessingStatus @default(PENDING)
+  aiProcessingError   String?
+  aiProcessingRetries Int              @default(0)
+
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
+
+  // Relations
+  client              Client           @relation(fields: [clientId], references: [id])
+  caseManager         User             @relation(fields: [caseManagerId], references: [id])
+  notes               Note[]
+  formSubmissions     FormSubmission[]
+
+  @@index([clientId])
+  @@index([caseManagerId])
+  @@index([status])
+  @@index([aiProcessingStatus])
+}
+
+// ============================================
+// NOTES (Spec-2)
+// ============================================
+
+model Note {
+  id        String    @id @default(uuid())
+  clientId  String
+  callId    String?   // Optional link to call
+  authorId  String
+  type      NoteType  @default(INTERNAL)
+  content   String    @db.Text // Rich text HTML, max 10000 chars
+  tags      String[]  // Flexible tagging
+  isDraft   Boolean   @default(false)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime? // Soft delete
+
+  // Relations
+  client    Client    @relation(fields: [clientId], references: [id])
+  call      Call?     @relation(fields: [callId], references: [id])
+  author    User      @relation(fields: [authorId], references: [id])
+
+  @@index([clientId])
+  @@index([callId])
+  @@index([authorId])
+}
+
+// ============================================
+// TWILIO PHONE NUMBERS (Spec-2)
+// ============================================
+
+model TwilioNumber {
+  id            String   @id @default(uuid())
+  userId        String   @unique
+  phoneNumber   String   @unique // E.164 format
+  twilioSid     String   @unique
+  areaCode      String   // For org preference tracking
+  provisionedAt DateTime @default(now())
+
+  // Relations
+  user          User     @relation(fields: [userId], references: [id])
+}
+
+// ============================================
+// FORM EDIT LOGS (Spec-2)
+// ============================================
+
+model FormEditLog {
+  id            String   @id @default(uuid())
+  submissionId  String
+  fieldId       String
+  previousValue Json?
+  newValue      Json?
+  editedBy      String
+  editedAt      DateTime @default(now())
+  editReason    String?
+
+  // Relations
+  submission    FormSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  editor        User           @relation(fields: [editedBy], references: [id])
+
+  @@index([submissionId])
+  @@index([editedBy])
+}
+
+// ============================================
+// RESOURCE LOCKING (Spec-2)
+// ============================================
+
+model ResourceLock {
+  id           String   @id @default(uuid())
+  resourceType String   // 'form_submission', 'client', etc.
+  resourceId   String
+  lockedBy     String   // User ID
+  lockedAt     DateTime @default(now())
+  expiresAt    DateTime // Auto-expire after 5 minutes of inactivity
+
+  @@unique([resourceType, resourceId])
+  @@index([expiresAt])
+}
