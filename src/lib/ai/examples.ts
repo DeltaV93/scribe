@@ -1,10 +1,9 @@
 import { prisma } from "@/lib/db";
-import { openai } from "./client";
 import type { ExtractionExample } from "./types";
 
-// Embedding model configuration
-const EMBEDDING_MODEL = "text-embedding-3-small";
-const EMBEDDING_DIMENSION = 1536;
+// Embedding model configuration (disabled until OpenAI or alternative embedding service is configured)
+// const EMBEDDING_MODEL = "text-embedding-3-small";
+// const EMBEDDING_DIMENSION = 1536;
 
 /**
  * Check if pgvector is available
@@ -19,16 +18,19 @@ export async function isPgvectorAvailable(): Promise<boolean> {
 }
 
 /**
- * Generate embedding for a text snippet using OpenAI
+ * Generate embedding for a text snippet
+ * NOTE: Embeddings are disabled until an embedding service (OpenAI, Voyage, etc.) is configured
+ * This function is a placeholder that returns null to skip vector similarity search
  */
-export async function generateEmbedding(text: string): Promise<number[]> {
-  const response = await openai.embeddings.create({
-    model: EMBEDDING_MODEL,
-    input: text.trim(),
-    dimensions: EMBEDDING_DIMENSION,
-  });
-
-  return response.data[0].embedding;
+export async function generateEmbedding(_text: string): Promise<number[] | null> {
+  // TODO: Configure an embedding service (OpenAI, Voyage AI, or similar)
+  // const response = await openai.embeddings.create({
+  //   model: EMBEDDING_MODEL,
+  //   input: text.trim(),
+  //   dimensions: EMBEDDING_DIMENSION,
+  // });
+  // return response.data[0].embedding;
+  return null;
 }
 
 /**
@@ -51,6 +53,10 @@ export async function findSimilarExamples(
   try {
     // Generate embedding for the input
     const embedding = await generateEmbedding(transcriptSnippet);
+    if (!embedding) {
+      // Embeddings not configured, fall back to basic search
+      return findExamplesBasic(fieldIds, limit);
+    }
     const embeddingStr = `[${embedding.join(",")}]`;
 
     // Perform cosine similarity search
@@ -223,6 +229,9 @@ async function generateAndStoreEmbedding(
 
   try {
     const embedding = await generateEmbedding(text);
+    if (!embedding) {
+      return; // Embeddings not configured
+    }
     const embeddingStr = `[${embedding.join(",")}]`;
 
     await prisma.$executeRaw`
