@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/db";
 import { z } from "zod";
+import { Prisma } from "@prisma/client";
 
 /**
  * GET /api/templates
@@ -41,7 +42,7 @@ export async function GET(request: NextRequest) {
     const systemOnly = searchParams.get("systemOnly") === "true";
 
     // Build query
-    const whereClause: Parameters<typeof prisma.formTemplate.findMany>[0]["where"] = {
+    const whereClause: Prisma.FormTemplateWhereInput = {
       OR: [
         { isSystemTemplate: true },
         { orgId: user.orgId },

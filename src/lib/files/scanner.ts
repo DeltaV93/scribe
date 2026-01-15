@@ -256,7 +256,7 @@ export async function scanWithExternalAPI(content: Buffer): Promise<ScanResult> 
 
     // If not known, submit for scanning
     const formData = new FormData();
-    const blob = new Blob([content]);
+    const blob = new Blob([new Uint8Array(content)]);
     formData.append("file", blob, "upload");
 
     const scanResponse = await fetch(`${url}/scan`, {
