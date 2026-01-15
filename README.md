@@ -113,6 +113,35 @@ See `.env.example` for all required environment variables. Key services:
 - **Stripe**: Payment processing
 - **Radar**: Address autocomplete
 
+## Deployment (Railway)
+
+1. **Create a new project on [Railway](https://railway.app)**
+
+2. **Add a PostgreSQL database**
+   - Click "New" → "Database" → "PostgreSQL"
+   - Copy the `DATABASE_URL` from the database settings
+
+3. **Deploy the app**
+   - Connect your GitHub repository, or
+   - Use Railway CLI: `railway up`
+
+4. **Set environment variables**
+   In your Railway project settings, add all variables from `.env.example`:
+   - `DATABASE_URL` (from Railway PostgreSQL)
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+   - `SUPABASE_SERVICE_KEY`
+   - `NEXT_PUBLIC_APP_URL` (your Railway domain)
+   - `ANTHROPIC_API_KEY`
+   - `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_PHONE_NUMBER`
+   - `DEEPGRAM_API_KEY`
+   - `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`
+   - Stripe product IDs
+   - `NEXT_PUBLIC_RADAR_KEY`, `RADAR_SECRET_KEY`
+
+5. **Generate a domain**
+   - Go to Settings → Networking → Generate Domain
+
 ## License
 
 Private - All rights reserved
