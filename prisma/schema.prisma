@@ -2,14 +2,15 @@
 // Version 2.0 - January 2026
 
 generator client {
-  provider = "prisma-client-js"
-  // previewFeatures = ["postgresqlExtensions"]  // Uncomment when pgvector is available
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-  // extensions = [pgvector(map: "vector")]  // Requires pgvector extension on PostgreSQL
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  directUrl  = env("DIRECT_URL")
+  extensions = [pgvector(map: "vector", schema: "public")]
 }
 
 // ============================================
@@ -365,13 +366,13 @@ model FormAccess {
 // ============================================
 
 model ExtractionExample {
-  id                String   @id @default(uuid())
+  id                String                         @id @default(uuid())
   fieldId           String
-  transcriptSnippet String   @db.Text
+  transcriptSnippet String                         @db.Text
   extractedValue    String
-  // embedding         Unsupported("vector(1536)")?  // Requires pgvector extension
+  embedding         Unsupported("vector(1536)")?   // OpenAI text-embedding-3-small dimension
   createdById       String
-  createdAt         DateTime @default(now())
+  createdAt         DateTime                       @default(now())
 
   // Relations
   field FormField @relation(fields: [fieldId], references: [id], onDelete: Cascade)

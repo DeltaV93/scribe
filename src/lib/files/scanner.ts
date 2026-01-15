@@ -1,15 +1,14 @@
 import crypto from "crypto";
+import net from "net";
 import type { ScanResult, ScanStatus } from "./types";
 
 /**
- * Virus scanning service interface
+ * Virus scanning service with ClamAV integration
  *
- * This module provides a pluggable interface for virus scanning.
- * In production, you would integrate with services like:
- * - ClamAV (self-hosted)
- * - VirusTotal API
- * - AWS S3 Malware Scanning
- * - Cloudflare R2 with Workers
+ * Supports multiple scanning backends:
+ * 1. ClamAV via clamd socket (recommended for HIPAA compliance)
+ * 2. External API service (VirusTotal, etc.)
+ * 3. Fallback pattern-based scanning
  */
 
 // Scan configuration
@@ -20,10 +19,30 @@ export const SCAN_CONFIG = {
   timeoutMs: 60000, // 1 minute
   // Whether to quarantine infected files
   quarantineInfected: true,
+  // ClamAV configuration
+  clamav: {
+    host: process.env.CLAMAV_HOST || "localhost",
+    port: parseInt(process.env.CLAMAV_PORT || "3310", 10),
+    timeout: 30000, // 30 seconds
+  },
+  // External scanner API configuration
+  externalApi: {
+    url: process.env.SCANNER_API_URL,
+    apiKey: process.env.SCANNER_API_KEY,
+  },
 };
 
-// Known malicious signatures (simplified example)
-// In production, this would be replaced by actual AV engine
+// Check if ClamAV is configured
+export function isClamAVConfigured(): boolean {
+  return !!process.env.CLAMAV_HOST;
+}
+
+// Check if external scanner is configured
+export function isExternalScannerConfigured(): boolean {
+  return !!process.env.SCANNER_API_URL && !!process.env.SCANNER_API_KEY;
+}
+
+// Known malicious signatures (fallback pattern matching)
 const MALICIOUS_SIGNATURES = [
   "X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*", // EICAR test file
 ];
@@ -95,21 +114,194 @@ export function verifyFileSignature(
 }
 
 /**
- * Scan file content for malware
- *
- * In a production environment, this would integrate with a proper AV service.
- * This implementation provides basic pattern matching as a placeholder.
+ * Scan file using ClamAV via clamd socket
+ * Uses the INSTREAM command for in-memory scanning
  */
-export async function scanFile(content: Buffer): Promise<ScanResult> {
-  const startTime = Date.now();
+export async function scanWithClamAV(content: Buffer): Promise<ScanResult> {
+  return new Promise((resolve) => {
+    const { host, port, timeout } = SCAN_CONFIG.clamav;
+    const socket = new net.Socket();
+    let response = "";
 
+    const timeoutId = setTimeout(() => {
+      socket.destroy();
+      resolve({
+        status: "ERROR",
+        scannedAt: new Date(),
+        error: "ClamAV scan timeout",
+        scannerVersion: "clamav",
+      });
+    }, timeout);
+
+    socket.connect(port, host, () => {
+      // Send INSTREAM command for in-memory scanning
+      socket.write("zINSTREAM\0");
+
+      // Send file content in chunks
+      // ClamAV expects: chunk_size (4 bytes, big-endian) + chunk_data
+      const chunkSize = 2048;
+      let offset = 0;
+
+      while (offset < content.length) {
+        const chunk = content.slice(offset, offset + chunkSize);
+        const sizeBuffer = Buffer.alloc(4);
+        sizeBuffer.writeUInt32BE(chunk.length, 0);
+        socket.write(sizeBuffer);
+        socket.write(chunk);
+        offset += chunkSize;
+      }
+
+      // Send terminating zero-length chunk
+      const endBuffer = Buffer.alloc(4);
+      endBuffer.writeUInt32BE(0, 0);
+      socket.write(endBuffer);
+    });
+
+    socket.on("data", (data) => {
+      response += data.toString();
+    });
+
+    socket.on("end", () => {
+      clearTimeout(timeoutId);
+
+      // Parse ClamAV response
+      // Format: "stream: OK" or "stream: <virus_name> FOUND"
+      const cleanResponse = response.trim().replace(/\0/g, "");
+
+      if (cleanResponse.includes("OK")) {
+        resolve({
+          status: "CLEAN",
+          scannedAt: new Date(),
+          scannerVersion: "clamav",
+        });
+      } else if (cleanResponse.includes("FOUND")) {
+        // Extract virus name
+        const match = cleanResponse.match(/stream: (.+) FOUND/);
+        const virusName = match ? match[1] : "Unknown threat";
+        resolve({
+          status: "INFECTED",
+          threats: [virusName],
+          scannedAt: new Date(),
+          scannerVersion: "clamav",
+        });
+      } else if (cleanResponse.includes("ERROR")) {
+        resolve({
+          status: "ERROR",
+          scannedAt: new Date(),
+          error: cleanResponse,
+          scannerVersion: "clamav",
+        });
+      } else {
+        resolve({
+          status: "ERROR",
+          scannedAt: new Date(),
+          error: `Unexpected ClamAV response: ${cleanResponse}`,
+          scannerVersion: "clamav",
+        });
+      }
+    });
+
+    socket.on("error", (err) => {
+      clearTimeout(timeoutId);
+      console.error("ClamAV connection error:", err);
+      resolve({
+        status: "ERROR",
+        scannedAt: new Date(),
+        error: `ClamAV connection failed: ${err.message}`,
+        scannerVersion: "clamav",
+      });
+    });
+  });
+}
+
+/**
+ * Scan file using external API service
+ * Supports VirusTotal-compatible REST APIs
+ */
+export async function scanWithExternalAPI(content: Buffer): Promise<ScanResult> {
+  const { url, apiKey } = SCAN_CONFIG.externalApi;
+
+  if (!url || !apiKey) {
+    return {
+      status: "ERROR",
+      scannedAt: new Date(),
+      error: "External scanner not configured",
+    };
+  }
+
+  try {
+    // Calculate file hash for lookup
+    const fileHash = calculateFileHash(content, "sha256");
+
+    // First, check if file hash is already known
+    const hashCheckResponse = await fetch(`${url}/file/${fileHash}`, {
+      method: "GET",
+      headers: {
+        "Authorization": `Bearer ${apiKey}`,
+        "Accept": "application/json",
+      },
+    });
+
+    if (hashCheckResponse.ok) {
+      const result = await hashCheckResponse.json();
+      if (result.known) {
+        return {
+          status: result.malicious ? "INFECTED" : "CLEAN",
+          threats: result.threats,
+          scannedAt: new Date(),
+          scannerVersion: "external-api",
+        };
+      }
+    }
+
+    // If not known, submit for scanning
+    const formData = new FormData();
+    const blob = new Blob([content]);
+    formData.append("file", blob, "upload");
+
+    const scanResponse = await fetch(`${url}/scan`, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${apiKey}`,
+      },
+      body: formData,
+    });
+
+    if (!scanResponse.ok) {
+      throw new Error(`Scanner API returned ${scanResponse.status}`);
+    }
+
+    const scanResult = await scanResponse.json();
+
+    return {
+      status: scanResult.malicious ? "INFECTED" : "CLEAN",
+      threats: scanResult.threats,
+      scannedAt: new Date(),
+      scannerVersion: "external-api",
+    };
+  } catch (error) {
+    console.error("External scanner error:", error);
+    return {
+      status: "ERROR",
+      scannedAt: new Date(),
+      error: error instanceof Error ? error.message : "External scan failed",
+      scannerVersion: "external-api",
+    };
+  }
+}
+
+/**
+ * Fallback pattern-based scanning
+ * Used when ClamAV and external API are unavailable
+ */
+export function scanWithPatterns(content: Buffer): ScanResult {
   try {
     // Check file size
     if (content.length > SCAN_CONFIG.maxScanSizeBytes) {
       return {
         status: "CLEAN",
         scannedAt: new Date(),
-        scannerVersion: "basic-1.0",
+        scannerVersion: "pattern-1.0",
       };
     }
 
@@ -146,16 +338,49 @@ export async function scanFile(content: Buffer): Promise<ScanResult> {
       status,
       threats: threats.length > 0 ? threats : undefined,
       scannedAt: new Date(),
-      scannerVersion: "basic-1.0",
+      scannerVersion: "pattern-1.0",
     };
   } catch (error) {
-    console.error("Scan error:", error);
+    console.error("Pattern scan error:", error);
     return {
       status: "ERROR",
       scannedAt: new Date(),
-      error: error instanceof Error ? error.message : "Scan failed",
+      error: error instanceof Error ? error.message : "Pattern scan failed",
     };
   }
+}
+
+/**
+ * Scan file content for malware
+ *
+ * Tries scanners in order of preference:
+ * 1. ClamAV (if configured) - recommended for HIPAA
+ * 2. External API (if configured)
+ * 3. Pattern-based fallback
+ */
+export async function scanFile(content: Buffer): Promise<ScanResult> {
+  // Try ClamAV first (preferred for HIPAA compliance)
+  if (isClamAVConfigured()) {
+    const result = await scanWithClamAV(content);
+    // If ClamAV worked (not an error), return its result
+    if (result.status !== "ERROR") {
+      return result;
+    }
+    console.warn("ClamAV scan failed, trying fallback:", result.error);
+  }
+
+  // Try external API
+  if (isExternalScannerConfigured()) {
+    const result = await scanWithExternalAPI(content);
+    if (result.status !== "ERROR") {
+      return result;
+    }
+    console.warn("External scanner failed, trying fallback:", result.error);
+  }
+
+  // Fall back to pattern-based scanning
+  console.warn("Using pattern-based scanning (ClamAV recommended for production)");
+  return scanWithPatterns(content);
 }
 
 /**
@@ -177,6 +402,88 @@ export async function quickHashScan(
   }
 
   return { clean: true };
+}
+
+/**
+ * Check ClamAV connectivity and version
+ * Useful for health checks
+ */
+export async function checkClamAVHealth(): Promise<{
+  connected: boolean;
+  version?: string;
+  error?: string;
+}> {
+  if (!isClamAVConfigured()) {
+    return { connected: false, error: "ClamAV not configured" };
+  }
+
+  return new Promise((resolve) => {
+    const { host, port, timeout } = SCAN_CONFIG.clamav;
+    const socket = new net.Socket();
+    let response = "";
+
+    const timeoutId = setTimeout(() => {
+      socket.destroy();
+      resolve({ connected: false, error: "Connection timeout" });
+    }, timeout);
+
+    socket.connect(port, host, () => {
+      // Send VERSION command
+      socket.write("zVERSION\0");
+    });
+
+    socket.on("data", (data) => {
+      response += data.toString();
+    });
+
+    socket.on("end", () => {
+      clearTimeout(timeoutId);
+      const version = response.trim().replace(/\0/g, "");
+      resolve({ connected: true, version });
+    });
+
+    socket.on("error", (err) => {
+      clearTimeout(timeoutId);
+      resolve({ connected: false, error: err.message });
+    });
+  });
+}
+
+/**
+ * Get scanner status for health checks
+ */
+export async function getScannerStatus(): Promise<{
+  available: boolean;
+  scanner: "clamav" | "external-api" | "pattern" | "none";
+  details?: string;
+}> {
+  // Check ClamAV
+  if (isClamAVConfigured()) {
+    const health = await checkClamAVHealth();
+    if (health.connected) {
+      return {
+        available: true,
+        scanner: "clamav",
+        details: health.version,
+      };
+    }
+  }
+
+  // Check external API
+  if (isExternalScannerConfigured()) {
+    return {
+      available: true,
+      scanner: "external-api",
+      details: SCAN_CONFIG.externalApi.url,
+    };
+  }
+
+  // Pattern fallback is always available
+  return {
+    available: true,
+    scanner: "pattern",
+    details: "Basic pattern matching (not recommended for production)",
+  };
 }
 
 /**
