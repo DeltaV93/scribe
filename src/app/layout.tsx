@@ -6,6 +6,15 @@ import { ThemeProvider } from "@/components/providers/theme-provider";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
+function getMetadataBaseUrl(): URL {
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  // Add https:// if no protocol is specified
+  if (!appUrl.startsWith("http://") && !appUrl.startsWith("https://")) {
+    return new URL(`https://${appUrl}`);
+  }
+  return new URL(appUrl);
+}
+
 export const metadata: Metadata = {
   title: {
     default: "Scrybe",
@@ -22,9 +31,7 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: "Scrybe Solutions" }],
   creator: "Scrybe Solutions",
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
-  ),
+  metadataBase: getMetadataBaseUrl(),
   openGraph: {
     type: "website",
     locale: "en_US",

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { CallControls } from "./call-controls";
 import { CallTimer } from "./call-timer";
@@ -9,7 +9,8 @@ import { CallNotesPanel } from "./call-notes-panel";
 import { ConversationGuide } from "./conversation-guide";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Loader2, Phone, User } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Loader2, Phone, User, Lock, AlertTriangle } from "lucide-react";
 import { CallStatus } from "@prisma/client";
 import { toast } from "sonner";
 
@@ -68,6 +69,162 @@ export function CallInterface({
   const [startTime, setStartTime] = useState<Date | null>(null);
   const [isEndingCall, setIsEndingCall] = useState(false);
   const [isSavingNote, setIsSavingNote] = useState(false);
+  const [hasClientLock, setHasClientLock] = useState(false);
+  const [lockError, setLockError] = useState<string | null>(null);
+  const heartbeatRef = useRef<NodeJS.Timeout | null>(null);
+  const hasLockRef = useRef(false);
+
+  // Keep ref in sync with state
+  useEffect(() => {
+    hasLockRef.current = hasClientLock;
+  }, [hasClientLock]);
+
+  // Acquire client lock when call starts
+  const acquireClientLock = useCallback(async () => {
+    try {
+      const response = await fetch("/api/locks", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          resourceType: "client",
+          resourceId: client.id,
+          expirationMs: 600000, // 10 minutes for calls
+        }),
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        setHasClientLock(true);
+        setLockError(null);
+        return true;
+      } else {
+        setLockError(data.error?.message || "Failed to acquire lock");
+        return false;
+      }
+    } catch (error) {
+      setLockError("Failed to acquire client lock");
+      return false;
+    }
+  }, [client.id]);
+
+  // Release client lock
+  const releaseClientLock = useCallback(async () => {
+    if (!hasLockRef.current) return;
+
+    try {
+      await fetch("/api/locks", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          resourceType: "client",
+          resourceId: client.id,
+        }),
+      });
+      setHasClientLock(false);
+    } catch (error) {
+      console.error("Error releasing client lock:", error);
+    }
+  }, [client.id]);
+
+  // Start heartbeat to extend lock
+  const startLockHeartbeat = useCallback(() => {
+    if (heartbeatRef.current) {
+      clearInterval(heartbeatRef.current);
+    }
+
+    heartbeatRef.current = setInterval(async () => {
+      if (!hasLockRef.current) return;
+
+      try {
+        await fetch("/api/locks", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            resourceType: "client",
+            resourceId: client.id,
+            expirationMs: 600000,
+          }),
+        });
+      } catch (error) {
+        console.error("Error extending lock:", error);
+      }
+    }, 120000); // Extend every 2 minutes
+  }, [client.id]);
+
+  const stopLockHeartbeat = useCallback(() => {
+    if (heartbeatRef.current) {
+      clearInterval(heartbeatRef.current);
+      heartbeatRef.current = null;
+    }
+  }, []);
+
+  // Acquire lock when call becomes active
+  useEffect(() => {
+    const activeStatuses: CallStatus[] = [
+      CallStatus.INITIATING,
+      CallStatus.RINGING,
+      CallStatus.IN_PROGRESS,
+    ];
+
+    if (activeStatuses.includes(status) && !hasClientLock) {
+      acquireClientLock().then((success) => {
+        if (success) {
+          startLockHeartbeat();
+        }
+      });
+    }
+
+    // Release lock when call ends
+    const endedStatuses: CallStatus[] = [
+      CallStatus.COMPLETED,
+      CallStatus.FAILED,
+      CallStatus.ABANDONED,
+    ];
+
+    if (endedStatuses.includes(status)) {
+      stopLockHeartbeat();
+      releaseClientLock();
+    }
+  }, [status, hasClientLock, acquireClientLock, startLockHeartbeat, stopLockHeartbeat, releaseClientLock]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      stopLockHeartbeat();
+      if (hasLockRef.current) {
+        // Fire and forget release on unmount
+        fetch("/api/locks", {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            resourceType: "client",
+            resourceId: client.id,
+          }),
+        }).catch(() => {});
+      }
+    };
+  }, [client.id, stopLockHeartbeat]);
+
+  // Handle page unload - release lock via beacon
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      if (hasLockRef.current) {
+        const data = JSON.stringify({
+          resourceType: "client",
+          resourceId: client.id,
+        });
+        navigator.sendBeacon?.(
+          "/api/locks/release-beacon",
+          new Blob([data], { type: "application/json" })
+        );
+      }
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [client.id]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -159,6 +316,10 @@ export function CallInterface({
         throw new Error("Failed to end call");
       }
 
+      // Release the client lock
+      stopLockHeartbeat();
+      await releaseClientLock();
+
       setStatus(CallStatus.COMPLETED);
       toast.success("Call ended");
 
@@ -221,6 +382,17 @@ export function CallInterface({
 
   return (
     <div className="h-full flex flex-col">
+      {/* Lock Error Banner */}
+      {lockError && (
+        <Alert variant="destructive" className="m-4 mb-0">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>Lock Warning</AlertTitle>
+          <AlertDescription>
+            {lockError}. Another case manager may be working with this client.
+          </AlertDescription>
+        </Alert>
+      )}
+
       {/* Header */}
       <div className="border-b p-4">
         <div className="flex items-center justify-between">
@@ -234,6 +406,12 @@ export function CallInterface({
               </h2>
               <p className="text-sm text-muted-foreground">{client.phone}</p>
             </div>
+            {hasClientLock && (
+              <div className="flex items-center gap-1 text-xs text-green-600 bg-green-50 px-2 py-1 rounded">
+                <Lock className="h-3 w-3" />
+                <span>Exclusive access</span>
+              </div>
+            )}
           </div>
           <div className="flex items-center gap-4">
             <CallStatusBadge status={status} />

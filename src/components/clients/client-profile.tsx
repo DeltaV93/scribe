@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
@@ -24,9 +24,12 @@ import {
   Clock,
   User,
   Loader2,
+  AlertTriangle,
 } from "lucide-react";
 import { formatDistanceToNow, format } from "date-fns";
 import { FormSelectionModal } from "@/components/calls/form-selection-modal";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { toast } from "sonner";
 
 interface ClientAddress {
   street: string;
@@ -108,6 +111,43 @@ export function ClientProfile({ clientId }: ClientProfileProps) {
   const [activeTab, setActiveTab] = useState("overview");
   const [showCallModal, setShowCallModal] = useState(false);
   const [isInitiatingCall, setIsInitiatingCall] = useState(false);
+  const [clientLock, setClientLock] = useState<{
+    locked: boolean;
+    lockedBy?: string;
+    isOwnLock?: boolean;
+  } | null>(null);
+  const [isCheckingLock, setIsCheckingLock] = useState(false);
+
+  // Check if client is locked before showing call modal
+  const checkClientLock = useCallback(async () => {
+    setIsCheckingLock(true);
+    try {
+      const params = new URLSearchParams({
+        resourceType: "client",
+        resourceId: clientId,
+      });
+      const response = await fetch(`/api/locks?${params}`);
+      if (response.ok) {
+        const data = await response.json();
+        setClientLock(data.data);
+        return data.data;
+      }
+    } catch (error) {
+      console.error("Error checking lock:", error);
+    } finally {
+      setIsCheckingLock(false);
+    }
+    return null;
+  }, [clientId]);
+
+  const handleCallClick = async () => {
+    const lockStatus = await checkClientLock();
+    if (lockStatus?.locked && !lockStatus?.isOwnLock) {
+      toast.error(`${lockStatus.lockedBy || "Another user"} is currently on a call with this client`);
+      return;
+    }
+    setShowCallModal(true);
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -216,8 +256,12 @@ export function ClientProfile({ clientId }: ClientProfileProps) {
             <Edit className="mr-2 h-4 w-4" />
             Edit
           </Button>
-          <Button onClick={() => setShowCallModal(true)}>
-            <PhoneCall className="mr-2 h-4 w-4" />
+          <Button onClick={handleCallClick} disabled={isCheckingLock}>
+            {isCheckingLock ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <PhoneCall className="mr-2 h-4 w-4" />
+            )}
             Call
           </Button>
         </div>
