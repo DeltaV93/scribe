@@ -1,6 +1,6 @@
 [build]
 builder = "nixpacks"
-buildCommand = "npm run db:generate && npm run build && cp -r .next/static .next/standalone/.next/ && cp -r public .next/standalone/"
+buildCommand = "npm run db:generate && npm run build && cp -r .next/static .next/standalone/.next/ && if [ -d public ]; then cp -r public .next/standalone/; fi"
 
 [build.nixpacks]
 nixPkgs = ["nodejs_20", "npm-10_x", "openssl"]
