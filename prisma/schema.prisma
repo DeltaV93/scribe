@@ -3,14 +3,12 @@
 
 generator client {
   provider        = "prisma-client-js"
-  previewFeatures = ["postgresqlExtensions"]
 }
 
 datasource db {
   provider   = "postgresql"
   url        = env("DATABASE_URL")
   directUrl  = env("DIRECT_URL")
-  extensions = [pgvector(map: "vector", schema: "public")]
 }
 
 // ============================================
@@ -370,7 +368,7 @@ model ExtractionExample {
   fieldId           String
   transcriptSnippet String                         @db.Text
   extractedValue    String
-  embedding         Unsupported("vector(1536)")?   // OpenAI text-embedding-3-small dimension
+  // embedding      Unsupported("vector(1536)")?   // TODO: Re-enable when pgvector is installed
   createdById       String
   createdAt         DateTime                       @default(now())
 
