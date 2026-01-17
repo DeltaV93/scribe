@@ -77,6 +77,11 @@ export async function middleware(request: NextRequest) {
     }
   }
 
+  // Skip middleware for health check
+  if (pathname === "/api/healthz") {
+    return NextResponse.next();
+  }
+
   // API route protection will be handled by individual routes
   if (pathname.startsWith("/api")) {
     return supabaseResponse;
