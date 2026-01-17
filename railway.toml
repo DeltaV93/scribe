@@ -1,12 +1,12 @@
 [build]
 builder = "nixpacks"
-buildCommand = "npm run db:generate && npm run build && cp -r .next/static .next/standalone/.next/ && if [ -d public ]; then cp -r public .next/standalone/; fi"
+buildCommand = "npm run db:generate && npm run build"
 
 [build.nixpacks]
 nixPkgs = ["nodejs_20", "npm-10_x", "openssl"]
 
 [deploy]
-startCommand = "cd .next/standalone && node server.js"
+startCommand = "npm run start"
 healthcheckPath = "/api/healthz"
 healthcheckTimeout = 300
 restartPolicyType = "on_failure"
