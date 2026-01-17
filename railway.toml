@@ -6,6 +6,6 @@ buildCommand = "npm run db:generate && npx prisma db push && npm run build"
 nixPkgs = ["nodejs_20", "npm-10_x", "openssl"]
 
 [deploy]
-startCommand = "npm run start -- -p ${PORT:-3000}"
+startCommand = "npm run start -- -H 0.0.0.0 -p ${PORT:-3000}"
 restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 3
