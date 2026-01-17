@@ -1,6 +1,6 @@
 [build]
 builder = "nixpacks"
-buildCommand = "npm run db:generate && npm run build"
+buildCommand = "npm run db:generate && npx prisma db push && npm run build"
 
 [build.nixpacks]
 nixPkgs = ["nodejs_20", "npm-10_x", "openssl"]
