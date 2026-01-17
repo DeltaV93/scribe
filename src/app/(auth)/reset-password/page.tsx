@@ -1,10 +1,9 @@
 "use client";
 
-import { useActionState } from "react";
+import { useFormState } from "react-dom";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { resetPassword, type AuthState } from "@/lib/auth/actions";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -15,16 +14,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
+import { SubmitButton } from "@/components/ui/submit-button";
+import { AlertCircle, CheckCircle2 } from "lucide-react";
 import { useEffect } from "react";
 
 export default function ResetPasswordPage() {
   const router = useRouter();
   const initialState: AuthState = {};
-  const [state, formAction, isPending] = useActionState(
-    resetPassword,
-    initialState
-  );
+  const [state, formAction] = useFormState(resetPassword, initialState);
 
   // Redirect to login after successful password reset
   useEffect(() => {
@@ -74,7 +71,7 @@ export default function ResetPasswordPage() {
               placeholder="Enter your new password"
               autoComplete="new-password"
               required
-              disabled={isPending || !!state.success}
+              disabled={!!state.success}
             />
             <p className="text-xs text-muted-foreground">
               Must be at least 8 characters with uppercase, lowercase, and number
@@ -82,22 +79,13 @@ export default function ResetPasswordPage() {
           </div>
         </CardContent>
         <CardFooter className="flex flex-col space-y-4">
-          <Button
-            type="submit"
+          <SubmitButton
             className="w-full"
-            disabled={isPending || !!state.success}
+            pendingText="Updating password..."
+            disabled={!!state.success}
           >
-            {isPending ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Updating password...
-              </>
-            ) : state.success ? (
-              "Password updated"
-            ) : (
-              "Update password"
-            )}
-          </Button>
+            {state.success ? "Password updated" : "Update password"}
+          </SubmitButton>
           <Link
             href="/login"
             className="text-sm text-muted-foreground hover:text-foreground text-center"

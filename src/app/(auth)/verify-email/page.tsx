@@ -1,11 +1,10 @@
 "use client";
 
 import { Suspense } from "react";
-import { useActionState } from "react";
+import { useFormState } from "react-dom";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { resendVerificationEmail, type AuthState } from "@/lib/auth/actions";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -16,16 +15,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { AlertCircle, CheckCircle2, Loader2, Mail } from "lucide-react";
 
 function VerifyEmailForm() {
   const searchParams = useSearchParams();
   const email = searchParams.get("email") || "";
   const initialState: AuthState = {};
-  const [state, formAction, isPending] = useActionState(
-    resendVerificationEmail,
-    initialState
-  );
+  const [state, formAction] = useFormState(resendVerificationEmail, initialState);
 
   return (
     <Card className="w-full max-w-md">
@@ -72,7 +69,6 @@ function VerifyEmailForm() {
                 placeholder="you@example.com"
                 autoComplete="email"
                 required
-                disabled={isPending}
               />
             </div>
           )}
@@ -82,21 +78,13 @@ function VerifyEmailForm() {
           </div>
         </CardContent>
         <CardFooter className="flex flex-col space-y-4">
-          <Button
-            type="submit"
+          <SubmitButton
             variant="outline"
             className="w-full"
-            disabled={isPending}
+            pendingText="Resending..."
           >
-            {isPending ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Resending...
-              </>
-            ) : (
-              "Resend verification email"
-            )}
-          </Button>
+            Resend verification email
+          </SubmitButton>
           <Link
             href="/login"
             className="text-sm text-muted-foreground hover:text-foreground text-center"

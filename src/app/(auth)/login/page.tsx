@@ -1,11 +1,10 @@
 "use client";
 
 import { Suspense } from "react";
-import { useActionState } from "react";
+import { useFormState } from "react-dom";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { signIn, type AuthState } from "@/lib/auth/actions";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -16,14 +15,16 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 function LoginForm() {
   const searchParams = useSearchParams();
   const verified = searchParams.get("verified");
   const initialState: AuthState = {};
 
-  const [state, formAction, isPending] = useActionState(signIn, initialState);
+  const [state, formAction] = useFormState(signIn, initialState);
 
   return (
     <Card className="w-full max-w-md">
@@ -63,7 +64,6 @@ function LoginForm() {
               placeholder="you@example.com"
               autoComplete="email"
               required
-              disabled={isPending}
             />
           </div>
 
@@ -87,21 +87,13 @@ function LoginForm() {
               placeholder="Enter your password"
               autoComplete="current-password"
               required
-              disabled={isPending}
             />
           </div>
         </CardContent>
         <CardFooter className="flex flex-col space-y-4">
-          <Button type="submit" className="w-full" disabled={isPending}>
-            {isPending ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Signing in...
-              </>
-            ) : (
-              "Sign in"
-            )}
-          </Button>
+          <SubmitButton className="w-full" pendingText="Signing in...">
+            Sign in
+          </SubmitButton>
           <p className="text-sm text-muted-foreground text-center">
             Don&apos;t have an account?{" "}
             <Link href="/signup" className="text-primary hover:underline">

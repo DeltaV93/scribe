@@ -1,9 +1,8 @@
 "use client";
 
-import { useActionState } from "react";
+import { useFormState } from "react-dom";
 import Link from "next/link";
 import { signUp, type AuthState } from "@/lib/auth/actions";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -14,11 +13,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
+import { SubmitButton } from "@/components/ui/submit-button";
+import { AlertCircle, CheckCircle2 } from "lucide-react";
 
 export default function SignUpPage() {
   const initialState: AuthState = {};
-  const [state, formAction, isPending] = useActionState(signUp, initialState);
+  const [state, formAction] = useFormState(signUp, initialState);
 
   return (
     <Card className="w-full max-w-md">
@@ -58,7 +58,7 @@ export default function SignUpPage() {
               placeholder="John Smith"
               autoComplete="name"
               required
-              disabled={isPending || !!state.success}
+              disabled={!!state.success}
             />
           </div>
 
@@ -73,7 +73,7 @@ export default function SignUpPage() {
               type="text"
               placeholder="Community Services Inc."
               required
-              disabled={isPending || !!state.success}
+              disabled={!!state.success}
             />
             <p className="text-xs text-muted-foreground">
               This is the name of your organization or agency
@@ -92,7 +92,7 @@ export default function SignUpPage() {
               placeholder="you@organization.org"
               autoComplete="email"
               required
-              disabled={isPending || !!state.success}
+              disabled={!!state.success}
             />
           </div>
 
@@ -108,7 +108,7 @@ export default function SignUpPage() {
               placeholder="Create a strong password"
               autoComplete="new-password"
               required
-              disabled={isPending || !!state.success}
+              disabled={!!state.success}
             />
             <p className="text-xs text-muted-foreground">
               Must be at least 8 characters with uppercase, lowercase, and number
@@ -129,22 +129,13 @@ export default function SignUpPage() {
           </p>
         </CardContent>
         <CardFooter className="flex flex-col space-y-4">
-          <Button
-            type="submit"
+          <SubmitButton
             className="w-full"
-            disabled={isPending || !!state.success}
+            pendingText="Creating account..."
+            disabled={!!state.success}
           >
-            {isPending ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Creating account...
-              </>
-            ) : state.success ? (
-              "Check your email"
-            ) : (
-              "Create account"
-            )}
-          </Button>
+            {state.success ? "Check your email" : "Create account"}
+          </SubmitButton>
           <p className="text-sm text-muted-foreground text-center">
             Already have an account?{" "}
             <Link href="/login" className="text-primary hover:underline">
