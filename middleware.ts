@@ -32,13 +32,24 @@ const authRoutes = ["/login", "/signup"];
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  // Skip middleware for health check - no auth needed
+  if (pathname === "/api/healthz") {
+    return NextResponse.next();
+  }
+
   let supabaseResponse = NextResponse.next({
     request,
   });
 
+  // Check if Supabase env vars are set
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+    console.error("Missing Supabase environment variables");
+    return NextResponse.next();
+  }
+
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
     {
       cookies: {
         getAll() {
@@ -75,11 +86,6 @@ export async function middleware(request: NextRequest) {
     if (origin && !allowedOrigins.includes(origin)) {
       return new NextResponse("Forbidden", { status: 403 });
     }
-  }
-
-  // Skip middleware for health check
-  if (pathname === "/api/healthz") {
-    return NextResponse.next();
   }
 
   // API route protection will be handled by individual routes
