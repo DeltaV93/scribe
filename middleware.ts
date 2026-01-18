@@ -1,21 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-// Routes that don't require authentication
-const publicRoutes = [
-  "/",
-  "/login",
-  "/signup",
-  "/forgot-password",
-  "/reset-password",
-  "/verify-email",
-  "/auth/callback",
-  "/demo",
-  "/privacy",
-  "/terms",
-  "/contact",
-];
-
 // Routes that require authentication
 const protectedRoutes = [
   "/dashboard",
@@ -24,6 +9,7 @@ const protectedRoutes = [
   "/calls",
   "/settings",
   "/billing",
+  "/templates",
 ];
 
 // Auth routes - redirect to dashboard if already authenticated
@@ -32,20 +18,51 @@ const authRoutes = ["/login", "/signup"];
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Skip middleware for health check - no auth needed
-  if (pathname === "/api/healthz") {
+  // Skip middleware for API routes and health check
+  if (pathname.startsWith("/api")) {
+    return NextResponse.next();
+  }
+
+  // Skip middleware for public routes - let them through without auth check
+  const isPublicRoute = [
+    "/",
+    "/login",
+    "/signup",
+    "/forgot-password",
+    "/reset-password",
+    "/verify-email",
+    "/auth/callback",
+    "/demo",
+    "/privacy",
+    "/terms",
+    "/contact",
+  ].includes(pathname);
+
+  // Check if route is protected
+  const isProtectedRoute = protectedRoutes.some(
+    (route) => pathname === route || pathname.startsWith(`${route}/`)
+  );
+
+  // If not a protected route and not an auth route, just pass through
+  if (!isProtectedRoute && !authRoutes.includes(pathname)) {
+    return NextResponse.next();
+  }
+
+  // Check if Supabase env vars are set
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+    console.error("Missing Supabase environment variables");
+    // If no Supabase config, allow access to auth pages but block protected routes
+    if (isProtectedRoute) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/login";
+      return NextResponse.redirect(url);
+    }
     return NextResponse.next();
   }
 
   let supabaseResponse = NextResponse.next({
     request,
   });
-
-  // Check if Supabase env vars are set
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-    console.error("Missing Supabase environment variables");
-    return NextResponse.next();
-  }
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -70,36 +87,21 @@ export async function middleware(request: NextRequest) {
     }
   );
 
-  // Refresh session if expired - required for Server Components
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  // Origin validation for non-GET requests (CSRF protection)
-  if (request.method !== "GET") {
-    const origin = request.headers.get("origin");
-    const allowedOrigins = [
-      process.env.NEXT_PUBLIC_APP_URL,
-      "http://localhost:3000",
-    ].filter(Boolean);
-
-    if (origin && !allowedOrigins.includes(origin)) {
-      return new NextResponse("Forbidden", { status: 403 });
+  // Get user - wrap in try/catch to handle Supabase errors
+  let user = null;
+  try {
+    const { data } = await supabase.auth.getUser();
+    user = data.user;
+  } catch (error) {
+    console.error("Supabase auth error:", error);
+    // On error, allow access to public/auth routes, block protected
+    if (isProtectedRoute) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/login";
+      return NextResponse.redirect(url);
     }
+    return NextResponse.next();
   }
-
-  // API route protection will be handled by individual routes
-  if (pathname.startsWith("/api")) {
-    return supabaseResponse;
-  }
-
-  // Check if route is protected
-  const isProtectedRoute = protectedRoutes.some(
-    (route) => pathname === route || pathname.startsWith(`${route}/`)
-  );
-
-  // Check if route is an auth route
-  const isAuthRoute = authRoutes.some((route) => pathname === route);
 
   // Redirect unauthenticated users from protected routes to login
   if (isProtectedRoute && !user) {
@@ -110,7 +112,7 @@ export async function middleware(request: NextRequest) {
   }
 
   // Redirect authenticated users from auth routes to dashboard
-  if (isAuthRoute && user) {
+  if (authRoutes.includes(pathname) && user) {
     const url = request.nextUrl.clone();
     url.pathname = "/dashboard";
     return NextResponse.redirect(url);
