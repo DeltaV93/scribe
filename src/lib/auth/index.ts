@@ -9,49 +9,61 @@ import { UserRole } from "@/types";
  * Returns null if not authenticated
  */
 export async function getCurrentUser(): Promise<SessionUser | null> {
-  const supabase = await createClient();
+  try {
+    const supabase = await createClient();
 
-  const {
-    data: { user: authUser },
-  } = await supabase.auth.getUser();
+    const {
+      data: { user: authUser },
+      error: authError,
+    } = await supabase.auth.getUser();
 
-  if (!authUser) {
-    return null;
-  }
+    if (authError) {
+      console.error("Supabase auth error:", authError);
+      return null;
+    }
 
-  // Fetch user from database with organization
-  const user = await prisma.user.findUnique({
-    where: { supabaseUserId: authUser.id },
-    include: {
-      organization: {
-        select: {
-          id: true,
-          name: true,
+    if (!authUser) {
+      return null;
+    }
+
+    // Fetch user from database with organization
+    const user = await prisma.user.findUnique({
+      where: { supabaseUserId: authUser.id },
+      include: {
+        organization: {
+          select: {
+            id: true,
+            name: true,
+          },
         },
       },
-    },
-  });
+    });
 
-  if (!user) {
+    if (!user) {
+      console.error("User not found in database for supabaseUserId:", authUser.id);
+      return null;
+    }
+
+    return {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      avatarUrl: user.avatarUrl,
+      role: user.role as UserRole,
+      orgId: user.orgId,
+      orgName: user.organization.name,
+      permissions: {
+        canCreateForms: user.canCreateForms,
+        canReadForms: user.canReadForms,
+        canUpdateForms: user.canUpdateForms,
+        canDeleteForms: user.canDeleteForms,
+        canPublishForms: user.canPublishForms,
+      },
+    };
+  } catch (error) {
+    console.error("Error in getCurrentUser:", error);
     return null;
   }
-
-  return {
-    id: user.id,
-    email: user.email,
-    name: user.name,
-    avatarUrl: user.avatarUrl,
-    role: user.role as UserRole,
-    orgId: user.orgId,
-    orgName: user.organization.name,
-    permissions: {
-      canCreateForms: user.canCreateForms,
-      canReadForms: user.canReadForms,
-      canUpdateForms: user.canUpdateForms,
-      canDeleteForms: user.canDeleteForms,
-      canPublishForms: user.canPublishForms,
-    },
-  };
 }
 
 /**

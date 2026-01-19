@@ -1,5 +1,3 @@
-"use server";
-
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
 import { Sidebar } from "@/components/layout/sidebar";
@@ -9,7 +7,14 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const user = await getCurrentUser();
+  let user = null;
+
+  try {
+    user = await getCurrentUser();
+  } catch (error) {
+    console.error("Error getting current user:", error);
+    redirect("/login?error=auth_error");
+  }
 
   if (!user) {
     redirect("/login");
