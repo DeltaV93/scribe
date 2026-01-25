@@ -13,6 +13,8 @@ import {
   LogOut,
   ChevronLeft,
   Menu,
+  Shield,
+  GraduationCap,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -24,8 +26,9 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { signOutAction } from "@/lib/auth/actions";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { SessionUser } from "@/types";
+import { Badge } from "@/components/ui/badge";
 
 interface SidebarProps {
   user: SessionUser;
@@ -46,6 +49,11 @@ const navItems = [
     title: "Clients",
     href: "/clients",
     icon: Users,
+  },
+  {
+    title: "Programs",
+    href: "/programs",
+    icon: GraduationCap,
   },
   {
     title: "Calls",
@@ -70,6 +78,31 @@ const bottomNavItems = [
 export function Sidebar({ user }: SidebarProps) {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
+  const [pendingRequestCount, setPendingRequestCount] = useState(0);
+
+  const isAdmin = user.role === "ADMIN" || user.role === "SUPER_ADMIN";
+
+  // Fetch pending phone request count for admin badge
+  useEffect(() => {
+    if (!isAdmin) return;
+
+    const fetchPendingCount = async () => {
+      try {
+        const response = await fetch("/api/admin/phone-requests");
+        if (response.ok) {
+          const data = await response.json();
+          setPendingRequestCount(data.data?.length || 0);
+        }
+      } catch (error) {
+        console.error("Failed to fetch pending requests:", error);
+      }
+    };
+
+    fetchPendingCount();
+    // Refresh every 30 seconds
+    const interval = setInterval(fetchPendingCount, 30000);
+    return () => clearInterval(interval);
+  }, [isAdmin]);
 
   return (
     <TooltipProvider delayDuration={0}>
@@ -146,6 +179,55 @@ export function Sidebar({ user }: SidebarProps) {
                 </Link>
               );
             })}
+
+            {/* Admin link - only visible to admins */}
+            {isAdmin && (
+              <>
+                {collapsed ? (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Link
+                        href="/admin"
+                        className={cn(
+                          "flex h-10 w-10 items-center justify-center rounded-md mx-auto relative",
+                          pathname === "/admin" || pathname.startsWith("/admin/")
+                            ? "bg-primary text-primary-foreground"
+                            : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                        )}
+                      >
+                        <Shield className="h-5 w-5" />
+                        {pendingRequestCount > 0 && (
+                          <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-destructive text-[10px] font-medium text-destructive-foreground flex items-center justify-center">
+                            {pendingRequestCount > 9 ? "9+" : pendingRequestCount}
+                          </span>
+                        )}
+                      </Link>
+                    </TooltipTrigger>
+                    <TooltipContent side="right">
+                      Admin {pendingRequestCount > 0 && `(${pendingRequestCount} pending)`}
+                    </TooltipContent>
+                  </Tooltip>
+                ) : (
+                  <Link
+                    href="/admin"
+                    className={cn(
+                      "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                      pathname === "/admin" || pathname.startsWith("/admin/")
+                        ? "bg-primary text-primary-foreground"
+                        : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                    )}
+                  >
+                    <Shield className="h-5 w-5" />
+                    <span className="flex-1">Admin</span>
+                    {pendingRequestCount > 0 && (
+                      <Badge variant="destructive" className="h-5 px-1.5 text-xs">
+                        {pendingRequestCount}
+                      </Badge>
+                    )}
+                  </Link>
+                )}
+              </>
+            )}
           </nav>
         </ScrollArea>
 

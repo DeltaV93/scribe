@@ -144,6 +144,53 @@ enum InvitationStatus {
 }
 
 // ============================================
+// PROGRAM MANAGEMENT ENUMS
+// ============================================
+
+enum ProgramStatus {
+  DRAFT
+  ACTIVE
+  COMPLETED
+  CANCELLED
+  ARCHIVED
+}
+
+enum ProgramLabelType {
+  PROGRAM
+  COURSE
+  CLASS
+  WORKSHOP
+  TRAINING
+  GROUP
+}
+
+enum EnrollmentStatus {
+  ENROLLED
+  IN_PROGRESS
+  COMPLETED
+  WITHDRAWN
+  FAILED
+  ON_HOLD
+}
+
+enum MaterialType {
+  SYLLABUS
+  HANDOUT
+  PRESENTATION
+  WORKSHEET
+  ASSESSMENT
+  CERTIFICATE_TEMPLATE
+  OTHER
+}
+
+enum ExtractionStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+// ============================================
 // ORGANIZATION & USERS
 // ============================================
 
@@ -185,6 +232,11 @@ model Organization {
   phoneNumberPool       PhoneNumberPool[]
   phoneNumberRequests   PhoneNumberRequest[]
   userInvitations       UserInvitation[]
+  programs              Program[]
+
+  // Messaging Relations (Spec-3)
+  messages              Message[]
+  smsTemplates          SmsTemplate[]
 
   @@index([slug])
   @@index([stripeCustomerId])
@@ -242,6 +294,16 @@ model User {
   // Deactivation tracking
   deactivatedAt         DateTime?
   deactivatedById       String?
+
+  // Program Relations
+  facilitatedPrograms   Program[]            @relation("ProgramFacilitator")
+  createdPrograms       Program[]            @relation("ProgramCreator")
+  enrolledClients       ProgramEnrollment[]  @relation("EnrolledBy")
+  recordedAttendance    SessionAttendance[]  @relation("AttendanceRecordedBy")
+  uploadedMaterials     ProgramMaterial[]    @relation("MaterialUploadedBy")
+
+  // Messaging Relations (Spec-3)
+  sentMessages          Message[]            @relation("MessageSender")
 
   @@index([orgId])
   @@index([email])
@@ -632,12 +694,18 @@ model Client {
   deletedAt        DateTime?    // Soft delete
 
   // Relations
-  organization    Organization     @relation(fields: [orgId], references: [id], onDelete: Cascade)
-  assignedUser    User             @relation("AssignedClients", fields: [assignedTo], references: [id])
-  creator         User             @relation("CreatedClients", fields: [createdBy], references: [id])
-  calls           Call[]
-  notes           Note[]
-  formSubmissions FormSubmission[]
+  organization        Organization        @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  assignedUser        User                @relation("AssignedClients", fields: [assignedTo], references: [id])
+  creator             User                @relation("CreatedClients", fields: [createdBy], references: [id])
+  calls               Call[]
+  notes               Note[]
+  formSubmissions     FormSubmission[]
+  programEnrollments  ProgramEnrollment[]
+
+  // Messaging Relations (Spec-3)
+  messages            Message[]
+  smsPreference       SmsPreference?
+  portalTokens        PortalToken[]
 
   @@index([orgId, status])
   @@index([orgId, phone])
@@ -853,4 +921,272 @@ model UserInvitation {
   @@index([token])
   @@index([email, orgId])
   @@index([status])
+}
+
+// ============================================
+// PROGRAM MANAGEMENT
+// ============================================
+
+model Program {
+  id              String           @id @default(uuid())
+  orgId           String
+  name            String
+  labelType       ProgramLabelType @default(PROGRAM)
+  description     String?          @db.Text
+  requiredHours   Int?             // Total hours needed for completion
+  startDate       DateTime?
+  endDate         DateTime?
+  schedule        Json?            // Flexible schedule info (e.g., days of week, time, frequency)
+  location        String?
+  maxEnrollment   Int?             // Maximum number of participants
+  facilitatorId   String?
+  status          ProgramStatus    @default(DRAFT)
+  createdById     String
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  archivedAt      DateTime?
+
+  // Relations
+  organization    Organization        @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  facilitator     User?               @relation("ProgramFacilitator", fields: [facilitatorId], references: [id])
+  createdBy       User                @relation("ProgramCreator", fields: [createdById], references: [id])
+  sessions        ProgramSession[]
+  enrollments     ProgramEnrollment[]
+  materials       ProgramMaterial[]
+
+  @@index([orgId, status])
+  @@index([facilitatorId])
+  @@index([createdById])
+}
+
+model ProgramSession {
+  id              String   @id @default(uuid())
+  programId       String
+  sessionNumber   Int      // Order/sequence number
+  title           String
+  topic           String?  @db.Text
+  date            DateTime?
+  durationMinutes Int?
+  notes           String?  @db.Text
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  program         Program             @relation(fields: [programId], references: [id], onDelete: Cascade)
+  attendance      SessionAttendance[]
+  materials       ProgramMaterial[]
+
+  @@unique([programId, sessionNumber])
+  @@index([programId])
+  @@index([date])
+}
+
+model ProgramEnrollment {
+  id              String           @id @default(uuid())
+  programId       String
+  clientId        String
+  enrolledDate    DateTime         @default(now())
+  status          EnrollmentStatus @default(ENROLLED)
+  hoursOverride   Decimal?         @db.Decimal(6, 2) // Manual override for completed hours
+  completionDate  DateTime?
+  withdrawalDate  DateTime?
+  withdrawalReason String?
+  enrolledById    String
+  notes           String?          @db.Text
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  // Relations
+  program         Program             @relation(fields: [programId], references: [id], onDelete: Cascade)
+  client          Client              @relation(fields: [clientId], references: [id])
+  enrolledBy      User                @relation("EnrolledBy", fields: [enrolledById], references: [id])
+  attendance      SessionAttendance[]
+
+  @@unique([programId, clientId])
+  @@index([programId, status])
+  @@index([clientId])
+  @@index([enrolledById])
+}
+
+model SessionAttendance {
+  id              String   @id @default(uuid())
+  sessionId       String
+  enrollmentId    String
+  attended        Boolean  @default(false)
+  hoursAttended   Decimal? @db.Decimal(4, 2) // Actual hours (can differ from session duration)
+  notes           String?
+  recordedById    String
+  recordedAt      DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  session         ProgramSession    @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  enrollment      ProgramEnrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+  recordedBy      User              @relation("AttendanceRecordedBy", fields: [recordedById], references: [id])
+
+  @@unique([sessionId, enrollmentId])
+  @@index([sessionId])
+  @@index([enrollmentId])
+}
+
+model ProgramMaterial {
+  id               String           @id @default(uuid())
+  programId        String
+  sessionId        String?          // Optional - can be program-level or session-specific
+  filename         String
+  fileUrl          String           // S3 URL
+  mimeType         String
+  sizeBytes        Int
+  materialType     MaterialType     @default(OTHER)
+  extractionStatus ExtractionStatus @default(PENDING)
+  extractedData    Json?            // AI-extracted syllabus data
+  extractionError  String?
+  uploadedById     String
+  uploadedAt       DateTime         @default(now())
+
+  // Relations
+  program          Program         @relation(fields: [programId], references: [id], onDelete: Cascade)
+  session          ProgramSession? @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+  uploadedBy       User            @relation("MaterialUploadedBy", fields: [uploadedById], references: [id])
+
+  @@index([programId])
+  @@index([sessionId])
+  @@index([materialType])
+  @@index([extractionStatus])
+}
+
+// ============================================
+// SMS/MESSAGING SYSTEM (Spec-3)
+// ============================================
+
+enum MessageSenderType {
+  CASE_MANAGER
+  CLIENT
+}
+
+enum MessageStatus {
+  DRAFT
+  SENT
+  DELIVERED
+  READ
+  FAILED
+}
+
+enum SmsDeliveryStatus {
+  QUEUED
+  SENT
+  DELIVERED
+  UNDELIVERED
+  FAILED
+}
+
+model Message {
+  id            String              @id @default(uuid())
+  orgId         String
+  clientId      String
+  senderId      String?             // User ID (case manager) or null for client replies
+  senderType    MessageSenderType
+  content       String              @db.Text
+  contentHash   String?             // SHA-256 for integrity verification
+  status        MessageStatus       @default(SENT)
+  sentAt        DateTime            @default(now())
+  deliveredAt   DateTime?
+  readAt        DateTime?
+  expiresAt     DateTime?           // For 7-year retention policy
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+  deletedAt     DateTime?           // Soft delete
+
+  // Relations
+  organization    Organization        @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  client          Client              @relation(fields: [clientId], references: [id])
+  sender          User?               @relation("MessageSender", fields: [senderId], references: [id])
+  attachments     MessageAttachment[]
+  smsNotification SmsNotification?
+
+  @@index([clientId, sentAt])
+  @@index([orgId, clientId])
+  @@index([senderId])
+  @@index([status])
+}
+
+model MessageAttachment {
+  id          String   @id @default(uuid())
+  messageId   String
+  filename    String
+  fileUrl     String   // S3 URL (encrypted at rest with AES-256)
+  mimeType    String
+  fileSize    Int      // bytes
+  uploadedAt  DateTime @default(now())
+
+  message     Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@index([messageId])
+}
+
+model SmsNotification {
+  id              String              @id @default(uuid())
+  messageId       String              @unique
+  phoneNumber     String              // E.164 format
+  twilioSid       String?             @unique
+  deliveryStatus  SmsDeliveryStatus   @default(QUEUED)
+  sentAt          DateTime?
+  deliveredAt     DateTime?
+  errorCode       String?
+  errorMessage    String?
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+
+  message         Message             @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@index([twilioSid])
+  @@index([deliveryStatus])
+}
+
+model SmsPreference {
+  id            String    @id @default(uuid())
+  clientId      String    @unique
+  optedIn       Boolean   @default(false)
+  phoneNumber   String    // E.164 format
+  optedInAt     DateTime?
+  optedOutAt    DateTime?
+  optInMethod   String?   // "portal", "verbal", "written"
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  client        Client    @relation(fields: [clientId], references: [id])
+
+  @@index([clientId])
+}
+
+model PortalToken {
+  id          String    @id @default(uuid())
+  clientId    String
+  token       String    @unique
+  messageId   String?   // Optional: link to specific message
+  expiresAt   DateTime  // 24-hour expiry
+  usedAt      DateTime?
+  createdAt   DateTime  @default(now())
+
+  client      Client    @relation(fields: [clientId], references: [id])
+
+  @@index([token])
+  @@index([clientId])
+  @@index([expiresAt])
+}
+
+// Admin-configurable SMS templates (P1)
+model SmsTemplate {
+  id          String    @id @default(uuid())
+  orgId       String
+  name        String
+  content     String    // Template with placeholders like {{portal_link}}
+  isDefault   Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@unique([orgId, name])
+  @@index([orgId])
 }

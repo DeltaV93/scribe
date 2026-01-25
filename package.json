@@ -55,6 +55,7 @@
     "isomorphic-dompurify": "^2.15.0",
     "jotai": "^2.10.3",
     "lucide-react": "^0.460.0",
+    "mammoth": "^1.11.0",
     "marked": "^15.0.3",
     "nanoid": "^5.0.8",
     "next": "^16.1.1",
@@ -74,6 +75,7 @@
   },
   "devDependencies": {
     "@types/node": "^22.9.0",
+    "@types/pdf-parse": "^1.1.5",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
     "autoprefixer": "^10.4.20",
