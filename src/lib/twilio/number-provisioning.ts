@@ -27,18 +27,43 @@ export async function searchAvailableNumbers(
       areaCode: parseInt(areaCode),
       limit,
       voiceEnabled: true,
-      smsEnabled: false,
     });
 
     return numbers.map((n) => ({
       phoneNumber: n.phoneNumber,
       friendlyName: n.friendlyName,
-      locality: n.locality,
-      region: n.region,
+      locality: n.locality || "",
+      region: n.region || "",
     }));
   } catch (error) {
     console.error("Error searching for available numbers:", error);
     throw new Error("Failed to search for available numbers");
+  }
+}
+
+/**
+ * Search for available toll-free numbers
+ */
+export async function searchTollFreeNumbers(
+  limit: number = 10
+): Promise<AvailableNumber[]> {
+  const client = getTwilioClient();
+
+  try {
+    const numbers = await client.availablePhoneNumbers("US").tollFree.list({
+      limit,
+      voiceEnabled: true,
+    });
+
+    return numbers.map((n) => ({
+      phoneNumber: n.phoneNumber,
+      friendlyName: n.friendlyName,
+      locality: "",
+      region: "Toll-Free",
+    }));
+  } catch (error) {
+    console.error("Error searching for toll-free numbers:", error);
+    return [];
   }
 }
 
@@ -68,8 +93,8 @@ export async function provisionNumberForUser(
   const availableNumbers = await searchAvailableNumbers(preferredAreaCode, 1);
 
   if (availableNumbers.length === 0) {
-    // Try a fallback area code
-    const fallbackNumbers = await searchAvailableNumbers("800", 1);
+    // Try toll-free as fallback
+    const fallbackNumbers = await searchTollFreeNumbers(1);
     if (fallbackNumbers.length === 0) {
       throw new Error("No available phone numbers found");
     }
