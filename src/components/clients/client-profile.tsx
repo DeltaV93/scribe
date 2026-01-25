@@ -30,6 +30,8 @@ import { formatDistanceToNow, format } from "date-fns";
 import { FormSelectionModal } from "@/components/calls/form-selection-modal";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { toast } from "sonner";
+import { RequestPhoneButton } from "./request-phone-button";
+import { MessageList, SmsPreferenceCard, MessageComposer } from "@/components/messaging";
 
 interface ClientAddress {
   street: string;
@@ -117,6 +119,16 @@ export function ClientProfile({ clientId }: ClientProfileProps) {
     isOwnLock?: boolean;
   } | null>(null);
   const [isCheckingLock, setIsCheckingLock] = useState(false);
+  const [phoneStatus, setPhoneStatus] = useState<{
+    hasPhoneNumber: boolean;
+    phoneNumber: string | null;
+    hasPendingRequest: boolean;
+    requestId: string | null;
+  } | null>(null);
+  const [isLoadingPhoneStatus, setIsLoadingPhoneStatus] = useState(true);
+  const [smsOptedIn, setSmsOptedIn] = useState(false);
+  const [showMessageComposer, setShowMessageComposer] = useState(false);
+  const [messageCount, setMessageCount] = useState(0);
 
   // Check if client is locked before showing call modal
   const checkClientLock = useCallback(async () => {
@@ -149,15 +161,37 @@ export function ClientProfile({ clientId }: ClientProfileProps) {
     setShowCallModal(true);
   };
 
+  // Fetch user's phone status
+  useEffect(() => {
+    const fetchPhoneStatus = async () => {
+      setIsLoadingPhoneStatus(true);
+      try {
+        const response = await fetch("/api/phone-numbers/my-status");
+        if (response.ok) {
+          const data = await response.json();
+          setPhoneStatus(data.data);
+        }
+      } catch (error) {
+        console.error("Error fetching phone status:", error);
+      } finally {
+        setIsLoadingPhoneStatus(false);
+      }
+    };
+
+    fetchPhoneStatus();
+  }, []);
+
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        const [clientRes, callsRes, notesRes, formsRes] = await Promise.all([
+        const [clientRes, callsRes, notesRes, formsRes, smsRes, messagesRes] = await Promise.all([
           fetch(`/api/clients/${clientId}`),
           fetch(`/api/clients/${clientId}/calls?limit=10`),
           fetch(`/api/clients/${clientId}/notes`),
           fetch(`/api/clients/${clientId}/forms`),
+          fetch(`/api/clients/${clientId}/sms-preference`),
+          fetch(`/api/clients/${clientId}/messages?limit=1`),
         ]);
 
         if (clientRes.ok) {
@@ -178,6 +212,16 @@ export function ClientProfile({ clientId }: ClientProfileProps) {
         if (formsRes.ok) {
           const data = await formsRes.json();
           setForms(data.data);
+        }
+
+        if (smsRes.ok) {
+          const data = await smsRes.json();
+          setSmsOptedIn(data.data?.optedIn || false);
+        }
+
+        if (messagesRes.ok) {
+          const data = await messagesRes.json();
+          setMessageCount(data.data?.pagination?.total || 0);
         }
       } catch (error) {
         console.error("Error fetching client data:", error);
@@ -256,14 +300,37 @@ export function ClientProfile({ clientId }: ClientProfileProps) {
             <Edit className="mr-2 h-4 w-4" />
             Edit
           </Button>
-          <Button onClick={handleCallClick} disabled={isCheckingLock}>
-            {isCheckingLock ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-              <PhoneCall className="mr-2 h-4 w-4" />
-            )}
-            Call
+          <Button variant="outline" onClick={() => setShowMessageComposer(true)}>
+            <MessageSquare className="mr-2 h-4 w-4" />
+            Message
           </Button>
+          {isLoadingPhoneStatus ? (
+            <Button disabled>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Loading...
+            </Button>
+          ) : phoneStatus?.hasPhoneNumber ? (
+            <Button onClick={handleCallClick} disabled={isCheckingLock}>
+              {isCheckingLock ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <PhoneCall className="mr-2 h-4 w-4" />
+              )}
+              Call
+            </Button>
+          ) : (
+            <RequestPhoneButton
+              hasPendingRequest={phoneStatus?.hasPendingRequest || false}
+              requestId={phoneStatus?.requestId}
+              onRequestCreated={() => {
+                // Refresh phone status after request
+                fetch("/api/phone-numbers/my-status")
+                  .then(res => res.json())
+                  .then(data => setPhoneStatus(data.data))
+                  .catch(console.error);
+              }}
+            />
+          )}
         </div>
       </div>
 
@@ -301,6 +368,7 @@ export function ClientProfile({ clientId }: ClientProfileProps) {
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="messages">Messages ({messageCount})</TabsTrigger>
           <TabsTrigger value="calls">Calls ({calls.length})</TabsTrigger>
           <TabsTrigger value="forms">Forms ({forms.length})</TabsTrigger>
           <TabsTrigger value="notes">Notes ({notes.length})</TabsTrigger>
@@ -388,6 +456,25 @@ export function ClientProfile({ clientId }: ClientProfileProps) {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="messages" className="space-y-4">
+          <div className="grid md:grid-cols-3 gap-4">
+            <div className="md:col-span-2">
+              <MessageList
+                clientId={clientId}
+                clientName={`${client.firstName} ${client.lastName}`}
+                smsEnabled={smsOptedIn}
+              />
+            </div>
+            <div>
+              <SmsPreferenceCard
+                clientId={clientId}
+                clientPhone={client.phone}
+                onPreferenceChange={(optedIn) => setSmsOptedIn(optedIn)}
+              />
+            </div>
+          </div>
         </TabsContent>
 
         <TabsContent value="calls">
@@ -520,6 +607,21 @@ export function ClientProfile({ clientId }: ClientProfileProps) {
         onConfirm={handleInitiateCall}
         clientName={`${client.firstName} ${client.lastName}`}
         isLoading={isInitiatingCall}
+      />
+
+      <MessageComposer
+        clientId={clientId}
+        clientName={`${client.firstName} ${client.lastName}`}
+        smsEnabled={smsOptedIn}
+        open={showMessageComposer}
+        onOpenChange={setShowMessageComposer}
+        onMessageSent={() => {
+          // Refresh message count
+          fetch(`/api/clients/${clientId}/messages?limit=1`)
+            .then((res) => res.json())
+            .then((data) => setMessageCount(data.data?.pagination?.total || 0))
+            .catch(console.error);
+        }}
       />
     </div>
   );
