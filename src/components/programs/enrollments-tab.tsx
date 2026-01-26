@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -29,10 +29,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Checkbox } from "@/components/ui/checkbox";
 import { EnrollmentStatus } from "@prisma/client";
 import { Plus, Search, Loader2, UserMinus } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 interface Enrollment {
   id: string;
@@ -60,6 +62,7 @@ interface Client {
   firstName: string;
   lastName: string;
   phone: string;
+  lastActivityAt: string | null;
 }
 
 interface EnrollmentsTabProps {
@@ -72,16 +75,22 @@ export function EnrollmentsTab({ programId }: EnrollmentsTabProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [clients, setClients] = useState<Client[]>([]);
-  const [selectedClientId, setSelectedClientId] = useState("");
+  const [selectedClientIds, setSelectedClientIds] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isSearching, setIsSearching] = useState(false);
+  const [enrolledClientIds, setEnrolledClientIds] = useState<Set<string>>(new Set());
   const [requiredHours, setRequiredHours] = useState<number | null>(null);
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  const fetchEnrollments = async () => {
+  const fetchEnrollments = useCallback(async () => {
     try {
       const response = await fetch(`/api/programs/${programId}/enrollments`);
       if (response.ok) {
         const data = await response.json();
         setEnrollments(data.data);
+        // Extract enrolled client IDs
+        const ids = new Set<string>(data.data.map((e: Enrollment) => e.clientId));
+        setEnrolledClientIds(ids);
         if (data.data[0]?.program?.requiredHours) {
           setRequiredHours(data.data[0].program.requiredHours);
         }
@@ -91,9 +100,10 @@ export function EnrollmentsTab({ programId }: EnrollmentsTabProps) {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [programId]);
 
-  const fetchClients = async (search: string) => {
+  const fetchClients = useCallback(async (search: string) => {
+    setIsSearching(true);
     try {
       const response = await fetch(`/api/clients?search=${encodeURIComponent(search)}&limit=10`);
       if (response.ok) {
@@ -102,42 +112,85 @@ export function EnrollmentsTab({ programId }: EnrollmentsTabProps) {
       }
     } catch (error) {
       console.error("Error fetching clients:", error);
+    } finally {
+      setIsSearching(false);
     }
-  };
+  }, []);
+
+  // Debounced search
+  useEffect(() => {
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+
+    if (searchQuery.length >= 2) {
+      debounceTimerRef.current = setTimeout(() => {
+        fetchClients(searchQuery);
+      }, 300);
+    } else {
+      setClients([]);
+    }
+
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, [searchQuery, fetchClients]);
 
   useEffect(() => {
     fetchEnrollments();
-  }, [programId]);
+  }, [fetchEnrollments]);
 
+  const toggleClient = (clientId: string) => {
+    setSelectedClientIds((prev) =>
+      prev.includes(clientId)
+        ? prev.filter((id) => id !== clientId)
+        : [...prev, clientId]
+    );
+  };
+
+  // Reset dialog state when closed
   useEffect(() => {
-    if (searchQuery.length >= 2) {
-      fetchClients(searchQuery);
+    if (!isDialogOpen) {
+      setSearchQuery("");
+      setClients([]);
+      setSelectedClientIds([]);
     }
-  }, [searchQuery]);
+  }, [isDialogOpen]);
 
   const handleEnroll = async () => {
-    if (!selectedClientId) return;
+    if (selectedClientIds.length === 0) return;
     setIsSubmitting(true);
 
     try {
       const response = await fetch(`/api/programs/${programId}/enrollments`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ clientId: selectedClientId }),
+        body: JSON.stringify({ clientIds: selectedClientIds }),
       });
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.error?.message || "Failed to enroll client");
+        throw new Error(error.error?.message || "Failed to enroll clients");
       }
 
-      toast.success("Client enrolled successfully");
+      const result = await response.json();
+      const successCount = result.data?.totalSuccessful || selectedClientIds.length;
+      const failedCount = result.data?.totalFailed || 0;
+
+      if (failedCount > 0) {
+        toast.success(`Enrolled ${successCount} client${successCount !== 1 ? "s" : ""}. ${failedCount} already enrolled.`);
+      } else {
+        toast.success(`${successCount} client${successCount !== 1 ? "s" : ""} enrolled successfully`);
+      }
       setIsDialogOpen(false);
-      setSelectedClientId("");
+      setSelectedClientIds([]);
       setSearchQuery("");
+      setClients([]);
       fetchEnrollments();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to enroll client");
+      toast.error(error instanceof Error ? error.message : "Failed to enroll clients");
     } finally {
       setIsSubmitting(false);
     }
@@ -215,33 +268,73 @@ export function EnrollmentsTab({ programId }: EnrollmentsTabProps) {
             </DialogHeader>
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label>Search Client</Label>
+                <Label>Search Clients</Label>
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     placeholder="Search by name or phone..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-9"
+                    className="pl-9 pr-9"
                   />
+                  {isSearching && (
+                    <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
+                  )}
                 </div>
               </div>
 
-              {clients.length > 0 && (
-                <div className="space-y-2">
-                  <Label>Select Client</Label>
-                  <Select value={selectedClientId} onValueChange={setSelectedClientId}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Choose a client" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {clients.map((client) => (
-                        <SelectItem key={client.id} value={client.id}>
-                          {client.firstName} {client.lastName} - {client.phone}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+              {/* Search results as inline clickable list */}
+              {searchQuery.length >= 2 && (
+                <div className="max-h-60 overflow-y-auto border rounded-md">
+                  {clients.length === 0 && !isSearching ? (
+                    <div className="p-4 text-center text-sm text-muted-foreground">
+                      No clients found
+                    </div>
+                  ) : (
+                    clients.map((client) => {
+                      const isEnrolled = enrolledClientIds.has(client.id);
+                      const isSelected = selectedClientIds.includes(client.id);
+
+                      return (
+                        <div
+                          key={client.id}
+                          onClick={() => !isEnrolled && toggleClient(client.id)}
+                          className={cn(
+                            "flex items-center gap-3 p-3 border-b last:border-b-0 cursor-pointer hover:bg-muted transition-colors",
+                            isEnrolled && "opacity-50 cursor-not-allowed hover:bg-transparent",
+                            isSelected && !isEnrolled && "bg-primary/10"
+                          )}
+                        >
+                          <Checkbox
+                            checked={isSelected}
+                            disabled={isEnrolled}
+                            onCheckedChange={() => !isEnrolled && toggleClient(client.id)}
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                          <div className="flex-1 min-w-0">
+                            <div className="font-medium truncate">
+                              {client.firstName} {client.lastName}
+                            </div>
+                            <div className="text-sm text-muted-foreground">
+                              {client.phone}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2 flex-shrink-0">
+                            <span className="text-xs text-muted-foreground">
+                              {client.lastActivityAt
+                                ? format(new Date(client.lastActivityAt), "MMM d")
+                                : "No activity"}
+                            </span>
+                            {isEnrolled && (
+                              <Badge variant="secondary" className="text-xs">
+                                Enrolled
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
                 </div>
               )}
 
@@ -249,9 +342,14 @@ export function EnrollmentsTab({ programId }: EnrollmentsTabProps) {
                 <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
                   Cancel
                 </Button>
-                <Button onClick={handleEnroll} disabled={!selectedClientId || isSubmitting}>
+                <Button
+                  onClick={handleEnroll}
+                  disabled={selectedClientIds.length === 0 || isSubmitting}
+                >
                   {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Enroll
+                  Enroll{selectedClientIds.length > 0
+                    ? ` ${selectedClientIds.length} Client${selectedClientIds.length > 1 ? "s" : ""}`
+                    : ""}
                 </Button>
               </div>
             </div>

@@ -88,6 +88,7 @@ export interface ClientWithRelations {
   createdAt: Date;
   updatedAt: Date;
   deletedAt: Date | null;
+  lastActivityAt: Date | null;
   assignedUser?: {
     id: string;
     name: string | null;
@@ -288,6 +289,17 @@ export async function listClients(
         },
         _count: {
           select: { calls: true, notes: true, formSubmissions: true },
+        },
+        calls: {
+          select: { startedAt: true },
+          orderBy: { startedAt: "desc" },
+          take: 1,
+        },
+        notes: {
+          select: { createdAt: true },
+          orderBy: { createdAt: "desc" },
+          take: 1,
+          where: { deletedAt: null },
         },
       },
       orderBy: { updatedAt: "desc" },
@@ -610,6 +622,17 @@ function simpleSoundex(str: string): string {
  * Transform Prisma client to our type
  */
 function transformClient(client: any): ClientWithRelations {
+  // Compute lastActivityAt from most recent call or note
+  let lastActivityAt: Date | null = null;
+  const lastCallAt = client.calls?.[0]?.startedAt;
+  const lastNoteAt = client.notes?.[0]?.createdAt;
+
+  if (lastCallAt && lastNoteAt) {
+    lastActivityAt = lastCallAt > lastNoteAt ? lastCallAt : lastNoteAt;
+  } else {
+    lastActivityAt = lastCallAt || lastNoteAt || null;
+  }
+
   return {
     id: client.id,
     orgId: client.orgId,
@@ -626,6 +649,7 @@ function transformClient(client: any): ClientWithRelations {
     createdAt: client.createdAt,
     updatedAt: client.updatedAt,
     deletedAt: client.deletedAt,
+    lastActivityAt,
     assignedUser: client.assignedUser,
     creator: client.creator,
     _count: client._count,
