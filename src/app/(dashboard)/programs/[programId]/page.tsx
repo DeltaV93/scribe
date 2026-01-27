@@ -9,6 +9,7 @@ import { ProgramStatsCard } from "@/components/programs/program-stats-card";
 import { SessionsTab } from "@/components/programs/sessions-tab";
 import { EnrollmentsTab } from "@/components/programs/enrollments-tab";
 import { MaterialsTab } from "@/components/programs/materials-tab";
+import { ProgramAttendanceDashboard } from "@/components/attendance/reports/program-attendance-dashboard";
 import { ProgramLabelType, ProgramStatus } from "@prisma/client";
 import {
   ArrowLeft,
@@ -182,6 +183,9 @@ export default function ProgramDetailPage() {
           <TabsTrigger value="sessions">
             Sessions ({program._count?.sessions || 0})
           </TabsTrigger>
+          <TabsTrigger value="attendance">
+            Attendance
+          </TabsTrigger>
           <TabsTrigger value="enrollments">
             Enrollments ({program._count?.enrollments || 0})
           </TabsTrigger>
@@ -192,6 +196,10 @@ export default function ProgramDetailPage() {
 
         <TabsContent value="sessions">
           <SessionsTab programId={programId} />
+        </TabsContent>
+
+        <TabsContent value="attendance">
+          <ProgramAttendanceDashboard programId={programId} />
         </TabsContent>
 
         <TabsContent value="enrollments">

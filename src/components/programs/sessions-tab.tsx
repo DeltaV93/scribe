@@ -21,7 +21,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Edit, Trash2, Loader2, Calendar, Clock } from "lucide-react";
+import { Plus, Edit, Trash2, Loader2, Calendar, Clock, Eye } from "lucide-react";
+import Link from "next/link";
 import { format } from "date-fns";
 import { toast } from "sonner";
 
@@ -267,7 +268,12 @@ export function SessionsTab({ programId }: SessionsTabProps) {
                   <TableCell className="font-medium">{session.sessionNumber}</TableCell>
                   <TableCell>
                     <div>
-                      <div className="font-medium">{session.title}</div>
+                      <Link
+                        href={`/programs/${programId}/sessions/${session.id}`}
+                        className="font-medium hover:underline"
+                      >
+                        {session.title}
+                      </Link>
                       {session.topic && (
                         <div className="text-sm text-muted-foreground line-clamp-1">
                           {session.topic}
@@ -300,6 +306,11 @@ export function SessionsTab({ programId }: SessionsTabProps) {
                   </TableCell>
                   <TableCell>
                     <div className="flex gap-1">
+                      <Link href={`/programs/${programId}/sessions/${session.id}`}>
+                        <Button variant="ghost" size="icon">
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                      </Link>
                       <Button
                         variant="ghost"
                         size="icon"
