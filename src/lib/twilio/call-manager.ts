@@ -1,15 +1,22 @@
 import { getTwilioClient } from "./client";
-import { getUserPhoneNumber, provisionNumberForUser } from "./number-provisioning";
+import { getUserPhoneNumber } from "./number-provisioning";
 import twilio from "twilio";
 
 const VoiceResponse = twilio.twiml.VoiceResponse;
+
+// Custom error for missing phone number
+export class NoPhoneNumberAssignedError extends Error {
+  constructor() {
+    super("NO_PHONE_NUMBER_ASSIGNED");
+    this.name = "NoPhoneNumberAssignedError";
+  }
+}
 
 interface InitiateCallParams {
   userId: string;
   toNumber: string;
   callId: string;
   orgId: string;
-  preferredAreaCode?: string;
 }
 
 interface CallResult {
@@ -21,28 +28,19 @@ interface CallResult {
 
 /**
  * Initiate an outbound call
+ * Requires user to have an assigned phone number (admin must assign first)
  */
 export async function initiateOutboundCall(
   params: InitiateCallParams
 ): Promise<CallResult> {
-  const { userId, toNumber, callId, orgId, preferredAreaCode } = params;
+  const { userId, toNumber, callId, orgId } = params;
 
-  // Get or provision phone number for user
-  let userNumber = await getUserPhoneNumber(userId);
+  // Get user's assigned phone number
+  const userNumber = await getUserPhoneNumber(userId);
 
+  // Require phone number to be assigned by admin
   if (!userNumber) {
-    const provisioned = await provisionNumberForUser({
-      userId,
-      preferredAreaCode,
-    });
-    userNumber = {
-      id: "",
-      userId,
-      phoneNumber: provisioned.phoneNumber,
-      twilioSid: provisioned.twilioSid,
-      areaCode: preferredAreaCode || "415",
-      provisionedAt: new Date(),
-    };
+    throw new NoPhoneNumberAssignedError();
   }
 
   const client = getTwilioClient();

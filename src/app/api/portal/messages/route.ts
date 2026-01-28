@@ -1,20 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { validatePortalToken } from "@/lib/services/portal-tokens";
+import { validateSession } from "@/lib/services/portal-sessions";
 import { getClientMessages, createClientReply } from "@/lib/services/messaging";
-import { prisma } from "@/lib/db";
+import { getSessionFromCookie } from "@/lib/portal/cookies";
+import { validateCSRF, createCSRFErrorResponse } from "@/lib/portal/csrf";
 import { z } from "zod";
 
-// Extract token from Authorization header
-function getTokenFromHeader(request: NextRequest): string | null {
-  const authHeader = request.headers.get("Authorization");
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return null;
-  }
-  return authHeader.substring(7);
-}
-
 const replySchema = z.object({
-  content: z.string().min(1).max(5000),
+  content: z.string().min(1).max(2000), // Updated to 2000 char limit per spec
 });
 
 /**
@@ -22,41 +14,28 @@ const replySchema = z.object({
  */
 export async function GET(request: NextRequest) {
   try {
-    const token = getTokenFromHeader(request);
+    const sessionToken = getSessionFromCookie(request);
 
-    if (!token) {
+    if (!sessionToken) {
       return NextResponse.json(
-        { error: { code: "UNAUTHORIZED", message: "Missing authorization token" } },
+        { error: { code: "UNAUTHORIZED", message: "No session cookie" } },
         { status: 401 }
       );
     }
 
-    const tokenResult = await validatePortalToken(token);
+    const session = await validateSession(sessionToken);
 
-    if (!tokenResult.isValid || !tokenResult.clientId) {
+    if (!session) {
       return NextResponse.json(
-        { error: { code: "UNAUTHORIZED", message: tokenResult.error || "Invalid token" } },
+        { error: { code: "UNAUTHORIZED", message: "Invalid or expired session" } },
         { status: 401 }
-      );
-    }
-
-    // Get client's orgId
-    const client = await prisma.client.findUnique({
-      where: { id: tokenResult.clientId },
-      select: { orgId: true },
-    });
-
-    if (!client) {
-      return NextResponse.json(
-        { error: { code: "NOT_FOUND", message: "Client not found" } },
-        { status: 404 }
       );
     }
 
     // Get messages
     const { messages, total } = await getClientMessages(
-      client.orgId,
-      tokenResult.clientId,
+      session.client.orgId,
+      session.clientId,
       {},
       { limit: 100 }
     );
@@ -82,22 +61,27 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
-    const token = getTokenFromHeader(request);
+    const sessionToken = getSessionFromCookie(request);
 
-    if (!token) {
+    if (!sessionToken) {
       return NextResponse.json(
-        { error: { code: "UNAUTHORIZED", message: "Missing authorization token" } },
+        { error: { code: "UNAUTHORIZED", message: "No session cookie" } },
         { status: 401 }
       );
     }
 
-    const tokenResult = await validatePortalToken(token);
+    const session = await validateSession(sessionToken);
 
-    if (!tokenResult.isValid || !tokenResult.clientId) {
+    if (!session) {
       return NextResponse.json(
-        { error: { code: "UNAUTHORIZED", message: tokenResult.error || "Invalid token" } },
+        { error: { code: "UNAUTHORIZED", message: "Invalid or expired session" } },
         { status: 401 }
       );
+    }
+
+    // Validate CSRF for POST request
+    if (!validateCSRF(request, session.csrfToken)) {
+      return createCSRFErrorResponse();
     }
 
     const body = await request.json();
@@ -119,7 +103,7 @@ export async function POST(request: NextRequest) {
     const { content } = validation.data;
 
     // Create the reply
-    const message = await createClientReply(tokenResult.clientId, content);
+    const message = await createClientReply(session.clientId, content);
 
     return NextResponse.json(
       {

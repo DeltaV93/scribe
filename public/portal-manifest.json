@@ -1,0 +1,28 @@
+{
+  "name": "Scrybe Client Portal",
+  "short_name": "Portal",
+  "description": "Secure client portal for messages and program tracking",
+  "start_url": "/portal",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0ea5e9",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icons/portal-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/portal-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/portal-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

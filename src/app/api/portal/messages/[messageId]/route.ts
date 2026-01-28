@@ -1,18 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { validatePortalToken } from "@/lib/services/portal-tokens";
+import { validateSession } from "@/lib/services/portal-sessions";
 import { getMessageForPortal, markMessageAsRead } from "@/lib/services/messaging";
+import { getSessionFromCookie } from "@/lib/portal/cookies";
+import { validateCSRF, createCSRFErrorResponse } from "@/lib/portal/csrf";
 
 interface RouteContext {
   params: Promise<{ messageId: string }>;
-}
-
-// Extract token from Authorization header
-function getTokenFromHeader(request: NextRequest): string | null {
-  const authHeader = request.headers.get("Authorization");
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return null;
-  }
-  return authHeader.substring(7);
 }
 
 /**
@@ -20,26 +13,26 @@ function getTokenFromHeader(request: NextRequest): string | null {
  */
 export async function GET(request: NextRequest, context: RouteContext) {
   try {
-    const token = getTokenFromHeader(request);
+    const sessionToken = getSessionFromCookie(request);
     const { messageId } = await context.params;
 
-    if (!token) {
+    if (!sessionToken) {
       return NextResponse.json(
-        { error: { code: "UNAUTHORIZED", message: "Missing authorization token" } },
+        { error: { code: "UNAUTHORIZED", message: "No session cookie" } },
         { status: 401 }
       );
     }
 
-    const tokenResult = await validatePortalToken(token);
+    const session = await validateSession(sessionToken);
 
-    if (!tokenResult.isValid || !tokenResult.clientId) {
+    if (!session) {
       return NextResponse.json(
-        { error: { code: "UNAUTHORIZED", message: tokenResult.error || "Invalid token" } },
+        { error: { code: "UNAUTHORIZED", message: "Invalid or expired session" } },
         { status: 401 }
       );
     }
 
-    const message = await getMessageForPortal(messageId, tokenResult.clientId);
+    const message = await getMessageForPortal(messageId, session.clientId);
 
     if (!message) {
       return NextResponse.json(
@@ -66,27 +59,32 @@ export async function GET(request: NextRequest, context: RouteContext) {
  */
 export async function POST(request: NextRequest, context: RouteContext) {
   try {
-    const token = getTokenFromHeader(request);
+    const sessionToken = getSessionFromCookie(request);
     const { messageId } = await context.params;
 
-    if (!token) {
+    if (!sessionToken) {
       return NextResponse.json(
-        { error: { code: "UNAUTHORIZED", message: "Missing authorization token" } },
+        { error: { code: "UNAUTHORIZED", message: "No session cookie" } },
         { status: 401 }
       );
     }
 
-    const tokenResult = await validatePortalToken(token);
+    const session = await validateSession(sessionToken);
 
-    if (!tokenResult.isValid || !tokenResult.clientId) {
+    if (!session) {
       return NextResponse.json(
-        { error: { code: "UNAUTHORIZED", message: tokenResult.error || "Invalid token" } },
+        { error: { code: "UNAUTHORIZED", message: "Invalid or expired session" } },
         { status: 401 }
       );
+    }
+
+    // Validate CSRF for POST request
+    if (!validateCSRF(request, session.csrfToken)) {
+      return createCSRFErrorResponse();
     }
 
     // Verify message belongs to this client
-    const message = await getMessageForPortal(messageId, tokenResult.clientId);
+    const message = await getMessageForPortal(messageId, session.clientId);
 
     if (!message) {
       return NextResponse.json(
@@ -96,7 +94,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
     }
 
     // Mark as read
-    const updatedMessage = await markMessageAsRead(messageId, tokenResult.clientId);
+    const updatedMessage = await markMessageAsRead(messageId, session.clientId);
 
     return NextResponse.json({
       success: true,

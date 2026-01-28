@@ -1,7 +1,6 @@
 "use client";
 
-import { Suspense } from "react";
-import { useFormState } from "react-dom";
+import { Suspense, useActionState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { resendVerificationEmail, type AuthState } from "@/lib/auth/actions";
@@ -22,7 +21,7 @@ function VerifyEmailForm() {
   const searchParams = useSearchParams();
   const email = searchParams.get("email") || "";
   const initialState: AuthState = {};
-  const [state, formAction] = useFormState(resendVerificationEmail, initialState);
+  const [state, formAction] = useActionState(resendVerificationEmail, initialState);
 
   return (
     <Card className="w-full max-w-md">

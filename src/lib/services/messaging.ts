@@ -408,10 +408,21 @@ export async function createClientReply(
   clientId: string,
   content: string
 ): Promise<MessageWithRelations> {
-  // Get the client to find their org
+  // Get the client with assigned case manager
   const client = await prisma.client.findUnique({
     where: { id: clientId },
-    select: { orgId: true },
+    select: {
+      orgId: true,
+      firstName: true,
+      lastName: true,
+      assignedUser: {
+        select: {
+          id: true,
+          email: true,
+          name: true,
+        },
+      },
+    },
   });
 
   if (!client) {
@@ -444,6 +455,20 @@ export async function createClientReply(
       attachments: true,
     },
   });
+
+  // Send email notification to assigned case manager (async, don't block response)
+  if (client.assignedUser) {
+    import("./email-notifications").then(({ notifyCaseManagerOfReply }) => {
+      notifyCaseManagerOfReply(client.assignedUser!.email, {
+        caseManagerName: client.assignedUser!.name || "Case Manager",
+        clientFirstName: client.firstName,
+        clientLastName: client.lastName,
+        dashboardUrl: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/clients/${clientId}/messages`,
+      }).catch((err) => {
+        console.error("Failed to send case manager notification:", err);
+      });
+    });
+  }
 
   return message as MessageWithRelations;
 }

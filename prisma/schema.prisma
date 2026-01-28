@@ -191,6 +191,27 @@ enum ExtractionStatus {
 }
 
 // ============================================
+// ATTENDANCE TRACKING ENUMS
+// ============================================
+
+enum AttendanceUploadStatus {
+  SHEET_GENERATED
+  IN_PROGRESS
+  PHOTO_UPLOADED
+  AI_PROCESSING
+  PENDING_REVIEW
+  CONFIRMED
+  FAILED
+  PENDING_OVERRIDE_REVIEW
+}
+
+enum AttendanceType {
+  PRESENT
+  EXCUSED
+  ABSENT
+}
+
+// ============================================
 // ORGANIZATION & USERS
 // ============================================
 
@@ -301,6 +322,12 @@ model User {
   enrolledClients       ProgramEnrollment[]  @relation("EnrolledBy")
   recordedAttendance    SessionAttendance[]  @relation("AttendanceRecordedBy")
   uploadedMaterials     ProgramMaterial[]    @relation("MaterialUploadedBy")
+
+  // Attendance Upload Relations
+  attendanceUploads         AttendanceUpload[]          @relation("AttendanceUploadedBy")
+  attendanceReviews         AttendanceUpload[]          @relation("AttendanceReviewedBy")
+  attendanceOverrides       AttendanceUpload[]          @relation("AttendanceOverrideApprovedBy")
+  attendanceVerifications   AttendanceExtractedRecord[] @relation("AttendanceManuallyVerifiedBy")
 
   // Messaging Relations (Spec-3)
   sentMessages          Message[]            @relation("MessageSender")
@@ -707,6 +734,11 @@ model Client {
   smsPreference       SmsPreference?
   portalTokens        PortalToken[]
 
+  // Portal Session Relations
+  portalSessions      PortalSession[]
+  clientPIN           ClientPIN?
+  phoneVerifications  PhoneVerification[]
+
   @@index([orgId, status])
   @@index([orgId, phone])
   @@index([assignedTo])
@@ -947,12 +979,13 @@ model Program {
   archivedAt      DateTime?
 
   // Relations
-  organization    Organization        @relation(fields: [orgId], references: [id], onDelete: Cascade)
-  facilitator     User?               @relation("ProgramFacilitator", fields: [facilitatorId], references: [id])
-  createdBy       User                @relation("ProgramCreator", fields: [createdById], references: [id])
-  sessions        ProgramSession[]
-  enrollments     ProgramEnrollment[]
-  materials       ProgramMaterial[]
+  organization          Organization           @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  facilitator           User?                  @relation("ProgramFacilitator", fields: [facilitatorId], references: [id])
+  createdBy             User                   @relation("ProgramCreator", fields: [createdById], references: [id])
+  sessions              ProgramSession[]
+  enrollments           ProgramEnrollment[]
+  materials             ProgramMaterial[]
+  attendanceSheetConfig AttendanceSheetConfig?
 
   @@index([orgId, status])
   @@index([facilitatorId])
@@ -972,9 +1005,10 @@ model ProgramSession {
   updatedAt       DateTime @updatedAt
 
   // Relations
-  program         Program             @relation(fields: [programId], references: [id], onDelete: Cascade)
-  attendance      SessionAttendance[]
-  materials       ProgramMaterial[]
+  program           Program             @relation(fields: [programId], references: [id], onDelete: Cascade)
+  attendance        SessionAttendance[]
+  materials         ProgramMaterial[]
+  attendanceUploads AttendanceUpload[]
 
   @@unique([programId, sessionNumber])
   @@index([programId])
@@ -997,10 +1031,12 @@ model ProgramEnrollment {
   updatedAt       DateTime         @updatedAt
 
   // Relations
-  program         Program             @relation(fields: [programId], references: [id], onDelete: Cascade)
-  client          Client              @relation(fields: [clientId], references: [id])
-  enrolledBy      User                @relation("EnrolledBy", fields: [enrolledById], references: [id])
-  attendance      SessionAttendance[]
+  program           Program                     @relation(fields: [programId], references: [id], onDelete: Cascade)
+  client            Client                      @relation(fields: [clientId], references: [id])
+  enrolledBy        User                        @relation("EnrolledBy", fields: [enrolledById], references: [id])
+  attendance        SessionAttendance[]
+  attendanceCode    AttendanceCode?
+  extractedRecords  AttendanceExtractedRecord[]
 
   @@unique([programId, clientId])
   @@index([programId, status])
@@ -1009,15 +1045,22 @@ model ProgramEnrollment {
 }
 
 model SessionAttendance {
-  id              String   @id @default(uuid())
+  id              String          @id @default(uuid())
   sessionId       String
   enrollmentId    String
-  attended        Boolean  @default(false)
-  hoursAttended   Decimal? @db.Decimal(4, 2) // Actual hours (can differ from session duration)
+  attended        Boolean         @default(false)
+  hoursAttended   Decimal?        @db.Decimal(4, 2) // Actual hours (can differ from session duration)
   notes           String?
   recordedById    String
-  recordedAt      DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  recordedAt      DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  // Extended fields for photo-based attendance tracking
+  attendanceType  AttendanceType? // PRESENT, EXCUSED, ABSENT
+  uploadSourceId  String?         // Link to AttendanceUpload
+  timeIn          DateTime?
+  timeOut         DateTime?
+  signatureVerified Boolean       @default(false)
 
   // Relations
   session         ProgramSession    @relation(fields: [sessionId], references: [id], onDelete: Cascade)
@@ -1027,6 +1070,7 @@ model SessionAttendance {
   @@unique([sessionId, enrollmentId])
   @@index([sessionId])
   @@index([enrollmentId])
+  @@index([uploadSourceId])
 }
 
 model ProgramMaterial {
@@ -1053,6 +1097,141 @@ model ProgramMaterial {
   @@index([sessionId])
   @@index([materialType])
   @@index([extractionStatus])
+}
+
+// ============================================
+// ATTENDANCE TRACKING (Photo-based AI Recognition)
+// ============================================
+
+model AttendanceSheetConfig {
+  id                     String   @id @default(uuid())
+  programId              String   @unique
+  includeTimeInOut       Boolean  @default(true)
+  includeClientSignature Boolean  @default(true)
+  includeNotes           Boolean  @default(true)
+  customInstructions     String?  @db.Text
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  // Relations
+  program                Program  @relation(fields: [programId], references: [id], onDelete: Cascade)
+}
+
+model AttendanceCode {
+  id           String   @id @default(uuid())
+  enrollmentId String   @unique
+  code         String   // Format: BK2847 (consonants + numbers)
+  createdAt    DateTime @default(now())
+
+  // Relations
+  enrollment   ProgramEnrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+
+  @@index([code])
+}
+
+model AttendanceUpload {
+  id                    String                  @id @default(uuid())
+  sessionId             String
+  orgId                 String
+  status                AttendanceUploadStatus  @default(SHEET_GENERATED)
+
+  // Sheet generation tracking
+  sheetPath             String?                 // S3 path to generated PDF
+  sheetGeneratedAt      DateTime?
+
+  // Photo upload tracking
+  photoPath             String?                 // S3 path to uploaded photo
+  photoUploadedAt       DateTime?
+  photoMimeType         String?
+  photoSizeBytes        Int?
+  enhancedPhotoPath     String?                 // S3 path to enhanced photo
+
+  // AI processing tracking
+  aiProcessingStartedAt DateTime?
+  aiProcessingEndedAt   DateTime?
+  aiRawResponse         Json?
+  aiExtractedData       Json?                   // Structured extraction results
+  aiConfidence          Float?
+  aiError               String?
+  aiRetryCount          Int                     @default(0)
+
+  // Review tracking
+  reviewedAt            DateTime?
+  reviewedById          String?
+  reviewNotes           String?                 @db.Text
+
+  // Override handling
+  isOverride            Boolean                 @default(false)
+  overrideReason        String?                 @db.Text
+  overrideApprovedById  String?
+  overrideApprovedAt    DateTime?
+
+  // User tracking
+  uploadedById          String
+
+  createdAt             DateTime                @default(now())
+  updatedAt             DateTime                @updatedAt
+
+  // Relations
+  session               ProgramSession          @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  uploadedBy            User                    @relation("AttendanceUploadedBy", fields: [uploadedById], references: [id])
+  reviewedBy            User?                   @relation("AttendanceReviewedBy", fields: [reviewedById], references: [id])
+  overrideApprovedBy    User?                   @relation("AttendanceOverrideApprovedBy", fields: [overrideApprovedById], references: [id])
+  extractedRecords      AttendanceExtractedRecord[]
+
+  @@index([sessionId])
+  @@index([orgId, status])
+  @@index([uploadedById])
+  @@index([status])
+}
+
+model AttendanceExtractedRecord {
+  id                   String          @id @default(uuid())
+  uploadId             String
+  enrollmentId         String?         // Nullable for walk-ins
+
+  // Extracted data
+  attendanceType       AttendanceType?
+  qrCodeDetected       Boolean         @default(false)
+  qrCodeValue          String?
+  printedCodeDetected  Boolean         @default(false)
+  printedCodeValue     String?
+  timeIn               DateTime?
+  timeOut              DateTime?
+  signatureDetected    Boolean         @default(false)
+  notes                String?         @db.Text
+
+  // Confidence and review
+  confidence           Float?
+  needsReview          Boolean         @default(false)
+  reviewFlag           String?         // Reason for flag (e.g., "low_confidence", "no_match", "missing_signature")
+
+  // Manual verification
+  isManuallyVerified   Boolean         @default(false)
+  manuallyVerifiedById String?
+  manuallyVerifiedAt   DateTime?
+
+  createdAt            DateTime        @default(now())
+  updatedAt            DateTime        @updatedAt
+
+  // Relations
+  upload               AttendanceUpload   @relation(fields: [uploadId], references: [id], onDelete: Cascade)
+  enrollment           ProgramEnrollment? @relation(fields: [enrollmentId], references: [id])
+  manuallyVerifiedBy   User?              @relation("AttendanceManuallyVerifiedBy", fields: [manuallyVerifiedById], references: [id])
+
+  @@index([uploadId])
+  @@index([enrollmentId])
+}
+
+model AttendanceUploadRateLimit {
+  id         String   @id @default(uuid())
+  userId     String
+  sessionId  String
+  uploadCount Int     @default(1)
+  windowStart DateTime @default(now())
+
+  @@unique([userId, sessionId])
+  @@index([windowStart])
 }
 
 // ============================================
@@ -1189,4 +1368,53 @@ model SmsTemplate {
 
   @@unique([orgId, name])
   @@index([orgId])
+}
+
+// ============================================
+// CLIENT PORTAL SESSION MANAGEMENT
+// ============================================
+
+model PortalSession {
+  id            String    @id @default(uuid())
+  clientId      String
+  sessionToken  String    @unique
+  createdAt     DateTime  @default(now())
+  expiresAt     DateTime
+  ipAddress     String?
+  userAgent     String?
+  csrfToken     String
+
+  client        Client    @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@index([sessionToken])
+  @@index([clientId])
+  @@index([expiresAt])
+}
+
+model ClientPIN {
+  id             String    @id @default(uuid())
+  clientId       String    @unique
+  pinHash        String
+  failedAttempts Int       @default(0)
+  lockedUntil    DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  client         Client    @relation(fields: [clientId], references: [id], onDelete: Cascade)
+}
+
+model PhoneVerification {
+  id          String    @id @default(uuid())
+  clientId    String
+  phoneNumber String
+  codeHash    String
+  sentAt      DateTime  @default(now())
+  expiresAt   DateTime
+  verifiedAt  DateTime?
+  attempts    Int       @default(0)
+
+  client      Client    @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@index([clientId])
+  @@index([expiresAt])
 }

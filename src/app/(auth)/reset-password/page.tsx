@@ -1,6 +1,6 @@
 "use client";
 
-import { useFormState } from "react-dom";
+import { useActionState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { resetPassword, type AuthState } from "@/lib/auth/actions";
@@ -21,7 +21,7 @@ import { useEffect } from "react";
 export default function ResetPasswordPage() {
   const router = useRouter();
   const initialState: AuthState = {};
-  const [state, formAction] = useFormState(resetPassword, initialState);
+  const [state, formAction] = useActionState(resetPassword, initialState);
 
   // Redirect to login after successful password reset
   useEffect(() => {

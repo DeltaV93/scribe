@@ -29,7 +29,8 @@ type EmailTemplate =
   | "user_invitation_accepted"
   | "user_role_changed"
   | "user_deactivated"
-  | "user_reactivated";
+  | "user_reactivated"
+  | "client_reply_notification";
 
 /**
  * Send an email notification
@@ -284,6 +285,34 @@ export async function notifyUserOfReactivation(
     subject: "Your account has been reactivated",
     template: "user_reactivated",
     data,
+  });
+}
+
+// ============================================
+// Client Portal Notifications
+// ============================================
+
+/**
+ * Notify case manager when a client sends a reply in the portal
+ */
+export async function notifyCaseManagerOfReply(
+  caseManagerEmail: string,
+  data: {
+    caseManagerName: string;
+    clientFirstName: string;
+    clientLastName: string;
+    dashboardUrl: string;
+  }
+): Promise<void> {
+  await sendEmail({
+    to: caseManagerEmail,
+    subject: `New message from ${data.clientFirstName} ${data.clientLastName}`,
+    template: "client_reply_notification",
+    data: {
+      caseManagerName: data.caseManagerName,
+      clientName: `${data.clientFirstName} ${data.clientLastName}`,
+      dashboardUrl: data.dashboardUrl,
+    },
   });
 }
 

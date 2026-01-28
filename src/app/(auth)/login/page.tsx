@@ -1,7 +1,6 @@
 "use client";
 
-import { Suspense } from "react";
-import { useFormState } from "react-dom";
+import { Suspense, useActionState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { signIn, type AuthState } from "@/lib/auth/actions";
@@ -24,7 +23,7 @@ function LoginForm() {
   const verified = searchParams.get("verified");
   const initialState: AuthState = {};
 
-  const [state, formAction] = useFormState(signIn, initialState);
+  const [state, formAction] = useActionState(signIn, initialState);
 
   return (
     <Card className="w-full max-w-md">

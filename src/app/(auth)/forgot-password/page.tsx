@@ -1,6 +1,6 @@
 "use client";
 
-import { useFormState } from "react-dom";
+import { useActionState } from "react";
 import Link from "next/link";
 import { forgotPassword, type AuthState } from "@/lib/auth/actions";
 import { Input } from "@/components/ui/input";
@@ -18,7 +18,7 @@ import { AlertCircle, ArrowLeft, CheckCircle2 } from "lucide-react";
 
 export default function ForgotPasswordPage() {
   const initialState: AuthState = {};
-  const [state, formAction] = useFormState(forgotPassword, initialState);
+  const [state, formAction] = useActionState(forgotPassword, initialState);
 
   return (
     <Card className="w-full max-w-md">

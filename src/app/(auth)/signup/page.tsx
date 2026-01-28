@@ -1,6 +1,6 @@
 "use client";
 
-import { useFormState } from "react-dom";
+import { useActionState } from "react";
 import Link from "next/link";
 import { signUp, type AuthState } from "@/lib/auth/actions";
 import { Input } from "@/components/ui/input";
@@ -18,7 +18,7 @@ import { AlertCircle, CheckCircle2 } from "lucide-react";
 
 export default function SignUpPage() {
   const initialState: AuthState = {};
-  const [state, formAction] = useFormState(signUp, initialState);
+  const [state, formAction] = useActionState(signUp, initialState);
 
   return (
     <Card className="w-full max-w-md">

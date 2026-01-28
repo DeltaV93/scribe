@@ -18,7 +18,12 @@ export type AuditAction =
   | "UPLOAD"
   | "DOWNLOAD"
   | "SCAN"
-  | "EXTRACT";
+  | "EXTRACT"
+  | "GENERATE_SHEET"
+  | "PROCESS_ATTENDANCE"
+  | "CONFIRM_ATTENDANCE"
+  | "OVERRIDE_ATTENDANCE"
+  | "QUICK_ENROLL";
 
 export type AuditResource =
   | "FORM"
@@ -31,7 +36,10 @@ export type AuditResource =
   | "FILE"
   | "CALL"
   | "REPORT"
-  | "SETTING";
+  | "SETTING"
+  | "ATTENDANCE_UPLOAD"
+  | "ATTENDANCE_RECORD"
+  | "ATTENDANCE_SHEET";
 
 export interface AuditLogEntry {
   id: string;

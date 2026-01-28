@@ -89,13 +89,12 @@ export default function HomePage() {
               </div>
               <CardTitle>Call Recording</CardTitle>
               <CardDescription>
-                Record client calls with real-time transcription powered by
-                Deepgram.
+                Record client calls with real-time AI-powered transcription.
               </CardDescription>
             </CardHeader>
             <CardContent>
               <ul className="text-sm text-muted-foreground space-y-2">
-                <li>• Twilio integration</li>
+                <li>• VoIP calling</li>
                 <li>• Live transcription</li>
                 <li>• Speaker identification</li>
                 <li>• Secure storage</li>

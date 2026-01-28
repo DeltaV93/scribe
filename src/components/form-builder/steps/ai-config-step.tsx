@@ -226,7 +226,7 @@ export function AIConfigStep() {
           <div>
             <p className="font-medium text-blue-900">How AI Extraction Works</p>
             <p className="text-sm text-blue-700 mt-1">
-              When a client call is transcribed, our AI (Claude Haiku) will
+              When a client call is transcribed, our AI will
               analyze the transcript and attempt to fill in enabled fields
               automatically. Fields with low confidence or ambiguous data will
               be flagged for human review.

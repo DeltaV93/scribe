@@ -428,3 +428,33 @@ export function isValidPhoneNumber(phone: string): boolean {
   const e164Regex = /^\+[1-9]\d{10,14}$/;
   return e164Regex.test(formatPhoneToE164(phone));
 }
+
+/**
+ * Send a direct SMS message (not tied to a Message record)
+ * Used for verification codes and other system messages
+ */
+export async function sendSms(
+  phoneNumber: string,
+  body: string
+): Promise<SendSmsResult> {
+  try {
+    const twilioClient = getTwilioClient();
+    const twilioMessage = await twilioClient.messages.create({
+      body,
+      from: getTwilioPhoneNumber(),
+      to: formatPhoneToE164(phoneNumber),
+    });
+
+    return {
+      success: true,
+      twilioSid: twilioMessage.sid,
+    };
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    return {
+      success: false,
+      errorCode: "TWILIO_ERROR",
+      errorMessage,
+    };
+  }
+}
