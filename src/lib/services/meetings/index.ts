@@ -12,6 +12,7 @@ import { getJobQueue } from "@/lib/jobs/queue";
 import { transcribeAudio, matchSpeakersToParticipants } from "./transcription";
 import { summarizeMeeting, summarizeLongMeeting } from "./summarization";
 import { sendSummaryEmail } from "./email-distribution";
+import { getAccessibleLocationIds } from "@/lib/services/access-control";
 import {
   CreateMeetingParams,
   UpdateMeetingParams,
@@ -131,34 +132,86 @@ export async function getMeeting(meetingId: string, orgId: string) {
 export async function searchMeetings(params: MeetingSearchParams) {
   const {
     orgId,
+    userId,
     query,
     status,
     source,
     locationId,
+    locationIds,
     fromDate,
     toDate,
     participantEmail,
     tags,
     limit = 20,
     offset = 0,
+    filterByAccessibleLocations = false,
   } = params;
+
+  // Determine which location IDs to filter by
+  let effectiveLocationIds: string[] | undefined = locationIds;
+
+  // If filtering by accessible locations and userId is provided
+  if (filterByAccessibleLocations && userId) {
+    const accessibleIds = await getAccessibleLocationIds(userId, orgId);
+
+    // If specific locationIds were requested, intersect with accessible ones
+    if (effectiveLocationIds?.length) {
+      effectiveLocationIds = effectiveLocationIds.filter((id) =>
+        accessibleIds.includes(id)
+      );
+    } else if (locationId) {
+      // Check if single locationId is accessible
+      effectiveLocationIds = accessibleIds.includes(locationId) ? [locationId] : [];
+    } else {
+      // Use all accessible locations
+      effectiveLocationIds = accessibleIds;
+    }
+  } else if (locationId) {
+    effectiveLocationIds = [locationId];
+  }
 
   const where: Prisma.MeetingWhereInput = {
     orgId,
     ...(status && { status }),
     ...(source && { source }),
-    ...(locationId && { locationId }),
     ...(fromDate && { scheduledStartAt: { gte: fromDate } }),
     ...(toDate && { scheduledStartAt: { lte: toDate } }),
     ...(tags?.length && { tags: { hasSome: tags } }),
   };
 
+  // Apply location filter
+  if (effectiveLocationIds?.length) {
+    where.locationId = { in: effectiveLocationIds };
+  } else if (filterByAccessibleLocations && userId) {
+    // User has no location access - return empty results
+    // But still allow meetings they created or meetings without location
+    where.OR = [
+      { createdById: userId },
+      { locationId: null },
+    ];
+  } else if (locationId && !effectiveLocationIds?.length) {
+    // Single location filter (non-access-controlled path)
+    where.locationId = locationId;
+  }
+
   // Add text search on title/description
   if (query) {
-    where.OR = [
+    // Combine with existing OR if present
+    const textSearchConditions: Prisma.MeetingWhereInput[] = [
       { title: { contains: query, mode: "insensitive" } },
       { description: { contains: query, mode: "insensitive" } },
     ];
+
+    if (where.OR) {
+      // Wrap existing OR conditions and add text search
+      where.AND = [
+        { OR: where.OR },
+        { OR: textSearchConditions },
+      ];
+      delete where.OR;
+    } else {
+      where.OR = textSearchConditions;
+    }
   }
 
   // Participant email search is more complex - search in JSON

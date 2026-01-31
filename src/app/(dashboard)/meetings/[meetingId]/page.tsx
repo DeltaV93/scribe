@@ -1,12 +1,14 @@
 "use client";
 
-import { useState, useEffect, use } from "react";
+import { useState, useEffect, use, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { useDropzone } from "react-dropzone";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Progress } from "@/components/ui/progress";
 import {
   Dialog,
   DialogContent,
@@ -31,8 +33,11 @@ import {
   Mail,
   FileText,
   RefreshCw,
+  File,
+  X,
 } from "lucide-react";
 import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 
 interface TranscriptSegment {
   speakerId: string;
@@ -114,10 +119,12 @@ export default function MeetingDetailPage({
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("summary");
 
-  // Upload dialog
+  // Upload dialog state
   const [isUploadOpen, setIsUploadOpen] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [recordingPath, setRecordingPath] = useState("");
+  const [uploadState, setUploadState] = useState<"idle" | "uploading" | "processing" | "success" | "error">("idle");
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   // Resend email dialog
   const [isResendOpen, setIsResendOpen] = useState(false);
@@ -151,27 +158,154 @@ export default function MeetingDetailPage({
     return () => clearInterval(interval);
   }, [meetingId, meeting?.status]);
 
-  const handleStartProcessing = async () => {
-    if (!recordingPath.trim()) return;
+  // File dropzone configuration
+  const onDrop = useCallback((acceptedFiles: File[], rejectedFiles: unknown[]) => {
+    if (rejectedFiles && Array.isArray(rejectedFiles) && rejectedFiles.length > 0) {
+      setUploadError("Invalid file type. Please upload MP3, MP4, WAV, WebM, or M4A files.");
+      return;
+    }
 
-    setIsProcessing(true);
+    if (acceptedFiles.length > 0) {
+      const file = acceptedFiles[0];
+      const maxSize = 500 * 1024 * 1024; // 500MB
+
+      if (file.size > maxSize) {
+        setUploadError("File is too large. Maximum size is 500MB.");
+        return;
+      }
+
+      setSelectedFile(file);
+      setUploadError(null);
+    }
+  }, []);
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: {
+      "audio/mpeg": [".mp3"],
+      "audio/wav": [".wav"],
+      "audio/webm": [".webm"],
+      "audio/m4a": [".m4a"],
+      "audio/x-m4a": [".m4a"],
+      "audio/mp4": [".m4a"],
+      "video/mp4": [".mp4"],
+      "video/webm": [".webm"],
+      "video/quicktime": [".mov"],
+    },
+    maxFiles: 1,
+    maxSize: 500 * 1024 * 1024,
+  });
+
+  const formatFileSize = (bytes: number): string => {
+    if (bytes === 0) return "0 Bytes";
+    const k = 1024;
+    const sizes = ["Bytes", "KB", "MB", "GB"];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+  };
+
+  const handleUpload = async () => {
+    if (!selectedFile) return;
+
+    setUploadState("uploading");
+    setUploadProgress(10);
+    setUploadError(null);
+
     try {
-      const response = await fetch(`/api/meetings/${meetingId}/process`, {
+      const formData = new FormData();
+      formData.append("file", selectedFile);
+      formData.append("autoProcess", "true");
+
+      // Simulate upload progress
+      const progressInterval = setInterval(() => {
+        setUploadProgress((prev) => Math.min(prev + 5, 45));
+      }, 200);
+
+      const response = await fetch(`/api/meetings/${meetingId}/upload`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ recordingPath }),
+        body: formData,
       });
 
-      if (response.ok) {
-        setIsUploadOpen(false);
-        setRecordingPath("");
-        fetchMeeting();
+      clearInterval(progressInterval);
+      setUploadProgress(50);
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error?.message || "Upload failed");
       }
-    } catch (error) {
-      console.error("Error starting processing:", error);
-    } finally {
-      setIsProcessing(false);
+
+      const data = await response.json();
+
+      if (data.data?.processing) {
+        // File uploaded, now processing
+        setUploadState("processing");
+        setUploadProgress(60);
+
+        // Poll for completion
+        await pollForProcessingComplete(data.data.jobProgressId);
+      } else {
+        // Just uploaded, not auto-processing
+        setUploadState("success");
+        setUploadProgress(100);
+      }
+    } catch (err) {
+      setUploadState("error");
+      setUploadError(err instanceof Error ? err.message : "An error occurred during upload");
     }
+  };
+
+  const pollForProcessingComplete = async (jobProgressId: string) => {
+    const maxAttempts = 120; // 4 minutes max
+    let attempts = 0;
+
+    while (attempts < maxAttempts) {
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      attempts++;
+
+      try {
+        // Check meeting status directly
+        const response = await fetch(`/api/meetings/${meetingId}`);
+        if (!response.ok) continue;
+
+        const data = await response.json();
+        const status = data.data?.status;
+
+        // Update progress based on status
+        if (status === "PROCESSING") {
+          setUploadProgress(60 + Math.min(attempts * 0.5, 35));
+        }
+
+        if (status === "COMPLETED") {
+          setUploadState("success");
+          setUploadProgress(100);
+          fetchMeeting();
+          return;
+        }
+
+        if (status === "FAILED") {
+          throw new Error(data.data?.processingError || "Processing failed");
+        }
+      } catch (err) {
+        if (attempts >= maxAttempts) {
+          throw new Error("Processing timed out. Please check back later.");
+        }
+      }
+    }
+
+    throw new Error("Processing timed out. Please check back later.");
+  };
+
+  const resetUploadDialog = () => {
+    setUploadState("idle");
+    setSelectedFile(null);
+    setUploadProgress(0);
+    setUploadError(null);
+  };
+
+  const closeUploadDialog = () => {
+    setIsUploadOpen(false);
+    // Reset after dialog closes
+    setTimeout(resetUploadDialog, 300);
   };
 
   const handleResendEmail = async () => {
@@ -562,36 +696,182 @@ export default function MeetingDetailPage({
       )}
 
       {/* Upload/Process Dialog */}
-      <Dialog open={isUploadOpen} onOpenChange={setIsUploadOpen}>
-        <DialogContent>
+      <Dialog open={isUploadOpen} onOpenChange={(open) => {
+        if (!open && uploadState !== "uploading" && uploadState !== "processing") {
+          closeUploadDialog();
+        } else if (open) {
+          setIsUploadOpen(true);
+        }
+      }}>
+        <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>Process Recording</DialogTitle>
+            <DialogTitle>Upload Meeting Recording</DialogTitle>
             <DialogDescription>
-              Enter the path to the audio/video recording to process.
+              Upload an audio or video recording to transcribe and summarize.
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="recordingPath">Recording Path</Label>
-              <Input
-                id="recordingPath"
-                placeholder="/path/to/recording.mp4 or s3://bucket/recording.mp4"
-                value={recordingPath}
-                onChange={(e) => setRecordingPath(e.target.value)}
-              />
-              <p className="text-sm text-muted-foreground">
-                The recording will be transcribed, summarized, and emailed to participants.
-              </p>
-            </div>
+
+          <div className="space-y-6 py-4">
+            {uploadState === "idle" && (
+              <>
+                {/* Dropzone */}
+                <div
+                  {...getRootProps()}
+                  className={cn(
+                    "border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors",
+                    isDragActive
+                      ? "border-primary bg-primary/5"
+                      : "border-muted-foreground/25 hover:border-primary/50"
+                  )}
+                >
+                  <input {...getInputProps()} />
+                  <div className="flex flex-col items-center gap-4">
+                    {selectedFile ? (
+                      <>
+                        <File className="h-12 w-12 text-primary" />
+                        <div>
+                          <p className="font-medium">{selectedFile.name}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {formatFileSize(selectedFile.size)}
+                          </p>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="h-12 w-12 text-muted-foreground" />
+                        <div>
+                          <p className="font-medium">
+                            {isDragActive ? "Drop the file here" : "Drag & drop a recording here"}
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            or click to select a file
+                          </p>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                {/* Supported formats */}
+                <div className="flex flex-wrap gap-2 justify-center">
+                  <Badge variant="outline">MP3</Badge>
+                  <Badge variant="outline">MP4</Badge>
+                  <Badge variant="outline">WAV</Badge>
+                  <Badge variant="outline">WebM</Badge>
+                  <Badge variant="outline">M4A</Badge>
+                </div>
+
+                <p className="text-xs text-center text-muted-foreground">
+                  Maximum file size: 500MB
+                </p>
+
+                {/* Error message */}
+                {uploadError && (
+                  <div className="flex items-center gap-2 text-destructive text-sm justify-center">
+                    <AlertCircle className="h-4 w-4" />
+                    {uploadError}
+                  </div>
+                )}
+
+                {/* Selected file preview with remove option */}
+                {selectedFile && (
+                  <div className="flex items-center gap-3 p-3 rounded-lg border bg-muted/50">
+                    <File className="h-8 w-8 text-muted-foreground shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{selectedFile.name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {formatFileSize(selectedFile.size)}
+                      </p>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="shrink-0"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedFile(null);
+                      }}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                )}
+              </>
+            )}
+
+            {/* Uploading / Processing state */}
+            {(uploadState === "uploading" || uploadState === "processing") && (
+              <div className="space-y-4 text-center py-8">
+                <Loader2 className="h-12 w-12 mx-auto animate-spin text-primary" />
+                <div>
+                  <p className="font-medium">
+                    {uploadState === "uploading" ? "Uploading recording..." : "Processing meeting..."}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {uploadState === "processing" && "Transcribing and generating summary"}
+                  </p>
+                </div>
+                <Progress value={uploadProgress} className="w-full" />
+                <p className="text-xs text-muted-foreground">
+                  {uploadState === "processing" && "This may take a few minutes for longer recordings"}
+                </p>
+              </div>
+            )}
+
+            {/* Success state */}
+            {uploadState === "success" && (
+              <div className="space-y-4 text-center py-8">
+                <CheckCircle className="h-12 w-12 mx-auto text-green-500" />
+                <div>
+                  <p className="font-medium">Recording processed successfully!</p>
+                  <p className="text-sm text-muted-foreground">
+                    The transcript and summary are now available.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Error state */}
+            {uploadState === "error" && (
+              <div className="space-y-4 text-center py-8">
+                <AlertCircle className="h-12 w-12 mx-auto text-destructive" />
+                <div>
+                  <p className="font-medium">Upload failed</p>
+                  <p className="text-sm text-muted-foreground">{uploadError}</p>
+                </div>
+              </div>
+            )}
           </div>
+
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsUploadOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleStartProcessing} disabled={isProcessing || !recordingPath.trim()}>
-              {isProcessing && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-              Start Processing
-            </Button>
+            {uploadState === "idle" && (
+              <>
+                <Button variant="outline" onClick={closeUploadDialog}>
+                  Cancel
+                </Button>
+                <Button onClick={handleUpload} disabled={!selectedFile}>
+                  <Upload className="h-4 w-4 mr-2" />
+                  Upload & Process
+                </Button>
+              </>
+            )}
+
+            {uploadState === "success" && (
+              <Button onClick={closeUploadDialog}>
+                Done
+              </Button>
+            )}
+
+            {uploadState === "error" && (
+              <>
+                <Button variant="outline" onClick={closeUploadDialog}>
+                  Close
+                </Button>
+                <Button onClick={resetUploadDialog}>
+                  Try Again
+                </Button>
+              </>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>

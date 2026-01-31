@@ -11,6 +11,7 @@ import { createMeeting, searchMeetings } from "@/lib/services/meetings";
 
 /**
  * List meetings with optional filters
+ * Supports location-based access control filtering
  */
 export async function GET(request: NextRequest) {
   try {
@@ -18,18 +19,31 @@ export async function GET(request: NextRequest) {
 
     const searchParams = request.nextUrl.searchParams;
 
+    // Parse locationIds if provided (comma-separated)
+    const locationIdsParam = searchParams.get("locationIds");
+    const locationIds = locationIdsParam
+      ? locationIdsParam.split(",").filter(Boolean)
+      : undefined;
+
+    // By default, filter by accessible locations unless explicitly disabled
+    const filterByAccessibleLocations =
+      searchParams.get("filterByAccessibleLocations") !== "false";
+
     const result = await searchMeetings({
       orgId: user.orgId,
+      userId: user.id,
       query: searchParams.get("query") || undefined,
       status: searchParams.get("status") as "SCHEDULED" | "PROCESSING" | "COMPLETED" | "FAILED" | undefined,
       source: searchParams.get("source") as "UPLOAD" | "TEAMS" | "ZOOM" | "GOOGLE_MEET" | undefined,
       locationId: searchParams.get("locationId") || undefined,
+      locationIds,
       fromDate: searchParams.get("fromDate") ? new Date(searchParams.get("fromDate")!) : undefined,
       toDate: searchParams.get("toDate") ? new Date(searchParams.get("toDate")!) : undefined,
       participantEmail: searchParams.get("participantEmail") || undefined,
       tags: searchParams.get("tags")?.split(",").filter(Boolean),
       limit: Math.min(parseInt(searchParams.get("limit") || "20"), 100),
       offset: parseInt(searchParams.get("offset") || "0"),
+      filterByAccessibleLocations,
     });
 
     return NextResponse.json({

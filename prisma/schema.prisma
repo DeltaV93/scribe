@@ -285,6 +285,10 @@ model Organization {
   // Meeting Intelligence Relations
   locations             Location[]
   meetings              Meeting[]
+  meetingIntegrations   MeetingIntegration[]
+
+  // Knowledge Base Relations
+  knowledgeEntries      KnowledgeEntry[]
 
   @@index([slug])
   @@index([stripeCustomerId])
@@ -391,6 +395,14 @@ model User {
   completedActionItems    MeetingActionItem[]    @relation("ActionItemCompleter")
   askedQuestions          MeetingQuestion[]      @relation("QuestionAsker")
   answeredQuestions       MeetingQuestion[]      @relation("QuestionAnswerer")
+
+  // Knowledge Base Relations
+  createdKnowledge        KnowledgeEntry[]       @relation("KnowledgeCreator")
+  updatedKnowledge        KnowledgeEntry[]       @relation("KnowledgeUpdater")
+
+  // Location Access Control Relations
+  locationAccess          UserLocation[]
+  grantedLocationAccess   UserLocation[]         @relation("LocationAccessGranter")
 
   @@index([orgId])
   @@index([email])
@@ -1958,6 +1970,12 @@ enum LocationType {
   HEADQUARTERS
 }
 
+enum LocationAccessLevel {
+  VIEW    // Can view meetings/data at this location
+  EDIT    // Can view and edit meetings/data at this location
+  MANAGE  // Full control including assigning access to others
+}
+
 model Location {
   id                  String              @id @default(uuid())
   orgId               String
@@ -1982,10 +2000,34 @@ model Location {
   parent              Location?           @relation("LocationHierarchy", fields: [parentId], references: [id])
   children            Location[]          @relation("LocationHierarchy")
   meetings            Meeting[]
+  userAccess          UserLocation[]
 
   @@unique([orgId, code])
   @@index([orgId, type])
   @@index([parentId])
+}
+
+// User-Location access assignment (join table)
+model UserLocation {
+  id                  String              @id @default(uuid())
+  userId              String
+  locationId          String
+  accessLevel         LocationAccessLevel @default(VIEW)
+
+  // Who granted access and when
+  grantedById         String?
+  grantedAt           DateTime            @default(now())
+
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+
+  user                User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  location            Location            @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  grantedBy           User?               @relation("LocationAccessGranter", fields: [grantedById], references: [id])
+
+  @@unique([userId, locationId])
+  @@index([userId])
+  @@index([locationId])
 }
 
 // ============================================
@@ -2066,6 +2108,7 @@ model Meeting {
   summary             MeetingSummary?
   actionItems         MeetingActionItem[]
   questions           MeetingQuestion[]
+  knowledgeEntries    KnowledgeEntry[]
 
   @@index([orgId, status])
   @@index([orgId, scheduledStartAt])
@@ -2177,4 +2220,117 @@ model MeetingQuestion {
 
   @@index([meetingId])
   @@index([isAnswered])
+}
+
+// ============================================
+// KNOWLEDGE BASE / INSTITUTIONAL MEMORY
+// ============================================
+
+enum KnowledgeSource {
+  MEETING         // Extracted from meeting summaries
+  DOCUMENT        // From uploaded documents
+  MANUAL          // Manually entered by users
+}
+
+model KnowledgeEntry {
+  id                  String              @id @default(uuid())
+  orgId               String
+  title               String
+  content             String              @db.Text
+  summary             String?             // AI-generated summary
+  source              KnowledgeSource     @default(MANUAL)
+
+  // Source references
+  meetingId           String?             // Link to source meeting
+  documentPath        String?             // S3 path if from document
+
+  // Categorization
+  tags                String[]
+  category            String?             // e.g., "Policy", "Decision", "Process"
+
+  // Vector embedding for semantic search (stored reference)
+  embeddingId         String?             // External embedding ID (e.g., from vector DB)
+  embeddingVector     Float[]             // Stored embedding vector for local search
+
+  // Metadata
+  createdById         String
+  lastUpdatedById     String?
+  isArchived          Boolean             @default(false)
+  archivedAt          DateTime?
+
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+
+  // Relations
+  organization        Organization        @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  meeting             Meeting?            @relation(fields: [meetingId], references: [id], onDelete: SetNull)
+  createdBy           User                @relation("KnowledgeCreator", fields: [createdById], references: [id])
+  lastUpdatedBy       User?               @relation("KnowledgeUpdater", fields: [lastUpdatedById], references: [id])
+
+  @@index([orgId, source])
+  @@index([orgId, category])
+  @@index([createdById])
+  @@index([meetingId])
+  @@index([tags])
+}
+
+// ============================================
+// MEETING PLATFORM INTEGRATIONS
+// ============================================
+
+enum MeetingPlatform {
+  TEAMS
+  ZOOM
+  GOOGLE_MEET
+}
+
+enum IntegrationStatus {
+  PENDING       // OAuth flow initiated
+  ACTIVE        // Successfully connected
+  EXPIRED       // Token expired, needs refresh
+  ERROR         // Connection error
+  DISCONNECTED  // User disconnected
+}
+
+model MeetingIntegration {
+  id                  String              @id @default(uuid())
+  orgId               String
+  platform            MeetingPlatform
+
+  // OAuth credentials (encrypted in production)
+  accessToken         String?             // Encrypted access token
+  refreshToken        String?             // Encrypted refresh token
+  tokenExpiresAt      DateTime?
+
+  // Platform-specific identifiers
+  externalUserId      String?             // User ID on the platform
+  externalTenantId    String?             // For Teams: tenant ID
+
+  // Webhook configuration
+  webhookId           String?             // Platform webhook subscription ID
+  webhookSecret       String?             // Webhook verification secret
+  webhookExpiresAt    DateTime?           // When webhook subscription expires
+
+  // Connection status
+  status              IntegrationStatus   @default(PENDING)
+  lastSyncAt          DateTime?
+  lastError           String?
+  errorCount          Int                 @default(0)
+
+  // Settings
+  settings            Json                @default("{}")  // Platform-specific settings
+  autoRecordEnabled   Boolean             @default(true)  // Auto-capture recordings
+  syncCalendarEnabled Boolean             @default(false) // Sync calendar events
+
+  // Audit
+  connectedById       String              // User who set up the integration
+  connectedAt         DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+
+  // Relations
+  organization        Organization        @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@unique([orgId, platform])
+  @@index([orgId, status])
+  @@index([platform])
 }

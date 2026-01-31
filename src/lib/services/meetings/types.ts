@@ -170,16 +170,20 @@ export interface MeetingProcessingJobData {
 
 export interface MeetingSearchParams {
   orgId: string;
+  userId?: string;  // For location-based access filtering
   query?: string;
   status?: MeetingStatus;
   source?: MeetingSource;
   locationId?: string;
+  locationIds?: string[];  // Filter by multiple locations
   fromDate?: Date;
   toDate?: Date;
   participantEmail?: string;
   tags?: string[];
   limit?: number;
   offset?: number;
+  // Access control options
+  filterByAccessibleLocations?: boolean;  // If true, filter by user's accessible locations
 }
 
 export interface ActionItemSearchParams {

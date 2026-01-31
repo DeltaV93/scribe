@@ -10,6 +10,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { getMeeting, updateMeeting } from "@/lib/services/meetings";
+import {
+  canAccessMeeting,
+  getEditAccessLevel,
+  getManageAccessLevel,
+} from "@/lib/services/access-control";
 
 interface RouteParams {
   params: Promise<{ meetingId: string }>;
@@ -22,6 +27,15 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
     const user = await requireAuth();
     const { meetingId } = await params;
+
+    // Check location-based access
+    const hasAccess = await canAccessMeeting(user.id, meetingId);
+    if (!hasAccess) {
+      return NextResponse.json(
+        { error: { code: "FORBIDDEN", message: "You do not have access to this meeting" } },
+        { status: 403 }
+      );
+    }
 
     const meeting = await getMeeting(meetingId, user.orgId);
 
@@ -51,6 +65,15 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     const { meetingId } = await params;
     const body = await request.json();
 
+    // Check location-based access (requires EDIT level)
+    const hasAccess = await canAccessMeeting(user.id, meetingId, getEditAccessLevel());
+    if (!hasAccess) {
+      return NextResponse.json(
+        { error: { code: "FORBIDDEN", message: "You do not have permission to edit this meeting" } },
+        { status: 403 }
+      );
+    }
+
     const meeting = await updateMeeting(meetingId, user.orgId, {
       title: body.title,
       description: body.description,
@@ -78,6 +101,15 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
     const user = await requireAuth();
     const { meetingId } = await params;
+
+    // Check location-based access (requires MANAGE level)
+    const hasAccess = await canAccessMeeting(user.id, meetingId, getManageAccessLevel());
+    if (!hasAccess) {
+      return NextResponse.json(
+        { error: { code: "FORBIDDEN", message: "You do not have permission to delete this meeting" } },
+        { status: 403 }
+      );
+    }
 
     // Verify meeting exists and belongs to org
     const meeting = await prisma.meeting.findFirst({
