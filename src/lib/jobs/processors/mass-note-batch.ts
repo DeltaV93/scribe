@@ -20,8 +20,8 @@ import { registerProcessor } from '../worker'
 import {
   resolveTemplateVariables,
   buildVariables,
-  VariableContext,
-} from '@/lib/services/note-templates'
+  type TemplateContext,
+} from '@/lib/services/mass-notes/template-processor'
 import { notifyJobCompleted, notifyJobFailed } from '@/lib/services/notifications'
 
 const BATCH_SIZE = 50
@@ -102,7 +102,7 @@ async function processMassNoteBatch(job: Job<MassNoteBatchJobData>): Promise<voi
         try {
           const attendance = attendanceMap.get(client.id)
 
-          const context: VariableContext = {
+          const context: TemplateContext = {
             client: {
               firstName: client.firstName,
               lastName: client.lastName,

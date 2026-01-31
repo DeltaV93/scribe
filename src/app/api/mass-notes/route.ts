@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth";
 import { z } from "zod";
-import { createMassNoteJob, getSessionAttendeesForMassNote } from "@/lib/services/mass-notes";
+import {
+  createMassNoteJob,
+  getSessionAttendeesForMassNote,
+  listMassNoteBatches,
+} from "@/lib/services/mass-notes";
 import { NoteType } from "@prisma/client";
 
 // Validation schema for creating mass notes
@@ -83,7 +87,12 @@ export async function POST(request: NextRequest) {
 }
 
 /**
- * GET /api/mass-notes - Get attendees for mass note creation
+ * GET /api/mass-notes - Get attendees for mass note creation OR list batches
+ *
+ * Query params:
+ * - sessionId: Get attendees for a specific session
+ * - batches: If true, list mass note batches instead
+ * - limit/offset: Pagination for batches
  */
 export async function GET(request: NextRequest) {
   try {
@@ -91,10 +100,40 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const sessionId = searchParams.get("sessionId");
+    const listBatches = searchParams.get("batches") === "true";
 
+    // List batches mode
+    if (listBatches) {
+      const limit = parseInt(searchParams.get("limit") ?? "20", 10);
+      const offset = parseInt(searchParams.get("offset") ?? "0", 10);
+
+      const result = await listMassNoteBatches({
+        orgId: user.orgId,
+        userId: searchParams.get("allUsers") === "true" ? undefined : user.id,
+        limit: Math.min(limit, 100),
+        offset,
+      });
+
+      return NextResponse.json({
+        success: true,
+        data: result.batches,
+        pagination: {
+          total: result.total,
+          limit,
+          offset,
+        },
+      });
+    }
+
+    // Get session attendees mode
     if (!sessionId) {
       return NextResponse.json(
-        { error: { code: "VALIDATION_ERROR", message: "sessionId is required" } },
+        {
+          error: {
+            code: "VALIDATION_ERROR",
+            message: "sessionId is required (or use ?batches=true to list batches)",
+          },
+        },
         { status: 400 }
       );
     }
@@ -106,7 +145,7 @@ export async function GET(request: NextRequest) {
       data: result,
     });
   } catch (error) {
-    console.error("Error getting session attendees:", error);
+    console.error("Error in mass-notes GET:", error);
 
     if (error instanceof Error) {
       return NextResponse.json(
@@ -116,7 +155,7 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.json(
-      { error: { code: "INTERNAL_ERROR", message: "Failed to get session attendees" } },
+      { error: { code: "INTERNAL_ERROR", message: "Failed to process request" } },
       { status: 500 }
     );
   }

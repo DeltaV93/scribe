@@ -9,7 +9,7 @@ import { Queue, QueueOptions } from 'bullmq'
 import { getRedisConnection } from './connection'
 
 // Job type definitions
-export type JobType = 'mass-note-batch' | 'form-conversion' | 'report-generation' | 'funder-export' | 'scheduled-export-runner' | 'import' | 'meeting-processing'
+export type JobType = 'mass-note-batch' | 'form-conversion' | 'document-extraction' | 'report-generation' | 'funder-export' | 'scheduled-export-runner' | 'import' | 'meeting-processing' | 'invitation-reminder' | 'invitation-reminder-runner'
 
 // Job data types
 export interface MassNoteBatchJobData {
@@ -28,6 +28,17 @@ export interface MassNoteBatchJobData {
 export interface FormConversionJobData {
   jobProgressId: string
   conversionId: string
+  sourcePath: string
+  sourceType: 'PHOTO' | 'PDF_CLEAN' | 'PDF_SCANNED'
+  orgId: string
+  userId: string
+}
+
+export interface DocumentExtractionJobData {
+  jobProgressId: string
+  extractionId: string
+  formId: string
+  clientId?: string
   sourcePath: string
   sourceType: 'PHOTO' | 'PDF_CLEAN' | 'PDF_SCANNED'
   orgId: string
@@ -83,7 +94,15 @@ export interface MeetingProcessingJobData {
   }
 }
 
-export type JobData = MassNoteBatchJobData | FormConversionJobData | ReportGenerationJobData | FunderExportJobData | ScheduledExportRunnerData | ImportJobData | MeetingProcessingJobData
+export interface InvitationReminderJobData {
+  orgId?: string // Optional: filter to specific org, or process all if not provided
+}
+
+export interface InvitationReminderRunnerData {
+  type: 'invitation-reminder-runner'
+}
+
+export type JobData = MassNoteBatchJobData | FormConversionJobData | DocumentExtractionJobData | ReportGenerationJobData | FunderExportJobData | ScheduledExportRunnerData | ImportJobData | MeetingProcessingJobData | InvitationReminderJobData | InvitationReminderRunnerData
 
 // Queue instances (lazy loaded)
 let jobQueue: Queue | null = null

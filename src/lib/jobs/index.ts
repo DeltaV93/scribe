@@ -24,6 +24,7 @@ export {
   type JobData,
   type MassNoteBatchJobData,
   type FormConversionJobData,
+  type DocumentExtractionJobData,
   type ReportGenerationJobData,
 } from './queue'
 
@@ -35,6 +36,7 @@ export {
   isWorkerRunning,
   isMassNoteBatchJob,
   isFormConversionJob,
+  isDocumentExtractionJob,
   isReportGenerationJob,
 } from './worker'
 

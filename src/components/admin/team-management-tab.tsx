@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import {
   Card,
   CardContent,
@@ -9,6 +9,14 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -37,6 +45,9 @@ import {
   Trash2,
   Users,
   UserX,
+  Search,
+  X,
+  Upload,
 } from "lucide-react";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
@@ -50,6 +61,7 @@ import {
   TransferDataDialog,
   DeleteUserDialog,
 } from "./user-actions-dialog";
+import { BulkImportDialog } from "./bulk-import-dialog";
 
 // Types
 interface User {
@@ -123,19 +135,44 @@ export function TeamManagementTab() {
   const [invitations, setInvitations] = useState<Invitation[]>([]);
   const [limits, setLimits] = useState<UserLimits | null>(null);
 
+  // Search and filter states
+  const [searchQuery, setSearchQuery] = useState("");
+  const [roleFilter, setRoleFilter] = useState<string>("all");
+  const [teamFilter, setTeamFilter] = useState<string>("all");
+  const [isSearching, setIsSearching] = useState(false);
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+
   // Dialog states
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
+  const [bulkImportDialogOpen, setBulkImportDialogOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<User | null>(null);
   const [deactivateTarget, setDeactivateTarget] = useState<User | null>(null);
   const [reactivateTarget, setReactivateTarget] = useState<User | null>(null);
   const [transferTarget, setTransferTarget] = useState<User | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<User | null>(null);
 
-  useEffect(() => {
-    fetchData();
+  const fetchUsers = useCallback(async (search?: string, role?: string, team?: string) => {
+    setIsSearching(true);
+    try {
+      const params = new URLSearchParams({ includeInactive: "true" });
+      if (search) params.set("search", search);
+      if (role && role !== "all") params.set("role", role);
+      if (team && team !== "all") params.set("team", team);
+
+      const usersRes = await fetch(`/api/admin/users?${params.toString()}`);
+      if (usersRes.ok) {
+        const data = await usersRes.json();
+        setUsers(data.data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch users:", error);
+      toast.error("Failed to load users");
+    } finally {
+      setIsSearching(false);
+    }
   }, []);
 
-  const fetchData = async () => {
+  const fetchInitialData = useCallback(async () => {
     setIsLoading(true);
     try {
       const [usersRes, invitationsRes, teamsRes, limitsRes] = await Promise.all([
@@ -170,7 +207,36 @@ export function TeamManagementTab() {
     } finally {
       setIsLoading(false);
     }
+  }, []);
+
+  useEffect(() => {
+    fetchInitialData();
+  }, [fetchInitialData]);
+
+  // Debounced search
+  useEffect(() => {
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+
+    debounceTimerRef.current = setTimeout(() => {
+      fetchUsers(searchQuery, roleFilter, teamFilter);
+    }, 300);
+
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, [searchQuery, roleFilter, teamFilter, fetchUsers]);
+
+  const handleClearFilters = () => {
+    setSearchQuery("");
+    setRoleFilter("all");
+    setTeamFilter("all");
   };
+
+  const hasActiveFilters = searchQuery || roleFilter !== "all" || teamFilter !== "all";
 
   const activeUsers = users.filter((u) => u.isActive);
   const inactiveUsers = users.filter((u) => !u.isActive);
@@ -198,14 +264,74 @@ export function TeamManagementTab() {
             </p>
           )}
         </div>
-        <Button onClick={() => setInviteDialogOpen(true)} disabled={limits ? !limits.canInvite : false}>
-          <UserPlus className="mr-2 h-4 w-4" />
-          Invite User
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={() => setBulkImportDialogOpen(true)}
+            disabled={limits ? !limits.canInvite : false}
+          >
+            <Upload className="mr-2 h-4 w-4" />
+            Bulk Import
+          </Button>
+          <Button onClick={() => setInviteDialogOpen(true)} disabled={limits ? !limits.canInvite : false}>
+            <UserPlus className="mr-2 h-4 w-4" />
+            Invite User
+          </Button>
+        </div>
+      </div>
+
+      {/* Search and Filters */}
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="relative flex-1 min-w-[200px] max-w-sm">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search users..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-9"
+          />
+          {isSearching && (
+            <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
+          )}
+        </div>
+
+        <Select value={roleFilter} onValueChange={setRoleFilter}>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Role: All" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Role: All</SelectItem>
+            <SelectItem value="ADMIN">Administrator</SelectItem>
+            <SelectItem value="PROGRAM_MANAGER">Program Manager</SelectItem>
+            <SelectItem value="CASE_MANAGER">Case Manager</SelectItem>
+            <SelectItem value="VIEWER">Viewer</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Select value={teamFilter} onValueChange={setTeamFilter}>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Team: All" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Team: All</SelectItem>
+            {teams.map((team) => (
+              <SelectItem key={team.id} value={team.id}>
+                {team.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        {hasActiveFilters && (
+          <Button variant="ghost" size="sm" onClick={handleClearFilters}>
+            <X className="mr-1 h-4 w-4" />
+            Clear
+          </Button>
+        )}
       </div>
 
       {/* Pending Invitations */}
-      <PendingInvitations invitations={invitations} onRefresh={fetchData} />
+      <PendingInvitations invitations={invitations} onRefresh={fetchInitialData} />
 
       {/* User Tabs */}
       <Tabs defaultValue="active">
@@ -229,13 +355,19 @@ export function TeamManagementTab() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <UserTable
-                users={activeUsers}
-                onEdit={setEditTarget}
-                onDeactivate={setDeactivateTarget}
-                onTransfer={setTransferTarget}
-                showDeactivate
-              />
+              {activeUsers.length === 0 ? (
+                <p className="text-center py-8 text-muted-foreground">
+                  {hasActiveFilters ? "No users found matching your filters" : "No active users"}
+                </p>
+              ) : (
+                <UserTable
+                  users={activeUsers}
+                  onEdit={setEditTarget}
+                  onDeactivate={setDeactivateTarget}
+                  onTransfer={setTransferTarget}
+                  showDeactivate
+                />
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -251,7 +383,7 @@ export function TeamManagementTab() {
             <CardContent>
               {inactiveUsers.length === 0 ? (
                 <p className="text-center py-8 text-muted-foreground">
-                  No inactive users
+                  {hasActiveFilters ? "No users found matching your filters" : "No inactive users"}
                 </p>
               ) : (
                 <UserTable
@@ -274,7 +406,14 @@ export function TeamManagementTab() {
         open={inviteDialogOpen}
         onOpenChange={setInviteDialogOpen}
         teams={teams}
-        onSuccess={fetchData}
+        onSuccess={fetchInitialData}
+      />
+
+      <BulkImportDialog
+        open={bulkImportDialogOpen}
+        onOpenChange={setBulkImportDialogOpen}
+        teams={teams}
+        onSuccess={fetchInitialData}
       />
 
       <EditUserDialog
@@ -282,7 +421,7 @@ export function TeamManagementTab() {
         onOpenChange={(open) => !open && setEditTarget(null)}
         user={editTarget}
         teams={teams}
-        onSuccess={fetchData}
+        onSuccess={fetchInitialData}
       />
 
       {deactivateTarget && (
@@ -291,7 +430,7 @@ export function TeamManagementTab() {
           onOpenChange={(open) => !open && setDeactivateTarget(null)}
           userId={deactivateTarget.id}
           userName={deactivateTarget.name || deactivateTarget.email}
-          onSuccess={fetchData}
+          onSuccess={fetchInitialData}
         />
       )}
 
@@ -301,7 +440,7 @@ export function TeamManagementTab() {
           onOpenChange={(open) => !open && setReactivateTarget(null)}
           userId={reactivateTarget.id}
           userName={reactivateTarget.name || reactivateTarget.email}
-          onSuccess={fetchData}
+          onSuccess={fetchInitialData}
         />
       )}
 
@@ -319,7 +458,7 @@ export function TeamManagementTab() {
               email: u.email,
               role: u.role,
             }))}
-          onSuccess={fetchData}
+          onSuccess={fetchInitialData}
         />
       )}
 
@@ -330,7 +469,7 @@ export function TeamManagementTab() {
           userId={deleteTarget.id}
           userName={deleteTarget.name || deleteTarget.email}
           userEmail={deleteTarget.email}
-          onSuccess={fetchData}
+          onSuccess={fetchInitialData}
         />
       )}
     </div>

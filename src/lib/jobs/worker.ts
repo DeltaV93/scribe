@@ -12,9 +12,12 @@ import {
   JobType,
   MassNoteBatchJobData,
   FormConversionJobData,
+  DocumentExtractionJobData,
   ReportGenerationJobData,
   ScheduledExportRunnerData,
   MeetingProcessingJobData,
+  InvitationReminderJobData,
+  InvitationReminderRunnerData,
 } from './queue'
 
 // Processor function type
@@ -109,7 +112,11 @@ export function isMassNoteBatchJob(data: JobData): data is MassNoteBatchJobData 
 }
 
 export function isFormConversionJob(data: JobData): data is FormConversionJobData {
-  return 'conversionId' in data && 'sourcePath' in data
+  return 'conversionId' in data && 'sourcePath' in data && !('formId' in data)
+}
+
+export function isDocumentExtractionJob(data: JobData): data is DocumentExtractionJobData {
+  return 'extractionId' in data && 'formId' in data && 'sourcePath' in data
 }
 
 export function isReportGenerationJob(data: JobData): data is ReportGenerationJobData {
@@ -122,4 +129,12 @@ export function isScheduledExportRunnerJob(data: JobData): data is ScheduledExpo
 
 export function isMeetingProcessingJob(data: JobData): data is MeetingProcessingJobData {
   return 'meetingId' in data && 'recordingPath' in data
+}
+
+export function isInvitationReminderJob(data: JobData): data is InvitationReminderJobData {
+  return !('type' in data) || (data as { type?: string }).type !== 'invitation-reminder-runner'
+}
+
+export function isInvitationReminderRunnerJob(data: JobData): data is InvitationReminderRunnerData {
+  return 'type' in data && (data as { type?: string }).type === 'invitation-reminder-runner'
 }

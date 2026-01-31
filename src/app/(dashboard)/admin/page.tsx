@@ -8,7 +8,9 @@ import { UsersTab } from "@/components/admin/users-tab";
 import { TeamManagementTab } from "@/components/admin/team-management-tab";
 import { SettingsTab } from "@/components/admin/settings-tab";
 import { PhoneCostCard } from "@/components/admin/phone-cost-card";
-import { Loader2, Shield } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Loader2, Shield, FileText } from "lucide-react";
+import Link from "next/link";
 
 interface PhoneStats {
   poolCount: number;
@@ -100,16 +102,24 @@ export default function AdminPage() {
   return (
     <div className="p-6 space-y-6 max-w-6xl mx-auto">
       {/* Header */}
-      <div className="flex items-center gap-3">
-        <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-          <Shield className="h-5 w-5 text-primary" />
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+            <Shield className="h-5 w-5 text-primary" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold">Admin</h1>
+            <p className="text-sm text-muted-foreground">
+              Manage phone numbers, users, and organization settings
+            </p>
+          </div>
         </div>
-        <div>
-          <h1 className="text-2xl font-bold">Admin</h1>
-          <p className="text-sm text-muted-foreground">
-            Manage phone numbers, users, and organization settings
-          </p>
-        </div>
+        <Link href="/admin/audit-logs">
+          <Button variant="outline">
+            <FileText className="h-4 w-4 mr-2" />
+            Audit Logs
+          </Button>
+        </Link>
       </div>
 
       {/* Cost Summary */}

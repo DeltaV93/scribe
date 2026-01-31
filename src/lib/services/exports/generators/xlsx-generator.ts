@@ -14,10 +14,9 @@ import { ExtractedRecord, OutputConfig, FieldMapping, CodeMappings } from "../ty
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function getExcelJS(): Promise<any> {
   try {
-    // @ts-expect-error - exceljs may not be installed
     const ExcelJS = await import("exceljs");
     return ExcelJS.default || ExcelJS;
-  } catch (error) {
+  } catch {
     throw new Error(
       "exceljs is required for Excel exports. Install it with: npm install exceljs"
     );

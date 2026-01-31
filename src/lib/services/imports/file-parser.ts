@@ -235,10 +235,9 @@ export async function parseExcel(
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function getExcelJS(): Promise<any> {
   try {
-    // @ts-expect-error - exceljs may not be installed
     const ExcelJS = await import("exceljs");
     return ExcelJS.default || ExcelJS;
-  } catch (error) {
+  } catch {
     throw new Error(
       "exceljs is required for Excel imports. Install it with: npm install exceljs"
     );

@@ -92,6 +92,91 @@ export async function getOrganizationUsers(
   });
 }
 
+export interface SearchUsersOptions {
+  includeInactive?: boolean;
+  search?: string;
+  role?: string;
+  teamId?: string;
+}
+
+/**
+ * Search and filter users in an organization
+ * - search: case-insensitive match on name or email
+ * - role: exact match on user role
+ * - teamId: filter by team membership
+ */
+export async function searchOrganizationUsers(
+  orgId: string,
+  options: SearchUsersOptions = {}
+): Promise<UserWithDetails[]> {
+  const { includeInactive = false, search, role, teamId } = options;
+
+  // Build the where clause
+  const where: Record<string, unknown> = {
+    orgId,
+  };
+
+  // Only filter by active status if not including inactive
+  if (!includeInactive) {
+    where.isActive = true;
+  }
+
+  // Add role filter
+  if (role) {
+    where.role = role;
+  }
+
+  // Add search filter (case-insensitive on name or email)
+  if (search) {
+    where.OR = [
+      { name: { contains: search, mode: "insensitive" } },
+      { email: { contains: search, mode: "insensitive" } },
+    ];
+  }
+
+  // Add team filter
+  if (teamId) {
+    where.teamMemberships = {
+      some: {
+        teamId,
+      },
+    };
+  }
+
+  return prisma.user.findMany({
+    where,
+    select: {
+      id: true,
+      email: true,
+      name: true,
+      role: true,
+      isActive: true,
+      maxCaseload: true,
+      lastLoginAt: true,
+      createdAt: true,
+      deactivatedAt: true,
+      teamMemberships: {
+        select: {
+          team: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+        },
+      },
+      _count: {
+        select: {
+          assignedClients: true,
+          calls: true,
+          formSubmissions: true,
+        },
+      },
+    },
+    orderBy: [{ isActive: "desc" }, { name: "asc" }],
+  });
+}
+
 /**
  * Get a single user by ID with full details
  */
