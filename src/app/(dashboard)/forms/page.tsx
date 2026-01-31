@@ -29,6 +29,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import Link from "next/link";
+import { FormsHeaderActions } from "@/components/forms/forms-header-actions";
 import { FormStatus } from "@/types";
 
 function getStatusBadge(status: FormStatus) {
@@ -74,14 +75,7 @@ export default async function FormsPage() {
             Create and manage intake forms for your organization.
           </p>
         </div>
-        {user.permissions.canCreateForms && (
-          <Link href="/forms/new">
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              Create Form
-            </Button>
-          </Link>
-        )}
+        <FormsHeaderActions canCreateForms={user.permissions.canCreateForms} />
       </div>
 
       {/* Forms List */}

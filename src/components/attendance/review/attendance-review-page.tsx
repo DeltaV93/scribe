@@ -9,7 +9,8 @@ import { PhotoViewer } from "./photo-viewer";
 import { AttendanceList } from "./attendance-list";
 import { ConfidenceBadge } from "./confidence-badge";
 import { QuickEnrollDialog } from "./quick-enroll-dialog";
-import { ArrowLeft, Loader2, Send, UserPlus } from "lucide-react";
+import { ArrowLeft, Loader2, Send, UserPlus, FileText } from "lucide-react";
+import { MassNoteDialog } from "@/components/attendance/mass-note-dialog";
 import { toast } from "sonner";
 import type { AttendanceType } from "@prisma/client";
 
@@ -69,6 +70,8 @@ export function AttendanceReviewPage({
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showQuickEnroll, setShowQuickEnroll] = useState(false);
+  const [showMassNote, setShowMassNote] = useState(false);
+  const [isReviewSubmitted, setIsReviewSubmitted] = useState(false);
 
   useEffect(() => {
     const fetchUpload = async () => {
@@ -126,7 +129,7 @@ export function AttendanceReviewPage({
       }
 
       toast.success("Attendance review submitted");
-      router.push(`/programs/${programId}/sessions/${sessionId}`);
+      setIsReviewSubmitted(true);
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "Failed to submit review"
@@ -210,18 +213,32 @@ export function AttendanceReviewPage({
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" onClick={() => setShowQuickEnroll(true)}>
-            <UserPlus className="mr-2 h-4 w-4" />
-            Add Walk-in
-          </Button>
-          <Button onClick={handleSubmit} disabled={isSubmitting}>
-            {isSubmitting ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-              <Send className="mr-2 h-4 w-4" />
-            )}
-            Submit Review
-          </Button>
+          {!isReviewSubmitted ? (
+            <>
+              <Button variant="outline" onClick={() => setShowQuickEnroll(true)}>
+                <UserPlus className="mr-2 h-4 w-4" />
+                Add Walk-in
+              </Button>
+              <Button onClick={handleSubmit} disabled={isSubmitting}>
+                {isSubmitting ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Send className="mr-2 h-4 w-4" />
+                )}
+                Submit Review
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button variant="outline" onClick={() => setShowMassNote(true)}>
+                <FileText className="mr-2 h-4 w-4" />
+                Create Mass Note
+              </Button>
+              <Button onClick={() => router.push(`/programs/${programId}/sessions/${sessionId}`)}>
+                Done
+              </Button>
+            </>
+          )}
         </div>
       </div>
 
@@ -263,6 +280,14 @@ export function AttendanceReviewPage({
         open={showQuickEnroll}
         onOpenChange={setShowQuickEnroll}
         onEnrolled={handleQuickEnrolled}
+      />
+
+      <MassNoteDialog
+        sessionId={sessionId}
+        programId={programId}
+        sessionTitle={upload.session?.title || `Session ${upload.session?.sessionNumber || ""}`}
+        open={showMassNote}
+        onOpenChange={setShowMassNote}
       />
     </div>
   );
