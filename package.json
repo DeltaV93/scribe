@@ -52,10 +52,12 @@
     "axe-core": "^4.10.2",
     "bcrypt": "^6.0.0",
     "browser-image-compression": "^2.0.2",
+    "bullmq": "^5.67.2",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
     "fathom-client": "^3.7.2",
+    "ioredis": "^5.9.2",
     "isomorphic-dompurify": "^2.15.0",
     "jotai": "^2.10.3",
     "lucide-react": "^0.460.0",
@@ -80,7 +82,9 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@types/ioredis": "^5.0.0",
     "@types/node": "^22.9.0",
+    "@types/pako": "^2.0.4",
     "@types/pdf-parse": "^1.1.5",
     "@types/pdfmake": "^0.2.12",
     "@types/qrcode": "^1.5.6",
