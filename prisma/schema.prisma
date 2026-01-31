@@ -274,6 +274,18 @@ model Organization {
   reports               Report[]
   customMetrics         CustomMetric[]
 
+  // Funder Export Relations
+  exportTemplates       ExportTemplate[]
+  funderExports         FunderExport[]
+
+  // Import Relations
+  importTemplates       ImportTemplate[]
+  importBatches         ImportBatch[]
+
+  // Meeting Intelligence Relations
+  locations             Location[]
+  meetings              Meeting[]
+
   @@index([slug])
   @@index([stripeCustomerId])
 }
@@ -364,6 +376,21 @@ model User {
   generatedReports        Report[]
   customMetrics           CustomMetric[]
   curatedFunderDocs       FunderDocumentLibrary[]
+
+  // Funder Export Relations
+  createdExportTemplates  ExportTemplate[]       @relation("ExportTemplateCreator")
+  generatedFunderExports  FunderExport[]         @relation("FunderExportGenerator")
+
+  // Import Relations
+  createdImportTemplates  ImportTemplate[]       @relation("ImportTemplateCreator")
+  uploadedImportBatches   ImportBatch[]          @relation("ImportBatchUploader")
+
+  // Meeting Intelligence Relations
+  createdMeetings         Meeting[]              @relation("MeetingCreator")
+  assignedActionItems     MeetingActionItem[]    @relation("ActionItemAssignee")
+  completedActionItems    MeetingActionItem[]    @relation("ActionItemCompleter")
+  askedQuestions          MeetingQuestion[]      @relation("QuestionAsker")
+  answeredQuestions       MeetingQuestion[]      @relation("QuestionAnswerer")
 
   @@index([orgId])
   @@index([email])
@@ -776,6 +803,10 @@ model Client {
   portalSessions      PortalSession[]
   clientPIN           ClientPIN?
   phoneVerifications  PhoneVerification[]
+
+  // Import Relations
+  importRecordsCreated  ImportRecord[]     @relation("ImportCreatedClient")
+  importRecordsUpdated  ImportRecord[]     @relation("ImportUpdatedClient")
 
   @@index([orgId, status])
   @@index([orgId, phone])
@@ -1718,4 +1749,432 @@ model FunderDocumentLibrary {
   curatedBy User @relation(fields: [curatedById], references: [id])
 
   @@index([funderName])
+}
+
+// ============================================
+// FUNDER DATA EXPORTS (Spec - Data Integration)
+// ============================================
+
+enum ExportType {
+  CAP60
+  DOL_WIPS
+  CALI_GRANTS
+  HUD_HMIS
+  CUSTOM
+}
+
+enum ExportTemplateStatus {
+  DRAFT
+  ACTIVE
+  ARCHIVED
+}
+
+enum ExportStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  VALIDATION_REQUIRED
+}
+
+model ExportTemplate {
+  id                String              @id @default(uuid())
+  orgId             String
+  name              String
+  description       String?
+  exportType        ExportType
+  status            ExportTemplateStatus @default(DRAFT)
+  fieldMappings     Json                // Array of field mapping definitions
+  sourceFormIds     String[]            // Forms to extract data from
+  validationRules   Json?
+  outputFormat      String              @default("CSV")
+  outputConfig      Json?               // delimiter, encoding, headers
+  scheduleEnabled       Boolean             @default(false)
+  scheduleCron          String?
+  scheduleTimezone      String              @default("America/Los_Angeles")
+  lastScheduledRunAt    DateTime?
+  nextScheduledRunAt    DateTime?
+  scheduleFailureCount  Int                 @default(0)
+  createdById           String
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  organization      Organization        @relation(fields: [orgId], references: [id])
+  createdBy         User                @relation("ExportTemplateCreator", fields: [createdById], references: [id])
+  exports           FunderExport[]
+
+  @@index([orgId, status])
+  @@index([exportType])
+}
+
+model FunderExport {
+  id                String              @id @default(uuid())
+  orgId             String
+  templateId        String
+  status            ExportStatus        @default(PENDING)
+  periodStart       DateTime
+  periodEnd         DateTime
+  programIds        String[]
+  clientIds         String[]
+  filePath          String?
+  recordCount       Int?
+  validationErrors  Json?
+  warnings          Json?
+  generatedById     String
+  generatedAt       DateTime?
+  processingTimeMs  Int?
+  createdAt         DateTime            @default(now())
+
+  organization      Organization        @relation(fields: [orgId], references: [id])
+  template          ExportTemplate      @relation(fields: [templateId], references: [id])
+  generatedBy       User                @relation("FunderExportGenerator", fields: [generatedById], references: [id])
+
+  @@index([orgId, status])
+  @@index([templateId])
+}
+
+// ============================================
+// IMPORT MODELS (Phase 3: Smart Import)
+// ============================================
+
+enum ImportStatus {
+  PENDING
+  PARSING
+  MAPPING
+  READY
+  PROCESSING
+  COMPLETED
+  FAILED
+  ROLLED_BACK
+}
+
+enum ImportRecordStatus {
+  PENDING
+  CREATED
+  UPDATED
+  SKIPPED
+  FAILED
+  ROLLED_BACK
+}
+
+enum DuplicateAction {
+  SKIP
+  UPDATE
+  CREATE_NEW
+  MERGE
+}
+
+model ImportTemplate {
+  id                  String              @id @default(uuid())
+  orgId               String
+  name                String
+  description         String?
+  sourceSystem        String?             // e.g., "CAP60", "Excel", "Apricot"
+  fileFormat          String              @default("CSV") // CSV, XLSX, JSON
+  fieldMappings       Json                // Array of field mapping definitions
+  duplicateSettings   Json?               // Duplicate detection configuration
+  defaultAction       DuplicateAction     @default(SKIP)
+  isActive            Boolean             @default(true)
+  createdById         String
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+
+  organization        Organization        @relation(fields: [orgId], references: [id])
+  createdBy           User                @relation("ImportTemplateCreator", fields: [createdById], references: [id])
+  batches             ImportBatch[]
+
+  @@index([orgId, isActive])
+}
+
+model ImportBatch {
+  id                  String              @id @default(uuid())
+  orgId               String
+  templateId          String?
+  status              ImportStatus        @default(PENDING)
+  fileName            String
+  filePath            String              // S3 path to uploaded file
+  fileSize            Int
+  totalRows           Int?
+  processedRows       Int                 @default(0)
+  createdCount        Int                 @default(0)
+  updatedCount        Int                 @default(0)
+  skippedCount        Int                 @default(0)
+  failedCount         Int                 @default(0)
+  fieldMappings       Json?               // Mappings used for this batch
+  duplicateSettings   Json?               // Duplicate settings used
+  previewData         Json?               // First N rows for preview
+  detectedColumns     String[]            // Column headers from file
+  suggestedMappings   Json?               // AI-suggested mappings
+  validationErrors    Json?               // Batch-level validation errors
+  rollbackAvailableUntil DateTime?        // 24 hours after completion
+  rollbackExecutedAt  DateTime?
+  uploadedById        String
+  startedAt           DateTime?
+  completedAt         DateTime?
+  createdAt           DateTime            @default(now())
+
+  organization        Organization        @relation(fields: [orgId], references: [id])
+  template            ImportTemplate?     @relation(fields: [templateId], references: [id])
+  uploadedBy          User                @relation("ImportBatchUploader", fields: [uploadedById], references: [id])
+  records             ImportRecord[]
+
+  @@index([orgId, status])
+  @@index([templateId])
+}
+
+model ImportRecord {
+  id                  String              @id @default(uuid())
+  batchId             String
+  rowNumber           Int
+  status              ImportRecordStatus  @default(PENDING)
+  action              DuplicateAction?
+  sourceData          Json                // Original row data
+  mappedData          Json?               // Data after field mapping
+  duplicateMatches    Json?               // Matched existing records
+  selectedMatchId     String?             // Which duplicate was selected for update/merge
+  createdClientId     String?             // If new client was created
+  updatedClientId     String?             // If existing client was updated
+  validationErrors    Json?               // Row-level validation errors
+  processingNotes     String?
+  processedAt         DateTime?
+
+  batch               ImportBatch         @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  createdClient       Client?             @relation("ImportCreatedClient", fields: [createdClientId], references: [id])
+  updatedClient       Client?             @relation("ImportUpdatedClient", fields: [updatedClientId], references: [id])
+
+  @@index([batchId, status])
+  @@index([createdClientId])
+  @@index([updatedClientId])
+}
+
+// ============================================
+// LOCATION HIERARCHY (For Access Control)
+// ============================================
+
+enum LocationType {
+  STORE
+  DISTRICT
+  REGION
+  HEADQUARTERS
+}
+
+model Location {
+  id                  String              @id @default(uuid())
+  orgId               String
+  name                String
+  type                LocationType
+  code                String?             // Store number, district code, etc.
+
+  // Hierarchy
+  parentId            String?             // Parent location (e.g., district -> region)
+
+  // Address
+  address             Json?               // { street, city, state, zip }
+
+  // Metadata
+  isActive            Boolean             @default(true)
+  timezone            String              @default("America/Los_Angeles")
+
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+
+  organization        Organization        @relation(fields: [orgId], references: [id])
+  parent              Location?           @relation("LocationHierarchy", fields: [parentId], references: [id])
+  children            Location[]          @relation("LocationHierarchy")
+  meetings            Meeting[]
+
+  @@unique([orgId, code])
+  @@index([orgId, type])
+  @@index([parentId])
+}
+
+// ============================================
+// MEETING INTELLIGENCE (Knowledge Base Phase 1)
+// ============================================
+
+enum MeetingStatus {
+  SCHEDULED
+  JOINING
+  RECORDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum MeetingSource {
+  TEAMS
+  ZOOM
+  UPLOAD      // Manual audio/video upload
+  GOOGLE_MEET
+}
+
+enum ActionItemStatus {
+  OPEN
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+model Meeting {
+  id                  String              @id @default(uuid())
+  orgId               String
+  title               String
+  description         String?
+  status              MeetingStatus       @default(SCHEDULED)
+  source              MeetingSource       @default(UPLOAD)
+
+  // External meeting info
+  externalMeetingId   String?             // Teams/Zoom meeting ID
+  externalJoinUrl     String?
+
+  // Scheduling
+  scheduledStartAt    DateTime?
+  scheduledEndAt      DateTime?
+  actualStartAt       DateTime?
+  actualEndAt         DateTime?
+  durationSeconds     Int?
+
+  // Recording
+  recordingPath       String?             // S3 path to recording
+  recordingSize       Int?
+
+  // Processing
+  processingStartedAt DateTime?
+  processingCompletedAt DateTime?
+  processingError     String?
+
+  // Participants (stored as JSON for flexibility with external systems)
+  participants        Json?               // Array of { email, name, role, speakerId? }
+  participantCount    Int?
+
+  // Distribution
+  summaryEmailSentAt  DateTime?
+  emailRecipients     String[]            // Email addresses that received summary
+
+  // Metadata
+  locationId          String?             // For location-based access control
+  tags                String[]
+
+  createdById         String
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+
+  organization        Organization        @relation(fields: [orgId], references: [id])
+  createdBy           User                @relation("MeetingCreator", fields: [createdById], references: [id])
+  location            Location?           @relation(fields: [locationId], references: [id])
+  transcript          MeetingTranscript?
+  summary             MeetingSummary?
+  actionItems         MeetingActionItem[]
+  questions           MeetingQuestion[]
+
+  @@index([orgId, status])
+  @@index([orgId, scheduledStartAt])
+  @@index([locationId])
+}
+
+model MeetingTranscript {
+  id                  String              @id @default(uuid())
+  meetingId           String              @unique
+
+  // Full transcript
+  fullText            String              // Complete transcript text
+  wordCount           Int?
+
+  // Speaker-diarized segments
+  segments            Json                // Array of { speakerId, speakerName, startTime, endTime, text, confidence }
+
+  // Processing metadata
+  language            String              @default("en")
+  transcriptionModel  String?             // e.g., "deepgram-nova-2", "whisper-large-v3"
+  wordErrorRate       Float?              // Estimated WER if available
+  processingTimeMs    Int?
+
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+
+  meeting             Meeting             @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+}
+
+model MeetingSummary {
+  id                  String              @id @default(uuid())
+  meetingId           String              @unique
+
+  // Executive summary
+  executiveSummary    String              // 2-3 paragraph overview
+
+  // Structured extractions
+  keyPoints           Json                // Array of { point, context?, speakerName? }
+  decisions           Json                // Array of { decision, context?, participants? }
+  topicsDiscussed     String[]            // Topic tags/categories
+
+  // AI metadata
+  summaryModel        String?             // e.g., "claude-sonnet-4"
+  tokensUsed          Int?
+  processingTimeMs    Int?
+
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+
+  meeting             Meeting             @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+}
+
+model MeetingActionItem {
+  id                  String              @id @default(uuid())
+  meetingId           String
+
+  description         String
+  assigneeName        String?             // Name mentioned in meeting
+  assigneeEmail       String?             // Resolved email if found
+  assigneeUserId      String?             // Linked user if matched
+  dueDate             DateTime?
+  status              ActionItemStatus    @default(OPEN)
+
+  // Context from transcript
+  contextSnippet      String?             // Transcript excerpt where this was mentioned
+  timestampSeconds    Int?                // When in meeting this was discussed
+
+  // Tracking
+  completedAt         DateTime?
+  completedById       String?
+
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+
+  meeting             Meeting             @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  assigneeUser        User?               @relation("ActionItemAssignee", fields: [assigneeUserId], references: [id])
+  completedBy         User?               @relation("ActionItemCompleter", fields: [completedById], references: [id])
+
+  @@index([meetingId])
+  @@index([assigneeUserId, status])
+  @@index([status])
+}
+
+model MeetingQuestion {
+  id                  String              @id @default(uuid())
+  meetingId           String
+
+  question            String
+  askedByName         String?             // Speaker who asked
+  askedByUserId       String?
+
+  // Answer tracking
+  isAnswered          Boolean             @default(false)
+  answer              String?
+  answeredByName      String?
+  answeredByUserId    String?
+  answeredAt          DateTime?
+
+  // Context
+  contextSnippet      String?
+  timestampSeconds    Int?
+
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+
+  meeting             Meeting             @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  askedBy             User?               @relation("QuestionAsker", fields: [askedByUserId], references: [id])
+  answeredBy          User?               @relation("QuestionAnswerer", fields: [answeredByUserId], references: [id])
+
+  @@index([meetingId])
+  @@index([isAnswered])
 }

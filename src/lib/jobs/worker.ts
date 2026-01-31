@@ -13,6 +13,8 @@ import {
   MassNoteBatchJobData,
   FormConversionJobData,
   ReportGenerationJobData,
+  ScheduledExportRunnerData,
+  MeetingProcessingJobData,
 } from './queue'
 
 // Processor function type
@@ -112,4 +114,12 @@ export function isFormConversionJob(data: JobData): data is FormConversionJobDat
 
 export function isReportGenerationJob(data: JobData): data is ReportGenerationJobData {
   return 'reportId' in data && 'templateId' in data && 'reportingPeriod' in data
+}
+
+export function isScheduledExportRunnerJob(data: JobData): data is ScheduledExportRunnerData {
+  return 'type' in data && data.type === 'scheduled-export-runner'
+}
+
+export function isMeetingProcessingJob(data: JobData): data is MeetingProcessingJobData {
+  return 'meetingId' in data && 'recordingPath' in data
 }

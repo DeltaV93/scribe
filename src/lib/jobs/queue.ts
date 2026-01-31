@@ -9,7 +9,7 @@ import { Queue, QueueOptions } from 'bullmq'
 import { getRedisConnection } from './connection'
 
 // Job type definitions
-export type JobType = 'mass-note-batch' | 'form-conversion' | 'report-generation'
+export type JobType = 'mass-note-batch' | 'form-conversion' | 'report-generation' | 'funder-export' | 'scheduled-export-runner' | 'import' | 'meeting-processing'
 
 // Job data types
 export interface MassNoteBatchJobData {
@@ -47,7 +47,43 @@ export interface ReportGenerationJobData {
   programIds?: string[]
 }
 
-export type JobData = MassNoteBatchJobData | FormConversionJobData | ReportGenerationJobData
+export interface FunderExportJobData {
+  jobProgressId: string
+  exportId: string
+  templateId: string
+  orgId: string
+  userId: string
+  periodStart: string
+  periodEnd: string
+  programIds?: string[]
+  clientIds?: string[]
+}
+
+export interface ScheduledExportRunnerData {
+  type: 'scheduled-export-runner'
+}
+
+export interface ImportJobData {
+  jobProgressId: string
+  batchId: string
+  orgId: string
+  userId: string
+}
+
+export interface MeetingProcessingJobData {
+  jobProgressId: string
+  meetingId: string
+  orgId: string
+  userId: string
+  recordingPath: string
+  options?: {
+    skipTranscription?: boolean
+    skipSummarization?: boolean
+    skipEmailDistribution?: boolean
+  }
+}
+
+export type JobData = MassNoteBatchJobData | FormConversionJobData | ReportGenerationJobData | FunderExportJobData | ScheduledExportRunnerData | ImportJobData | MeetingProcessingJobData
 
 // Queue instances (lazy loaded)
 let jobQueue: Queue | null = null
