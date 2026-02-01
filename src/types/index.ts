@@ -256,6 +256,7 @@ export interface SessionUser {
   orgId: string;
   orgName: string;
   permissions: UserPermissions;
+  mfaEnabled?: boolean;
 }
 
 export interface UserPermissions {

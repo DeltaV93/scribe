@@ -165,6 +165,7 @@ export async function signUp(
 
 /**
  * Sign in an existing user
+ * Handles MFA verification redirect if user has MFA enabled
  */
 export async function signIn(
   _prevState: AuthState,
@@ -204,16 +205,45 @@ export async function signIn(
     };
   }
 
-  // Update last login timestamp
+  // Get user from database to check MFA status
   const user = await prisma.user.findUnique({
     where: { email },
+    select: {
+      id: true,
+      mfaEnabled: true,
+      role: true,
+      organization: {
+        select: {
+          requireMfa: true,
+        },
+      },
+    },
   });
 
   if (user) {
+    // Update last login timestamp
     await prisma.user.update({
       where: { id: user.id },
       data: { lastLoginAt: new Date() },
     });
+
+    // Check if user needs MFA verification
+    if (user.mfaEnabled) {
+      // User has MFA enabled - redirect to verification page
+      revalidatePath("/", "layout");
+      redirect(`/mfa-verify?userId=${user.id}`);
+    }
+
+    // Check if user needs to set up MFA (required but not enabled)
+    const isMFARequiredForRole =
+      user.role === "ADMIN" || user.role === "PROGRAM_MANAGER";
+    const isMFARequiredByOrg = user.organization.requireMfa;
+
+    if ((isMFARequiredForRole || isMFARequiredByOrg) && !user.mfaEnabled) {
+      // User needs to set up MFA before accessing the app
+      revalidatePath("/", "layout");
+      redirect("/mfa-setup");
+    }
   }
 
   revalidatePath("/", "layout");

@@ -242,6 +242,13 @@ model Organization {
   // Billing
   stripeCustomerId      String?     @unique
 
+  // Security Settings
+  requireMfa            Boolean     @default(false)
+
+  // Session Management Settings
+  sessionTimeoutMinutes Int         @default(30)  // 15-60 minutes configurable
+  maxConcurrentSessions Int         @default(3)   // Max sessions per user
+
   createdAt             DateTime    @default(now())
   updatedAt             DateTime    @updatedAt
 
@@ -314,6 +321,13 @@ model User {
 
   // Caseload (Spec-2)
   maxCaseload     Int?
+
+  // Multi-Factor Authentication (MFA)
+  mfaEnabled      Boolean  @default(false)
+  mfaSecret       String?  // Encrypted TOTP secret
+  mfaBackupCodes  String[] @default([]) // Hashed backup codes
+  mfaLastUsed     DateTime?
+  mfaEnabledAt    DateTime?
 
   isActive        Boolean  @default(true)
   lastLoginAt     DateTime?
@@ -404,9 +418,37 @@ model User {
   locationAccess          UserLocation[]
   grantedLocationAccess   UserLocation[]         @relation("LocationAccessGranter")
 
+  // Password Security (HIPAA Compliance)
+  passwordChangedAt     DateTime?
+  failedLoginAttempts   Int         @default(0)
+  lockedUntil           DateTime?
+  mustChangePassword    Boolean     @default(false)
+
+  // Password History Relation
+  passwordHistory       PasswordHistory[]
+
+  // User Session Relations
+  sessions              UserSession[]
+
   @@index([orgId])
   @@index([email])
   @@index([supabaseUserId])
+}
+
+// ============================================
+// PASSWORD HISTORY (HIPAA Compliance)
+// ============================================
+
+model PasswordHistory {
+  id            String   @id @default(uuid())
+  userId        String
+  passwordHash  String
+  createdAt     DateTime @default(now())
+
+  // Relations
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
 }
 
 model Team {
@@ -2333,4 +2375,56 @@ model MeetingIntegration {
   @@unique([orgId, platform])
   @@index([orgId, status])
   @@index([platform])
+}
+
+// ============================================
+// ENCRYPTION KEY MANAGEMENT (PHI Protection)
+// ============================================
+
+model EncryptionKey {
+  id              String    @id @default(uuid())
+  organizationId  String
+
+  // Encrypted DEK (Data Encryption Key)
+  // Encrypted by AWS KMS master key
+  encryptedDek    String    @db.Text
+
+  // Key versioning for rotation support
+  keyVersion      Int       @default(1)
+  isActive        Boolean   @default(true)
+
+  // Timestamps
+  createdAt       DateTime  @default(now())
+  rotatedAt       DateTime? // When this key was rotated out
+
+  @@index([organizationId, isActive])
+  @@index([organizationId, keyVersion])
+}
+
+// ============================================
+// USER SESSION MANAGEMENT
+// ============================================
+
+model UserSession {
+  id                  String    @id @default(uuid())
+  userId              String
+  token               String    @unique  // Secure session token
+  deviceInfo          Json               // { browser, os, device, isMobile, userAgent }
+  ipAddress           String
+  lastActivity        DateTime  @default(now())
+  createdAt           DateTime  @default(now())
+  expiresAt           DateTime           // Session expiration time
+  isActive            Boolean   @default(true)
+
+  // Termination tracking
+  terminatedAt        DateTime?
+  terminationReason   String?            // TIMEOUT, USER_LOGOUT, PASSWORD_CHANGE, MFA_CHANGE, ADMIN_REVOKED, etc.
+
+  // Relations
+  user                User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isActive])
+  @@index([token])
+  @@index([expiresAt])
+  @@index([userId, lastActivity])
 }

@@ -1,5 +1,10 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { rateLimitMiddleware } from "@/lib/rate-limit";
+import {
+  getCorrelationId,
+  CORRELATION_ID_HEADER,
+} from "@/lib/logging/correlation";
 
 // Routes that require authentication
 const protectedRoutes = [
@@ -18,9 +23,24 @@ const authRoutes = ["/login", "/signup"];
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Skip middleware for API routes and health check
+  // Generate or extract correlation ID for request tracing
+  const correlationId = getCorrelationId(request.headers);
+
+  // Apply rate limiting first (before any other processing)
+  // This protects all routes including API routes
+  const rateLimitResponse = await rateLimitMiddleware(request);
+  if (rateLimitResponse) {
+    // Add correlation ID to rate limit response
+    rateLimitResponse.headers.set(CORRELATION_ID_HEADER, correlationId);
+    return rateLimitResponse;
+  }
+
+  // Skip auth middleware for API routes - they handle their own auth
+  // Rate limiting is still applied above
   if (pathname.startsWith("/api")) {
-    return NextResponse.next();
+    const response = NextResponse.next();
+    response.headers.set(CORRELATION_ID_HEADER, correlationId);
+    return response;
   }
 
   // Skip middleware for public routes - let them through without auth check
@@ -36,6 +56,8 @@ export async function middleware(request: NextRequest) {
     "/privacy",
     "/terms",
     "/contact",
+    "/mfa-setup",
+    "/mfa-verify",
   ].includes(pathname);
 
   // Check if route is protected
@@ -45,19 +67,24 @@ export async function middleware(request: NextRequest) {
 
   // If not a protected route and not an auth route, just pass through
   if (!isProtectedRoute && !authRoutes.includes(pathname)) {
-    return NextResponse.next();
+    const response = NextResponse.next();
+    response.headers.set(CORRELATION_ID_HEADER, correlationId);
+    return response;
   }
 
   // Check if Supabase env vars are set
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-    console.error("Missing Supabase environment variables");
     // If no Supabase config, allow access to auth pages but block protected routes
     if (isProtectedRoute) {
       const url = request.nextUrl.clone();
       url.pathname = "/login";
-      return NextResponse.redirect(url);
+      const response = NextResponse.redirect(url);
+      response.headers.set(CORRELATION_ID_HEADER, correlationId);
+      return response;
     }
-    return NextResponse.next();
+    const response = NextResponse.next();
+    response.headers.set(CORRELATION_ID_HEADER, correlationId);
+    return response;
   }
 
   let supabaseResponse = NextResponse.next({
@@ -93,14 +120,17 @@ export async function middleware(request: NextRequest) {
     const { data } = await supabase.auth.getUser();
     user = data.user;
   } catch (error) {
-    console.error("Supabase auth error:", error);
     // On error, allow access to public/auth routes, block protected
     if (isProtectedRoute) {
       const url = request.nextUrl.clone();
       url.pathname = "/login";
-      return NextResponse.redirect(url);
+      const response = NextResponse.redirect(url);
+      response.headers.set(CORRELATION_ID_HEADER, correlationId);
+      return response;
     }
-    return NextResponse.next();
+    const response = NextResponse.next();
+    response.headers.set(CORRELATION_ID_HEADER, correlationId);
+    return response;
   }
 
   // Redirect unauthenticated users from protected routes to login
@@ -108,16 +138,22 @@ export async function middleware(request: NextRequest) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     url.searchParams.set("redirect", pathname);
-    return NextResponse.redirect(url);
+    const response = NextResponse.redirect(url);
+    response.headers.set(CORRELATION_ID_HEADER, correlationId);
+    return response;
   }
 
   // Redirect authenticated users from auth routes to dashboard
   if (authRoutes.includes(pathname) && user) {
     const url = request.nextUrl.clone();
     url.pathname = "/dashboard";
-    return NextResponse.redirect(url);
+    const response = NextResponse.redirect(url);
+    response.headers.set(CORRELATION_ID_HEADER, correlationId);
+    return response;
   }
 
+  // Add correlation ID to the successful response
+  supabaseResponse.headers.set(CORRELATION_ID_HEADER, correlationId);
   return supabaseResponse;
 }
 
