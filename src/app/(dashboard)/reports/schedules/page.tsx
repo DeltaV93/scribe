@@ -41,6 +41,7 @@ import {
   Plus,
   Trash2,
 } from "lucide-react";
+import { toast } from "sonner";
 import Link from "next/link";
 
 interface ScheduleSummary {
@@ -179,11 +180,11 @@ export default function ScheduledReportsPage() {
         setEditDialogOpen(false);
       } else {
         const error = await response.json();
-        alert(error.error?.message || "Failed to save schedule");
+        toast.error(error.error?.message || "Failed to save schedule");
       }
     } catch (error) {
       console.error("Error saving schedule:", error);
-      alert("Failed to save schedule");
+      toast.error("Failed to save schedule. Please try again.");
     } finally {
       setSaving(false);
     }

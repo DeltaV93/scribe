@@ -312,6 +312,15 @@ export default function IntegrationDashboardPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
+          {data.templates.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-8 text-center">
+              <Settings className="h-8 w-8 text-muted-foreground mb-3" />
+              <p className="text-muted-foreground">No templates configured</p>
+              <Link href="/exports/templates/new">
+                <Button variant="link">Create your first template</Button>
+              </Link>
+            </div>
+          ) : (
             <Table>
               <TableHeader>
                 <TableRow>
@@ -387,6 +396,7 @@ export default function IntegrationDashboardPage() {
                 ))}
               </TableBody>
             </Table>
+          )}
           </CardContent>
         </Card>
 
@@ -455,6 +465,17 @@ export default function IntegrationDashboardPage() {
           </div>
         </CardHeader>
         <CardContent>
+          {data.recentExports.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center mb-4">
+                <FileDown className="h-6 w-6 text-muted-foreground" />
+              </div>
+              <p className="text-muted-foreground">No exports yet</p>
+              <p className="text-sm text-muted-foreground mt-1">
+                Run an export from one of your templates to see it here.
+              </p>
+            </div>
+          ) : (
           <Table>
             <TableHeader>
               <TableRow>
@@ -510,6 +531,7 @@ export default function IntegrationDashboardPage() {
               ))}
             </TableBody>
           </Table>
+          )}
         </CardContent>
       </Card>
     </div>

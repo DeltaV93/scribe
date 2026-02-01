@@ -43,7 +43,10 @@ import {
   Video,
   PenLine,
   Tag,
+  AlertCircle,
+  RefreshCw,
 } from "lucide-react";
+import { toast } from "sonner";
 import { format } from "date-fns";
 
 interface KnowledgeEntry {
@@ -97,6 +100,7 @@ export default function KnowledgePage() {
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
+  const [error, setError] = useState<string | null>(null);
   const limit = 20;
 
   // Create dialog
@@ -124,6 +128,7 @@ export default function KnowledgePage() {
 
   const fetchEntries = async () => {
     setIsLoading(true);
+    setError(null);
     try {
       const params = new URLSearchParams();
       if (searchQuery) {
@@ -142,9 +147,12 @@ export default function KnowledgePage() {
         const data = await response.json();
         setEntries(data.data);
         setTotal(data.total);
+      } else {
+        setError("Failed to load knowledge entries. Please try again.");
       }
     } catch (error) {
       console.error("Error fetching entries:", error);
+      setError("Unable to connect to the server. Please check your connection.");
     } finally {
       setIsLoading(false);
     }
@@ -185,6 +193,7 @@ export default function KnowledgePage() {
       }
     } catch (error) {
       console.error("Error creating entry:", error);
+      toast.error("Failed to create entry. Please try again.");
     } finally {
       setIsCreating(false);
     }
@@ -395,6 +404,20 @@ export default function KnowledgePage() {
           </Select>
         )}
       </div>
+
+      {/* Error Alert */}
+      {error && (
+        <div className="flex items-center justify-between p-4 border border-destructive/50 bg-destructive/10 rounded-lg">
+          <div className="flex items-center gap-3">
+            <AlertCircle className="h-5 w-5 text-destructive" />
+            <p className="text-sm text-destructive">{error}</p>
+          </div>
+          <Button variant="outline" size="sm" onClick={fetchEntries}>
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Retry
+          </Button>
+        </div>
+      )}
 
       {/* Results Table */}
       <div className="border rounded-lg">

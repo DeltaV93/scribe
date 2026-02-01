@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   Card,
@@ -22,6 +22,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ArrowLeft, ArrowRight, FileText, Loader2, Check } from "lucide-react";
+import { toast } from "sonner";
 import Link from "next/link";
 
 interface Template {
@@ -38,7 +39,7 @@ interface Program {
 
 type WizardStep = "template" | "period" | "programs" | "review";
 
-export default function GenerateReportPage() {
+function GenerateReportContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const preselectedTemplateId = searchParams.get("templateId");
@@ -153,11 +154,11 @@ export default function GenerateReportPage() {
         router.push(`/reports/${data.data.reportId}`);
       } else {
         const error = await response.json();
-        alert(error.error?.message || "Failed to generate report");
+        toast.error(error.error?.message || "Failed to generate report");
       }
     } catch (error) {
       console.error("Error generating report:", error);
-      alert("Failed to generate report");
+      toast.error("Failed to generate report. Please try again.");
     } finally {
       setSubmitting(false);
     }
@@ -503,5 +504,19 @@ export default function GenerateReportPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function GenerateReportPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="p-6 flex items-center justify-center min-h-[400px]">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </div>
+      }
+    >
+      <GenerateReportContent />
+    </Suspense>
   );
 }

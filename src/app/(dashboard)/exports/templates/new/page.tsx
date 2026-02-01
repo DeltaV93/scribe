@@ -30,6 +30,7 @@ import {
   FileText,
   Loader2,
 } from "lucide-react";
+import { toast } from "sonner";
 
 interface Form {
   id: string;
@@ -173,11 +174,11 @@ function CreateTemplateContent() {
         router.push(`/exports/templates/${template.id}`);
       } else {
         const error = await res.json();
-        alert(error.error || "Failed to create template");
+        toast.error(error.error || "Failed to create template");
       }
     } catch (error) {
       console.error("Error creating template:", error);
-      alert("Failed to create template");
+      toast.error("Failed to create template. Please try again.");
     } finally {
       setLoading(false);
     }

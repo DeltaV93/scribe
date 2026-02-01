@@ -308,11 +308,15 @@ export default function MeetingDetailPage({
     setTimeout(resetUploadDialog, 300);
   };
 
+  // Resend error state
+  const [resendError, setResendError] = useState<string | null>(null);
+
   const handleResendEmail = async () => {
     const emails = resendEmails.split(",").map((e) => e.trim()).filter(Boolean);
     if (emails.length === 0) return;
 
     setIsResending(true);
+    setResendError(null);
     try {
       const response = await fetch(`/api/meetings/${meetingId}/resend-summary`, {
         method: "POST",
@@ -323,25 +327,39 @@ export default function MeetingDetailPage({
       if (response.ok) {
         setIsResendOpen(false);
         setResendEmails("");
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        setResendError(errorData.error?.message || "Failed to send email. Please try again.");
       }
     } catch (error) {
       console.error("Error resending email:", error);
+      setResendError("Unable to connect to the server. Please try again.");
     } finally {
       setIsResending(false);
     }
   };
 
+  // Action item error state
+  const [actionItemError, setActionItemError] = useState<string | null>(null);
+
   const handleActionItemToggle = async (actionItemId: string, currentStatus: string) => {
     const newStatus = currentStatus === "COMPLETED" ? "OPEN" : "COMPLETED";
+    setActionItemError(null);
     try {
-      await fetch(`/api/meetings/${meetingId}/action-items`, {
+      const response = await fetch(`/api/meetings/${meetingId}/action-items`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ actionItemId, status: newStatus }),
       });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        setActionItemError(errorData.error?.message || "Failed to update action item");
+        return;
+      }
       fetchMeeting();
     } catch (error) {
       console.error("Error updating action item:", error);
+      setActionItemError("Failed to update action item. Please try again.");
     }
   };
 
@@ -575,6 +593,12 @@ export default function MeetingDetailPage({
                 </CardDescription>
               </CardHeader>
               <CardContent>
+                {actionItemError && (
+                  <div className="flex items-center gap-2 text-destructive text-sm mb-4">
+                    <AlertCircle className="h-4 w-4" />
+                    {actionItemError}
+                  </div>
+                )}
                 {meeting.actionItems.length === 0 ? (
                   <p className="text-muted-foreground">No action items identified.</p>
                 ) : (
@@ -898,6 +922,12 @@ export default function MeetingDetailPage({
                 Separate multiple email addresses with commas.
               </p>
             </div>
+            {resendError && (
+              <div className="flex items-center gap-2 text-destructive text-sm">
+                <AlertCircle className="h-4 w-4" />
+                {resendError}
+              </div>
+            )}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsResendOpen(false)}>

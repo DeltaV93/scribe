@@ -17,16 +17,23 @@ async function processMeeting(job: Job<MeetingProcessingJobData>): Promise<void>
 
   console.log(`Processing meeting job for meeting ${meetingId}`);
 
-  await executeMeetingProcessing({
-    meetingId,
-    orgId,
-    userId,
-    recordingPath,
-    jobProgressId,
-    options,
-  });
+  try {
+    await executeMeetingProcessing({
+      meetingId,
+      orgId,
+      userId,
+      recordingPath,
+      jobProgressId,
+      options,
+    });
 
-  console.log(`Meeting processing completed for ${meetingId}`);
+    console.log(`Meeting processing completed for ${meetingId}`);
+  } catch (error) {
+    console.error(`Meeting processing failed for ${meetingId}:`, error);
+    // Re-throw to let BullMQ handle retry logic
+    // The executeMeetingProcessing function already handles marking the job as failed
+    throw error;
+  }
 }
 
 // Register this processor

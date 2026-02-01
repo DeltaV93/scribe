@@ -81,6 +81,7 @@ export default function MeetingsPage() {
   const router = useRouter();
   const [meetings, setMeetings] = useState<Meeting[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [total, setTotal] = useState(0);
@@ -97,6 +98,7 @@ export default function MeetingsPage() {
 
   const fetchMeetings = async () => {
     setIsLoading(true);
+    setError(null);
     try {
       const params = new URLSearchParams();
       if (searchQuery) params.set("query", searchQuery);
@@ -109,9 +111,13 @@ export default function MeetingsPage() {
         const data = await response.json();
         setMeetings(data.data);
         setTotal(data.total);
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        setError(errorData.error?.message || "Failed to load meetings. Please try again.");
       }
     } catch (error) {
       console.error("Error fetching meetings:", error);
+      setError("Unable to connect to the server. Please check your connection and try again.");
     } finally {
       setIsLoading(false);
     }
@@ -121,10 +127,14 @@ export default function MeetingsPage() {
     fetchMeetings();
   }, [searchQuery, statusFilter, page]);
 
+  // Create meeting error state
+  const [createError, setCreateError] = useState<string | null>(null);
+
   const handleCreateMeeting = async () => {
     if (!newMeeting.title.trim()) return;
 
     setIsCreating(true);
+    setCreateError(null);
     try {
       const response = await fetch("/api/meetings", {
         method: "POST",
@@ -140,9 +150,13 @@ export default function MeetingsPage() {
         setIsCreateOpen(false);
         setNewMeeting({ title: "", description: "" });
         router.push(`/meetings/${data.data.id}`);
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        setCreateError(errorData.error?.message || "Failed to create meeting. Please try again.");
       }
     } catch (error) {
       console.error("Error creating meeting:", error);
+      setCreateError("Unable to connect to the server. Please try again.");
     } finally {
       setIsCreating(false);
     }
@@ -203,6 +217,12 @@ export default function MeetingsPage() {
                   onChange={(e) => setNewMeeting({ ...newMeeting, description: e.target.value })}
                 />
               </div>
+              {createError && (
+                <div className="flex items-center gap-2 text-destructive text-sm">
+                  <AlertCircle className="h-4 w-4" />
+                  {createError}
+                </div>
+              )}
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setIsCreateOpen(false)}>
@@ -244,6 +264,19 @@ export default function MeetingsPage() {
           </SelectContent>
         </Select>
       </div>
+
+      {/* Error State */}
+      {error && (
+        <div className="border border-destructive/50 bg-destructive/10 rounded-lg p-4 flex items-center gap-3">
+          <AlertCircle className="h-5 w-5 text-destructive flex-shrink-0" />
+          <div className="flex-1">
+            <p className="text-sm font-medium text-destructive">{error}</p>
+          </div>
+          <Button variant="outline" size="sm" onClick={fetchMeetings}>
+            Try Again
+          </Button>
+        </div>
+      )}
 
       {/* Table */}
       <div className="border rounded-lg">

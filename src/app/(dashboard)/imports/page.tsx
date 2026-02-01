@@ -57,6 +57,7 @@ import {
   AlertTriangle,
   Wand2,
 } from "lucide-react";
+import { toast } from "sonner";
 
 interface ImportBatch {
   id: string;
@@ -169,7 +170,7 @@ export default function ImportsPage() {
 
       if (!res.ok) {
         const error = await res.json();
-        alert(error.error || "Failed to upload file");
+        toast.error(error.error || "Failed to upload file");
         return;
       }
 
@@ -179,7 +180,7 @@ export default function ImportsPage() {
       setShowMappingDialog(true);
     } catch (error) {
       console.error("Error uploading file:", error);
-      alert("Failed to upload file");
+      toast.error("Failed to upload file. Please try again.");
     } finally {
       setUploading(false);
       // Reset file input
@@ -214,7 +215,7 @@ export default function ImportsPage() {
     const missing = requiredFields.filter((f) => !mappedTargets.has(f));
 
     if (missing.length > 0) {
-      alert(`Please map required fields: ${missing.join(", ")}`);
+      toast.error(`Please map required fields: ${missing.join(", ")}`);
       return;
     }
 
@@ -243,7 +244,7 @@ export default function ImportsPage() {
 
       if (!res.ok) {
         const error = await res.json();
-        alert(error.error || "Failed to execute import");
+        toast.error(error.error || "Failed to execute import");
         return;
       }
 
@@ -253,7 +254,7 @@ export default function ImportsPage() {
       await fetchBatches();
     } catch (error) {
       console.error("Error executing import:", error);
-      alert("Failed to execute import");
+      toast.error("Failed to execute import. Please try again.");
     } finally {
       setExecuting(false);
     }

@@ -27,24 +27,36 @@ async function processFunderExport(job: Job<FunderExportJobData>): Promise<void>
 
   console.log(`Processing funder export job for export ${exportId}`);
 
-  // Convert string dates to Date objects
-  const periodStartDate = new Date(periodStart);
-  const periodEndDate = new Date(periodEnd);
+  try {
+    // Convert string dates to Date objects
+    const periodStartDate = new Date(periodStart);
+    const periodEndDate = new Date(periodEnd);
 
-  // Execute export generation
-  await executeExportGeneration({
-    exportId,
-    templateId,
-    orgId,
-    userId,
-    periodStart: periodStartDate,
-    periodEnd: periodEndDate,
-    programIds,
-    clientIds,
-    jobProgressId,
-  });
+    // Validate date conversion
+    if (isNaN(periodStartDate.getTime()) || isNaN(periodEndDate.getTime())) {
+      throw new Error("Invalid date format in job data");
+    }
 
-  console.log(`Funder export completed for export ${exportId}`);
+    // Execute export generation
+    await executeExportGeneration({
+      exportId,
+      templateId,
+      orgId,
+      userId,
+      periodStart: periodStartDate,
+      periodEnd: periodEndDate,
+      programIds,
+      clientIds,
+      jobProgressId,
+    });
+
+    console.log(`Funder export completed for export ${exportId}`);
+  } catch (error) {
+    console.error(`Funder export failed for export ${exportId}:`, error);
+    // Re-throw to let BullMQ handle retry logic
+    // The executeExportGeneration function already handles marking the job as failed
+    throw error;
+  }
 }
 
 // Register this processor
