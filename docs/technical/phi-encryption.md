@@ -8,6 +8,11 @@
 
 Application-level field encryption for Protected Health Information (PHI) using AES-256-GCM with envelope encryption via AWS KMS. Provides transparent encryption/decryption through Prisma middleware with per-organization Data Encryption Keys (DEKs).
 
+> **Related Documentation:**
+> - [AWS KMS & Key Management](./aws-kms-key-management.md) - Detailed KMS setup, key rotation, and emergency procedures
+> - [HIPAA Compliance](../HIPAA_SPEC.md) - Overall HIPAA compliance requirements
+> - [SOC 2 Compliance](../SOC2_SPEC.md) - SOC 2 trust criteria mapping
+
 ## Architecture
 
 ### Key Hierarchy

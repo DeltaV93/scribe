@@ -265,6 +265,179 @@ export const AuthLogger = {
   },
 };
 
+// Encryption/Key Management event helpers
+export const EncryptionLogger = {
+  async keyRotationInitiated(params: {
+    orgId: string;
+    userId: string;
+    currentVersion: number;
+    reason?: string;
+    ipAddress?: string;
+  }) {
+    return logEnhancedAudit({
+      eventType: AuditEventType.SECURITY,
+      action: "KEY_ROTATION_INITIATED",
+      severity: AuditSeverity.CRITICAL,
+      orgId: params.orgId,
+      userId: params.userId,
+      resource: "EncryptionKey",
+      resourceId: params.orgId,
+      ipAddress: params.ipAddress,
+      details: {
+        currentVersion: params.currentVersion,
+        reason: params.reason || "Manual rotation",
+      },
+    });
+  },
+
+  async keyRotationCompleted(params: {
+    orgId: string;
+    userId: string;
+    previousVersion: number;
+    newVersion: number;
+    durationMs?: number;
+    ipAddress?: string;
+  }) {
+    return logEnhancedAudit({
+      eventType: AuditEventType.SECURITY,
+      action: "KEY_ROTATION_COMPLETED",
+      severity: AuditSeverity.CRITICAL,
+      orgId: params.orgId,
+      userId: params.userId,
+      resource: "EncryptionKey",
+      resourceId: params.orgId,
+      ipAddress: params.ipAddress,
+      details: {
+        previousVersion: params.previousVersion,
+        newVersion: params.newVersion,
+        durationMs: params.durationMs,
+      },
+    });
+  },
+
+  async keyRotationFailed(params: {
+    orgId: string;
+    userId: string;
+    currentVersion: number;
+    error: string;
+    ipAddress?: string;
+  }) {
+    return logEnhancedAudit({
+      eventType: AuditEventType.SECURITY,
+      action: "KEY_ROTATION_FAILED",
+      severity: AuditSeverity.CRITICAL,
+      orgId: params.orgId,
+      userId: params.userId,
+      resource: "EncryptionKey",
+      resourceId: params.orgId,
+      ipAddress: params.ipAddress,
+      details: {
+        currentVersion: params.currentVersion,
+        error: params.error,
+      },
+    });
+  },
+
+  async reEncryptionStarted(params: {
+    orgId: string;
+    userId: string;
+    fromVersion: number;
+    toVersion: number;
+    models: string[];
+    ipAddress?: string;
+  }) {
+    return logEnhancedAudit({
+      eventType: AuditEventType.SECURITY,
+      action: "RE_ENCRYPTION_STARTED",
+      severity: AuditSeverity.HIGH,
+      orgId: params.orgId,
+      userId: params.userId,
+      resource: "EncryptionKey",
+      resourceId: params.orgId,
+      ipAddress: params.ipAddress,
+      details: {
+        fromVersion: params.fromVersion,
+        toVersion: params.toVersion,
+        models: params.models,
+      },
+    });
+  },
+
+  async reEncryptionCompleted(params: {
+    orgId: string;
+    userId: string;
+    fromVersion: number;
+    toVersion: number;
+    recordsProcessed: number;
+    recordsFailed: number;
+    durationMs?: number;
+    ipAddress?: string;
+  }) {
+    return logEnhancedAudit({
+      eventType: AuditEventType.SECURITY,
+      action: "RE_ENCRYPTION_COMPLETED",
+      severity: AuditSeverity.HIGH,
+      orgId: params.orgId,
+      userId: params.userId,
+      resource: "EncryptionKey",
+      resourceId: params.orgId,
+      ipAddress: params.ipAddress,
+      details: {
+        fromVersion: params.fromVersion,
+        toVersion: params.toVersion,
+        recordsProcessed: params.recordsProcessed,
+        recordsFailed: params.recordsFailed,
+        durationMs: params.durationMs,
+      },
+    });
+  },
+
+  async keyHealthCheck(params: {
+    orgId: string;
+    userId: string;
+    keyId: string;
+    healthStatus: Record<string, boolean>;
+    ipAddress?: string;
+  }) {
+    return logEnhancedAudit({
+      eventType: AuditEventType.SECURITY,
+      action: "KEY_HEALTH_CHECK",
+      severity: AuditSeverity.LOW,
+      orgId: params.orgId,
+      userId: params.userId,
+      resource: "EncryptionKey",
+      resourceId: params.keyId,
+      ipAddress: params.ipAddress,
+      details: {
+        healthStatus: params.healthStatus,
+      },
+    });
+  },
+
+  async emergencyKeyAccess(params: {
+    orgId: string;
+    userId: string;
+    keyId: string;
+    reason: string;
+    ipAddress?: string;
+  }) {
+    return logEnhancedAudit({
+      eventType: AuditEventType.SECURITY,
+      action: "EMERGENCY_KEY_ACCESS",
+      severity: AuditSeverity.CRITICAL,
+      orgId: params.orgId,
+      userId: params.userId,
+      resource: "EncryptionKey",
+      resourceId: params.keyId,
+      ipAddress: params.ipAddress,
+      details: {
+        reason: params.reason,
+        accessType: "EMERGENCY_BREAK_GLASS",
+      },
+    });
+  },
+};
+
 // Admin event helpers
 export const AdminLogger = {
   async userCreated(params: {

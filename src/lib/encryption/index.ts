@@ -43,6 +43,13 @@ export {
   verifyKey,
   isKMSConfigured,
   getKMSStatus,
+  getKeyRotationStatus,
+  enableKeyRotation,
+  listKeyAliases,
+  createKeyAlias,
+  getEnvironmentKeyAlias,
+  checkKeyHealth,
+  recordKMSMetric,
 } from "./kms";
 
 // Key management
@@ -68,5 +75,11 @@ export {
 
 // Types
 export type { EncryptionResult, EncryptedData } from "./crypto";
-export type { GeneratedDataKey, KMSConfig } from "./kms";
+export type {
+  GeneratedDataKey,
+  KMSConfig,
+  KeyRotationStatus,
+  KeyHealthStatus,
+  KMSOperationMetrics,
+} from "./kms";
 export type { EncryptionKey, DecryptedKey } from "./key-management";

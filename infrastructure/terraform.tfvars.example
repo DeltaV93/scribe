@@ -1,0 +1,89 @@
+# =============================================================================
+# Scrybe Infrastructure - Example Terraform Variables
+# =============================================================================
+# Copy this file to terraform.tfvars and fill in your values
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Environment Settings
+# -----------------------------------------------------------------------------
+
+environment          = "prod"  # Options: dev, staging, prod
+project_name         = "scrybe"
+aws_region           = "us-west-2"
+aws_region_secondary = "us-east-1"
+
+# -----------------------------------------------------------------------------
+# KMS Configuration
+# -----------------------------------------------------------------------------
+
+# Primary region KMS key ARN (required)
+kms_key_arn = "arn:aws:kms:us-west-2:123456789012:key/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+
+# Secondary region KMS key ARN (required for cross-region replication)
+kms_key_arn_secondary = "arn:aws:kms:us-east-1:123456789012:key/yyyyyyyy-yyyy-yyyy-yyyy-yyyyyyyyyyyy"
+
+# -----------------------------------------------------------------------------
+# IAM Configuration
+# -----------------------------------------------------------------------------
+
+# Application IAM role ARN (required)
+app_iam_role_arn = "arn:aws:iam::123456789012:role/scrybe-app-role"
+
+# Backup service IAM role ARN (optional)
+backup_iam_role_arn = ""
+
+# -----------------------------------------------------------------------------
+# Lifecycle Policy Settings
+# -----------------------------------------------------------------------------
+
+# Call recordings: days before transitioning to Glacier
+recordings_glacier_days = 365  # 1 year
+
+# Call recordings: total retention in days
+recordings_retention_days = 2555  # 7 years
+
+# Data exports: retention in days (auto-deleted after)
+exports_retention_days = 30
+
+# User uploads: days to retain old versions
+uploads_version_retention_days = 90
+
+# S3 access logs: retention in days
+access_logs_retention_days = 365  # 1 year minimum for compliance
+
+# Audit logs: Object Lock retention in years
+audit_logs_retention_years = 7
+
+# -----------------------------------------------------------------------------
+# Security Settings
+# -----------------------------------------------------------------------------
+
+# Enable MFA Delete for versioned buckets
+# Note: Must be enabled by root account via AWS CLI after initial setup
+enable_mfa_delete = false
+
+# MFA device serial (required if enable_mfa_delete is true)
+# mfa_device_serial = "arn:aws:iam::123456789012:mfa/admin"
+
+# Enable cross-region replication for disaster recovery
+enable_cross_region_replication = true
+
+# -----------------------------------------------------------------------------
+# Notifications (Optional)
+# -----------------------------------------------------------------------------
+
+# SNS topic ARN for S3 event notifications
+# sns_topic_arn = "arn:aws:sns:us-west-2:123456789012:scrybe-s3-events"
+
+# -----------------------------------------------------------------------------
+# Common Tags
+# -----------------------------------------------------------------------------
+
+common_tags = {
+  Project     = "Scrybe"
+  ManagedBy   = "Terraform"
+  Compliance  = "HIPAA-SOC2"
+  Owner       = "engineering@scrybe.app"
+  CostCenter  = "infrastructure"
+}

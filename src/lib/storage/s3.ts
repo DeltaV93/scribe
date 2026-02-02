@@ -7,14 +7,48 @@ import {
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
+// Re-export secure S3 module for new implementations
+export {
+  secureUpload,
+  secureDownload,
+  secureDelete,
+  getSecureUploadUrl,
+  getSecureDownloadUrl,
+  objectExists,
+  getObjectMetadata,
+  listObjects,
+  copyObject,
+  generateUploadKey,
+  generateRecordingKey,
+  generateExportKey,
+  generateAuditLogKey,
+  isSecureS3Configured,
+  getSecureS3Status,
+  S3BucketType,
+  type SecureUploadOptions,
+  type PresignedUrlOptions,
+  type UploadResult,
+  type DownloadResult,
+} from "./secure-s3";
+
 let s3Client: S3Client | null = null;
+
+/**
+ * Maximum presigned URL expiry in seconds (4 hours for compliance)
+ */
+const MAX_PRESIGNED_URL_EXPIRY = 14400;
+
+/**
+ * Default presigned URL expiry in seconds (1 hour)
+ */
+const DEFAULT_PRESIGNED_URL_EXPIRY = 3600;
 
 /**
  * Get the S3 client instance (singleton)
  */
 export function getS3Client(): S3Client {
   if (!s3Client) {
-    const region = process.env.AWS_REGION || "us-east-1";
+    const region = process.env.AWS_REGION || process.env.AWS_S3_REGION || "us-west-2";
     const accessKeyId = process.env.AWS_ACCESS_KEY_ID;
     const secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY;
 
@@ -108,20 +142,26 @@ export async function uploadRecording(
 
 /**
  * Get a signed URL for accessing a recording
+ *
+ * Note: For HIPAA/SOC 2 compliance, presigned URLs are limited to 4 hours max.
+ * Default expiry is 1 hour. Use shorter expiry times for sensitive data.
  */
 export async function getSignedRecordingUrl(
   key: string,
-  expiresIn: number = 3600 // 1 hour default
+  expiresIn: number = DEFAULT_PRESIGNED_URL_EXPIRY
 ): Promise<string> {
   const client = getS3Client();
   const bucket = getBucketName();
+
+  // Enforce maximum expiry for compliance
+  const safeExpiresIn = Math.min(expiresIn, MAX_PRESIGNED_URL_EXPIRY);
 
   const command = new GetObjectCommand({
     Bucket: bucket,
     Key: key,
   });
 
-  return getSignedUrl(client, command, { expiresIn });
+  return getSignedUrl(client, command, { expiresIn: safeExpiresIn });
 }
 
 /**
