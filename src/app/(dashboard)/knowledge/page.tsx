@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { useDropzone } from "react-dropzone";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -33,6 +34,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
+import { Progress } from "@/components/ui/progress";
 import {
   Loader2,
   Plus,
@@ -45,9 +47,13 @@ import {
   Tag,
   AlertCircle,
   RefreshCw,
+  Upload,
+  X,
+  File,
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 
 interface KnowledgeEntry {
   id: string;
@@ -110,6 +116,18 @@ export default function KnowledgePage() {
     title: "",
     content: "",
     summary: "",
+    category: "",
+    tags: "",
+  });
+
+  // Upload dialog
+  const [isUploadOpen, setIsUploadOpen] = useState(false);
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [uploadState, setUploadState] = useState<"idle" | "uploading" | "processing" | "error">("idle");
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [uploadEntry, setUploadEntry] = useState({
+    title: "",
     category: "",
     tags: "",
   });
@@ -199,6 +217,136 @@ export default function KnowledgePage() {
     }
   };
 
+  // Dropzone for document upload
+  const onDrop = useCallback((acceptedFiles: File[], rejectedFiles: unknown[]) => {
+    if (rejectedFiles && Array.isArray(rejectedFiles) && rejectedFiles.length > 0) {
+      setUploadError("Invalid file type. Please upload PDF, DOCX, TXT, or MD files.");
+      return;
+    }
+
+    if (acceptedFiles.length > 0) {
+      const file = acceptedFiles[0];
+      const maxSize = 25 * 1024 * 1024; // 25MB
+
+      if (file.size > maxSize) {
+        setUploadError("File is too large. Maximum size is 25MB.");
+        return;
+      }
+
+      setUploadFile(file);
+      setUploadError(null);
+      // Auto-populate title from filename
+      const titleFromFilename = file.name
+        .replace(/\.[^/.]+$/, "") // Remove extension
+        .replace(/[-_]+/g, " ") // Replace dashes/underscores with spaces
+        .replace(/\s+/g, " ") // Collapse multiple spaces
+        .trim();
+      setUploadEntry((prev) => ({ ...prev, title: titleFromFilename }));
+    }
+  }, []);
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: {
+      "application/pdf": [".pdf"],
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document": [".docx"],
+      "text/plain": [".txt"],
+      "text/markdown": [".md"],
+    },
+    maxFiles: 1,
+    maxSize: 25 * 1024 * 1024,
+    disabled: uploadState !== "idle",
+  });
+
+  const handleUploadDocument = async () => {
+    if (!uploadFile) return;
+
+    setUploadState("uploading");
+    setUploadProgress(10);
+    setUploadError(null);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", uploadFile);
+      if (uploadEntry.title.trim()) {
+        formData.append("title", uploadEntry.title.trim());
+      }
+      if (uploadEntry.category.trim()) {
+        formData.append("category", uploadEntry.category.trim());
+      }
+      if (uploadEntry.tags.trim()) {
+        formData.append("tags", uploadEntry.tags.trim());
+      }
+
+      // Simulate upload progress
+      const progressInterval = setInterval(() => {
+        setUploadProgress((prev) => Math.min(prev + 10, 40));
+      }, 200);
+
+      const response = await fetch("/api/knowledge/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      clearInterval(progressInterval);
+      setUploadProgress(60);
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error?.message || "Upload failed");
+      }
+
+      setUploadState("processing");
+      setUploadProgress(80);
+
+      const data = await response.json();
+
+      setUploadProgress(100);
+
+      // Small delay for UX
+      setTimeout(() => {
+        toast.success("Document uploaded successfully");
+        handleCloseUploadDialog();
+        router.push(`/knowledge/${data.data.id}`);
+      }, 500);
+    } catch (err) {
+      console.error("Upload error:", err);
+      setUploadError(err instanceof Error ? err.message : "Upload failed");
+      setUploadState("error");
+    }
+  };
+
+  const handleCloseUploadDialog = () => {
+    setUploadFile(null);
+    setUploadState("idle");
+    setUploadProgress(0);
+    setUploadError(null);
+    setUploadEntry({ title: "", category: "", tags: "" });
+    setIsUploadOpen(false);
+  };
+
+  const removeUploadFile = () => {
+    setUploadFile(null);
+    setUploadError(null);
+    setUploadEntry({ title: "", category: "", tags: "" });
+  };
+
+  const formatFileSize = (bytes: number): string => {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  };
+
+  const getFileIcon = (mimeType: string) => {
+    if (mimeType === "application/pdf") {
+      return <FileText className="h-8 w-8 text-red-500" />;
+    }
+    if (mimeType.includes("word") || mimeType.includes("document")) {
+      return <FileText className="h-8 w-8 text-blue-500" />;
+    }
+    return <File className="h-8 w-8 text-gray-500" />;
+  };
+
   const totalPages = Math.ceil(total / limit);
 
   return (
@@ -211,13 +359,18 @@ export default function KnowledgePage() {
             Institutional memory from meetings, documents, and manual entries.
           </p>
         </div>
-        <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Knowledge
-            </Button>
-          </DialogTrigger>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => setIsUploadOpen(true)}>
+            <Upload className="h-4 w-4 mr-2" />
+            Upload Document
+          </Button>
+          <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Knowledge
+              </Button>
+            </DialogTrigger>
           <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle>Add Knowledge Entry</DialogTitle>
@@ -289,7 +442,170 @@ export default function KnowledgePage() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
+
+      {/* Upload Document Dialog */}
+      <Dialog open={isUploadOpen} onOpenChange={handleCloseUploadDialog}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Upload Document</DialogTitle>
+            <DialogDescription>
+              Upload a document to automatically extract and create a knowledge entry.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            {/* Dropzone */}
+            {!uploadFile && uploadState === "idle" && (
+              <div
+                {...getRootProps()}
+                className={cn(
+                  "border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors",
+                  isDragActive
+                    ? "border-primary bg-primary/5"
+                    : "border-muted-foreground/25 hover:border-primary/50"
+                )}
+              >
+                <input {...getInputProps()} />
+                <Upload className="h-10 w-10 mx-auto mb-4 text-muted-foreground" />
+                {isDragActive ? (
+                  <p className="text-sm text-primary">Drop the file here...</p>
+                ) : (
+                  <>
+                    <p className="text-sm font-medium">
+                      Drag & drop a file here, or click to select
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      PDF, DOCX, TXT, or MD - Max 25MB
+                    </p>
+                  </>
+                )}
+              </div>
+            )}
+
+            {/* File preview */}
+            {uploadFile && uploadState === "idle" && (
+              <div className="space-y-4">
+                <div className="flex items-center gap-3 p-4 rounded-lg border bg-muted/30">
+                  {getFileIcon(uploadFile.type)}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">{uploadFile.name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {formatFileSize(uploadFile.size)}
+                    </p>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={removeUploadFile}
+                    className="shrink-0"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+
+                {/* Entry details */}
+                <div className="space-y-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="upload-title">Title</Label>
+                    <Input
+                      id="upload-title"
+                      placeholder="Document title"
+                      value={uploadEntry.title}
+                      onChange={(e) => setUploadEntry({ ...uploadEntry, title: e.target.value })}
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-2">
+                      <Label htmlFor="upload-category">Category (optional)</Label>
+                      <Input
+                        id="upload-category"
+                        placeholder="e.g., Policy"
+                        value={uploadEntry.category}
+                        onChange={(e) => setUploadEntry({ ...uploadEntry, category: e.target.value })}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="upload-tags">Tags (optional)</Label>
+                      <Input
+                        id="upload-tags"
+                        placeholder="e.g., hr, policy"
+                        value={uploadEntry.tags}
+                        onChange={(e) => setUploadEntry({ ...uploadEntry, tags: e.target.value })}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Upload progress */}
+            {(uploadState === "uploading" || uploadState === "processing") && (
+              <div className="space-y-3">
+                <div className="flex items-center gap-3 p-4 rounded-lg border bg-muted/30">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium">
+                      {uploadState === "uploading"
+                        ? "Uploading document..."
+                        : "Extracting content and generating summary..."}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {uploadState === "processing" &&
+                        "AI is analyzing your document"}
+                    </p>
+                  </div>
+                </div>
+                <Progress value={uploadProgress} className="h-2" />
+              </div>
+            )}
+
+            {/* Error state */}
+            {uploadError && (
+              <div className="flex items-start gap-3 p-4 rounded-lg border border-destructive/50 bg-destructive/10">
+                <AlertCircle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-sm font-medium text-destructive">
+                    Upload failed
+                  </p>
+                  <p className="text-xs text-destructive/80">{uploadError}</p>
+                </div>
+              </div>
+            )}
+
+            {/* Tips */}
+            {uploadState === "idle" && !uploadFile && (
+              <div className="bg-blue-50 dark:bg-blue-950/30 rounded-lg p-3">
+                <p className="text-xs font-medium text-blue-700 dark:text-blue-300">
+                  Supported document types:
+                </p>
+                <ul className="text-xs text-blue-600 dark:text-blue-400 mt-1 space-y-0.5">
+                  <li>- PDF documents (.pdf)</li>
+                  <li>- Word documents (.docx)</li>
+                  <li>- Text files (.txt)</li>
+                  <li>- Markdown files (.md)</li>
+                </ul>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={handleCloseUploadDialog}>
+              Cancel
+            </Button>
+            {uploadFile && uploadState === "idle" && (
+              <Button onClick={handleUploadDocument}>
+                <Upload className="h-4 w-4 mr-2" />
+                Upload & Extract
+              </Button>
+            )}
+            {uploadState === "error" && (
+              <Button onClick={handleUploadDocument}>Try Again</Button>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Stats Cards */}
       {stats && (

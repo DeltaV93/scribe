@@ -15,6 +15,7 @@ import {
   Menu,
   Shield,
   GraduationCap,
+  ListChecks,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -59,6 +60,11 @@ const navItems = [
     title: "Calls",
     href: "/calls",
     icon: Phone,
+  },
+  {
+    title: "Action Items",
+    href: "/action-items",
+    icon: ListChecks,
   },
 ];
 

@@ -35,9 +35,18 @@ import {
   RefreshCw,
   File,
   X,
+  Calendar,
+  User,
 } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { Avatar } from "@/components/ui/avatar";
+import { UserPicker, AssignToMeButton } from "@/components/meetings/user-picker";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 interface TranscriptSegment {
   speakerId: string;
@@ -51,9 +60,23 @@ interface ActionItem {
   id: string;
   description: string;
   assigneeName: string | null;
+  assigneeUserId: string | null;
+  assigneeUser?: {
+    id: string;
+    name: string | null;
+    email: string;
+  } | null;
   dueDate: string | null;
   status: "OPEN" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED";
   contextSnippet: string | null;
+}
+
+interface CurrentUser {
+  id: string;
+  name: string | null;
+  email: string;
+  orgId: string;
+  role: string;
 }
 
 interface Question {
@@ -131,6 +154,12 @@ export default function MeetingDetailPage({
   const [resendEmails, setResendEmails] = useState("");
   const [isResending, setIsResending] = useState(false);
 
+  // Current user state
+  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
+
+  // Action item update state
+  const [updatingActionItemId, setUpdatingActionItemId] = useState<string | null>(null);
+
   const fetchMeeting = async () => {
     try {
       const response = await fetch(`/api/meetings/${meetingId}`);
@@ -146,6 +175,22 @@ export default function MeetingDetailPage({
       setIsLoading(false);
     }
   };
+
+  // Fetch current user on mount
+  useEffect(() => {
+    const fetchCurrentUser = async () => {
+      try {
+        const response = await fetch("/api/users/me");
+        if (response.ok) {
+          const data = await response.json();
+          setCurrentUser(data.data);
+        }
+      } catch (error) {
+        console.error("Error fetching current user:", error);
+      }
+    };
+    fetchCurrentUser();
+  }, []);
 
   useEffect(() => {
     fetchMeeting();
@@ -341,10 +386,12 @@ export default function MeetingDetailPage({
 
   // Action item error state
   const [actionItemError, setActionItemError] = useState<string | null>(null);
+  const [actionItemSuccess, setActionItemSuccess] = useState<string | null>(null);
 
   const handleActionItemToggle = async (actionItemId: string, currentStatus: string) => {
     const newStatus = currentStatus === "COMPLETED" ? "OPEN" : "COMPLETED";
     setActionItemError(null);
+    setActionItemSuccess(null);
     try {
       const response = await fetch(`/api/meetings/${meetingId}/action-items`, {
         method: "PUT",
@@ -360,6 +407,71 @@ export default function MeetingDetailPage({
     } catch (error) {
       console.error("Error updating action item:", error);
       setActionItemError("Failed to update action item. Please try again.");
+    }
+  };
+
+  const handleActionItemAssign = async (
+    actionItemId: string,
+    assigneeUserId: string | null,
+    assigneeName?: string | null
+  ) => {
+    setUpdatingActionItemId(actionItemId);
+    setActionItemError(null);
+    setActionItemSuccess(null);
+    try {
+      const response = await fetch(`/api/meetings/${meetingId}/action-items`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ actionItemId, assigneeUserId }),
+      });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        setActionItemError(errorData.error?.message || "Failed to assign action item");
+        return;
+      }
+      if (assigneeName) {
+        setActionItemSuccess(`Assigned to ${assigneeName}`);
+        setTimeout(() => setActionItemSuccess(null), 3000);
+      } else if (assigneeUserId === null) {
+        setActionItemSuccess("Assignment removed");
+        setTimeout(() => setActionItemSuccess(null), 3000);
+      }
+      fetchMeeting();
+    } catch (error) {
+      console.error("Error assigning action item:", error);
+      setActionItemError("Failed to assign action item. Please try again.");
+    } finally {
+      setUpdatingActionItemId(null);
+    }
+  };
+
+  const handleActionItemDueDate = async (actionItemId: string, dueDate: string | null) => {
+    setUpdatingActionItemId(actionItemId);
+    setActionItemError(null);
+    setActionItemSuccess(null);
+    try {
+      const response = await fetch(`/api/meetings/${meetingId}/action-items`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ actionItemId, dueDate }),
+      });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        setActionItemError(errorData.error?.message || "Failed to update due date");
+        return;
+      }
+      if (dueDate) {
+        setActionItemSuccess("Due date updated");
+      } else {
+        setActionItemSuccess("Due date removed");
+      }
+      setTimeout(() => setActionItemSuccess(null), 3000);
+      fetchMeeting();
+    } catch (error) {
+      console.error("Error updating due date:", error);
+      setActionItemError("Failed to update due date. Please try again.");
+    } finally {
+      setUpdatingActionItemId(null);
     }
   };
 
@@ -593,37 +705,216 @@ export default function MeetingDetailPage({
                 </CardDescription>
               </CardHeader>
               <CardContent>
+                {/* Status messages */}
                 {actionItemError && (
                   <div className="flex items-center gap-2 text-destructive text-sm mb-4">
                     <AlertCircle className="h-4 w-4" />
                     {actionItemError}
                   </div>
                 )}
+                {actionItemSuccess && (
+                  <div className="flex items-center gap-2 text-green-600 text-sm mb-4">
+                    <CheckCircle className="h-4 w-4" />
+                    {actionItemSuccess}
+                  </div>
+                )}
                 {meeting.actionItems.length === 0 ? (
                   <p className="text-muted-foreground">No action items identified.</p>
                 ) : (
                   <ul className="space-y-4">
-                    {meeting.actionItems.map((item) => (
-                      <li key={item.id} className="flex items-start gap-3">
-                        <Checkbox
-                          checked={item.status === "COMPLETED"}
-                          onCheckedChange={() => handleActionItemToggle(item.id, item.status)}
-                        />
-                        <div className="flex-1">
-                          <p className={item.status === "COMPLETED" ? "line-through text-muted-foreground" : ""}>
-                            {item.description}
-                          </p>
-                          <div className="flex items-center gap-3 mt-1 text-sm text-muted-foreground">
-                            {item.assigneeName && (
-                              <span>Assigned to: {item.assigneeName}</span>
-                            )}
-                            {item.dueDate && (
-                              <span>Due: {format(new Date(item.dueDate), "MMM d, yyyy")}</span>
+                    {meeting.actionItems.map((item) => {
+                      const isUpdating = updatingActionItemId === item.id;
+                      const displayName = item.assigneeUser?.name || item.assigneeName;
+                      const isAssigned = !!item.assigneeUserId || !!item.assigneeName;
+
+                      return (
+                        <li key={item.id} className="flex items-start gap-3 py-2">
+                          {/* Checkbox */}
+                          <Checkbox
+                            checked={item.status === "COMPLETED"}
+                            onCheckedChange={() => handleActionItemToggle(item.id, item.status)}
+                            disabled={isUpdating}
+                            className="mt-0.5"
+                          />
+
+                          {/* Avatar / User indicator */}
+                          <div className="flex-shrink-0">
+                            {item.assigneeUserId && item.assigneeUser ? (
+                              <Popover>
+                                <PopoverTrigger asChild>
+                                  <button
+                                    type="button"
+                                    className="cursor-pointer hover:opacity-80 transition-opacity"
+                                    disabled={isUpdating}
+                                  >
+                                    <Avatar
+                                      name={item.assigneeUser.name}
+                                      id={item.assigneeUser.id}
+                                      size="sm"
+                                    />
+                                  </button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-64 p-3" align="start">
+                                  <div className="space-y-3">
+                                    <div className="flex items-center gap-2">
+                                      <Avatar
+                                        name={item.assigneeUser.name}
+                                        id={item.assigneeUser.id}
+                                        size="md"
+                                      />
+                                      <div>
+                                        <p className="font-medium text-sm">
+                                          {item.assigneeUser.name || "Unnamed"}
+                                        </p>
+                                        <p className="text-xs text-muted-foreground">
+                                          {item.assigneeUser.email}
+                                        </p>
+                                      </div>
+                                    </div>
+                                    <div className="border-t pt-2">
+                                      <UserPicker
+                                        value={item.assigneeUserId}
+                                        currentUserId={currentUser?.id}
+                                        onSelect={(userId, user) => {
+                                          handleActionItemAssign(item.id, userId, user?.name);
+                                        }}
+                                        placeholder="Reassign..."
+                                        className="w-full"
+                                      />
+                                    </div>
+                                  </div>
+                                </PopoverContent>
+                              </Popover>
+                            ) : item.assigneeName ? (
+                              <Popover>
+                                <PopoverTrigger asChild>
+                                  <button
+                                    type="button"
+                                    className="cursor-pointer hover:opacity-80 transition-opacity"
+                                    disabled={isUpdating}
+                                  >
+                                    <Avatar name={item.assigneeName} size="sm" />
+                                  </button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-64 p-3" align="start">
+                                  <div className="space-y-3">
+                                    <div className="flex items-center gap-2">
+                                      <Avatar name={item.assigneeName} size="md" />
+                                      <div>
+                                        <p className="font-medium text-sm">{item.assigneeName}</p>
+                                        <p className="text-xs text-muted-foreground">
+                                          Not linked to a user
+                                        </p>
+                                      </div>
+                                    </div>
+                                    <div className="border-t pt-2">
+                                      <UserPicker
+                                        value={null}
+                                        currentUserId={currentUser?.id}
+                                        onSelect={(userId, user) => {
+                                          handleActionItemAssign(item.id, userId, user?.name);
+                                        }}
+                                        placeholder="Assign to user..."
+                                        className="w-full"
+                                      />
+                                    </div>
+                                  </div>
+                                </PopoverContent>
+                              </Popover>
+                            ) : (
+                              <div className="h-6 w-6 rounded-full bg-muted flex items-center justify-center">
+                                <User className="h-3 w-3 text-muted-foreground" />
+                              </div>
                             )}
                           </div>
-                        </div>
-                      </li>
-                    ))}
+
+                          {/* Content */}
+                          <div className="flex-1 min-w-0">
+                            <p className={cn(
+                              "text-sm",
+                              item.status === "COMPLETED" && "line-through text-muted-foreground"
+                            )}>
+                              {item.description}
+                            </p>
+
+                            {/* Assignment and due date controls */}
+                            <div className="flex items-center gap-2 mt-2 flex-wrap">
+                              {/* Assignee display/control */}
+                              {!item.assigneeUserId && !item.assigneeName && currentUser && (
+                                <AssignToMeButton
+                                  onClick={() => handleActionItemAssign(item.id, currentUser.id, currentUser.name)}
+                                  disabled={isUpdating}
+                                />
+                              )}
+
+                              {isAssigned && (
+                                <span className="text-xs text-muted-foreground">
+                                  {displayName}
+                                </span>
+                              )}
+
+                              {/* Separator */}
+                              {isAssigned && <span className="text-muted-foreground">|</span>}
+
+                              {/* Due date control */}
+                              <Popover>
+                                <PopoverTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className={cn(
+                                      "text-xs h-7 px-2",
+                                      !item.dueDate && "text-muted-foreground"
+                                    )}
+                                    disabled={isUpdating}
+                                  >
+                                    <Calendar className="mr-1 h-3 w-3" />
+                                    {item.dueDate
+                                      ? format(new Date(item.dueDate), "MMM d, yyyy")
+                                      : "Set due date"}
+                                  </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-3" align="start">
+                                  <div className="space-y-2">
+                                    <Label htmlFor={`dueDate-${item.id}`} className="text-sm">
+                                      Due Date
+                                    </Label>
+                                    <Input
+                                      id={`dueDate-${item.id}`}
+                                      type="date"
+                                      value={item.dueDate ? item.dueDate.split("T")[0] : ""}
+                                      onChange={(e) => {
+                                        const value = e.target.value;
+                                        handleActionItemDueDate(
+                                          item.id,
+                                          value ? new Date(value).toISOString() : null
+                                        );
+                                      }}
+                                      className="w-40"
+                                    />
+                                    {item.dueDate && (
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="w-full text-xs"
+                                        onClick={() => handleActionItemDueDate(item.id, null)}
+                                      >
+                                        Clear due date
+                                      </Button>
+                                    )}
+                                  </div>
+                                </PopoverContent>
+                              </Popover>
+
+                              {/* Loading indicator */}
+                              {isUpdating && (
+                                <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />
+                              )}
+                            </div>
+                          </div>
+                        </li>
+                      );
+                    })}
                   </ul>
                 )}
               </CardContent>
