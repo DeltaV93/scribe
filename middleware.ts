@@ -157,6 +157,10 @@ export async function middleware(request: NextRequest) {
   return supabaseResponse;
 }
 
+// Use Node.js runtime instead of Edge to support ioredis for distributed rate limiting
+// This is required for HIPAA/SOC 2 compliance - rate limiting must work across all instances
+export const runtime = 'nodejs'
+
 export const config = {
   matcher: [
     /*
