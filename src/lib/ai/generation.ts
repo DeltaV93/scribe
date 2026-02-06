@@ -1,6 +1,6 @@
 // Core logic for AI-powered form generation
 
-import { anthropic, EXTRACTION_MODEL } from "./client";
+import { anthropic, EXTRACTION_MODEL, logClaudeUsage } from "./client";
 import {
   FORM_GENERATION_SYSTEM_PROMPT,
   buildGenerationPrompt,
@@ -13,6 +13,7 @@ import type {
   ClaudeGenerationResponse,
 } from "./generation-types";
 import { FieldType, FieldPurpose } from "@/types";
+import { createFormGenerationTimer } from "./timing";
 
 /**
  * Generate form fields from user requirements using Claude
@@ -20,9 +21,20 @@ import { FieldType, FieldPurpose } from "@/types";
 export async function generateFormFields(
   request: GenerateFormRequest
 ): Promise<GenerateFormResponse> {
-  try {
-    const userPrompt = buildGenerationPrompt(request);
+  const timer = createFormGenerationTimer();
+  const totalStart = performance.now();
 
+  try {
+    // Build the prompt
+    let stepTimer = timer.step();
+    const userPrompt = buildGenerationPrompt(request);
+    stepTimer.complete("prompt_build", true, {
+      prompt_length: userPrompt.length,
+      form_type: request.formType,
+    });
+
+    // Call Claude API
+    stepTimer = timer.step();
     const response = await anthropic.messages.create({
       model: EXTRACTION_MODEL,
       max_tokens: 8192,
@@ -35,6 +47,23 @@ export async function generateFormFields(
       ],
     });
 
+    const claudeApiDuration = stepTimer.elapsed();
+
+    // Log Claude API call with token usage
+    stepTimer.complete("claude_api_call", true, {
+      model: EXTRACTION_MODEL,
+      input_tokens: response.usage?.input_tokens,
+      output_tokens: response.usage?.output_tokens,
+    });
+
+    // Detailed Claude usage logging
+    logClaudeUsage(
+      "form_generation",
+      EXTRACTION_MODEL,
+      response.usage,
+      claudeApiDuration
+    );
+
     // Extract text content from response
     const textContent = response.content.find((c) => c.type === "text");
     if (!textContent || textContent.type !== "text") {
@@ -42,14 +71,34 @@ export async function generateFormFields(
     }
 
     // Parse the JSON response
+    stepTimer = timer.step();
     const parsed = parseGeneratedForm(textContent.text);
+    stepTimer.complete("parse_response", true, {
+      response_length: textContent.text.length,
+    });
 
     // Transform and validate fields
+    stepTimer = timer.step();
     const fields = transformFields(parsed.fields);
     const extractionSuggestions = validateExtractionSuggestions(
       parsed.extractionSuggestions,
       fields
     );
+    stepTimer.complete("transform_fields", true, {
+      field_count: fields.length,
+    });
+
+    // Log total duration
+    const totalDuration = performance.now() - totalStart;
+    timer.step().complete("total", true, {
+      form_type: request.formType,
+      field_count: fields.length,
+      input_tokens: response.usage?.input_tokens,
+      output_tokens: response.usage?.output_tokens,
+    });
+
+    // Adjust the total log to show actual total
+    console.log(`[ai_form_generation] total: ${Math.round(totalDuration)}ms`);
 
     return {
       success: true,
@@ -58,13 +107,22 @@ export async function generateFormFields(
       reasoning: parsed.reasoning,
     };
   } catch (error) {
+    const totalDuration = performance.now() - totalStart;
+    const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+
+    timer.step().complete("error", false, {
+      form_type: request.formType,
+      error: errorMessage,
+    });
+    console.log(`[ai_form_generation] total: ${Math.round(totalDuration)}ms (FAILED)`);
+
     console.error("Form generation error:", error);
     return {
       success: false,
       fields: [],
       extractionSuggestions: [],
       reasoning: "",
-      error: error instanceof Error ? error.message : "Unknown error occurred",
+      error: errorMessage,
     };
   }
 }
