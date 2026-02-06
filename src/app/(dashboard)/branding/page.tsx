@@ -1,25 +1,11 @@
 "use client";
 
-import { useEffect } from "react";
-
 export default function BrandingPage() {
-  useEffect(() => {
-    // Add Google Fonts
-    const link = document.createElement("link");
-    link.href =
-      "https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Outfit:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@300;400;500&display=swap";
-    link.rel = "stylesheet";
-    document.head.appendChild(link);
-
-    return () => {
-      document.head.removeChild(link);
-    };
-  }, []);
-
   return (
     <>
       <style jsx global>{`
-        :root {
+        /* Brand color tokens - scoped to branding page */
+        .brand-page {
           --obsidian: #0c0c0e;
           --copper: #c4956a;
           --copper-text: #7d5a36;
@@ -27,16 +13,17 @@ export default function BrandingPage() {
           --copper-light: #d4b48a;
           --copper-dark: #996b42;
           --steel: #8a8578;
-          --muted: #6b6659;
+          --muted-brand: #6b6659;
           --bone: #ede8df;
           --graphite: #2a2a2e;
           --white: #f8f6f2;
-          --success: #2e6b4f;
-          --error: #a8433c;
-          --info: #4a6a8c;
-          --serif: "Cormorant Garamond", Georgia, serif;
-          --sans: "Outfit", system-ui, sans-serif;
-          --mono: "IBM Plex Mono", monospace;
+          --success-brand: #2e6b4f;
+          --error-brand: #a8433c;
+          --info-brand: #4a6a8c;
+          /* Use the Next.js loaded fonts via CSS variables */
+          --brand-serif: var(--font-serif), Georgia, serif;
+          --brand-sans: var(--font-sans-brand), system-ui, sans-serif;
+          --brand-mono: var(--font-mono), monospace;
         }
 
         .brand-page * {
@@ -47,7 +34,7 @@ export default function BrandingPage() {
         .brand-page {
           background: #fafaf7;
           color: #1a1a1a;
-          font-family: var(--sans);
+          font-family: var(--brand-sans);
           line-height: 1.6;
           -webkit-font-smoothing: antialiased;
         }
@@ -77,7 +64,7 @@ export default function BrandingPage() {
           -webkit-overflow-scrolling: touch;
         }
         .brand-page .toc-logo {
-          font-family: var(--serif);
+          font-family: var(--brand-serif);
           font-size: 18px;
           font-weight: 600;
           color: #1a1a1a;
@@ -98,7 +85,7 @@ export default function BrandingPage() {
           font-size: 11px;
           font-weight: 600;
           letter-spacing: 0.04em;
-          color: var(--muted);
+          color: var(--muted-brand);
           padding: 6px 10px;
           border-radius: 6px;
           text-decoration: none;
@@ -131,7 +118,7 @@ export default function BrandingPage() {
 
         /* TYPOGRAPHY */
         .brand-page .sec-num {
-          font-family: var(--mono);
+          font-family: var(--brand-mono);
           font-size: 11px;
           font-weight: 500;
           color: var(--copper-text);
@@ -140,7 +127,7 @@ export default function BrandingPage() {
           display: block;
         }
         .brand-page .sec-title {
-          font-family: var(--serif);
+          font-family: var(--brand-serif);
           font-size: clamp(28px, 4vw, 40px);
           font-weight: 600;
           line-height: 1.1;
@@ -156,7 +143,7 @@ export default function BrandingPage() {
         }
 
         .brand-page h3 {
-          font-family: var(--serif);
+          font-family: var(--brand-serif);
           font-size: 22px;
           font-weight: 600;
           color: #1a1a1a;
@@ -168,7 +155,7 @@ export default function BrandingPage() {
           letter-spacing: 0.14em;
           text-transform: uppercase;
           font-weight: 700;
-          color: var(--muted);
+          color: var(--muted-brand);
           margin-bottom: 8px;
         }
         .brand-page .body-text {
@@ -178,9 +165,9 @@ export default function BrandingPage() {
           max-width: 60ch;
         }
         .brand-page .caption {
-          font-family: var(--mono);
+          font-family: var(--brand-mono);
           font-size: 11px;
-          color: var(--muted);
+          color: var(--muted-brand);
         }
 
         /* CARDS */
@@ -240,7 +227,7 @@ export default function BrandingPage() {
           z-index: 2;
         }
         .brand-page .cover-kicker {
-          font-family: var(--mono);
+          font-family: var(--brand-mono);
           font-size: 11px;
           letter-spacing: 0.2em;
           text-transform: uppercase;
@@ -248,7 +235,7 @@ export default function BrandingPage() {
           margin-bottom: 20px;
         }
         .brand-page .cover h1 {
-          font-family: var(--serif);
+          font-family: var(--brand-serif);
           font-size: clamp(36px, 6vw, 64px);
           font-weight: 600;
           line-height: 1.05;
@@ -270,7 +257,7 @@ export default function BrandingPage() {
           display: flex;
           gap: 20px;
           flex-wrap: wrap;
-          font-family: var(--mono);
+          font-family: var(--brand-mono);
           font-size: 11px;
           color: rgba(248, 246, 242, 0.4);
         }
@@ -307,13 +294,13 @@ export default function BrandingPage() {
           margin-bottom: 2px;
         }
         .brand-page .swatch-lg .info .hex {
-          font-family: var(--mono);
+          font-family: var(--brand-mono);
           font-size: 11px;
-          color: var(--muted);
+          color: var(--muted-brand);
         }
         .brand-page .swatch-lg .info .role {
           font-size: 12px;
-          color: var(--muted);
+          color: var(--muted-brand);
           margin-top: 4px;
         }
 
@@ -340,8 +327,8 @@ export default function BrandingPage() {
           display: block;
         }
         .brand-page .swatch-sm .meta span {
-          color: var(--muted);
-          font-family: var(--mono);
+          color: var(--muted-brand);
+          font-family: var(--brand-mono);
           font-size: 10px;
         }
 
@@ -378,7 +365,7 @@ export default function BrandingPage() {
         }
         .brand-page .type-card .notes {
           font-size: 12px;
-          color: var(--muted);
+          color: var(--muted-brand);
           line-height: 1.6;
         }
 
@@ -509,7 +496,7 @@ export default function BrandingPage() {
         }
         .brand-page .ui-bar span {
           font-size: 11px;
-          color: var(--muted);
+          color: var(--muted-brand);
           font-weight: 600;
         }
         .brand-page .ui-content {
@@ -565,10 +552,10 @@ export default function BrandingPage() {
           font-weight: 700;
           color: var(--copper-text);
           margin-bottom: 6px;
-          font-family: var(--sans);
+          font-family: var(--brand-sans);
         }
         .brand-page .vert .vert-hl {
-          font-family: var(--serif);
+          font-family: var(--brand-serif);
           font-size: 18px;
           line-height: 1.2;
           color: #1a1a1a;
@@ -576,8 +563,8 @@ export default function BrandingPage() {
         }
         .brand-page .vert .vert-sub {
           font-size: 12px;
-          color: var(--muted);
-          font-family: var(--sans);
+          color: var(--muted-brand);
+          font-family: var(--brand-sans);
         }
 
         /* TABLE */
@@ -591,7 +578,7 @@ export default function BrandingPage() {
           font-size: 10px;
           letter-spacing: 0.1em;
           text-transform: uppercase;
-          color: var(--muted);
+          color: var(--muted-brand);
           font-weight: 700;
           padding: 8px 12px;
           border-bottom: 2px solid #e0ddd6;
@@ -648,7 +635,7 @@ export default function BrandingPage() {
           gap: 16px;
         }
         .brand-page .brand-footer .logo {
-          font-family: var(--serif);
+          font-family: var(--brand-serif);
           font-size: 20px;
           color: var(--white);
           font-weight: 600;
@@ -739,7 +726,7 @@ export default function BrandingPage() {
                 <div style={{ display: "grid", gap: "8px", marginTop: "8px" }}>
                   <div
                     style={{
-                      fontFamily: "var(--mono)",
+                      fontFamily: "var(--brand-mono)",
                       fontSize: "11px",
                       color: "var(--copper-text)",
                       fontWeight: 500,
@@ -749,7 +736,7 @@ export default function BrandingPage() {
                   </div>
                   <div
                     style={{
-                      fontFamily: "var(--serif)",
+                      fontFamily: "var(--brand-serif)",
                       fontSize: "28px",
                       fontWeight: 600,
                       lineHeight: 1.1,
@@ -760,7 +747,7 @@ export default function BrandingPage() {
                   </div>
                   <div
                     style={{
-                      fontFamily: "var(--mono)",
+                      fontFamily: "var(--brand-mono)",
                       fontSize: "11px",
                       color: "var(--copper-text)",
                       fontWeight: 500,
@@ -771,7 +758,7 @@ export default function BrandingPage() {
                   </div>
                   <div
                     style={{
-                      fontFamily: "var(--serif)",
+                      fontFamily: "var(--brand-serif)",
                       fontSize: "20px",
                       fontWeight: 400,
                       color: "#555",
@@ -1112,7 +1099,7 @@ export default function BrandingPage() {
               <div
                 className="sample"
                 style={{
-                  fontFamily: "var(--serif)",
+                  fontFamily: "var(--brand-serif)",
                   fontWeight: 500,
                   fontSize: "clamp(32px,4vw,48px)",
                   lineHeight: 1.08,
@@ -1138,7 +1125,7 @@ export default function BrandingPage() {
               <div
                 className="sample"
                 style={{
-                  fontFamily: "var(--sans)",
+                  fontFamily: "var(--brand-sans)",
                   fontWeight: 400,
                   fontSize: "16px",
                   lineHeight: 1.65,
@@ -1164,7 +1151,7 @@ export default function BrandingPage() {
               <div
                 className="sample"
                 style={{
-                  fontFamily: "var(--sans)",
+                  fontFamily: "var(--brand-sans)",
                   fontWeight: 600,
                   fontSize: "13px",
                   letterSpacing: ".04em",
@@ -1187,7 +1174,7 @@ export default function BrandingPage() {
               <div
                 className="sample"
                 style={{
-                  fontFamily: "var(--mono)",
+                  fontFamily: "var(--brand-mono)",
                   fontWeight: 400,
                   fontSize: "13px",
                   lineHeight: 1.6,
@@ -1427,7 +1414,7 @@ export default function BrandingPage() {
                 </svg>
                 <span
                   style={{
-                    fontFamily: "var(--serif)",
+                    fontFamily: "var(--brand-serif)",
                     fontSize: "26px",
                     fontWeight: 500,
                     letterSpacing: ".03em",
@@ -1465,7 +1452,7 @@ export default function BrandingPage() {
                 </svg>
                 <span
                   style={{
-                    fontFamily: "var(--serif)",
+                    fontFamily: "var(--brand-serif)",
                     fontSize: "26px",
                     fontWeight: 500,
                     letterSpacing: ".03em",
@@ -1678,7 +1665,7 @@ export default function BrandingPage() {
               >
                 <div
                   style={{
-                    fontFamily: "var(--serif)",
+                    fontFamily: "var(--brand-serif)",
                     fontSize: "22px",
                     fontWeight: 600,
                     color: "var(--copper-text)",
@@ -1702,7 +1689,7 @@ export default function BrandingPage() {
               >
                 <div
                   style={{
-                    fontFamily: "var(--serif)",
+                    fontFamily: "var(--brand-serif)",
                     fontSize: "22px",
                     fontWeight: 600,
                     color: "var(--copper-text)",
@@ -1726,7 +1713,7 @@ export default function BrandingPage() {
               >
                 <div
                   style={{
-                    fontFamily: "var(--serif)",
+                    fontFamily: "var(--brand-serif)",
                     fontSize: "22px",
                     fontWeight: 600,
                     color: "var(--copper-text)",
@@ -1750,7 +1737,7 @@ export default function BrandingPage() {
               >
                 <div
                   style={{
-                    fontFamily: "var(--serif)",
+                    fontFamily: "var(--brand-serif)",
                     fontSize: "22px",
                     fontWeight: 600,
                     color: "var(--copper-text)",
@@ -2101,7 +2088,7 @@ export default function BrandingPage() {
                 className="badge"
                 style={{
                   background: "rgba(196,149,106,.08)",
-                  color: "var(--muted)",
+                  color: "var(--muted-brand)",
                   border: "1px dashed var(--steel)",
                 }}
               >
@@ -2214,7 +2201,7 @@ export default function BrandingPage() {
                 <div>
                   <div
                     style={{
-                      fontFamily: "var(--serif)",
+                      fontFamily: "var(--brand-serif)",
                       fontSize: "18px",
                       fontWeight: 600,
                       color: "#1a1a1a",
@@ -2242,7 +2229,7 @@ export default function BrandingPage() {
                 >
                   <div
                     style={{
-                      fontFamily: "var(--serif)",
+                      fontFamily: "var(--brand-serif)",
                       fontSize: "18px",
                       fontWeight: 600,
                       color: "#1a1a1a",
@@ -2270,7 +2257,7 @@ export default function BrandingPage() {
                 >
                   <div
                     style={{
-                      fontFamily: "var(--serif)",
+                      fontFamily: "var(--brand-serif)",
                       fontSize: "18px",
                       fontWeight: 600,
                       color: "#1a1a1a",
@@ -2297,7 +2284,7 @@ export default function BrandingPage() {
                 >
                   <div
                     style={{
-                      fontFamily: "var(--serif)",
+                      fontFamily: "var(--brand-serif)",
                       fontSize: "18px",
                       fontWeight: 600,
                       color: "#1a1a1a",
@@ -2324,7 +2311,7 @@ export default function BrandingPage() {
                 >
                   <div
                     style={{
-                      fontFamily: "var(--serif)",
+                      fontFamily: "var(--brand-serif)",
                       fontSize: "18px",
                       fontWeight: 600,
                       color: "#1a1a1a",
@@ -2351,7 +2338,7 @@ export default function BrandingPage() {
                 >
                   <div
                     style={{
-                      fontFamily: "var(--serif)",
+                      fontFamily: "var(--brand-serif)",
                       fontSize: "18px",
                       fontWeight: 600,
                       color: "#1a1a1a",
