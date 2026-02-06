@@ -28,14 +28,14 @@ export interface FeatureFlagConfig {
 // Organization feature flags structure
 export type OrganizationFeatureFlags = Partial<Record<FeatureFlag, FeatureFlagConfig>>
 
-// Default flag values (all disabled by default)
+// Default flag values
 const DEFAULT_FLAGS: Record<FeatureFlag, FeatureFlagConfig> = {
   'mass-notes': { enabled: false },
-  'photo-to-form': { enabled: false },
+  'photo-to-form': { enabled: true },
   'automated-reporting': { enabled: false },
   'sms-messaging': { enabled: false },
   'client-portal': { enabled: false },
-  'form-logic': { enabled: false },
+  'form-logic': { enabled: true },
 }
 
 /**
