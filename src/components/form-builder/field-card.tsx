@@ -1,6 +1,6 @@
 "use client";
 
-import { useAtom, useSetAtom } from "jotai";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { cn } from "@/lib/utils";
@@ -9,6 +9,8 @@ import {
   removeFieldAtom,
   duplicateFieldAtom,
   formBuilderAtom,
+  fieldSourcesAtom,
+  type FieldSource,
 } from "@/lib/form-builder/store";
 import { FIELD_TYPE_CONFIG, type FormFieldData } from "@/types";
 import { Button } from "@/components/ui/button";
@@ -40,6 +42,7 @@ import {
   Sparkles,
   Lock,
   AlertCircle,
+  Upload,
 } from "lucide-react";
 import { FieldType } from "@/types";
 
@@ -71,9 +74,13 @@ export function FieldCard({
   isDragOverlay = false,
 }: FieldCardProps) {
   const [state] = useAtom(formBuilderAtom);
+  const fieldSources = useAtomValue(fieldSourcesAtom);
   const selectField = useSetAtom(selectFieldAtom);
   const removeField = useSetAtom(removeFieldAtom);
   const duplicateField = useSetAtom(duplicateFieldAtom);
+
+  // Get the source of this field
+  const fieldSource = fieldSources[field.id] as FieldSource | undefined;
 
   const {
     attributes,
@@ -198,6 +205,24 @@ export function FieldCard({
               >
                 <Sparkles className="h-2.5 w-2.5 mr-1" />
                 AI
+              </Badge>
+            )}
+            {fieldSource === "ai" && (
+              <Badge
+                variant="outline"
+                className="h-5 px-1.5 text-[10px] border-purple-500/50 text-purple-600 bg-purple-50"
+              >
+                <Sparkles className="h-2.5 w-2.5 mr-1" />
+                AI generated
+              </Badge>
+            )}
+            {fieldSource === "upload" && (
+              <Badge
+                variant="outline"
+                className="h-5 px-1.5 text-[10px] border-blue-500/50 text-blue-600 bg-blue-50"
+              >
+                <Upload className="h-2.5 w-2.5 mr-1" />
+                From upload
               </Badge>
             )}
           </div>

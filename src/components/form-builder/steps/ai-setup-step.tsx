@@ -5,7 +5,6 @@ import { useAtom, useSetAtom } from "jotai";
 import {
   formBuilderAtom,
   updateFormAtom,
-  wizardStepAtom,
   aiGenerationAtom,
   startGenerationAtom,
   resetGenerationAtom,
@@ -31,7 +30,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { Loader2, Sparkles, ChevronDown, ArrowRight, Settings } from "lucide-react";
+import { Loader2, Sparkles, ChevronDown, Settings } from "lucide-react";
 
 const formTypeOptions = [
   {
@@ -65,7 +64,6 @@ export function AISetupStep() {
   const [state] = useAtom(formBuilderAtom);
   const [aiState] = useAtom(aiGenerationAtom);
   const updateForm = useSetAtom(updateFormAtom);
-  const setWizardStep = useSetAtom(wizardStepAtom);
   const startGeneration = useSetAtom(startGenerationAtom);
   const resetGeneration = useSetAtom(resetGenerationAtom);
 
@@ -121,11 +119,6 @@ export function AISetupStep() {
     } finally {
       setIsGenerating(false);
     }
-  };
-
-  const handleSkipAI = () => {
-    // Skip AI and go directly to fields step
-    setWizardStep("fields");
   };
 
   const handleStartOver = () => {
@@ -377,17 +370,10 @@ export function AISetupStep() {
         </div>
       )}
 
-      {/* Action Buttons */}
-      <div className="flex items-center justify-between">
-        <Button variant="ghost" onClick={handleSkipAI}>
-          Skip AI Generation
-          <ArrowRight className="ml-2 h-4 w-4" />
-        </Button>
-        <Button onClick={handleGenerate} disabled={isGenerating}>
-          <Sparkles className="mr-2 h-4 w-4" />
-          Generate Form with AI
-        </Button>
-      </div>
+      {/* Tip about footer button */}
+      <p className="text-sm text-muted-foreground text-center">
+        Fill in the details above, then click "Generate Form" in the footer to create your fields.
+      </p>
     </div>
   );
 }

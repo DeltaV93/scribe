@@ -1,6 +1,7 @@
 import { getCurrentUser } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { FormBuilder } from "@/components/form-builder";
+import { isFeatureEnabled } from "@/lib/features/flags";
 
 export default async function NewFormPage() {
   const user = await getCurrentUser();
@@ -14,9 +15,21 @@ export default async function NewFormPage() {
     redirect("/forms?error=no_permission");
   }
 
+  // Fetch feature flags for the organization
+  const [photoToForm, formLogic] = await Promise.all([
+    isFeatureEnabled(user.orgId, "photo-to-form"),
+    isFeatureEnabled(user.orgId, "form-logic"),
+  ]);
+
   return (
     <div className="h-[calc(100vh-4rem)]">
-      <FormBuilder />
+      <FormBuilder
+        featureFlags={{
+          photoToForm,
+          formLogic,
+        }}
+        showMethodModal={true}
+      />
     </div>
   );
 }

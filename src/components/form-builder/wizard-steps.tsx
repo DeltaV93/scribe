@@ -2,10 +2,16 @@
 
 import { useAtom, useAtomValue } from "jotai";
 import { cn } from "@/lib/utils";
-import { wizardStepAtom, canPublishAtom, formBuilderAtom } from "@/lib/form-builder/store";
+import {
+  wizardStepAtom,
+  canPublishAtom,
+  formBuilderAtom,
+  visibleStepsAtom,
+  creationMethodAtom,
+} from "@/lib/form-builder/store";
 import type { WizardStep } from "@/types";
 import {
-  Settings2,
+  Upload,
   LayoutGrid,
   Layers,
   GitBranch,
@@ -22,7 +28,8 @@ interface StepConfig {
   description: string;
 }
 
-const steps: StepConfig[] = [
+// All possible steps with their configuration
+const allSteps: StepConfig[] = [
   {
     id: "setup",
     label: "AI Setup",
@@ -67,12 +74,35 @@ const steps: StepConfig[] = [
   },
 ];
 
+// Create a map for quick lookup
+const stepConfigMap = new Map(allSteps.map((step) => [step.id, step]));
+
+// Special step config for upload (replaces setup for upload method)
+const uploadStepConfig: StepConfig = {
+  id: "setup", // Uses same slot as setup
+  label: "Upload",
+  icon: Upload,
+  description: "Upload an existing form",
+};
+
 export function WizardSteps() {
   const [currentStep, setCurrentStep] = useAtom(wizardStepAtom);
   const canPublish = useAtomValue(canPublishAtom);
   const formState = useAtomValue(formBuilderAtom);
+  const visibleStepIds = useAtomValue(visibleStepsAtom);
+  const creationMethod = useAtomValue(creationMethodAtom);
 
-  const currentStepIndex = steps.findIndex((s) => s.id === currentStep);
+  // Get visible steps with their configs
+  const visibleSteps = visibleStepIds.map((id) => {
+    // For upload method, replace setup config with upload config
+    if (id === "setup" && creationMethod === "upload") {
+      return uploadStepConfig;
+    }
+    return stepConfigMap.get(id)!;
+  });
+
+  // Find current step index in visible steps
+  const currentStepIndex = visibleSteps.findIndex((s) => s.id === currentStep);
 
   const getStepStatus = (step: StepConfig, index: number) => {
     if (index < currentStepIndex) return "completed";
@@ -87,14 +117,15 @@ export function WizardSteps() {
     // Can go to current step
     if (index === currentStepIndex) return true;
 
-    // For setup, always accessible
-    if (step.id === "setup") return true;
+    // For first step (setup or upload), always accessible
+    if (index === 0) return true;
 
     // For fields, need form name
     if (step.id === "fields") return !!formState.form.name?.trim();
 
     // For organize and beyond, need at least one field
-    if (index >= 2) return formState.fields.length > 0;
+    const fieldsStepIndex = visibleSteps.findIndex((s) => s.id === "fields");
+    if (index > fieldsStepIndex) return formState.fields.length > 0;
 
     // For publish, need to be able to publish
     if (step.id === "publish") return canPublish;
@@ -105,7 +136,7 @@ export function WizardSteps() {
   return (
     <nav aria-label="Form builder progress" className="w-full">
       <ol className="flex items-center gap-2">
-        {steps.map((step, index) => {
+        {visibleSteps.map((step, index) => {
           const status = getStepStatus(step, index);
           const isNavigable = canNavigateToStep(step, index);
           const Icon = step.icon;
@@ -156,7 +187,7 @@ export function WizardSteps() {
               </button>
 
               {/* Connector line */}
-              {index < steps.length - 1 && (
+              {index < visibleSteps.length - 1 && (
                 <div
                   className={cn(
                     "mx-auto mt-2 hidden h-0.5 w-full md:block",
@@ -176,47 +207,64 @@ export function WizardNavigation() {
   const [currentStep, setCurrentStep] = useAtom(wizardStepAtom);
   const canPublish = useAtomValue(canPublishAtom);
   const formState = useAtomValue(formBuilderAtom);
+  const visibleStepIds = useAtomValue(visibleStepsAtom);
+  const creationMethod = useAtomValue(creationMethodAtom);
 
-  const currentStepIndex = steps.findIndex((s) => s.id === currentStep);
+  // Find current step index in visible steps
+  const currentStepIndex = visibleStepIds.findIndex((id) => id === currentStep);
 
   const goToPrevious = () => {
     if (currentStepIndex > 0) {
-      setCurrentStep(steps[currentStepIndex - 1].id);
+      setCurrentStep(visibleStepIds[currentStepIndex - 1]);
     }
   };
 
   const goToNext = () => {
-    if (currentStepIndex < steps.length - 1) {
-      setCurrentStep(steps[currentStepIndex + 1].id);
+    if (currentStepIndex < visibleStepIds.length - 1) {
+      setCurrentStep(visibleStepIds[currentStepIndex + 1]);
     }
   };
 
   const canGoNext = () => {
-    const nextStep = steps[currentStepIndex + 1];
-    if (!nextStep) return false;
+    const nextStepId = visibleStepIds[currentStepIndex + 1];
+    if (!nextStepId) return false;
 
-    // From setup, need form name
-    if (currentStep === "setup") return !!formState.form.name?.trim();
+    // From first step (setup/upload), need form name
+    if (currentStepIndex === 0) return !!formState.form.name?.trim();
 
     // From fields onwards, need at least one field
-    if (currentStepIndex >= 1) return formState.fields.length > 0;
+    const fieldsStepIndex = visibleStepIds.findIndex((id) => id === "fields");
+    if (currentStepIndex >= fieldsStepIndex) return formState.fields.length > 0;
 
     // For publish step, need everything valid
-    if (nextStep.id === "publish") return canPublish;
+    if (nextStepId === "publish") return canPublish;
 
     return true;
+  };
+
+  // Determine button label based on current step and method
+  const getNextButtonLabel = () => {
+    if (currentStepIndex === visibleStepIds.length - 1) {
+      return "Publish Form";
+    }
+    if (currentStepIndex === 0 && creationMethod === "ai") {
+      return "Generate Form";
+    }
+    return "Next";
   };
 
   return {
     currentStep,
     currentStepIndex,
-    totalSteps: steps.length,
+    totalSteps: visibleStepIds.length,
     goToPrevious,
     goToNext,
     canGoBack: currentStepIndex > 0,
     canGoNext: canGoNext(),
     isFirstStep: currentStepIndex === 0,
-    isLastStep: currentStepIndex === steps.length - 1,
+    isLastStep: currentStepIndex === visibleStepIds.length - 1,
     setStep: setCurrentStep,
+    nextButtonLabel: getNextButtonLabel(),
+    isAISetupStep: currentStepIndex === 0 && creationMethod === "ai",
   };
 }

@@ -19,6 +19,44 @@ import type {
 import { initialAIGenerationState } from "@/lib/ai/generation-types";
 
 // ============================================
+// CREATION METHOD
+// ============================================
+
+export type CreationMethod = "ai" | "upload" | "manual";
+
+// Persisted creation method preference
+export const lastCreationMethodAtom = atomWithStorage<CreationMethod | null>(
+  "scrybe_form_creation_method",
+  null
+);
+
+// Current session creation method
+export const creationMethodAtom = atom<CreationMethod | null>(null);
+
+// ============================================
+// FEATURE FLAGS (passed from server)
+// ============================================
+
+export interface FormBuilderFeatureFlags {
+  photoToForm: boolean;
+  formLogic: boolean;
+}
+
+export const featureFlagsAtom = atom<FormBuilderFeatureFlags>({
+  photoToForm: false,
+  formLogic: false,
+});
+
+// ============================================
+// FIELD SOURCE TRACKING
+// ============================================
+
+export type FieldSource = "ai" | "upload" | "manual";
+
+// Track source of each field by field ID
+export const fieldSourcesAtom = atom<Record<string, FieldSource>>({});
+
+// ============================================
 // FORM STATE
 // ============================================
 
@@ -132,6 +170,53 @@ export const sensitiveFieldsCountAtom = atom((get) => {
   return fields.filter((f) => f.isSensitive).length;
 });
 
+// Get visible wizard steps based on creation method and feature flags
+export const visibleStepsAtom = atom((get) => {
+  const method = get(creationMethodAtom);
+  const flags = get(featureFlagsAtom);
+
+  // Define all possible steps with their visibility rules
+  const allSteps: Array<{
+    id: WizardStep;
+    showForMethods: CreationMethod[];
+    requiresFlag?: keyof FormBuilderFeatureFlags;
+  }> = [
+    { id: "setup", showForMethods: ["ai"] }, // AI Setup - only for AI method
+    { id: "fields", showForMethods: ["ai", "upload", "manual"] },
+    { id: "organize", showForMethods: ["ai", "upload", "manual"] },
+    { id: "logic", showForMethods: ["ai", "upload", "manual"], requiresFlag: "formLogic" },
+    { id: "preview", showForMethods: ["ai", "upload", "manual"] },
+    { id: "ai-config", showForMethods: ["ai", "upload", "manual"] },
+    { id: "publish", showForMethods: ["ai", "upload", "manual"] },
+  ];
+
+  // Filter steps based on method and flags
+  return allSteps
+    .filter((step) => {
+      // If no method selected yet, show all steps for AI (default)
+      const effectiveMethod = method || "ai";
+
+      // Check if step should show for current method
+      if (!step.showForMethods.includes(effectiveMethod)) {
+        return false;
+      }
+
+      // Check if step requires a feature flag
+      if (step.requiresFlag && !flags[step.requiresFlag]) {
+        return false;
+      }
+
+      return true;
+    })
+    .map((step) => step.id);
+});
+
+// Get field source for a specific field
+export const getFieldSourceAtom = atom((get) => (fieldId: string): FieldSource | null => {
+  const sources = get(fieldSourcesAtom);
+  return sources[fieldId] || null;
+});
+
 // ============================================
 // ACTION ATOMS
 // ============================================
@@ -155,7 +240,8 @@ export const addFieldAtom = atom(
   (
     get,
     set,
-    fieldData: Partial<FormFieldData> & { type: FieldType }
+    fieldData: Partial<FormFieldData> & { type: FieldType },
+    source?: FieldSource
   ) => {
     const current = get(formBuilderAtom);
     const newField: FormFieldData = {
@@ -185,6 +271,15 @@ export const addFieldAtom = atom(
       selectedFieldId: newField.id,
       isDirty: true,
     });
+
+    // Track field source if provided
+    if (source) {
+      const currentSources = get(fieldSourcesAtom);
+      set(fieldSourcesAtom, {
+        ...currentSources,
+        [newField.id]: source,
+      });
+    }
 
     return newField;
   }
@@ -233,6 +328,13 @@ export const removeFieldAtom = atom(null, (get, set, fieldId: string) => {
       current.selectedFieldId === fieldId ? null : current.selectedFieldId,
     isDirty: true,
   });
+
+  // Clean up field source tracking
+  const currentSources = get(fieldSourcesAtom);
+  if (currentSources[fieldId]) {
+    const { [fieldId]: _, ...remainingSources } = currentSources;
+    set(fieldSourcesAtom, remainingSources);
+  }
 });
 
 // Reorder fields (for drag and drop)
@@ -299,7 +401,27 @@ export const duplicateFieldAtom = atom(null, (get, set, fieldId: string) => {
 export const resetFormBuilderAtom = atom(null, (_get, set) => {
   set(formBuilderAtom, initialFormState);
   set(wizardStepAtom, "setup");
+  set(creationMethodAtom, null);
+  set(fieldSourcesAtom, {});
 });
+
+// Set field sources for multiple fields at once
+export const setFieldSourcesAtom = atom(
+  null,
+  (get, set, sources: Record<string, FieldSource>) => {
+    const current = get(fieldSourcesAtom);
+    set(fieldSourcesAtom, { ...current, ...sources });
+  }
+);
+
+// Set creation method and save to localStorage
+export const setCreationMethodAtom = atom(
+  null,
+  (_get, set, method: CreationMethod) => {
+    set(creationMethodAtom, method);
+    set(lastCreationMethodAtom, method);
+  }
+);
 
 // Load form into builder (for editing)
 export const loadFormAtom = atom(
@@ -443,6 +565,14 @@ export const acceptGeneratedFieldsAtom = atom(
       fields: [...current.fields, ...newFields],
       isDirty: true,
     });
+
+    // Track field sources as "ai" for all generated fields
+    const currentSources = get(fieldSourcesAtom);
+    const newSources = newFields.reduce(
+      (acc, field) => ({ ...acc, [field.id]: "ai" as FieldSource }),
+      {} as Record<string, FieldSource>
+    );
+    set(fieldSourcesAtom, { ...currentSources, ...newSources });
 
     // Update AI generation state to accepted
     set(aiGenerationAtom, {

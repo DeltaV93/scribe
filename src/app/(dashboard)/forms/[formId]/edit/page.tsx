@@ -2,6 +2,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { getFormById } from "@/lib/services/forms";
 import { redirect, notFound } from "next/navigation";
 import { FormBuilder } from "@/components/form-builder";
+import { isFeatureEnabled } from "@/lib/features/flags";
 
 interface PageProps {
   params: Promise<{ formId: string }>;
@@ -20,8 +21,12 @@ export default async function EditFormPage({ params }: PageProps) {
     redirect("/forms?error=no_permission");
   }
 
-  // Fetch the form
-  const form = await getFormById(formId, user.orgId);
+  // Fetch the form and feature flags in parallel
+  const [form, photoToForm, formLogic] = await Promise.all([
+    getFormById(formId, user.orgId),
+    isFeatureEnabled(user.orgId, "photo-to-form"),
+    isFeatureEnabled(user.orgId, "form-logic"),
+  ]);
 
   if (!form) {
     notFound();
@@ -29,7 +34,14 @@ export default async function EditFormPage({ params }: PageProps) {
 
   return (
     <div className="h-[calc(100vh-4rem)]">
-      <FormBuilder initialForm={form} />
+      <FormBuilder
+        initialForm={form}
+        featureFlags={{
+          photoToForm,
+          formLogic,
+        }}
+        showMethodModal={false}
+      />
     </div>
   );
 }

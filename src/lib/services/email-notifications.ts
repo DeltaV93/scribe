@@ -30,7 +30,8 @@ type EmailTemplate =
   | "user_role_changed"
   | "user_deactivated"
   | "user_reactivated"
-  | "client_reply_notification";
+  | "client_reply_notification"
+  | "draft_digest";
 
 /**
  * Send an email notification
@@ -312,6 +313,49 @@ export async function notifyCaseManagerOfReply(
       caseManagerName: data.caseManagerName,
       clientName: `${data.clientFirstName} ${data.clientLastName}`,
       dashboardUrl: data.dashboardUrl,
+    },
+  });
+}
+
+// ============================================
+// Draft Digest Notifications
+// ============================================
+
+export interface DraftDigestItem {
+  id: string;
+  name: string;
+  fieldCount: number;
+  lastEditedAt: Date;
+  daysUntilArchive: number;
+  editUrl: string;
+}
+
+/**
+ * Send weekly draft digest email to a user
+ */
+export async function sendDraftDigestEmail(
+  userEmail: string,
+  data: {
+    userName: string;
+    orgName: string;
+    drafts: DraftDigestItem[];
+    appUrl: string;
+  }
+): Promise<void> {
+  await sendEmail({
+    to: userEmail,
+    subject: `[Scrybe] You have ${data.drafts.length} draft form${data.drafts.length === 1 ? "" : "s"} approaching archive`,
+    template: "draft_digest",
+    data: {
+      userName: data.userName,
+      orgName: data.orgName,
+      draftCount: data.drafts.length,
+      drafts: data.drafts.map((draft) => ({
+        ...draft,
+        editUrl: `${data.appUrl}${draft.editUrl}`,
+        lastEditedAt: draft.lastEditedAt.toLocaleDateString(),
+      })),
+      formsUrl: `${data.appUrl}/forms`,
     },
   });
 }

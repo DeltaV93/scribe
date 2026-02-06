@@ -15,6 +15,7 @@ export type FeatureFlag =
   | 'automated-reporting'
   | 'sms-messaging'
   | 'client-portal'
+  | 'form-logic'
 
 // Feature flag configuration
 export interface FeatureFlagConfig {
@@ -34,6 +35,7 @@ const DEFAULT_FLAGS: Record<FeatureFlag, FeatureFlagConfig> = {
   'automated-reporting': { enabled: false },
   'sms-messaging': { enabled: false },
   'client-portal': { enabled: false },
+  'form-logic': { enabled: false },
 }
 
 /**
