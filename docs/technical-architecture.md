@@ -313,6 +313,70 @@ sequenceDiagram
     S->>UI: Navigate to Fields step
 ```
 
+## AI Form Generation - Performance & Monitoring
+
+### Performance Logging
+
+The AI form generation pipeline includes detailed timing instrumentation to identify bottlenecks and monitor production performance.
+
+**Log Format:**
+```
+[ai_form_generation] auth_check: 72ms
+[ai_form_generation] request_validation: 1ms
+[ai_form_generation] prompt_build: 0ms
+[ai_form_generation] claude_api_call: 40781ms (input: 604 tokens, output: 3880 tokens)
+[claude_api_usage] form_generation: 40781ms, 604 input + 3880 output = 4484 tokens (95 tokens/sec)
+[ai_form_generation] parse_response: 0ms
+[ai_form_generation] transform_fields: 1ms (22 fields)
+[ai_form_generation] total: 40782ms (input: 604 tokens, output: 3880 tokens, 22 fields)
+[ai_form_generation] api_handler_total: 40856ms (22 fields generated)
+```
+
+**Instrumented Steps:**
+| Step | What it measures |
+|------|-----------------|
+| `auth_check` | Time to verify user authentication |
+| `request_validation` | Zod schema validation of request body |
+| `prompt_build` | Building the prompt from user input |
+| `claude_api_call` | Claude API latency (main bottleneck) |
+| `parse_response` | JSON parsing of Claude's response |
+| `transform_fields` | Field validation and transformation |
+| `total` | End-to-end generation time |
+
+**Key Files:**
+- `src/lib/ai/timing.ts` - Timer utilities and logging functions
+- `src/lib/ai/generation.ts` - Main generation logic with instrumentation
+- `src/app/api/ai/generate-form/route.ts` - API handler with request-level timing
+
+### Token Optimization (Feb 2026)
+
+Prompts were optimized to reduce token usage and generation time:
+
+| Metric | Before | After | Improvement |
+|--------|--------|-------|-------------|
+| Total time | 81.5s | 40.8s | **50% faster** |
+| Input tokens | 1,358 | 604 | **55% reduction** |
+| Output tokens | 6,892 | 3,880 | **44% reduction** |
+| Total tokens | 8,250 | 4,484 | **46% reduction** |
+
+**Changes Made:**
+1. **Compressed system prompt** - Removed verbose tables and markdown formatting, condensed guidelines (~600 → ~300 tokens)
+2. **Compressed user prompt** - Streamlined instructions, removed redundant formatting
+3. **Added brevity instructions** - Explicitly request brief field reasoning and extraction hints
+4. **Set max_tokens to 6000** - Prevents excessive output while allowing complete responses
+
+**Configuration:**
+- Model: `claude-sonnet-4-20250514` (defined in `src/lib/ai/client.ts`)
+- Max tokens: 6000
+- Typical throughput: ~95 tokens/sec
+
+### Future Optimization Opportunities
+
+1. **Response streaming** - Stream partial results for better perceived performance
+2. **Model selection** - Use Haiku for faster generation if quality allows
+3. **Caching** - Cache common form templates
+4. **Field reduction** - Generate fewer initial fields, let users add more
+
 ## Security Architecture
 
 ```mermaid
