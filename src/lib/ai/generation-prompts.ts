@@ -4,108 +4,27 @@ import type { GenerateFormRequest } from "./generation-types";
 
 /**
  * System prompt that instructs Claude on how to generate form fields
+ * Optimized for token efficiency while maintaining output quality
  */
-export const FORM_GENERATION_SYSTEM_PROMPT = `You are an expert form designer for nonprofit case management organizations. Your task is to design comprehensive forms that collect the right data for client services, grant compliance, and outcome measurement.
+export const FORM_GENERATION_SYSTEM_PROMPT = `You are an expert form designer for nonprofit case management. Design forms for client services, compliance, and outcome measurement.
 
-## Available Field Types
+## Field Types
+TEXT_SHORT (names, short answers), TEXT_LONG (descriptions), NUMBER (age, income), DATE (DOB, service dates), PHONE, EMAIL, ADDRESS (US), DROPDOWN (single select), CHECKBOX (multi-select), YES_NO (boolean), FILE (uploads), SIGNATURE
 
-| Type | Description | AI Extraction Confidence |
-|------|-------------|-------------------------|
-| TEXT_SHORT | Single line text (names, short answers) | 80% - Good for specific values |
-| TEXT_LONG | Multi-line text (descriptions, notes) | 75% - Good but may need review |
-| NUMBER | Numeric values (age, income, counts) | 85% - High accuracy |
-| DATE | Date values (DOB, service dates) | 90% - Very high accuracy |
-| PHONE | Phone numbers with formatting | 85% - High accuracy |
-| EMAIL | Email addresses with validation | 85% - High accuracy |
-| ADDRESS | Full street addresses (US only) | 70% - Complex, may need review |
-| DROPDOWN | Single selection from options | 75% - Good when options are clear |
-| CHECKBOX | Multiple selections from options | 70% - Moderate, context-dependent |
-| YES_NO | Boolean yes/no questions | 80% - Good for clear questions |
-| FILE | Document/image uploads | 20% - Cannot extract from audio |
-| SIGNATURE | Digital signature capture | 0% - Cannot extract from audio |
+## Field Purposes
+GRANT_REQUIREMENT (funder required), INTERNAL_OPS (case management), COMPLIANCE (HIPAA/HUD), OUTCOME_MEASUREMENT (impact tracking), RISK_ASSESSMENT (risk factors), OTHER (include purposeNote)
 
-## Field Purposes (for compliance tracking)
-
-| Purpose | When to Use |
-|---------|-------------|
-| GRANT_REQUIREMENT | Field is required by a funder/grant |
-| INTERNAL_OPS | Needed for day-to-day case management |
-| COMPLIANCE | Required by law or regulation (HIPAA, HUD, etc.) |
-| OUTCOME_MEASUREMENT | Tracks program effectiveness/impact |
-| RISK_ASSESSMENT | Identifies client risk factors |
-| OTHER | Custom reason (always include purposeNote) |
-
-## Design Guidelines
-
-1. **Required Fields**: Only mark fields as required if they are truly necessary. Name, contact info, and consent are typically required.
-
-2. **Sensitive Fields**: Mark fields as sensitive (isSensitive: true) for:
-   - SSN, government IDs
-   - Health information
-   - Financial details (income, debts)
-   - Immigration status
-   - Criminal history
-   - Mental health information
-
-3. **AI Extractable**: Set isAiExtractable to true for fields that can be naturally mentioned in a conversation. Set to false for:
-   - Signature fields
-   - File uploads
-   - Fields requiring physical observation
-   - System-generated fields
-
-4. **Sections**: Group related fields into logical sections:
-   - "Personal Information" - Name, DOB, contact
-   - "Demographics" - Race, ethnicity, language
-   - "Housing Status" - Current situation, prior living
-   - "Income & Employment" - Work status, income sources
-   - "Health & Wellness" - Medical, mental health, disabilities
-   - "Services Needed" - Goals, referrals, assistance types
-   - "Consent & Signatures" - Permissions, signatures
-
-5. **Dropdown Options**: For dropdowns and checkboxes, provide comprehensive options based on the form type. Include "Other" or "Prefer not to say" when appropriate.
-
-6. **HUD Compliance**: For homeless services forms, include HUD-required fields:
-   - Prior living situation (with HUD categories)
-   - Length of stay in prior situation
-   - Homelessness history
-   - Disabling conditions
-   - Veteran status
-   - Domestic violence status
-
-7. **Field Naming**: Use clear, client-friendly field names. Slugs should be snake_case.
+## Guidelines
+- isRequired: Only for essential fields (name, contact, consent)
+- isSensitive: SSN, health info, financial details, immigration, criminal history, mental health
+- isAiExtractable: true if can be mentioned in conversation; false for signatures, uploads, physical observation
+- Sections: "Personal Information", "Demographics", "Housing Status", "Income & Employment", "Health & Wellness", "Services Needed", "Consent & Signatures"
+- HUD forms: Include prior living situation, length of stay, homelessness history, disabling conditions, veteran status, DV status
+- Dropdowns: Provide comprehensive options, include "Other"/"Prefer not to say"
 
 ## Response Format
-
-Respond with ONLY valid JSON (no markdown, no code blocks):
-
-{
-  "fields": [
-    {
-      "name": "Full Name",
-      "slug": "full_name",
-      "type": "TEXT_SHORT",
-      "purpose": "INTERNAL_OPS",
-      "purposeNote": null,
-      "helpText": "Client's full legal name",
-      "isRequired": true,
-      "isSensitive": false,
-      "isAiExtractable": true,
-      "options": null,
-      "section": "Personal Information",
-      "order": 0,
-      "reasoning": "Essential for client identification and all service records"
-    }
-  ],
-  "extractionSuggestions": [
-    {
-      "fieldSlug": "full_name",
-      "extractionHint": "Listen for 'My name is...', 'I'm...' or when case manager asks for name",
-      "expectedFormat": "First Last or First Middle Last",
-      "exampleValues": ["John Smith", "Maria Garcia Lopez"]
-    }
-  ],
-  "reasoning": "Overall explanation of the form design and key decisions"
-}`;
+Return ONLY valid JSON (no markdown):
+{"fields":[{"name":"Full Name","slug":"full_name","type":"TEXT_SHORT","purpose":"INTERNAL_OPS","purposeNote":null,"helpText":"Legal name","isRequired":true,"isSensitive":false,"isAiExtractable":true,"options":null,"section":"Personal Information","order":0,"reasoning":"Required for identification"}],"extractionSuggestions":[{"fieldSlug":"full_name","extractionHint":"'My name is...'","expectedFormat":"First Last","exampleValues":["John Smith"]}],"reasoning":"Brief design explanation"}`;
 
 /**
  * Build the user prompt from form requirements
@@ -119,38 +38,17 @@ export function buildGenerationPrompt(request: GenerateFormRequest): string {
     CUSTOM: "A custom form designed for a specific organizational need.",
   };
 
-  let prompt = `## Form Requirements
-
-**Form Name:** ${request.formName}
-**Form Type:** ${request.formType} - ${formTypeDescriptions[request.formType] || "Custom form"}
-
-**Purpose/Outcome:**
-${request.description}
-
-**Key Data Points to Collect:**
-${request.dataPoints}
-`;
+  let prompt = `Form: ${request.formName} (${request.formType} - ${formTypeDescriptions[request.formType] || "Custom"})
+Purpose: ${request.description}
+Data points: ${request.dataPoints}`;
 
   if (request.complianceRequirements) {
-    prompt += `
-**Compliance/Grant Requirements:**
-${request.complianceRequirements}
-`;
+    prompt += `\nCompliance: ${request.complianceRequirements}`;
   }
 
   prompt += `
-## Instructions
 
-Based on the above requirements:
-1. Design a comprehensive set of form fields
-2. Group fields into logical sections
-3. Include appropriate options for dropdown/checkbox fields
-4. Mark sensitive fields appropriately
-5. Set AI extractable status based on whether the field can be mentioned naturally in conversation
-6. Provide extraction suggestions for AI-extractable fields
-7. Explain your reasoning for key design decisions
-
-Remember: This form will be used to pre-fill data from recorded phone conversations, so design fields that capture information clients would naturally share verbally.`;
+Generate fields grouped into sections. Include dropdown options. Mark sensitive fields. Set isAiExtractable=true for fields naturally mentioned in phone conversations. Keep field reasoning brief (1 sentence). Keep extractionHint brief.`;
 
   return prompt;
 }
