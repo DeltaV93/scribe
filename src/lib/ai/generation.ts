@@ -90,15 +90,10 @@ export async function generateFormFields(
 
     // Log total duration
     const totalDuration = performance.now() - totalStart;
-    timer.step().complete("total", true, {
-      form_type: request.formType,
-      field_count: fields.length,
-      input_tokens: response.usage?.input_tokens,
-      output_tokens: response.usage?.output_tokens,
-    });
-
-    // Adjust the total log to show actual total
-    console.log(`[ai_form_generation] total: ${Math.round(totalDuration)}ms`);
+    console.log(
+      `[ai_form_generation] total: ${Math.round(totalDuration)}ms ` +
+        `(input: ${response.usage?.input_tokens} tokens, output: ${response.usage?.output_tokens} tokens, ${fields.length} fields)`
+    );
 
     return {
       success: true,
