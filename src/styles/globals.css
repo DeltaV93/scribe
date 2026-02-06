@@ -2,58 +2,117 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * Obsidian Signal Brand System
+ *
+ * Color Palette:
+ * - Obsidian (#0C0C0E): Primary dark surface
+ * - Burnished Copper (#C4956A): Accent, decorative (not for text on light)
+ * - Copper Text (#7D5A36): Readable copper on light backgrounds
+ * - Copper CTA (#8A5C32): Button backgrounds with white text
+ * - Bone (#EDE8DF): Light mode surface
+ * - Signal White (#F8F6F2): Primary text on dark
+ * - Graphite (#2A2A2E): Elevated dark cards
+ * - Warm Steel (#8A8578): Borders, dividers (not for text)
+ * - Muted Text (#6B6659): Secondary text on light backgrounds
+ */
+
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    /* Light mode - Bone-based surfaces */
+    --background: 40 33% 96%; /* Signal White #F8F6F2 */
+    --foreground: 240 8% 4%; /* Obsidian #0C0C0E */
+
+    --card: 0 0% 100%; /* Pure white for cards */
+    --card-foreground: 240 8% 4%; /* Obsidian */
+
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 221.2 83.2% 53.3%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --success: 142.1 76.2% 36.3%;
-    --success-foreground: 355.7 100% 97.3%;
-    --warning: 45.4 93.4% 47.5%;
-    --warning-foreground: 26 83.3% 14.1%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 221.2 83.2% 53.3%;
+    --popover-foreground: 240 8% 4%;
+
+    /* Primary = Copper CTA (accessible for buttons) */
+    --primary: 30 47% 37%; /* Copper CTA #8A5C32 */
+    --primary-foreground: 40 33% 96%; /* Signal White */
+
+    /* Secondary = Bone tinted */
+    --secondary: 39 30% 90%; /* Bone #EDE8DF */
+    --secondary-foreground: 240 8% 4%; /* Obsidian */
+
+    /* Muted = Light bone */
+    --muted: 39 25% 93%;
+    --muted-foreground: 43 9% 38%; /* Muted Text #6B6659 */
+
+    /* Accent = Copper-tinted */
+    --accent: 30 41% 92%; /* Light copper tint */
+    --accent-foreground: 30 41% 35%; /* Copper Text #7D5A36 */
+
+    --destructive: 4 72% 45%; /* Brand Error #A8433C */
+    --destructive-foreground: 40 33% 96%;
+
+    --success: 153 40% 30%; /* Brand Success #2E6B4F */
+    --success-foreground: 40 33% 96%;
+
+    --warning: 30 41% 59%; /* Burnished Copper as warning */
+    --warning-foreground: 240 8% 4%;
+
+    --border: 39 20% 88%;
+    --input: 39 20% 88%;
+    --ring: 30 47% 37%; /* Copper CTA */
     --radius: 0.5rem;
+
+    /* Brand-specific tokens */
+    --copper: 30 41% 59%; /* Burnished Copper #C4956A */
+    --copper-text: 30 41% 35%; /* Copper Text #7D5A36 */
+    --obsidian: 240 8% 4%; /* Obsidian #0C0C0E */
+    --bone: 39 30% 90%; /* Bone #EDE8DF */
+    --steel: 43 9% 51%; /* Warm Steel #8A8578 */
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --success: 142.1 70.6% 45.3%;
-    --success-foreground: 144.9 80.4% 10%;
-    --warning: 48 96.5% 53.1%;
-    --warning-foreground: 26 83.3% 14.1%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 224.3 76.3% 48%;
+    /* Dark mode - Obsidian-based surfaces */
+    --background: 240 8% 4%; /* Obsidian #0C0C0E */
+    --foreground: 40 33% 96%; /* Signal White #F8F6F2 */
+
+    --card: 240 7% 17%; /* Graphite #2A2A2E */
+    --card-foreground: 40 33% 96%;
+
+    --popover: 240 7% 17%;
+    --popover-foreground: 40 33% 96%;
+
+    /* Primary = Burnished Copper (AAA on dark) */
+    --primary: 30 41% 59%; /* Burnished Copper #C4956A */
+    --primary-foreground: 240 8% 4%; /* Obsidian */
+
+    /* Secondary = Graphite */
+    --secondary: 240 7% 17%; /* Graphite */
+    --secondary-foreground: 40 33% 96%;
+
+    /* Muted = Dark graphite */
+    --muted: 240 7% 14%;
+    --muted-foreground: 43 9% 51%; /* Warm Steel */
+
+    /* Accent = Copper-tinted dark */
+    --accent: 30 30% 15%;
+    --accent-foreground: 30 41% 59%; /* Burnished Copper */
+
+    --destructive: 4 62% 35%;
+    --destructive-foreground: 40 33% 96%;
+
+    --success: 153 50% 40%;
+    --success-foreground: 240 8% 4%;
+
+    --warning: 30 50% 50%;
+    --warning-foreground: 240 8% 4%;
+
+    --border: 240 7% 22%;
+    --input: 240 7% 22%;
+    --ring: 30 41% 59%; /* Burnished Copper */
+
+    /* Brand-specific tokens (same in dark mode) */
+    --copper: 30 41% 59%;
+    --copper-text: 30 41% 59%; /* Can use full copper on dark */
+    --obsidian: 240 8% 4%;
+    --bone: 39 30% 90%;
+    --steel: 43 9% 51%;
   }
 }
 
@@ -63,10 +122,23 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-family: var(--font-sans-brand), var(--font-inter), system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Use serif font for headings */
+  h1, h2, h3 {
+    font-family: var(--font-serif), Georgia, serif;
+  }
+
+  /* Use mono font for code elements */
+  code, pre, kbd, samp {
+    font-family: var(--font-mono), monospace;
   }
 }
 
-/* Custom scrollbar */
+/* Custom scrollbar with brand colors */
 @layer utilities {
   .scrollbar-thin {
     scrollbar-width: thin;
@@ -96,4 +168,35 @@
 /* Skip link for accessibility */
 .skip-link {
   @apply absolute -top-10 left-0 bg-primary text-primary-foreground px-4 py-2 z-50 transition-all focus:top-0;
+}
+
+/* Brand utility classes */
+@layer utilities {
+  .text-copper {
+    color: hsl(var(--copper-text));
+  }
+
+  .bg-copper {
+    background-color: hsl(var(--copper));
+  }
+
+  .border-copper {
+    border-color: hsl(var(--copper));
+  }
+
+  .text-bone {
+    color: hsl(var(--bone));
+  }
+
+  .bg-bone {
+    background-color: hsl(var(--bone));
+  }
+
+  .text-obsidian {
+    color: hsl(var(--obsidian));
+  }
+
+  .bg-obsidian {
+    background-color: hsl(var(--obsidian));
+  }
 }

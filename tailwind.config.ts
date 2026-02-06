@@ -64,6 +64,14 @@ const config: Config = {
           DEFAULT: "hsl(var(--warning))",
           foreground: "hsl(var(--warning-foreground))",
         },
+        // Obsidian Signal brand colors
+        copper: {
+          DEFAULT: "hsl(var(--copper))",
+          text: "hsl(var(--copper-text))",
+        },
+        obsidian: "hsl(var(--obsidian))",
+        bone: "hsl(var(--bone))",
+        steel: "hsl(var(--steel))",
       },
       borderRadius: {
         lg: "var(--radius)",
