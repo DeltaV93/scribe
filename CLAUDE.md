@@ -130,3 +130,61 @@ All data is scoped to `organizationId`. Middleware enforces auth, and services f
 
 ### Conditional Logic
 Form fields support conditional show/hide via `FormField.conditionalLogic` JSON field, visualized with React Flow in the logic editor step.
+
+## HIPAA/SOC2 Compliance Guidelines
+
+Scrybe handles PHI (Protected Health Information) and must maintain HIPAA and SOC2 compliance. Consider these requirements when building features.
+
+### What is PHI?
+
+PHI includes any data that can identify a client AND relates to their health/services:
+- **PHI**: Client names, DOB, SSN, phone, address, health conditions, case notes, form submissions
+- **NOT PHI**: Form templates, field definitions, user preferences, system configuration
+
+### When to Add Audit Logging
+
+Use `AuditLogger` from `/src/lib/audit/service.ts` for:
+
+| Event Type | Requires Audit Log |
+|------------|-------------------|
+| View/access client record | Yes |
+| Create/update form submission | Yes |
+| Download client file | Yes |
+| Export client data | Yes |
+| User login/logout | Yes |
+| Change security settings | Yes |
+| Create/edit form template | No (not PHI) |
+| UI preferences | No |
+| Housekeeping/cleanup jobs | No |
+
+### Audit Log Example
+
+```typescript
+import { AuditLogger } from "@/lib/audit/service";
+
+// When accessing client data
+await AuditLogger.submissionViewed(orgId, userId, submissionId, formId);
+
+// When exporting data
+await AuditLogger.dataExported(orgId, userId, "CLIENT", clientId, "csv");
+```
+
+### Security Checklist for New Features
+
+Before committing, verify:
+
+1. **Authentication**: Does the endpoint use `requireAuth()`?
+2. **Authorization**: Are permission checks in place (`canCreateForms`, etc.)?
+3. **Org Isolation**: Is data filtered by `orgId`?
+4. **PHI Access**: If accessing PHI, is it audit logged?
+5. **Encryption**: Are sensitive fields using field-level encryption? (See `/src/lib/encryption/`)
+6. **Rate Limiting**: Is the endpoint rate-limited appropriately?
+
+### Key Compliance Files
+
+- `/src/lib/audit/` - Hash-chain audit logging
+- `/src/lib/encryption/` - AES-256-GCM field encryption
+- `/src/lib/auth/mfa/` - Multi-factor authentication
+- `/src/lib/auth/session/` - Session management with timeout
+- `/docs/HIPAA_SPEC.md` - Full HIPAA compliance roadmap
+- `/docs/SOC2_SPEC.md` - SOC2 Type II requirements
