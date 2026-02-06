@@ -37,7 +37,7 @@ export async function generateFormFields(
     stepTimer = timer.step();
     const response = await anthropic.messages.create({
       model: EXTRACTION_MODEL,
-      max_tokens: 4096,
+      max_tokens: 6000,
       system: FORM_GENERATION_SYSTEM_PROMPT,
       messages: [
         {
