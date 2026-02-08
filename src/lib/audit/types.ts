@@ -23,7 +23,9 @@ export type AuditAction =
   | "PROCESS_ATTENDANCE"
   | "CONFIRM_ATTENDANCE"
   | "OVERRIDE_ATTENDANCE"
-  | "QUICK_ENROLL";
+  | "QUICK_ENROLL"
+  | "SHARE"
+  | "REVOKE";
 
 export type AuditResource =
   | "FORM"
@@ -31,6 +33,7 @@ export type AuditResource =
   | "FORM_FIELD"
   | "SUBMISSION"
   | "CLIENT"
+  | "CLIENT_SHARE"
   | "USER"
   | "ORGANIZATION"
   | "FILE"

@@ -383,6 +383,9 @@ model Organization {
   reminders             Reminder[]
   callActionItems       CallActionItem[]
 
+  // OKR Relations
+  objectives            Objective[]
+
   @@index([slug])
   @@index([stripeCustomerId])
 }
@@ -526,9 +529,73 @@ model User {
   assignedCallActionItems     CallActionItem[]      @relation("CallActionItemAssignee")
   completedCallActionItems    CallActionItem[]      @relation("CallActionItemCompleter")
 
+  // Client Sharing Relations
+  clientsSharedWithMe         ClientShare[]         @relation("ClientSharedWith")
+  clientsSharedByMe           ClientShare[]         @relation("ClientSharedBy")
+
+  // OKR Relations
+  ownedObjectives             Objective[]           @relation("ObjectiveOwner")
+  objectiveUpdates            ObjectiveUpdate[]     @relation("ObjectiveUpdateCreator")
+  keyResultProgress           KeyResultProgress[]   @relation("KeyResultProgressRecorder")
+
   @@index([orgId])
   @@index([email])
   @@index([supabaseUserId])
+
+  // Case Manager Profile relation
+  caseManagerProfile    CaseManagerProfile?
+}
+
+// ============================================
+// CASE MANAGER PROFILE (Client Matching)
+// ============================================
+
+enum AvailabilityStatus {
+  AVAILABLE
+  LIMITED
+  UNAVAILABLE
+  ON_LEAVE
+}
+
+model CaseManagerProfile {
+  id                  String             @id @default(uuid())
+  userId              String             @unique
+  maxCaseload         Int                @default(30)
+  currentCaseload     Int                @default(0)
+  skills              String[]           @default([])
+  languages           String[]           @default(["English"])
+  specializations     String[]           @default([])
+  availabilityStatus  AvailabilityStatus @default(AVAILABLE)
+  availabilityNote    String?            // e.g., "Back from leave on 2/15"
+  preferredClientTypes String[]          @default([]) // e.g., ["families", "veterans", "youth"]
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+
+  // Relations
+  user                User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([availabilityStatus])
+}
+
+// ============================================
+// CLIENT MATCH PREFERENCE
+// ============================================
+
+model ClientMatchPreference {
+  id                  String   @id @default(uuid())
+  clientId            String   @unique
+  preferredLanguages  String[] @default([])
+  requiredSkills      String[] @default([])
+  specialNeeds        String[] @default([])
+  notes               String?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  // Relations
+  client              Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@index([clientId])
 }
 
 // ============================================
@@ -961,9 +1028,50 @@ model Client {
   // Reminder Relations (PX-688)
   reminders             Reminder[]
 
+  // Client Matching Relations
+  matchPreference       ClientMatchPreference?
+
+  // Client Sharing Relations
+  shares                ClientShare[]        @relation("ClientShares")
+
   @@index([orgId, status])
   @@index([orgId, phone])
   @@index([assignedTo])
+}
+
+// ============================================
+// CLIENT SHARING
+// ============================================
+
+enum ClientSharePermission {
+  VIEW    // Can view client data
+  EDIT    // Can view and edit client data
+  FULL    // Full access including notes, calls, submissions
+}
+
+model ClientShare {
+  id              String                @id @default(uuid())
+  clientId        String
+  sharedWithUserId String
+  sharedByUserId  String
+  orgId           String
+  permission      ClientSharePermission @default(VIEW)
+  expiresAt       DateTime?             // Optional expiration
+  notes           String?               // Reason for sharing
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+  revokedAt       DateTime?             // Soft revoke
+
+  // Relations
+  client          Client    @relation("ClientShares", fields: [clientId], references: [id], onDelete: Cascade)
+  sharedWithUser  User      @relation("ClientSharedWith", fields: [sharedWithUserId], references: [id])
+  sharedByUser    User      @relation("ClientSharedBy", fields: [sharedByUserId], references: [id])
+
+  @@unique([clientId, sharedWithUserId])  // Only one active share per user per client
+  @@index([clientId])
+  @@index([sharedWithUserId])
+  @@index([orgId])
+  @@index([expiresAt])
 }
 
 // ============================================
@@ -2780,4 +2888,121 @@ model CallActionItem {
   @@index([callId])
   @@index([orgId, status])
   @@index([assigneeUserId, status])
+}
+
+// ============================================
+// OKR TRACKING (Objectives & Key Results)
+// ============================================
+
+enum ObjectiveStatus {
+  DRAFT
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+enum KeyResultStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  AT_RISK
+  COMPLETED
+}
+
+model Objective {
+  id              String           @id @default(uuid())
+  orgId           String
+  title           String
+  description     String?          @db.Text
+  ownerId         String           // User who owns this objective
+  parentId        String?          // For hierarchical objectives
+  status          ObjectiveStatus  @default(DRAFT)
+
+  // Time period
+  startDate       DateTime?
+  endDate         DateTime?
+
+  // Progress (calculated from key results, cached for performance)
+  progress        Int              @default(0) // 0-100
+
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  archivedAt      DateTime?
+
+  // Relations
+  organization    Organization     @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  owner           User             @relation("ObjectiveOwner", fields: [ownerId], references: [id])
+  parent          Objective?       @relation("ObjectiveHierarchy", fields: [parentId], references: [id])
+  children        Objective[]      @relation("ObjectiveHierarchy")
+  keyResults      KeyResult[]
+  updates         ObjectiveUpdate[]
+
+  @@index([orgId, status])
+  @@index([ownerId])
+  @@index([parentId])
+  @@index([endDate])
+}
+
+model KeyResult {
+  id              String           @id @default(uuid())
+  objectiveId     String
+  title           String
+  description     String?          @db.Text
+
+  // Measurement
+  targetValue     Float            // Target value (e.g., 100)
+  currentValue    Float            @default(0) // Current value
+  startValue      Float            @default(0) // Starting value for delta calculations
+  unit            String?          // e.g., "%", "users", "$"
+
+  // Weighting for progress calculation
+  weight          Float            @default(1.0) // Relative importance
+
+  // Status
+  status          KeyResultStatus  @default(NOT_STARTED)
+
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  // Relations
+  objective       Objective        @relation(fields: [objectiveId], references: [id], onDelete: Cascade)
+  progressHistory KeyResultProgress[]
+
+  @@index([objectiveId])
+  @@index([status])
+}
+
+model KeyResultProgress {
+  id              String           @id @default(uuid())
+  keyResultId     String
+  previousValue   Float
+  newValue        Float
+  notes           String?          @db.Text
+
+  recordedById    String
+  recordedAt      DateTime         @default(now())
+
+  // Relations
+  keyResult       KeyResult        @relation(fields: [keyResultId], references: [id], onDelete: Cascade)
+  recordedBy      User             @relation("KeyResultProgressRecorder", fields: [recordedById], references: [id])
+
+  @@index([keyResultId, recordedAt])
+}
+
+model ObjectiveUpdate {
+  id              String           @id @default(uuid())
+  objectiveId     String
+  content         String           @db.Text // Check-in content (markdown supported)
+
+  // Snapshot at time of update
+  progressSnapshot Int?            // Objective progress at time of update
+
+  createdById     String
+  createdAt       DateTime         @default(now())
+
+  // Relations
+  objective       Objective        @relation(fields: [objectiveId], references: [id], onDelete: Cascade)
+  createdBy       User             @relation("ObjectiveUpdateCreator", fields: [createdById], references: [id])
+
+  @@index([objectiveId, createdAt])
+  @@index([createdById])
 }
