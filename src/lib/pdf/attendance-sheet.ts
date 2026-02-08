@@ -4,7 +4,6 @@ import type { AttendanceSheetData } from "@/lib/services/attendance/types";
 // Lazy-load pdfmake to handle ESM/CommonJS compatibility
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let _pdfmake: any = null;
-let _fontsInitialized = false;
 
 async function getPdfMake() {
   if (!_pdfmake) {
@@ -12,19 +11,31 @@ async function getPdfMake() {
     // pdfmake exports a singleton instance in Node.js
     const pdfmakeModule = await import("pdfmake");
     _pdfmake = pdfmakeModule.default || pdfmakeModule;
-  }
 
-  // Initialize fonts once
-  if (!_fontsInitialized && _pdfmake.addFonts) {
-    _pdfmake.addFonts({
+    // Load standard Helvetica fonts from pdfmake's build directory
+    // The font file contains a vfs object with font metric data
+    // @ts-expect-error - no type declarations for font files
+    const HelveticaFont = await import("pdfmake/build/standard-fonts/Helvetica");
+    const fontData = HelveticaFont.default || HelveticaFont;
+
+    // Register font data in pdfmake's virtual file system
+    if (fontData.vfs) {
+      for (const [filename, content] of Object.entries(fontData.vfs)) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const fileContent = (content as any).data || content;
+        _pdfmake.virtualfs.writeFileSync(filename, fileContent);
+      }
+    }
+
+    // Define the font families for pdfmake to use
+    _pdfmake.fonts = {
       Helvetica: {
         normal: "Helvetica",
         bold: "Helvetica-Bold",
         italics: "Helvetica-Oblique",
         bolditalics: "Helvetica-BoldOblique",
       },
-    });
-    _fontsInitialized = true;
+    };
   }
 
   return _pdfmake;
