@@ -32,6 +32,7 @@ import {
   Calendar,
   AlertCircle,
   ExternalLink,
+  Phone,
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -41,10 +42,17 @@ interface ActionItem {
   assigneeName: string | null;
   assigneeUserId: string | null;
   dueDate: string | null;
+  priority: number;
   status: "OPEN" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED";
   contextSnippet: string | null;
   createdAt: string;
-  meeting: {
+  source: "call" | "meeting";
+  call?: {
+    id: string;
+    clientId: string;
+    createdAt: string;
+  };
+  meeting?: {
     id: string;
     title: string;
     actualStartAt: string | null;
@@ -113,14 +121,22 @@ export default function ActionItemsPage() {
     setError(null);
 
     try {
-      const response = await fetch(
-        `/api/meetings/${item.meeting.id}/action-items`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ actionItemId: item.id, status: newStatus }),
-        }
-      );
+      // Use appropriate endpoint based on source
+      const endpoint =
+        item.source === "call"
+          ? `/api/action-items/${item.id}`
+          : `/api/meetings/${item.meeting?.id}/action-items`;
+
+      const body =
+        item.source === "call"
+          ? { status: newStatus }
+          : { actionItemId: item.id, status: newStatus };
+
+      const response = await fetch(endpoint, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
@@ -138,10 +154,16 @@ export default function ActionItemsPage() {
     }
   };
 
-  const formatMeetingDate = (item: ActionItem) => {
-    const date = item.meeting.actualStartAt || item.meeting.scheduledStartAt;
-    if (!date) return null;
-    return format(new Date(date), "MMM d, yyyy");
+  const formatSourceDate = (item: ActionItem) => {
+    if (item.source === "call" && item.call) {
+      return format(new Date(item.call.createdAt), "MMM d, yyyy");
+    }
+    if (item.source === "meeting" && item.meeting) {
+      const date = item.meeting.actualStartAt || item.meeting.scheduledStartAt;
+      if (!date) return null;
+      return format(new Date(date), "MMM d, yyyy");
+    }
+    return null;
   };
 
   const formatDueDate = (dueDate: string | null) => {
@@ -212,7 +234,7 @@ export default function ActionItemsPage() {
               <TableHead>Description</TableHead>
               <TableHead className="w-[120px]">Status</TableHead>
               <TableHead className="w-[130px]">Due Date</TableHead>
-              <TableHead className="w-[200px]">Meeting</TableHead>
+              <TableHead className="w-[200px]">Source</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -231,7 +253,7 @@ export default function ActionItemsPage() {
                     <p className="text-sm">
                       {statusFilter !== "all"
                         ? "Try changing the status filter."
-                        : "Action items assigned to you from meetings will appear here."}
+                        : "Action items assigned to you from calls and meetings will appear here."}
                     </p>
                   </div>
                 </TableCell>
@@ -306,21 +328,47 @@ export default function ActionItemsPage() {
                       )}
                     </TableCell>
                     <TableCell>
-                      <button
-                        onClick={() =>
-                          router.push(`/meetings/${item.meeting.id}`)
-                        }
-                        className="flex items-center gap-1 text-sm text-primary hover:underline"
-                      >
-                        <span className="truncate max-w-[150px]">
-                          {item.meeting.title}
-                        </span>
-                        <ExternalLink className="h-3 w-3 flex-shrink-0" />
-                      </button>
-                      {formatMeetingDate(item) && (
-                        <p className="text-xs text-muted-foreground">
-                          {formatMeetingDate(item)}
-                        </p>
+                      {item.source === "call" && item.call ? (
+                        <>
+                          <button
+                            onClick={() =>
+                              router.push(`/calls/${item.call!.id}`)
+                            }
+                            className="flex items-center gap-1 text-sm text-primary hover:underline"
+                          >
+                            <Phone className="h-3 w-3 flex-shrink-0" />
+                            <span className="truncate max-w-[150px]">
+                              Call
+                            </span>
+                            <ExternalLink className="h-3 w-3 flex-shrink-0" />
+                          </button>
+                          {formatSourceDate(item) && (
+                            <p className="text-xs text-muted-foreground">
+                              {formatSourceDate(item)}
+                            </p>
+                          )}
+                        </>
+                      ) : item.source === "meeting" && item.meeting ? (
+                        <>
+                          <button
+                            onClick={() =>
+                              router.push(`/meetings/${item.meeting!.id}`)
+                            }
+                            className="flex items-center gap-1 text-sm text-primary hover:underline"
+                          >
+                            <span className="truncate max-w-[150px]">
+                              {item.meeting.title}
+                            </span>
+                            <ExternalLink className="h-3 w-3 flex-shrink-0" />
+                          </button>
+                          {formatSourceDate(item) && (
+                            <p className="text-xs text-muted-foreground">
+                              {formatSourceDate(item)}
+                            </p>
+                          )}
+                        </>
+                      ) : (
+                        <span className="text-muted-foreground">-</span>
                       )}
                     </TableCell>
                   </TableRow>
