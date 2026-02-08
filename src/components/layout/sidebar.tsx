@@ -17,6 +17,7 @@ import {
   GraduationCap,
   ListChecks,
   Target,
+  Bell,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -71,6 +72,11 @@ const navItems = [
     title: "Grants",
     href: "/grants",
     icon: Target,
+  },
+  {
+    title: "Reminders",
+    href: "/reminders",
+    icon: Bell,
   },
 ];
 
