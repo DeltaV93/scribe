@@ -394,43 +394,6 @@ export default function MarketingPage() {
           color: var(--copper-deep);
         }
 
-        /* SOCIAL PROOF */
-        .proof {
-          padding: 80px 0;
-          background: var(--white);
-          border-top: 1px solid rgba(12, 12, 14, 0.06);
-          border-bottom: 1px solid rgba(12, 12, 14, 0.06);
-        }
-
-        .proof__grid {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 40px;
-          align-items: center;
-        }
-
-        .proof__text {
-          font-family: var(--serif);
-          font-size: clamp(20px, 2.4vw, 28px);
-          font-style: italic;
-          line-height: 1.35;
-          color: var(--obsidian);
-        }
-
-        .proof__attr {
-          font-family: var(--mono);
-          font-size: 11px;
-          color: var(--copper-deep);
-          margin-top: 14px;
-        }
-
-        .proof__context {
-          font-size: 13px;
-          color: var(--muted);
-          margin-top: 8px;
-          line-height: 1.5;
-        }
-
         /* PAIN */
         .pain {
           padding: 80px 0;
@@ -932,8 +895,7 @@ export default function MarketingPage() {
         /* RESPONSIVE */
         @media (max-width: 900px) {
           .story.active,
-          .steps,
-          .proof__grid {
+          .steps {
             grid-template-columns: 1fr;
           }
 
@@ -1056,25 +1018,6 @@ export default function MarketingPage() {
             <span className="trust__badge">End-to-End Encrypted</span>
             <span className="trust__badge">No AI Training on Your Data</span>
             <span className="trust__badge">Full Audit Trail</span>
-          </div>
-        </div>
-      </section>
-
-      {/* SOCIAL PROOF */}
-      <section className="proof">
-        <div className="container">
-          <div className="proof__grid reveal">
-            <div>
-              <div className="proof__text">&quot;This would allow us to scale. We wouldn&apos;t have to focus so much on our reporting side of things. It would alleviate the hassle of the reporting and let the reports report... just let the people work with people.&quot;</div>
-              <div className="proof__attr">— Carly, Director of Reentry Services · Operation New Hope</div>
-              <div className="proof__context">$30M nonprofit · 400 clients/week · 14 partner organizations · Been looking for this solution for over a year</div>
-            </div>
-            <div className="mp" style={{ minHeight: "300px" }}>
-              <div className="mp__icon">🎥</div>
-              <div className="mp__label">Testimonial Video or Photo</div>
-              <div className="mp__desc">Video clip of Carly: from bogged down with data to letting people work with people. &quot;I am so relieved right now.&quot;</div>
-              <div className="mp__dims">1:1 or 4:3 · 800×800 · MP4 (30-60 sec) or JPG</div>
-            </div>
           </div>
         </div>
       </section>
