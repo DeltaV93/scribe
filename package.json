@@ -71,6 +71,7 @@
     "next": "^16.1.1",
     "next-themes": "^0.4.3",
     "otplib": "^13.2.1",
+    "papaparse": "^5.5.3",
     "pdf-parse": "^1.1.1",
     "pdfmake": "^0.3.3",
     "pino": "^10.3.0",
@@ -85,6 +86,7 @@
     "tailwind-merge": "^2.5.4",
     "tailwindcss-animate": "^1.0.7",
     "twilio": "^5.11.2",
+    "xlsx": "^0.18.5",
     "zod": "^3.23.8"
   },
   "devDependencies": {
@@ -92,6 +94,7 @@
     "@types/ioredis": "^5.0.0",
     "@types/node": "^22.9.0",
     "@types/pako": "^2.0.4",
+    "@types/papaparse": "^5.5.2",
     "@types/pdf-parse": "^1.1.5",
     "@types/pdfmake": "^0.2.12",
     "@types/qrcode": "^1.5.6",

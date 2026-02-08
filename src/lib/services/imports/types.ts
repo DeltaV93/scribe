@@ -212,3 +212,162 @@ export const DEFAULT_DUPLICATE_SETTINGS: DuplicateSettings = {
   threshold: 0.8,
   defaultAction: "SKIP",
 };
+
+// ============================================
+// IMPORT ENTITY TYPES
+// ============================================
+
+export type ImportEntityType = "CLIENT" | "FORM_SUBMISSION";
+
+export interface FormSubmissionImportConfig {
+  formId: string;
+  formVersionId?: string;
+  clientIdColumn?: string; // Column containing client IDs or names for linking
+  createClientsIfMissing?: boolean;
+}
+
+// ============================================
+// FORM FIELD MAPPING
+// ============================================
+
+/**
+ * Build target field definitions from form fields
+ */
+export function buildFormFieldTargets(
+  formFields: Array<{
+    id: string;
+    slug: string;
+    name: string;
+    type: string;
+    isRequired: boolean;
+  }>
+): TargetFieldDefinition[] {
+  return formFields.map((field) => ({
+    path: `form.${field.slug}`,
+    label: field.name,
+    type: mapFieldTypeToImportType(field.type),
+    required: field.isRequired,
+  }));
+}
+
+/**
+ * Map Scrybe field types to import types
+ */
+function mapFieldTypeToImportType(fieldType: string): string {
+  const typeMap: Record<string, string> = {
+    TEXT_SHORT: "string",
+    TEXT_LONG: "string",
+    NUMBER: "number",
+    DATE: "date",
+    PHONE: "phone",
+    EMAIL: "email",
+    ADDRESS: "address",
+    DROPDOWN: "string",
+    CHECKBOX: "boolean",
+    YES_NO: "boolean",
+    FILE: "string",
+    SIGNATURE: "string",
+  };
+  return typeMap[fieldType] || "string";
+}
+
+// ============================================
+// VALIDATION UTILITIES
+// ============================================
+
+export interface ValidationResult {
+  isValid: boolean;
+  errors: Array<{
+    field: string;
+    message: string;
+    severity: "error" | "warning";
+  }>;
+}
+
+/**
+ * Validate import data against target field definitions
+ */
+export function validateImportData(
+  data: Record<string, unknown>,
+  mappings: ImportFieldMapping[],
+  targetFields: TargetFieldDefinition[]
+): ValidationResult {
+  const errors: ValidationResult["errors"] = [];
+
+  // Check required fields
+  for (const target of targetFields) {
+    if (target.required) {
+      const mapping = mappings.find((m) => m.targetField === target.path);
+      if (!mapping) {
+        errors.push({
+          field: target.path,
+          message: `Required field "${target.label}" is not mapped`,
+          severity: "error",
+        });
+      } else {
+        const value = data[mapping.sourceColumn];
+        if (value === undefined || value === null || value === "") {
+          errors.push({
+            field: target.path,
+            message: `Required field "${target.label}" is empty`,
+            severity: "error",
+          });
+        }
+      }
+    }
+  }
+
+  // Type validation
+  for (const mapping of mappings) {
+    const value = data[mapping.sourceColumn];
+    const target = targetFields.find((t) => t.path === mapping.targetField);
+
+    if (target && value !== undefined && value !== null && value !== "") {
+      const typeError = validateType(value, target.type);
+      if (typeError) {
+        errors.push({
+          field: target.path,
+          message: typeError,
+          severity: "warning",
+        });
+      }
+    }
+  }
+
+  return {
+    isValid: errors.filter((e) => e.severity === "error").length === 0,
+    errors,
+  };
+}
+
+/**
+ * Validate a value against an expected type
+ */
+function validateType(value: unknown, expectedType: string): string | null {
+  const strValue = String(value);
+
+  switch (expectedType) {
+    case "email":
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(strValue)) {
+        return "Invalid email format";
+      }
+      break;
+    case "phone":
+      if (!/^[\d\s\-()+ .]{7,}$/.test(strValue)) {
+        return "Invalid phone format";
+      }
+      break;
+    case "date":
+      if (isNaN(Date.parse(strValue))) {
+        return "Invalid date format";
+      }
+      break;
+    case "number":
+      if (isNaN(Number(strValue.replace(/[$,]/g, "")))) {
+        return "Invalid number format";
+      }
+      break;
+  }
+
+  return null;
+}

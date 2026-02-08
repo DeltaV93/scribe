@@ -91,6 +91,13 @@ export enum UserRole {
   VIEWER = "VIEWER",
 }
 
+export enum AvailabilityStatus {
+  AVAILABLE = "AVAILABLE",
+  LIMITED = "LIMITED",
+  UNAVAILABLE = "UNAVAILABLE",
+  ON_LEAVE = "ON_LEAVE",
+}
+
 // ============================================
 // FORM BUILDER TYPES
 // ============================================

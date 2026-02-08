@@ -277,7 +277,13 @@ export default function ImportsPage() {
             Import client data from CSV, Excel, or JSON files
           </p>
         </div>
-        <div>
+        <div className="flex items-center gap-2">
+          <Link href="/imports/new">
+            <Button variant="default">
+              <Wand2 className="h-4 w-4 mr-2" />
+              Import Wizard
+            </Button>
+          </Link>
           <input
             type="file"
             id="file-upload"
@@ -287,14 +293,14 @@ export default function ImportsPage() {
             disabled={uploading}
           />
           <label htmlFor="file-upload">
-            <Button asChild disabled={uploading}>
+            <Button asChild variant="outline" disabled={uploading}>
               <span>
                 {uploading ? (
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                 ) : (
                   <Upload className="h-4 w-4 mr-2" />
                 )}
-                Upload File
+                Quick Upload
               </span>
             </Button>
           </label>

@@ -1,24 +1,26 @@
 /**
  * File Parser Service
  *
- * Parses CSV, Excel, and JSON files for import.
+ * Parses CSV, Excel, and JSON files for import using xlsx and papaparse packages.
  */
 
+import Papa from "papaparse";
+import * as XLSX from "xlsx";
 import { ParsedFile, ParseError, ParseOptions } from "./types";
 
 // ============================================
-// CSV PARSING
+// CSV PARSING (using papaparse)
 // ============================================
 
 /**
- * Parse a CSV file from a Buffer
+ * Parse a CSV file from a Buffer using papaparse
  */
 export async function parseCSV(
   buffer: Buffer,
   options: ParseOptions = {}
 ): Promise<ParsedFile> {
   const {
-    delimiter = ",",
+    delimiter,
     hasHeaders = true,
     encoding = "utf-8",
     skipRows = 0,
@@ -26,110 +28,59 @@ export async function parseCSV(
   } = options;
 
   const content = buffer.toString(encoding as BufferEncoding);
-  const lines = content.split(/\r?\n/).filter((line) => line.trim());
-
-  if (lines.length === 0) {
-    return {
-      fileName: "",
-      fileFormat: "CSV",
-      totalRows: 0,
-      columns: [],
-      preview: [],
-      errors: [{ message: "File is empty", severity: "error" }],
-    };
-  }
-
-  // Skip rows if specified
-  const dataLines = lines.slice(skipRows);
-
-  // Parse headers
-  const headerLine = hasHeaders ? dataLines[0] : null;
-  const columns = headerLine
-    ? parseCSVLine(headerLine, delimiter)
-    : dataLines[0]
-      ? parseCSVLine(dataLines[0], delimiter).map((_, i) => `Column ${i + 1}`)
-      : [];
-
-  // Parse data rows
-  const dataStartIndex = hasHeaders ? 1 : 0;
-  const dataRows = dataLines.slice(dataStartIndex);
-  const rowsToProcess = maxRows ? dataRows.slice(0, maxRows) : dataRows;
-
   const errors: ParseError[] = [];
-  const records: Record<string, unknown>[] = [];
 
-  for (let i = 0; i < rowsToProcess.length; i++) {
-    const line = rowsToProcess[i];
-    if (!line.trim()) continue;
+  // Use papaparse for robust CSV parsing
+  const parseResult = Papa.parse<Record<string, unknown>>(content, {
+    header: hasHeaders,
+    delimiter: delimiter || undefined, // Auto-detect if not specified
+    skipEmptyLines: true,
+    dynamicTyping: true,
+    transformHeader: (header: string) => header.trim(),
+  });
 
-    try {
-      const values = parseCSVLine(line, delimiter);
-      const record: Record<string, unknown> = {};
-
-      columns.forEach((col, idx) => {
-        record[col] = values[idx] ?? "";
-      });
-
-      records.push(record);
-    } catch (error) {
-      errors.push({
-        row: i + dataStartIndex + skipRows + 1,
-        message: `Failed to parse row: ${error instanceof Error ? error.message : "Unknown error"}`,
-        severity: "warning",
-      });
+  if (parseResult.errors.length > 0) {
+    for (const err of parseResult.errors) {
+      if (!errors.some((e) => e.row === err.row && e.message === err.message)) {
+        errors.push({
+          row: err.row,
+          message: err.message,
+          severity: err.type === "Quotes" || err.type === "FieldMismatch" ? "warning" : "error",
+        });
+      }
     }
   }
+
+  // Skip initial rows if specified
+  let data = parseResult.data;
+  if (skipRows > 0 && data.length > skipRows) {
+    data = data.slice(skipRows);
+  }
+
+  // Limit rows if specified
+  const totalRows = data.length;
+  const records = maxRows ? data.slice(0, maxRows) : data;
+
+  // Get column names
+  const columns = parseResult.meta.fields ||
+    (data.length > 0 ? Object.keys(data[0]) : []);
 
   return {
     fileName: "",
     fileFormat: "CSV",
-    totalRows: dataRows.length,
+    totalRows,
     columns,
     preview: records.slice(0, 10),
     errors,
   };
 }
 
-/**
- * Parse a single CSV line handling quoted values
- */
-function parseCSVLine(line: string, delimiter: string): string[] {
-  const values: string[] = [];
-  let current = "";
-  let inQuotes = false;
-
-  for (let i = 0; i < line.length; i++) {
-    const char = line[i];
-    const nextChar = line[i + 1];
-
-    if (char === '"' && !inQuotes) {
-      inQuotes = true;
-    } else if (char === '"' && inQuotes) {
-      if (nextChar === '"') {
-        // Escaped quote
-        current += '"';
-        i++;
-      } else {
-        inQuotes = false;
-      }
-    } else if (char === delimiter && !inQuotes) {
-      values.push(current.trim());
-      current = "";
-    } else {
-      current += char;
-    }
-  }
-
-  values.push(current.trim());
-  return values;
-}
-
 // ============================================
-// EXCEL PARSING
+// EXCEL PARSING (using xlsx package)
 // ============================================
 
 /**
- * Parse an Excel file from a Buffer
+ * Parse an Excel file from a Buffer using xlsx package
  */
 export async function parseExcel(
   buffer: Buffer,
@@ -138,15 +89,12 @@ export async function parseExcel(
   const { sheetName, hasHeaders = true, skipRows = 0, maxRows } = options;
 
   try {
-    // Dynamic import for exceljs
-    const ExcelJS = await getExcelJS();
-    const workbook = new ExcelJS.Workbook();
-    await workbook.xlsx.load(buffer);
+    // Parse workbook from buffer
+    const workbook = XLSX.read(buffer, { type: "buffer" });
 
     // Get the specified sheet or the first one
-    const worksheet = sheetName
-      ? workbook.getWorksheet(sheetName)
-      : workbook.worksheets[0];
+    const sheetNameToUse = sheetName || workbook.SheetNames[0];
+    const worksheet = workbook.Sheets[sheetNameToUse];
 
     if (!worksheet) {
       return {
@@ -155,65 +103,60 @@ export async function parseExcel(
         totalRows: 0,
         columns: [],
         preview: [],
-        errors: [{ message: "No worksheet found in file", severity: "error" }],
+        errors: [{ message: `Sheet "${sheetNameToUse}" not found in file`, severity: "error" }],
       };
     }
 
-    const errors: ParseError[] = [];
-    const rows: Record<string, unknown>[] = [];
-    let columns: string[] = [];
+    // Convert to JSON with headers
+    const jsonOptions: XLSX.Sheet2JSONOpts = {
+      header: hasHeaders ? undefined : 1, // Use row 1 as header or generate A, B, C...
+      defval: "", // Default value for empty cells
+      raw: false, // Format dates and numbers
+    };
 
-    let rowIndex = 0;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    worksheet.eachRow((row: any, rowNumber: number) => {
-      // Skip specified rows
-      if (rowNumber <= skipRows) return;
+    // Get raw data
+    let rawData = XLSX.utils.sheet_to_json<Record<string, unknown>>(worksheet, jsonOptions);
 
-      rowIndex++;
-
-      // First data row is headers if hasHeaders
-      if (hasHeaders && rowIndex === 1) {
-        columns = row.values
-          ? (row.values as (string | undefined)[])
-              .slice(1) // Excel rows are 1-indexed
-              .map((v, i) => String(v || `Column ${i + 1}`))
-          : [];
-        return;
-      }
-
-      // Process data row
-      if (maxRows && rows.length >= maxRows) return;
-
-      const record: Record<string, unknown> = {};
-      const values = row.values ? (row.values as unknown[]).slice(1) : [];
-
-      columns.forEach((col, idx) => {
-        let value = values[idx];
-
-        // Handle Excel cell objects
-        if (value && typeof value === "object" && "result" in value) {
-          value = (value as { result: unknown }).result;
-        }
-
-        record[col] = value ?? "";
-      });
-
-      rows.push(record);
-    });
-
-    // If no headers, generate column names
-    if (!hasHeaders && rows.length > 0) {
-      const firstRow = rows[0];
-      columns = Object.keys(firstRow);
+    // Skip rows if specified
+    if (skipRows > 0) {
+      rawData = rawData.slice(skipRows);
     }
+
+    const totalRows = rawData.length;
+
+    // Limit rows for processing
+    const data = maxRows ? rawData.slice(0, maxRows) : rawData;
+
+    // Extract column names
+    let columns: string[] = [];
+    if (data.length > 0) {
+      columns = Object.keys(data[0]).map((key) => String(key));
+    } else if (hasHeaders) {
+      // Try to get headers from range
+      const range = XLSX.utils.decode_range(worksheet["!ref"] || "A1");
+      for (let col = range.s.c; col <= range.e.c; col++) {
+        const cellAddress = XLSX.utils.encode_cell({ r: range.s.r, c: col });
+        const cell = worksheet[cellAddress];
+        columns.push(cell ? String(cell.v) : `Column ${col + 1}`);
+      }
+    }
+
+    // Convert to our record format
+    const records: Record<string, unknown>[] = data.map((row) => {
+      const record: Record<string, unknown> = {};
+      for (const col of columns) {
+        record[col] = row[col] ?? "";
+      }
+      return record;
+    });
 
     return {
       fileName: "",
       fileFormat: "XLSX",
-      totalRows: rows.length,
+      totalRows,
       columns,
-      preview: rows.slice(0, 10),
-      errors,
+      preview: records.slice(0, 10),
+      errors: [],
     };
   } catch (error) {
     return {
@@ -232,18 +175,6 @@ export async function parseExcel(
   }
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function getExcelJS(): Promise<any> {
-  try {
-    const ExcelJS = await import("exceljs");
-    return ExcelJS.default || ExcelJS;
-  } catch {
-    throw new Error(
-      "exceljs is required for Excel imports. Install it with: npm install exceljs"
-    );
-  }
-}
-
 // ============================================
 // JSON PARSING
 // ============================================
@@ -255,24 +186,30 @@ export async function parseJSON(
   buffer: Buffer,
   options: ParseOptions = {}
 ): Promise<ParsedFile> {
-  const { maxRows } = options;
+  const { maxRows, skipRows = 0 } = options;
 
   try {
     const content = buffer.toString("utf-8");
-    const data = JSON.parse(content);
+    let data = JSON.parse(content);
 
     // Handle array of objects
     if (!Array.isArray(data)) {
-      return {
-        fileName: "",
-        fileFormat: "JSON",
-        totalRows: 0,
-        columns: [],
-        preview: [],
-        errors: [
-          { message: "JSON must be an array of objects", severity: "error" },
-        ],
-      };
+      // Try to find an array property
+      const arrayProp = Object.keys(data).find((key) => Array.isArray(data[key]));
+      if (arrayProp) {
+        data = data[arrayProp];
+      } else {
+        return {
+          fileName: "",
+          fileFormat: "JSON",
+          totalRows: 0,
+          columns: [],
+          preview: [],
+          errors: [
+            { message: "JSON must be an array of objects or contain an array property", severity: "error" },
+          ],
+        };
+      }
     }
 
     if (data.length === 0) {
@@ -286,18 +223,30 @@ export async function parseJSON(
       };
     }
 
-    // Extract columns from first object
-    const columns = Object.keys(data[0]);
+    // Skip rows if specified
+    if (skipRows > 0) {
+      data = data.slice(skipRows);
+    }
+
+    const totalRows = data.length;
+
+    // Extract columns from first object (flatten nested objects)
+    const columns = extractColumns(data[0]);
 
     // Limit rows if specified
     const records = maxRows ? data.slice(0, maxRows) : data;
 
+    // Flatten records for consistent structure
+    const flattenedRecords = records.map((record: Record<string, unknown>) =>
+      flattenObject(record)
+    );
+
     return {
       fileName: "",
       fileFormat: "JSON",
-      totalRows: data.length,
+      totalRows,
       columns,
-      preview: records.slice(0, 10),
+      preview: flattenedRecords.slice(0, 10),
       errors: [],
     };
   } catch (error) {
@@ -315,6 +264,48 @@ export async function parseJSON(
       ],
     };
   }
+}
+
+/**
+ * Extract column names from an object, flattening nested objects
+ */
+function extractColumns(obj: Record<string, unknown>, prefix = ""): string[] {
+  const columns: string[] = [];
+
+  for (const [key, value] of Object.entries(obj)) {
+    const fullKey = prefix ? `${prefix}.${key}` : key;
+
+    if (value !== null && typeof value === "object" && !Array.isArray(value)) {
+      // Recursively extract nested columns
+      columns.push(...extractColumns(value as Record<string, unknown>, fullKey));
+    } else {
+      columns.push(fullKey);
+    }
+  }
+
+  return columns;
+}
+
+/**
+ * Flatten a nested object
+ */
+function flattenObject(
+  obj: Record<string, unknown>,
+  prefix = ""
+): Record<string, unknown> {
+  const result: Record<string, unknown> = {};
+
+  for (const [key, value] of Object.entries(obj)) {
+    const fullKey = prefix ? `${prefix}.${key}` : key;
+
+    if (value !== null && typeof value === "object" && !Array.isArray(value)) {
+      Object.assign(result, flattenObject(value as Record<string, unknown>, fullKey));
+    } else {
+      result[fullKey] = value;
+    }
+  }
+
+  return result;
 }
 
 // ============================================
@@ -335,6 +326,7 @@ export async function parseFile(
 
   switch (extension) {
     case "csv":
+    case "txt":
       result = await parseCSV(buffer, options);
       break;
     case "xlsx":
@@ -353,7 +345,7 @@ export async function parseFile(
         preview: [],
         errors: [
           {
-            message: `Unsupported file format: ${extension}. Supported formats: CSV, XLSX, JSON`,
+            message: `Unsupported file format: ${extension}. Supported formats: CSV, XLSX, XLS, JSON`,
             severity: "error",
           },
         ],
@@ -381,7 +373,7 @@ export function analyzeColumns(
   const columns = Object.keys(records[0]);
 
   for (const column of columns) {
-    const values = records.map((r) => r[column]).filter((v) => v !== undefined && v !== "");
+    const values = records.map((r) => r[column]).filter((v) => v !== undefined && v !== "" && v !== null);
     const sampleValues = values.slice(0, 5).map(String);
 
     analysis[column] = {
@@ -397,57 +389,75 @@ export function analyzeColumns(
   return analysis;
 }
 
-interface ColumnAnalysis {
+export interface ColumnAnalysis {
   column: string;
   sampleValues: string[];
   uniqueCount: number;
   nullCount: number;
-  inferredType: "string" | "number" | "date" | "boolean" | "phone" | "email" | "ssn";
+  inferredType: "string" | "number" | "date" | "boolean" | "phone" | "email" | "ssn" | "address";
   patterns: string[];
 }
 
 function inferType(values: unknown[]): ColumnAnalysis["inferredType"] {
   if (values.length === 0) return "string";
 
-  const stringValues = values.map(String);
+  const stringValues = values.map(String).filter((v) => v.trim() !== "");
+  if (stringValues.length === 0) return "string";
 
   // Check for email
   const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (stringValues.every((v) => emailPattern.test(v))) return "email";
 
-  // Check for phone
-  const phonePattern = /^[\d\s\-()+ ]{10,}$/;
-  if (stringValues.every((v) => phonePattern.test(v))) return "phone";
+  // Check for phone (various formats)
+  const phonePattern = /^[\d\s\-()+ .]{7,}$/;
+  const phoneDigitPattern = /\d/g;
+  if (stringValues.every((v) => {
+    const matches = v.match(phoneDigitPattern);
+    return phonePattern.test(v) && matches && matches.length >= 7 && matches.length <= 15;
+  })) return "phone";
 
   // Check for SSN
   const ssnPattern = /^\d{3}-?\d{2}-?\d{4}$/;
   if (stringValues.every((v) => ssnPattern.test(v))) return "ssn";
 
   // Check for boolean
-  const boolValues = ["true", "false", "yes", "no", "1", "0", "y", "n"];
+  const boolValues = ["true", "false", "yes", "no", "1", "0", "y", "n", "t", "f"];
   if (stringValues.every((v) => boolValues.includes(v.toLowerCase()))) return "boolean";
 
   // Check for date
   const datePatterns = [
     /^\d{4}-\d{2}-\d{2}$/, // ISO
-    /^\d{2}\/\d{2}\/\d{4}$/, // US
-    /^\d{2}-\d{2}-\d{4}$/, // EU
+    /^\d{1,2}\/\d{1,2}\/\d{2,4}$/, // US
+    /^\d{1,2}-\d{1,2}-\d{2,4}$/, // EU
+    /^\d{1,2}\s+\w+\s+\d{2,4}$/, // 01 Jan 2024
   ];
   if (stringValues.every((v) => datePatterns.some((p) => p.test(v)))) return "date";
 
   // Check for number
-  if (values.every((v) => !isNaN(Number(v)))) return "number";
+  if (values.every((v) => {
+    const cleaned = String(v).replace(/[$,]/g, "");
+    return !isNaN(Number(cleaned)) && cleaned.trim() !== "";
+  })) return "number";
+
+  // Check for address (heuristic: contains numbers and common street words)
+  const addressKeywords = ["street", "st", "ave", "avenue", "road", "rd", "drive", "dr", "lane", "ln", "way", "blvd", "court", "ct"];
+  if (stringValues.some((v) => {
+    const lower = v.toLowerCase();
+    return /\d/.test(v) && addressKeywords.some((kw) => lower.includes(kw));
+  })) return "address";
 
   return "string";
 }
 
 function detectPatterns(values: unknown[]): string[] {
   const patterns: string[] = [];
-  const stringValues = values.map(String);
+  const stringValues = values.map(String).filter((v) => v.trim() !== "");
+
+  if (stringValues.length === 0) return patterns;
 
   // Check for consistent length
   const lengths = new Set(stringValues.map((v) => v.length));
-  if (lengths.size === 1) {
+  if (lengths.size === 1 && stringValues.length > 2) {
     patterns.push(`fixed_length:${[...lengths][0]}`);
   }
 
@@ -464,5 +474,53 @@ function detectPatterns(values: unknown[]): string[] {
     }
   }
 
+  // Check for numeric patterns
+  if (stringValues.every((v) => /^\d+$/.test(v))) {
+    patterns.push("all_numeric");
+  }
+
+  // Check for alphanumeric pattern (like IDs)
+  if (stringValues.every((v) => /^[A-Z0-9]+$/i.test(v))) {
+    patterns.push("alphanumeric");
+  }
+
   return patterns;
+}
+
+// ============================================
+// COLUMN TYPE DETECTION UTILITIES
+// ============================================
+
+/**
+ * Auto-detect column types for smart mapping suggestions
+ */
+export function detectColumnTypes(
+  columns: string[],
+  sampleData: Record<string, unknown>[]
+): Record<string, { type: ColumnAnalysis["inferredType"]; confidence: number }> {
+  const analysis = analyzeColumns(sampleData);
+  const result: Record<string, { type: ColumnAnalysis["inferredType"]; confidence: number }> = {};
+
+  for (const column of columns) {
+    const colAnalysis = analysis[column];
+    if (colAnalysis) {
+      // Calculate confidence based on consistency
+      const nonNullRatio = 1 - (colAnalysis.nullCount / sampleData.length);
+      const uniqueRatio = colAnalysis.uniqueCount / (sampleData.length - colAnalysis.nullCount || 1);
+
+      let confidence = nonNullRatio * 0.6;
+
+      // Higher confidence for types that require pattern matching
+      if (["email", "phone", "ssn", "date"].includes(colAnalysis.inferredType)) {
+        confidence += 0.3;
+      }
+
+      result[column] = {
+        type: colAnalysis.inferredType,
+        confidence: Math.min(confidence, 1),
+      };
+    }
+  }
+
+  return result;
 }
