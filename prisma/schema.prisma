@@ -265,6 +265,7 @@ enum ReminderStatus {
   PENDING
   SENT
   ACKNOWLEDGED
+  COMPLETED
   OVERDUE
   CANCELLED
 }
