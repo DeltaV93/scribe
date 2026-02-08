@@ -55,6 +55,15 @@ export const metadata: Metadata = {
   authors: [{ name: "Scrybe Solutions" }],
   creator: "Scrybe Solutions",
   metadataBase: getMetadataBaseUrl(),
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Scrybe",
+  },
+  formatDetection: {
+    telephone: false,
+  },
   openGraph: {
     type: "website",
     locale: "en_US",
