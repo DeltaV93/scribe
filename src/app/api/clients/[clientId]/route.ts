@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth";
 import { getClientById, updateClient, softDeleteClient } from "@/lib/services/clients";
+import { checkAccess, canEditClient } from "@/lib/services/client-sharing";
 import { ClientStatus } from "@prisma/client";
 import { UserRole } from "@/types";
 import { z } from "zod";
@@ -62,15 +63,27 @@ export async function GET(request: NextRequest, context: RouteContext) {
       );
     }
 
-    // Case managers can only view their own assigned clients
-    if (
-      user.role === UserRole.CASE_MANAGER &&
-      client.assignedTo !== user.id
-    ) {
-      return NextResponse.json(
-        { error: { code: "FORBIDDEN", message: "You do not have permission to view this client" } },
-        { status: 403 }
-      );
+    // Check access: assigned user, admins, or through sharing
+    if (user.role === UserRole.CASE_MANAGER || user.role === UserRole.VIEWER) {
+      const access = await checkAccess(clientId, user.id, user.orgId);
+      if (!access.hasAccess) {
+        return NextResponse.json(
+          { error: { code: "FORBIDDEN", message: "You do not have permission to view this client" } },
+          { status: 403 }
+        );
+      }
+
+      // Include share info in response if accessing via share
+      if (!access.isOwner) {
+        return NextResponse.json({
+          success: true,
+          data: client,
+          shareInfo: {
+            permission: access.permission,
+            expiresAt: access.expiresAt,
+          },
+        });
+      }
     }
 
     return NextResponse.json({
@@ -104,23 +117,23 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
       );
     }
 
-    // Case managers can only update their own assigned clients
-    if (
-      user.role === UserRole.CASE_MANAGER &&
-      existingClient.assignedTo !== user.id
-    ) {
-      return NextResponse.json(
-        { error: { code: "FORBIDDEN", message: "You do not have permission to update this client" } },
-        { status: 403 }
-      );
-    }
-
     // Viewers cannot update
     if (user.role === UserRole.VIEWER) {
       return NextResponse.json(
         { error: { code: "FORBIDDEN", message: "You do not have permission to update clients" } },
         { status: 403 }
       );
+    }
+
+    // Case managers: check if owner or has EDIT/FULL share permission
+    if (user.role === UserRole.CASE_MANAGER) {
+      const canEdit = await canEditClient(clientId, user.id, user.orgId);
+      if (!canEdit) {
+        return NextResponse.json(
+          { error: { code: "FORBIDDEN", message: "You do not have permission to update this client" } },
+          { status: 403 }
+        );
+      }
     }
 
     const body = await request.json();
