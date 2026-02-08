@@ -12,6 +12,8 @@ import {
   creationMethodAtom,
   setCreationMethodAtom,
   featureFlagsAtom,
+  triggerGenerationAtom,
+  aiGenerationAtom,
   type CreationMethod,
   type FormBuilderFeatureFlags,
 } from "@/lib/form-builder/store";
@@ -266,10 +268,11 @@ function FormBuilderContent({
   const creationMethod = useAtomValue(creationMethodAtom);
   const setCreationMethod = useSetAtom(setCreationMethodAtom);
   const setWizardStep = useSetAtom(wizardStepAtom);
+  const setTriggerGeneration = useSetAtom(triggerGenerationAtom);
+  const aiState = useAtomValue(aiGenerationAtom);
 
   const [isLoaded, setIsLoaded] = useState(!initialForm);
   const [isModalOpen, setIsModalOpen] = useState(showMethodModal && !initialForm);
-  const [isGenerating, setIsGenerating] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
 
@@ -351,20 +354,12 @@ function FormBuilderContent({
 
   // Handle AI generation trigger from footer button
   const handleAIGenerate = useCallback(() => {
-    // This triggers the AI generation in the AISetupStep component
-    // We need to communicate with the step component
-    // For now, just navigate - the step handles its own generation
-    // The actual generation is handled by the AISetupStep component's handleGenerate
-    setIsGenerating(true);
+    // Increment the trigger atom to signal AISetupStep to start generation
+    setTriggerGeneration((prev) => prev + 1);
+  }, [setTriggerGeneration]);
 
-    // The AISetupStep handles generation internally
-    // We just need to indicate that we want to generate
-    // This would typically be done via a shared atom or event
-    // For now, we'll let the step component handle it
-
-    // Reset after a brief delay (the step will handle actual generation)
-    setTimeout(() => setIsGenerating(false), 100);
-  }, []);
+  // Track generating state from the AI generation atom
+  const isGenerating = aiState.status === "generating";
 
   if (!isLoaded) {
     return (

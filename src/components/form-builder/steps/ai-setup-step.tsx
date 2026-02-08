@@ -1,13 +1,14 @@
 "use client";
 
-import { useState } from "react";
-import { useAtom, useSetAtom } from "jotai";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import {
   formBuilderAtom,
   updateFormAtom,
   aiGenerationAtom,
   startGenerationAtom,
   resetGenerationAtom,
+  triggerGenerationAtom,
 } from "@/lib/form-builder/store";
 import { FormType, type FormSettings } from "@/types";
 import type { GenerateFormRequest } from "@/lib/ai/generation-types";
@@ -66,6 +67,7 @@ export function AISetupStep() {
   const updateForm = useSetAtom(updateFormAtom);
   const startGeneration = useSetAtom(startGenerationAtom);
   const resetGeneration = useSetAtom(resetGenerationAtom);
+  const triggerGeneration = useAtomValue(triggerGenerationAtom);
 
   const form = state.form;
   const settings = form.settings as FormSettings;
@@ -75,7 +77,6 @@ export function AISetupStep() {
   const [dataPoints, setDataPoints] = useState("");
   const [complianceRequirements, setComplianceRequirements] = useState("");
   const [showSettings, setShowSettings] = useState(false);
-  const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleSettingsChange = (updates: Partial<FormSettings>) => {
@@ -87,7 +88,7 @@ export function AISetupStep() {
     });
   };
 
-  const handleGenerate = async () => {
+  const handleGenerate = useCallback(async () => {
     if (!form.name?.trim()) {
       setError("Please enter a form name");
       return;
@@ -102,7 +103,6 @@ export function AISetupStep() {
     }
 
     setError(null);
-    setIsGenerating(true);
 
     try {
       const request: GenerateFormRequest = {
@@ -116,10 +116,19 @@ export function AISetupStep() {
       await startGeneration(request);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to generate form");
-    } finally {
-      setIsGenerating(false);
     }
-  };
+  }, [form.name, form.type, description, dataPoints, complianceRequirements, startGeneration]);
+
+  // Track the last trigger value to detect new triggers
+  const lastTriggerRef = useRef(triggerGeneration);
+
+  // Listen for generation trigger from footer button
+  useEffect(() => {
+    if (triggerGeneration > lastTriggerRef.current) {
+      lastTriggerRef.current = triggerGeneration;
+      handleGenerate();
+    }
+  }, [triggerGeneration, handleGenerate]);
 
   const handleStartOver = () => {
     resetGeneration();
@@ -135,7 +144,7 @@ export function AISetupStep() {
   }
 
   // Show generating state
-  if (aiState.status === "generating" || isGenerating) {
+  if (aiState.status === "generating") {
     return (
       <div className="max-w-2xl mx-auto">
         <Card>

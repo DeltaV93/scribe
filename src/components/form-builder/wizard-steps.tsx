@@ -242,12 +242,15 @@ export function WizardNavigation() {
     return true;
   };
 
+  // Use AI as default method (matches visibleStepsAtom behavior)
+  const effectiveMethod = creationMethod || "ai";
+
   // Determine button label based on current step and method
   const getNextButtonLabel = () => {
     if (currentStepIndex === visibleStepIds.length - 1) {
       return "Publish Form";
     }
-    if (currentStepIndex === 0 && creationMethod === "ai") {
+    if (currentStep === "setup" && effectiveMethod === "ai") {
       return "Generate Form";
     }
     return "Next";
@@ -265,6 +268,6 @@ export function WizardNavigation() {
     isLastStep: currentStepIndex === visibleStepIds.length - 1,
     setStep: setCurrentStep,
     nextButtonLabel: getNextButtonLabel(),
-    isAISetupStep: currentStepIndex === 0 && creationMethod === "ai",
+    isAISetupStep: currentStep === "setup" && effectiveMethod === "ai",
   };
 }

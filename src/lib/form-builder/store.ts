@@ -472,6 +472,9 @@ export const aiReasoningAtom = atom((get) => get(aiGenerationAtom).reasoning);
 // Get AI error
 export const aiErrorAtom = atom((get) => get(aiGenerationAtom).error);
 
+// Trigger generation from footer button (increments to signal AISetupStep)
+export const triggerGenerationAtom = atom(0);
+
 // ============================================
 // AI GENERATION ACTIONS
 // ============================================
