@@ -5,3 +5,5 @@ export { GrantList } from "./grant-list";
 export { DeliverableCard } from "./deliverable-card";
 export { GrantForm } from "./grant-form";
 export { DeliverableForm } from "./deliverable-form";
+export { ProgressHistory } from "./progress-history";
+export { LogProgressForm } from "./log-progress-form";

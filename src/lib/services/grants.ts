@@ -594,18 +594,34 @@ export async function incrementDeliverable(
  */
 export async function getProgressHistory(
   deliverableId: string,
-  options?: { limit?: number }
+  options?: { limit?: number; cursor?: string }
 ) {
-  return prisma.deliverableProgress.findMany({
+  const take = options?.limit ?? 50;
+
+  const events = await prisma.deliverableProgress.findMany({
     where: { deliverableId },
     orderBy: { recordedAt: "desc" },
-    take: options?.limit ?? 50,
+    take: take + 1, // Fetch one extra to determine if there are more
+    ...(options?.cursor && {
+      cursor: { id: options.cursor },
+      skip: 1,
+    }),
     include: {
       recordedBy: {
         select: { id: true, name: true, email: true },
       },
     },
   });
+
+  const hasMore = events.length > take;
+  const results = hasMore ? events.slice(0, take) : events;
+  const nextCursor = hasMore ? results[results.length - 1]?.id : undefined;
+
+  return {
+    events: results,
+    nextCursor,
+    hasMore,
+  };
 }
 
 /**

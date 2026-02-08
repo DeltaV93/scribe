@@ -315,10 +315,7 @@ export default function GrantDetailPage({
                 <DeliverableCard
                   key={deliverable.id}
                   deliverable={deliverable}
-                  onClick={() => {
-                    setEditingDeliverable(deliverable);
-                    setShowDeliverableForm(true);
-                  }}
+                  onClick={() => router.push(`/grants/${grantId}/deliverables/${deliverable.id}`)}
                 />
               ))}
             </div>
