@@ -212,6 +212,85 @@ enum AttendanceType {
 }
 
 // ============================================
+// GRANT TRACKING ENUMS
+// ============================================
+
+enum GrantStatus {
+  DRAFT
+  ACTIVE
+  COMPLETED
+  EXPIRED
+  ARCHIVED
+}
+
+enum MetricType {
+  CLIENT_CONTACTS        // Calls made to clients
+  CLIENTS_ENROLLED       // Enrollments in programs
+  PROGRAM_COMPLETIONS    // Clients completing programs
+  CLIENTS_HOUSED         // Housing outcome achieved
+  SESSIONS_DELIVERED     // Program sessions held
+  FORM_SUBMISSIONS       // Forms completed
+  CUSTOM                 // User-defined counting logic
+}
+
+enum DeliverableStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  AT_RISK
+  COMPLETED
+  OVERDUE
+}
+
+enum ProgressEventType {
+  INCREMENT
+  DECREMENT
+  ADJUSTMENT
+  RESET
+}
+
+// ============================================
+// WORKFLOW & REMINDER ENUMS
+// ============================================
+
+enum TriggerEvent {
+  INTAKE_COMPLETED
+  ENROLLMENT_CREATED
+  CALL_COMPLETED
+  SESSION_MISSED
+  FORM_SUBMITTED
+  CLIENT_CREATED
+}
+
+enum ReminderStatus {
+  PENDING
+  SENT
+  ACKNOWLEDGED
+  OVERDUE
+  CANCELLED
+}
+
+enum ReminderType {
+  FOLLOW_UP_CALL
+  DOCUMENT_REQUEST
+  APPOINTMENT_REMINDER
+  PROGRAM_CHECK_IN
+  CUSTOM
+}
+
+// ============================================
+// ACTION ITEM ENUMS
+// ============================================
+
+// ActionItemStatus is defined in Meeting Intelligence section
+// Reusing existing enum: OPEN, IN_PROGRESS, COMPLETED, CANCELLED
+
+enum ActionItemSource {
+  CALL_TRANSCRIPT
+  MANUAL
+  WORKFLOW
+}
+
+// ============================================
 // ORGANIZATION & USERS
 // ============================================
 
@@ -296,6 +375,12 @@ model Organization {
 
   // Knowledge Base Relations
   knowledgeEntries      KnowledgeEntry[]
+
+  // Grant Tracking Relations (PX-697)
+  grants                Grant[]
+  workflowRules         WorkflowRule[]
+  reminders             Reminder[]
+  callActionItems       CallActionItem[]
 
   @@index([slug])
   @@index([stripeCustomerId])
@@ -429,6 +514,16 @@ model User {
 
   // User Session Relations
   sessions              UserSession[]
+
+  // Grant Tracking Relations (PX-697)
+  createdGrants               Grant[]               @relation("GrantCreator")
+  generatedGrantReports       GrantReport[]         @relation("GrantReportGenerator")
+  recordedDeliverableProgress DeliverableProgress[] @relation("DeliverableProgressRecorder")
+  createdWorkflowRules        WorkflowRule[]        @relation("WorkflowRuleCreator")
+  assignedReminders           Reminder[]            @relation("ReminderAssignee")
+  completedReminders          Reminder[]            @relation("ReminderCompleter")
+  assignedCallActionItems     CallActionItem[]      @relation("CallActionItemAssignee")
+  completedCallActionItems    CallActionItem[]      @relation("CallActionItemCompleter")
 
   @@index([orgId])
   @@index([email])
@@ -862,6 +957,9 @@ model Client {
   importRecordsCreated  ImportRecord[]     @relation("ImportCreatedClient")
   importRecordsUpdated  ImportRecord[]     @relation("ImportUpdatedClient")
 
+  // Reminder Relations (PX-688)
+  reminders             Reminder[]
+
   @@index([orgId, status])
   @@index([orgId, phone])
   @@index([assignedTo])
@@ -909,6 +1007,9 @@ model Call {
   caseManager         User             @relation(fields: [caseManagerId], references: [id])
   notes               Note[]
   formSubmissions     FormSubmission[]
+
+  // Action Items Relations (PX-689)
+  actionItems         CallActionItem[]
 
   @@index([clientId])
   @@index([caseManagerId])
@@ -1114,6 +1215,9 @@ model Program {
   materials             ProgramMaterial[]
   attendanceSheetConfig AttendanceSheetConfig?
   noteTemplates         NoteTemplate[]
+
+  // Grant Tracking Relations (PX-697)
+  grantLinks            GrantProgramLink[]
 
   @@index([orgId, status])
   @@index([facilitatorId])
@@ -1857,6 +1961,9 @@ model ExportTemplate {
   createdBy         User                @relation("ExportTemplateCreator", fields: [createdById], references: [id])
   exports           FunderExport[]
 
+  // Grant Relations (PX-697)
+  grants            Grant[]
+
   @@index([orgId, status])
   @@index([exportType])
 }
@@ -2427,4 +2534,249 @@ model UserSession {
   @@index([token])
   @@index([expiresAt])
   @@index([userId, lastActivity])
+}
+
+// ============================================
+// GRANT TRACKING (PX-697)
+// ============================================
+
+model Grant {
+  id              String       @id @default(uuid())
+  orgId           String
+  name            String
+  funderName      String?      // e.g., "HUD", "DOL", "CalGrants"
+  grantNumber     String?      // External grant reference number
+  description     String?      @db.Text
+  status          GrantStatus  @default(DRAFT)
+
+  // Grant Period
+  startDate       DateTime
+  endDate         DateTime
+
+  // Reporting Configuration
+  reportingFrequency  String?  // "monthly", "quarterly", "annually"
+  exportTemplateId    String?  // Link to ExportTemplate for auto-reports
+
+  // Notification Settings (JSON for flexibility)
+  notificationSettings Json     @default("{}")
+  // Structure: { progressAlerts: [25, 50, 75, 100], daysBeforeDeadline: [30, 7, 1], recipients: [] }
+
+  createdById     String
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  archivedAt      DateTime?
+
+  // Relations
+  organization    Organization      @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  createdBy       User              @relation("GrantCreator", fields: [createdById], references: [id])
+  exportTemplate  ExportTemplate?   @relation(fields: [exportTemplateId], references: [id])
+  deliverables    GrantDeliverable[]
+  programLinks    GrantProgramLink[]
+  reports         GrantReport[]
+
+  @@index([orgId, status])
+  @@index([endDate])
+}
+
+model GrantDeliverable {
+  id              String             @id @default(uuid())
+  grantId         String
+  name            String             // e.g., "Enroll 50 clients in workforce training"
+  description     String?            @db.Text
+  metricType      MetricType
+
+  // Target & Progress
+  targetValue     Int
+  currentValue    Int                @default(0)
+
+  // Custom metric configuration (for CUSTOM type)
+  customConfig    Json?              // { formFieldSlug: "employed", countCondition: "equals:true" }
+
+  // Deadline (can differ from grant end date)
+  dueDate         DateTime?
+
+  // Status (computed but cached for performance)
+  status          DeliverableStatus  @default(NOT_STARTED)
+  completedAt     DateTime?
+
+  // Auto-report generation
+  autoReportOnComplete Boolean       @default(true)
+  reportTemplateId     String?       // Optional: specific template for this deliverable
+
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  // Relations
+  grant           Grant              @relation(fields: [grantId], references: [id], onDelete: Cascade)
+  progressEvents  DeliverableProgress[]
+
+  @@index([grantId])
+  @@index([status])
+  @@index([metricType])
+}
+
+model GrantProgramLink {
+  id              String    @id @default(uuid())
+  grantId         String
+  programId       String
+  createdAt       DateTime  @default(now())
+
+  // Relations
+  grant           Grant     @relation(fields: [grantId], references: [id], onDelete: Cascade)
+  program         Program   @relation(fields: [programId], references: [id], onDelete: Cascade)
+
+  @@unique([grantId, programId])
+  @@index([grantId])
+  @@index([programId])
+}
+
+model DeliverableProgress {
+  id              String             @id @default(uuid())
+  deliverableId   String
+  eventType       ProgressEventType
+  delta           Int                // +1 for increment, -1 for decrement, etc.
+  previousValue   Int
+  newValue        Int
+
+  // Source tracking (what triggered this event)
+  sourceType      String             // "enrollment", "session", "call", "form_submission", "manual"
+  sourceId        String?            // ID of the source record
+
+  // Context
+  notes           String?
+  recordedById    String?
+  recordedAt      DateTime           @default(now())
+
+  // Relations
+  deliverable     GrantDeliverable   @relation(fields: [deliverableId], references: [id], onDelete: Cascade)
+  recordedBy      User?              @relation("DeliverableProgressRecorder", fields: [recordedById], references: [id])
+
+  @@index([deliverableId, recordedAt])
+  @@index([sourceType, sourceId])
+}
+
+model GrantReport {
+  id              String    @id @default(uuid())
+  grantId         String
+  orgId           String
+
+  // Report Period
+  periodStart     DateTime
+  periodEnd       DateTime
+
+  // Generated Content
+  reportType      String    // "progress", "completion", "scheduled"
+  dataSnapshot    Json      // Snapshot of all deliverable values at generation time
+  narrativeSummary String?  @db.Text  // AI-generated narrative
+  pdfPath         String?   // S3 path to PDF
+
+  generatedById   String
+  generatedAt     DateTime  @default(now())
+
+  // Relations
+  grant           Grant     @relation(fields: [grantId], references: [id], onDelete: Cascade)
+  generatedBy     User      @relation("GrantReportGenerator", fields: [generatedById], references: [id])
+
+  @@index([grantId, periodEnd])
+  @@index([orgId])
+}
+
+// ============================================
+// WORKFLOW RULES & REMINDERS (PX-688)
+// ============================================
+
+model WorkflowRule {
+  id              String       @id @default(uuid())
+  orgId           String
+  name            String
+  description     String?
+  triggerEvent    TriggerEvent
+  conditions      Json?        // Optional conditions as JSON
+  delayDays       Int          // Days after trigger to create reminder
+  reminderType    ReminderType
+  assignToRole    UserRole?    // Role to assign reminder to
+  isActive        Boolean      @default(true)
+
+  createdById     String
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  // Relations
+  organization    Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  createdBy       User         @relation("WorkflowRuleCreator", fields: [createdById], references: [id])
+  reminders       Reminder[]
+
+  @@index([orgId, isActive])
+  @@index([triggerEvent])
+}
+
+model Reminder {
+  id              String         @id @default(uuid())
+  orgId           String
+  workflowRuleId  String?        // Null if manually created
+  clientId        String
+  assignedToId    String
+  title           String
+  description     String?
+  dueDate         DateTime
+  status          ReminderStatus @default(PENDING)
+  priority        Int            @default(2) // 1=High, 2=Normal, 3=Low
+
+  sentAt          DateTime?
+  acknowledgedAt  DateTime?
+  completedAt     DateTime?
+  completedById   String?
+
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  // Relations
+  organization    Organization   @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  workflowRule    WorkflowRule?  @relation(fields: [workflowRuleId], references: [id])
+  client          Client         @relation(fields: [clientId], references: [id])
+  assignedTo      User           @relation("ReminderAssignee", fields: [assignedToId], references: [id])
+  completedBy     User?          @relation("ReminderCompleter", fields: [completedById], references: [id])
+
+  @@index([orgId, status])
+  @@index([assignedToId, status])
+  @@index([clientId])
+  @@index([dueDate])
+}
+
+// ============================================
+// CALL ACTION ITEMS (PX-689)
+// ============================================
+
+model CallActionItem {
+  id              String           @id @default(uuid())
+  callId          String
+  orgId           String
+  description     String
+  assigneeName    String?          // Name mentioned in transcript
+  assigneeUserId  String?          // Matched to user if possible
+  assigneeRole    String?          // "CASE_MANAGER", "CLIENT", "OTHER"
+  dueDate         DateTime?
+  status          ActionItemStatus @default(OPEN)
+  source          ActionItemSource @default(CALL_TRANSCRIPT)
+  priority        String?          // "HIGH", "NORMAL", "LOW"
+
+  // AI extraction metadata
+  contextSnippet  String?          // Quote from transcript
+  timestampSeconds Int?            // Position in call
+  aiConfidence    Float?           // 0-1 confidence score
+
+  completedAt     DateTime?
+  completedById   String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  // Relations
+  call            Call             @relation(fields: [callId], references: [id], onDelete: Cascade)
+  organization    Organization     @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  assigneeUser    User?            @relation("CallActionItemAssignee", fields: [assigneeUserId], references: [id])
+  completedBy     User?            @relation("CallActionItemCompleter", fields: [completedById], references: [id])
+
+  @@index([callId])
+  @@index([orgId, status])
+  @@index([assigneeUserId, status])
 }
