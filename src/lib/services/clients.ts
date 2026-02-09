@@ -89,6 +89,9 @@ export interface ClientWithRelations {
   updatedAt: Date;
   deletedAt: Date | null;
   lastActivityAt: Date | null;
+  // Email bounce tracking (PX-705)
+  emailBounced: boolean;
+  emailBouncedAt: Date | null;
   assignedUser?: {
     id: string;
     name: string | null;
@@ -650,6 +653,8 @@ function transformClient(client: any): ClientWithRelations {
     updatedAt: client.updatedAt,
     deletedAt: client.deletedAt,
     lastActivityAt,
+    emailBounced: client.emailBounced ?? false,
+    emailBouncedAt: client.emailBouncedAt ?? null,
     assignedUser: client.assignedUser,
     creator: client.creator,
     _count: client._count,
