@@ -354,4 +354,70 @@ export const AuditLogger = {
       details: { format },
     });
   },
+
+  // In-Person Recording Audit Methods (PX-703)
+  async inPersonRecordingCreated(
+    orgId: string,
+    userId: string,
+    recordingId: string,
+    clientId: string,
+    consentMethod: string
+  ) {
+    return createAuditLog({
+      orgId,
+      userId,
+      action: "CREATE",
+      resource: "IN_PERSON_RECORDING",
+      resourceId: recordingId,
+      details: { clientId, consentMethod },
+    });
+  },
+
+  async inPersonRecordingAccessed(
+    orgId: string,
+    userId: string,
+    recordingId: string,
+    clientId: string
+  ) {
+    return createAuditLog({
+      orgId,
+      userId,
+      action: "VIEW",
+      resource: "IN_PERSON_RECORDING",
+      resourceId: recordingId,
+      details: { clientId },
+    });
+  },
+
+  async inPersonRecordingProcessed(
+    orgId: string,
+    userId: string,
+    recordingId: string,
+    clientId: string
+  ) {
+    return createAuditLog({
+      orgId,
+      userId,
+      action: "EXTRACT",
+      resource: "IN_PERSON_RECORDING",
+      resourceId: recordingId,
+      details: { clientId },
+    });
+  },
+
+  async inPersonRecordingDownloaded(
+    orgId: string,
+    userId: string,
+    recordingId: string,
+    clientId: string
+  ) {
+    return createAuditLog({
+      orgId,
+      userId,
+      action: "DOWNLOAD",
+      resource: "IN_PERSON_RECORDING",
+      resourceId: recordingId,
+      details: { clientId },
+    });
+  },
 };
