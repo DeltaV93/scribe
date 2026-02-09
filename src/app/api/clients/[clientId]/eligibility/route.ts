@@ -9,6 +9,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth";
+import { withAuthAndAudit, type RouteContext } from "@/lib/auth/with-auth-audit";
 import { z } from "zod";
 import {
   verifyEligibility,
@@ -29,10 +30,6 @@ const eligibilityCheckSchema = z.object({
   forceRefresh: z.boolean().optional().default(false),
 });
 
-interface RouteContext {
-  params: Promise<{ clientId: string }>;
-}
-
 /**
  * GET /api/clients/:clientId/eligibility
  *
@@ -42,95 +39,101 @@ interface RouteContext {
  * - limit: Number of results (default 20)
  * - offset: Pagination offset
  */
-export async function GET(request: NextRequest, context: RouteContext) {
-  try {
-    const user = await requireAuth();
-    const { clientId } = await context.params;
-    const { searchParams } = new URL(request.url);
+export const GET = withAuthAndAudit(
+  async (request: NextRequest, context: RouteContext, user) => {
+    try {
+      const { clientId } = await context.params;
+      const { searchParams } = new URL(request.url);
 
-    // Check if eligibility feature is enabled
-    const org = await prisma.organization.findUnique({
-      where: { id: user.orgId },
-      select: { eligibilityCheckEnabled: true },
-    });
+      // Check if eligibility feature is enabled
+      const org = await prisma.organization.findUnique({
+        where: { id: user.orgId },
+        select: { eligibilityCheckEnabled: true },
+      });
 
-    if (!org?.eligibilityCheckEnabled) {
-      return NextResponse.json(
-        {
-          error: {
-            code: "FEATURE_DISABLED",
-            message: "Eligibility verification is not enabled for your organization",
-          },
-        },
-        { status: 403 }
-      );
-    }
-
-    // Check client exists and user has access
-    const client = await getClientById(clientId, user.orgId);
-    if (!client) {
-      return NextResponse.json(
-        { error: { code: "NOT_FOUND", message: "Client not found" } },
-        { status: 404 }
-      );
-    }
-
-    // Check access permissions
-    if (user.role === UserRole.CASE_MANAGER || user.role === UserRole.VIEWER) {
-      const access = await checkAccess(clientId, user.id, user.orgId);
-      if (!access.hasAccess) {
+      if (!org?.eligibilityCheckEnabled) {
         return NextResponse.json(
           {
             error: {
-              code: "FORBIDDEN",
-              message: "You do not have permission to view this client",
+              code: "FEATURE_DISABLED",
+              message: "Eligibility verification is not enabled for your organization",
             },
           },
           { status: 403 }
         );
       }
-    }
 
-    // Parse query params
-    const serviceCode = searchParams.get("serviceCode");
-    const limit = parseInt(searchParams.get("limit") || "20", 10);
-    const offset = parseInt(searchParams.get("offset") || "0", 10);
-
-    // If serviceCode is provided, check for cached result
-    if (serviceCode) {
-      const cached = await getCachedEligibility(clientId, serviceCode);
-      if (cached) {
-        return NextResponse.json({
-          success: true,
-          data: cached,
-          isFromCache: true,
-        });
+      // Check client exists and user has access
+      const client = await getClientById(clientId, user.orgId);
+      if (!client) {
+        return NextResponse.json(
+          { error: { code: "NOT_FOUND", message: "Client not found" } },
+          { status: 404 }
+        );
       }
-    }
 
-    // Get eligibility history
-    const { checks, total } = await getEligibilityHistory(clientId, {
-      limit,
-      offset,
-    });
+      // Check access permissions
+      if (user.role === UserRole.CASE_MANAGER || user.role === UserRole.VIEWER) {
+        const access = await checkAccess(clientId, user.id, user.orgId);
+        if (!access.hasAccess) {
+          return NextResponse.json(
+            {
+              error: {
+                code: "FORBIDDEN",
+                message: "You do not have permission to view this client",
+              },
+            },
+            { status: 403 }
+          );
+        }
+      }
 
-    return NextResponse.json({
-      success: true,
-      data: checks,
-      pagination: {
-        total,
+      // Parse query params
+      const serviceCode = searchParams.get("serviceCode");
+      const limit = parseInt(searchParams.get("limit") || "20", 10);
+      const offset = parseInt(searchParams.get("offset") || "0", 10);
+
+      // If serviceCode is provided, check for cached result
+      if (serviceCode) {
+        const cached = await getCachedEligibility(clientId, serviceCode);
+        if (cached) {
+          return NextResponse.json({
+            success: true,
+            data: cached,
+            isFromCache: true,
+          });
+        }
+      }
+
+      // Get eligibility history
+      const { checks, total } = await getEligibilityHistory(clientId, {
         limit,
         offset,
-        hasMore: offset + checks.length < total,
-      },
-    });
-  } catch (error) {
-    console.error("Error fetching eligibility:", error);
-    return NextResponse.json(
-      { error: { code: "INTERNAL_ERROR", message: "Failed to fetch eligibility" } },
-      { status: 500 }
-    );
-  }
+      });
+
+      return NextResponse.json({
+        success: true,
+        data: checks,
+        pagination: {
+          total,
+          limit,
+          offset,
+          hasMore: offset + checks.length < total,
+        },
+      });
+    } catch (error) {
+      console.error("Error fetching eligibility:", error);
+      return NextResponse.json(
+        { error: { code: "INTERNAL_ERROR", message: "Failed to fetch eligibility" } },
+        { status: 500 }
+      );
+    }
+  },
+  { action: "VIEW", resource: "CLIENT" }
+);
+
+interface EligibilityRouteContext {
+  params: Promise<{ clientId: string }>;
 }
 
 /**
@@ -138,7 +141,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
  *
  * Check eligibility for a service.
  */
-export async function POST(request: NextRequest, context: RouteContext) {
+export async function POST(request: NextRequest, context: EligibilityRouteContext) {
   try {
     const user = await requireAuth();
     const { clientId } = await context.params;

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth";
+import { withAuthAndAudit, type RouteContext } from "@/lib/auth/with-auth-audit";
 import { getClientById, getClientNotes } from "@/lib/services/clients";
 import { prisma } from "@/lib/db";
 import { NoteType } from "@prisma/client";
@@ -15,58 +16,64 @@ const createNoteSchema = z.object({
   isDraft: z.boolean().optional().default(false),
 });
 
-interface RouteContext {
-  params: Promise<{ clientId: string }>;
-}
-
 /**
  * GET /api/clients/:clientId/notes - Get notes for a client
  */
-export async function GET(request: NextRequest, context: RouteContext) {
-  try {
-    const user = await requireAuth();
-    const { clientId } = await context.params;
+export const GET = withAuthAndAudit(
+  async (request: NextRequest, context: RouteContext, user) => {
+    try {
+      const { clientId } = await context.params;
 
-    // Check client exists and user has access
-    const client = await getClientById(clientId, user.orgId);
+      // Check client exists and user has access
+      const client = await getClientById(clientId, user.orgId);
 
-    if (!client) {
+      if (!client) {
+        return NextResponse.json(
+          { error: { code: "NOT_FOUND", message: "Client not found" } },
+          { status: 404 }
+        );
+      }
+
+      // Case managers can only view their own assigned clients
+      if (
+        user.role === UserRole.CASE_MANAGER &&
+        client.assignedTo !== user.id
+      ) {
+        return NextResponse.json(
+          { error: { code: "FORBIDDEN", message: "You do not have permission to view this client's notes" } },
+          { status: 403 }
+        );
+      }
+
+      const notes = await getClientNotes(clientId);
+
+      return NextResponse.json({
+        success: true,
+        data: notes,
+      });
+    } catch (error) {
+      console.error("Error fetching client notes:", error);
       return NextResponse.json(
-        { error: { code: "NOT_FOUND", message: "Client not found" } },
-        { status: 404 }
+        { error: { code: "INTERNAL_ERROR", message: "Failed to fetch client notes" } },
+        { status: 500 }
       );
     }
-
-    // Case managers can only view their own assigned clients
-    if (
-      user.role === UserRole.CASE_MANAGER &&
-      client.assignedTo !== user.id
-    ) {
-      return NextResponse.json(
-        { error: { code: "FORBIDDEN", message: "You do not have permission to view this client's notes" } },
-        { status: 403 }
-      );
-    }
-
-    const notes = await getClientNotes(clientId);
-
-    return NextResponse.json({
-      success: true,
-      data: notes,
-    });
-  } catch (error) {
-    console.error("Error fetching client notes:", error);
-    return NextResponse.json(
-      { error: { code: "INTERNAL_ERROR", message: "Failed to fetch client notes" } },
-      { status: 500 }
-    );
+  },
+  {
+    action: "VIEW",
+    resource: "NOTE",
+    getResourceId: ({ params }) => params.clientId,
   }
+);
+
+interface NotesRouteContext {
+  params: Promise<{ clientId: string }>;
 }
 
 /**
  * POST /api/clients/:clientId/notes - Create a note for a client
  */
-export async function POST(request: NextRequest, context: RouteContext) {
+export async function POST(request: NextRequest, context: NotesRouteContext) {
   try {
     const user = await requireAuth();
     const { clientId } = await context.params;

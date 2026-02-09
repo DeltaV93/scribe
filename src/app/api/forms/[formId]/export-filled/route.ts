@@ -3,6 +3,7 @@ import { requireAuth } from "@/lib/auth";
 import { z } from "zod";
 import { exportFilledForm } from "@/lib/services/form-conversion/pdf-export";
 import { prisma } from "@/lib/db";
+import { AuditLogger } from "@/lib/audit/service";
 
 interface RouteParams {
   params: Promise<{ formId: string }>;
@@ -100,6 +101,15 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     // Create filename
     const sanitizedName = form.name.replace(/[^a-zA-Z0-9]/g, "_").slice(0, 50);
     const filename = `${sanitizedName}_filled_${Date.now()}.pdf`;
+
+    // Audit log the export
+    await AuditLogger.dataExported(
+      user.orgId,
+      user.id,
+      "SUBMISSION",
+      validation.data.submissionId,
+      "PDF"
+    );
 
     // Return PDF as response
     return new NextResponse(new Uint8Array(pdfBuffer), {

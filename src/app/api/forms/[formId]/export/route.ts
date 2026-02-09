@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/db";
 import { exportFormToJson, exportFormToHtml } from "@/lib/forms/export";
+import { AuditLogger } from "@/lib/audit/service";
 
 interface RouteParams {
   params: Promise<{ formId: string }>;
@@ -31,7 +32,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     // Get user's org
     const user = await prisma.user.findUnique({
       where: { supabaseUserId: session.user.id },
-      select: { orgId: true, canReadForms: true },
+      select: { id: true, orgId: true, canReadForms: true },
     });
 
     if (!user) {
@@ -71,6 +72,15 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     if (format === "html") {
       const html = await exportFormToHtml(formId);
 
+      // Audit log the export
+      await AuditLogger.dataExported(
+        user.orgId,
+        user.id,
+        "FORM",
+        formId,
+        "HTML"
+      );
+
       return new NextResponse(html, {
         headers: {
           "Content-Type": "text/html",
@@ -79,6 +89,15 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       });
     } else {
       const exportData = await exportFormToJson(formId);
+
+      // Audit log the export
+      await AuditLogger.dataExported(
+        user.orgId,
+        user.id,
+        "FORM",
+        formId,
+        "JSON"
+      );
 
       return new NextResponse(JSON.stringify(exportData, null, 2), {
         headers: {

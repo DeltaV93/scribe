@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth";
+import { withAuthAndAudit, type RouteContext } from "@/lib/auth/with-auth-audit";
 import { getClientById, updateClient, softDeleteClient } from "@/lib/services/clients";
 import { checkAccess, canEditClient } from "@/lib/services/client-sharing";
 import { ClientStatus } from "@prisma/client";
@@ -42,67 +43,69 @@ const updateClientSchema = z.object({
   assignedTo: z.string().uuid().optional(),
 });
 
-interface RouteContext {
-  params: Promise<{ clientId: string }>;
-}
-
 /**
  * GET /api/clients/:clientId - Get a client by ID
  */
-export async function GET(request: NextRequest, context: RouteContext) {
-  try {
-    const user = await requireAuth();
-    const { clientId } = await context.params;
+export const GET = withAuthAndAudit(
+  async (request: NextRequest, context: RouteContext, user) => {
+    try {
+      const { clientId } = await context.params;
 
-    const client = await getClientById(clientId, user.orgId);
+      const client = await getClientById(clientId, user.orgId);
 
-    if (!client) {
-      return NextResponse.json(
-        { error: { code: "NOT_FOUND", message: "Client not found" } },
-        { status: 404 }
-      );
-    }
-
-    // Check access: assigned user, admins, or through sharing
-    if (user.role === UserRole.CASE_MANAGER || user.role === UserRole.VIEWER) {
-      const access = await checkAccess(clientId, user.id, user.orgId);
-      if (!access.hasAccess) {
+      if (!client) {
         return NextResponse.json(
-          { error: { code: "FORBIDDEN", message: "You do not have permission to view this client" } },
-          { status: 403 }
+          { error: { code: "NOT_FOUND", message: "Client not found" } },
+          { status: 404 }
         );
       }
 
-      // Include share info in response if accessing via share
-      if (!access.isOwner) {
-        return NextResponse.json({
-          success: true,
-          data: client,
-          shareInfo: {
-            permission: access.permission,
-            expiresAt: access.expiresAt,
-          },
-        });
-      }
-    }
+      // Check access: assigned user, admins, or through sharing
+      if (user.role === UserRole.CASE_MANAGER || user.role === UserRole.VIEWER) {
+        const access = await checkAccess(clientId, user.id, user.orgId);
+        if (!access.hasAccess) {
+          return NextResponse.json(
+            { error: { code: "FORBIDDEN", message: "You do not have permission to view this client" } },
+            { status: 403 }
+          );
+        }
 
-    return NextResponse.json({
-      success: true,
-      data: client,
-    });
-  } catch (error) {
-    console.error("Error fetching client:", error);
-    return NextResponse.json(
-      { error: { code: "INTERNAL_ERROR", message: "Failed to fetch client" } },
-      { status: 500 }
-    );
-  }
+        // Include share info in response if accessing via share
+        if (!access.isOwner) {
+          return NextResponse.json({
+            success: true,
+            data: client,
+            shareInfo: {
+              permission: access.permission,
+              expiresAt: access.expiresAt,
+            },
+          });
+        }
+      }
+
+      return NextResponse.json({
+        success: true,
+        data: client,
+      });
+    } catch (error) {
+      console.error("Error fetching client:", error);
+      return NextResponse.json(
+        { error: { code: "INTERNAL_ERROR", message: "Failed to fetch client" } },
+        { status: 500 }
+      );
+    }
+  },
+  { action: "VIEW", resource: "CLIENT" }
+);
+
+interface ClientRouteContext {
+  params: Promise<{ clientId: string }>;
 }
 
 /**
  * PATCH /api/clients/:clientId - Update a client
  */
-export async function PATCH(request: NextRequest, context: RouteContext) {
+export async function PATCH(request: NextRequest, context: ClientRouteContext) {
   try {
     const user = await requireAuth();
     const { clientId } = await context.params;
@@ -182,7 +185,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
 /**
  * DELETE /api/clients/:clientId - Soft delete a client
  */
-export async function DELETE(request: NextRequest, context: RouteContext) {
+export async function DELETE(request: NextRequest, context: ClientRouteContext) {
   try {
     const user = await requireAuth();
     const { clientId } = await context.params;

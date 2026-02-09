@@ -9,6 +9,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth";
+import { withAuthAndAudit, type RouteContext } from "@/lib/auth/with-auth-audit";
 import { z } from "zod";
 import {
   saveClientInsurance,
@@ -46,58 +47,60 @@ const insuranceSchema = z.object({
   planPhone: z.string().max(20).nullable().optional(),
 });
 
-interface RouteContext {
-  params: Promise<{ clientId: string }>;
-}
-
 /**
  * GET /api/clients/:clientId/insurance
  *
  * Get all insurance records for a client.
  */
-export async function GET(request: NextRequest, context: RouteContext) {
-  try {
-    const user = await requireAuth();
-    const { clientId } = await context.params;
+export const GET = withAuthAndAudit(
+  async (request: NextRequest, context: RouteContext, user) => {
+    try {
+      const { clientId } = await context.params;
 
-    // Check client exists and user has access
-    const client = await getClientById(clientId, user.orgId);
-    if (!client) {
-      return NextResponse.json(
-        { error: { code: "NOT_FOUND", message: "Client not found" } },
-        { status: 404 }
-      );
-    }
-
-    // Check access permissions
-    if (user.role === UserRole.CASE_MANAGER || user.role === UserRole.VIEWER) {
-      const access = await checkAccess(clientId, user.id, user.orgId);
-      if (!access.hasAccess) {
+      // Check client exists and user has access
+      const client = await getClientById(clientId, user.orgId);
+      if (!client) {
         return NextResponse.json(
-          {
-            error: {
-              code: "FORBIDDEN",
-              message: "You do not have permission to view this client",
-            },
-          },
-          { status: 403 }
+          { error: { code: "NOT_FOUND", message: "Client not found" } },
+          { status: 404 }
         );
       }
+
+      // Check access permissions
+      if (user.role === UserRole.CASE_MANAGER || user.role === UserRole.VIEWER) {
+        const access = await checkAccess(clientId, user.id, user.orgId);
+        if (!access.hasAccess) {
+          return NextResponse.json(
+            {
+              error: {
+                code: "FORBIDDEN",
+                message: "You do not have permission to view this client",
+              },
+            },
+            { status: 403 }
+          );
+        }
+      }
+
+      const insurances = await getClientInsurance(clientId);
+
+      return NextResponse.json({
+        success: true,
+        data: insurances,
+      });
+    } catch (error) {
+      console.error("Error fetching client insurance:", error);
+      return NextResponse.json(
+        { error: { code: "INTERNAL_ERROR", message: "Failed to fetch insurance" } },
+        { status: 500 }
+      );
     }
+  },
+  { action: "VIEW", resource: "CLIENT" }
+);
 
-    const insurances = await getClientInsurance(clientId);
-
-    return NextResponse.json({
-      success: true,
-      data: insurances,
-    });
-  } catch (error) {
-    console.error("Error fetching client insurance:", error);
-    return NextResponse.json(
-      { error: { code: "INTERNAL_ERROR", message: "Failed to fetch insurance" } },
-      { status: 500 }
-    );
-  }
+interface InsuranceRouteContext {
+  params: Promise<{ clientId: string }>;
 }
 
 /**
@@ -105,7 +108,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
  *
  * Add a new insurance record for a client.
  */
-export async function POST(request: NextRequest, context: RouteContext) {
+export async function POST(request: NextRequest, context: InsuranceRouteContext) {
   try {
     const user = await requireAuth();
     const { clientId } = await context.params;

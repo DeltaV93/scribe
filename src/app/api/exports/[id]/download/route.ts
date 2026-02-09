@@ -8,6 +8,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/db";
 import { getExportDownloadUrl } from "@/lib/services/exports/storage";
+import { AuditLogger } from "@/lib/audit/service";
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -64,6 +65,15 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         { status: 500 }
       );
     }
+
+    // Audit log the export download
+    await AuditLogger.dataExported(
+      dbUser.orgId,
+      dbUser.id,
+      "REPORT",
+      id,
+      "EXPORT"
+    );
 
     return NextResponse.json({ downloadUrl });
   } catch (error) {

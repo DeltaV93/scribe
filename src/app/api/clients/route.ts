@@ -4,6 +4,7 @@ import { createClient, listClients } from "@/lib/services/clients";
 import { ClientStatus } from "@prisma/client";
 import { UserRole } from "@/types";
 import { z } from "zod";
+import { filterClientsForUser } from "@/lib/services/response-filter";
 
 // Validation schema for creating a client
 const createClientSchema = z.object({
@@ -78,9 +79,12 @@ export async function GET(request: NextRequest) {
       }
     );
 
+    // Apply role-based response filtering to protect PII
+    const filteredClients = filterClientsForUser(result.clients, user);
+
     return NextResponse.json({
       success: true,
-      data: result.clients,
+      data: filteredClients,
       pagination: {
         page: result.page,
         limit: result.limit,
