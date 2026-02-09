@@ -420,4 +420,103 @@ export const AuditLogger = {
       details: { clientId },
     });
   },
+
+  // PHI Access Audit Methods
+  async clientViewed(
+    orgId: string,
+    userId: string,
+    clientId: string,
+    clientName?: string,
+    ipAddress?: string,
+    userAgent?: string
+  ) {
+    return createAuditLog({
+      orgId,
+      userId,
+      action: "VIEW",
+      resource: "CLIENT",
+      resourceId: clientId,
+      resourceName: clientName,
+      ipAddress,
+      userAgent,
+    });
+  },
+
+  async callViewed(
+    orgId: string,
+    userId: string,
+    callId: string,
+    ipAddress?: string,
+    userAgent?: string
+  ) {
+    return createAuditLog({
+      orgId,
+      userId,
+      action: "VIEW",
+      resource: "CALL",
+      resourceId: callId,
+      ipAddress,
+      userAgent,
+    });
+  },
+
+  async noteViewed(
+    orgId: string,
+    userId: string,
+    noteId: string,
+    clientId: string,
+    ipAddress?: string,
+    userAgent?: string
+  ) {
+    return createAuditLog({
+      orgId,
+      userId,
+      action: "VIEW",
+      resource: "NOTE",
+      resourceId: noteId,
+      details: { clientId },
+      ipAddress,
+      userAgent,
+    });
+  },
+
+  async submissionViewed(
+    orgId: string,
+    userId: string,
+    submissionId: string,
+    formId: string,
+    ipAddress?: string,
+    userAgent?: string
+  ) {
+    return createAuditLog({
+      orgId,
+      userId,
+      action: "VIEW",
+      resource: "SUBMISSION",
+      resourceId: submissionId,
+      details: { formId },
+      ipAddress,
+      userAgent,
+    });
+  },
+
+  async messageViewed(
+    orgId: string,
+    userId: string,
+    messageId: string,
+    clientId: string,
+    ipAddress?: string,
+    userAgent?: string
+  ) {
+    return createAuditLog({
+      orgId,
+      userId,
+      action: "VIEW",
+      resource: "MESSAGE",
+      resourceId: messageId,
+      details: { clientId },
+      ipAddress,
+      userAgent,
+    });
+  },
 };

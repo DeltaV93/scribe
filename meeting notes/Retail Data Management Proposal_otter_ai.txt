@@ -1,0 +1,364 @@
+me  0:01  
+I've heard of that, but I don't Is it like compliant, like, what
+
+Speaker 1  0:08  
+sales and capturing like, that's what made. That's, that's the thing like, that's kind of like what I was concerned about when it came to Salvation Army, because they sell clothes, donated clothes, and they sell stuff.
+
+me  0:25  
+So that's that's good. That's good. Click, click over. We could talk. I'll do my voice thing to capture the notes.
+
+Unknown Speaker  1:00  
+He just needs one second, but he's
+
+Speaker 2  1:07  
+on the line. Okay. So do you think that that will be like an extra workflow? I mean,
+
+Speaker 1  1:21  
+of course, if it's going to be added, but would that be like something viewable only to Yep, so what kind of data is
+
+Speaker 2  1:34  
+like easy you do, like, the whole, a whole way, like, not a web page, like A whole like you could do whatever we need you to do. If
+
+Speaker 1  1:47  
+you tell us what we if you tell us what you need, she'll tell you right now. We can build you.
+
+Speaker 2  1:52  
+So what we need is for right now. Okay, so what this company is lacking is sub department. Right now, when we process we say, hey, we process 200 women's clothes. It could be anything we need the sub department. We need something to be able to track long sleeves, short sleeves. What sell through radon? Like, what's selling based off the season? Like, if we say, hey, we priced 200 sweaters today, and we sell one of them right now, we have no way of telling what sold you get. On thing, like, there's no way to see if that sweater sold.
+
+Speaker 1  2:38  
+Okay, what system are you guys using to, like, capture your so when it comes down to that register that is, that's those numbers need to be collected. Retail Management out box, l, box,
+
+Speaker 2  2:57  
+like, literally, Al for lemon, boss. Okay, Retail Management, and that that's what we need, to be honest. If you could somehow figure out it's called Secure retail. That's a company we deal with right now. That's what we need. There's like, there's time like, we just did a big sale this week. We made like, 15,000 a day, right off the clothes for 299 or whatever. What sold, though, the company doesn't know. They just know we sold clothes summertime soon, why are they still sending me 200 sweaters? Because all they see is we sent you 200 items. You sold 200 items. We just found none of those sweaters, though, that's the information we need so we can be like, Hey, let's stop saying sweaters. Hey, let's try some more short sleeves this month. Hey, you know what? Last July we sold, we sold 2000 dresses. Hey, level, you know, like, like, in May, like, hey, July's coming up with our 40 dresses, because last year we sold 1500
+
+Unknown Speaker  4:10  
+dresses. You know what I mean, right?
+
+Speaker 2  4:14  
+What other information do you guys kind of provide? Like, kind of have an
+
+Speaker 1  4:19  
+idea, do you want to or do you want me to break it down?
+
+me  4:23  
+So let me try. So what we do is a little bit different than what you're talking about, because I feel like that is 100% retail. What we have built so far is just more so when you're talking to clients, if you're trying to make a sell or make a deal, kind of that workflow. So say, like you're on a call and you typically have to take notes or you have to transcribe what you talked about into some type of system. I'm gonna
+
+Speaker 2  4:56  
+be honest, this company is not there yet. No, no. Okay. Thanks for goodwill. Goodwill. Is there goodwill? Goodwill? Is there Salvation Army? We're about we're about five years from now.
+
+Unknown Speaker  5:11  
+Okay, so how they
+
+Speaker 2  5:13  
+communicate is obviously through email and stuff, but like they do everything through teams. You guys know what teams is, right? Yeah, Microsoft Teams like truth. They still do. It's still it's like caveman over here, this company's like, you guys can offer them a better anything like I'm trying things like communication tools prevent communication tools that that's easy, accessible to all managers, phones and stuff, because this is the thing right now, there's reports my average self through rate, for instance, right like, how much do? How much does each customer expand with me? It takes me weeks to get that information, because I gotta contact one person who contacts another person, or contact another person. They don't know how to get us those reports fast. So can you guys take almost any system they implement the numbers to you guys, and then you guys, like, store it on an app or something where we should I can access it. I can see my own store location. Do you do stuff like that, that's what they have trouble with.
+
+Speaker 1  6:25  
+That doesn't sound too to me. What I'm thinking is okay, so the information, the pipeline for the information can be, can be, can be more in a sense of like, how do you track that data? Okay, once you get how much your store has sold, where does it? Where do you put that?
+
+Speaker 2  6:49  
+So it's all, it's just all on the on the lbox system, that's the stuff we use, right? But they don't, they don't give me access to everything, because I'm just a store manager, for instance. So the district manager has certain access. The regional manager has access. This doesn't sound stupid. He has access to it. He doesn't know how to
+
+Speaker 1  7:08  
+give us access to it. Okay? So something that can grant access, easily customizable access,
+
+Speaker 2  7:16  
+something they can put information into, that makes it easier for every house to have access to do you don't think,
+
+Speaker 1  7:26  
+yeah, is that level above you or below? Because that's what
+
+Speaker 2  7:33  
+I'm and the guy above me, my district manager, He's clueless to this type of stuff. They didn't know that I was asking for my average transaction, they're like, for what no manager ever asked for that. I was like, No, I need that. They said, why? I need to know how much I'm selling. Like, am I selling too low? Is that why my numbers are down, or my numbers, or my average transaction is high? I'm just not getting enough customers. Then I know I need to advertise. I need to do this. I need to do that. But my my trans, if I'm getting the customers my transactions are low, then I know I need a price higher, stuff like that, right? So that makes sense to me. They don't get that. They don't that's information like I literally asked for it three weeks ago for the month of December. They didn't know how to do it. I got the last two weeks.
+
+me  8:23  
+So do, like, what type of reports do they actually do? Or do they have reports
+
+Speaker 2  8:30  
+you want? The craziest thing, everything is just x out here, they all have, like, dinosaur, like, old reports from 10 years ago, and they implement the numbers. And obviously, you know, you have a formula put in, and you put numbers in, it, does it for you?
+
+Unknown Speaker  8:49  
+That's what they're using. Yeah?
+
+Speaker 2  8:53  
+No, it's a story like, I'm saying they're a couple steps behind.
+
+Unknown Speaker  9:00  
+Okay? Gather this
+
+Speaker 2  9:07  
+information and then go to you guys develop a program or software work. Here's the information, but only each store could like that. They need to give you guys all and you like, My store is a Chino store, you'd be like, well, we got the only access to Chino store. So, so can only access the rancho store. So that's what they need,
+
+me  9:29  
+because their their computer litter. So it the data, the data that they track is just like cells. It's not so much about because right now this, yeah, right now that the system that we built is more about when people are, like, submitting forms for like, intake or if they're doing sales calls,
+
+Speaker 2  9:56  
+they know they they don't, they they wouldn't. They'll tell you they have no reason for that, to be honest. They're just not there yet.
+
+me  10:04  
+But do they do any of that anyway? Like that? Is that even a thing that they do?
+
+Speaker 2  10:10  
+No, it's pretty much, you know what it is. Hey, let's have a regional meeting, because we'll probably get a new system put into place, like, versus least got new register software and new office software and all that stuff, right? The way that they deal with it is who's done it? Because we, I was the first store to get it done. Since I was the new store, I learned how to do it. And it was like, okay, Miguel, we're gonna have a regional meeting with Phoenix in San Diego and Vegas, and you're gonna explain what happened, and they're gonna take notes. Okay? When I say they're dinosaurs, I literally
+
+me  10:48  
+mean it, yeah. So, so the the pain point is, like gathering the data that they have and making it make sense, not so much helping them, like,
+
+Speaker 2  11:01  
+be more efficient? No, they don't know how to be more efficient. To me, to them, this is super efficient. It's not we work for other companies. You come here and you're like, you guys are infants still, yeah, it doesn't matter. You're a baby. So because you don't know how to move forward, you guys come and you guys talk about software stuff, you're going to come use them and they're going to be like, Oh, no, we're not interested down as much as possible. You have to cater strictly to them, and you may not strictly cater to them, yeah, hey, we could take your information on our software and disperse it to the person you want. We could, we can make it more efficient for you guys.
+
+me  11:47  
+Yeah, basically what I would do if I ever pitched to them, would just show them pictures. It seems like PowerPoint.
+
+Speaker 2  11:55  
+Oh, they would love you. Oh, I get it. I can see that. Yeah. So how do you explain it again because the pictures distracted me
+
+Speaker 2  12:08  
+you're pitching to someone who doesn't want your program. Yeah, you have to dumb it down and make it seem like they need it, yeah, right? Like, it's inefficient, because be like, hey during a call, during a teams meeting, for instance, right? When we're having a regional meeting, everybody should be taking notes. But sometimes someone asks a good question, right? And it's like, oh, I don't have the answer to that. And the US have a software to be like, Hey, answer that. Like, bookmark that question that will be beneficial to them. Or, hey, Miguel missed this meeting because he had a family emergency. So I'm not lost on information. Have something that records it and takes notes for me and disperse sends me an
+
+Speaker 1  12:58  
+email, like a network, like that, network feature that we have, yeah, no
+
+Unknown Speaker  13:02  
+one misses out. You guys have to talk like that. Yeah.
+
+me  13:07  
+We don't need to talk about how we built it. We just storytelling.
+
+Speaker 2  13:12  
+Is the thing is that you guys have to say it like, Have you ever had a meeting where somebody has for someone, where someone missed an important meeting and they forgot to get the info, and everyone they didn't get the correct info. Well, with our software, when you have a meeting, there's notes taken. So someone comes and it's like, oh, I missed the meeting. I was on vacation while here's an email with the meeting. Hey, we have a new manager who just started. You know what? He wasn't previous to last 10 meetings. You know, this is the type of stuff we go over the last 10 meetings, I have a question
+
+Speaker 1  13:44  
+real quick, because I think I just figured out the solution to everything. I'm sorry, how do you guys have barcodes? Yeah, okay, so and barcodes are simple, any, any scanner can read a barcode, right? Yeah. If we have, if you guys have a system where you can input the barcode, and then those barcodes are related to the type of material, or
+
+Speaker 2  14:09  
+they just, they just spend 50 grand on brand new systems, they won't implement a new barcode. Okay, so the way you would have to do it, the way you would have to do it is somehow get okay. So in our system right now, for instance, when we price a shirt, for instance, we go to apparel. We go to women's apparel. Right when I push women's apparel, there needs to be a short sleeve, long sleeve blouse, sweater, jacket, pants, short skirts. And I should click on that according prices need to be associated with that. So then I can push a drift that go women, drift 699,
+
+Speaker 1  14:53  
+that's, how about, how about this, right? Sis, hear me out, right? So say grant you scan the barcode and on your phone instantly, it captures the item number. It doesn't tell you what the item is, just like you said. But then it'll have subcategories that drop down. This will be for the frontline user. So we can add this into another workflow, or for industry whatever. Yeah, the
+
+Speaker 2  15:18  
+secure retail, that's the company that supplies a new system, they do all the changes on their part, and that's the problem. I don't think you'll be able to get into their Canadian company. I don't think they're gonna allow you to go in their software and make changes. Hear me. Hear me.
+
+Speaker 1  15:37  
+Nothing to do with changing anything that they that they have already look with scribe solutions. You download the app on your phone, you at the cash register, take a picture of the or scan the barcode with your phone through the scribe app. Now, boom, the first the next thing you see is the barcode. And then you see the these squares, apparel, miscellaneous.
+
+Speaker 2  16:03  
+That sounds good, because now, as we're selling it, how inefficient is going to be a song by 5050, every single one it won't. It would. That wouldn't work. We need something in the warehouse so they can tag it efficiently. You get all say, this is what I'm saying, like with your software, that you guys, if you guys, are going to come with, unless you have, they change your software, which, I'm be honest, they wouldn't, because they just spent 15,000 per stores on the debt for software. What you're gonna have to do is come up with the meeting side of it, like the notations
+
+me  16:39  
+and stuff. So I think that's a that's a better Avenue, because that's something we already have. Yeah, so that,
+
+Speaker 2  16:49  
+hey, meetings start. Just start small. We do. We do automatic note taking with this app, right? Like you guys,
+
+Speaker 1  16:59  
+yeah, updates, check ins, updates, notifications, meeting times.
+
+Unknown Speaker  17:07  
+Yeah, we keep you in
+
+Unknown Speaker  17:09  
+tune, right? Yeah, their way is
+
+Speaker 2  17:12  
+they just text everything. Great, fine. If you guys have something to keep track of all the meetings. Yes, yeah, that's what they do. That's what they do. Make it a fit, make it make it beneficial. To be like, Hey, so, so missed the meeting. How do I get that information? I missed the important meeting. How do I get that information? Do you guys have something to give me that information where they were? I don't miss out. Yeah, that's what. That's something they would look for. Okay, they'll know, because they could do the meeting. Everybody's aware of it, and everyone gets a message, the same message, all managers always no one's left out working.
+
+Speaker 1  17:55  
+All the managers being like a client, and then them getting grouped into the group.
+
+me  18:00  
+Well, let's not talk about, yeah, that's fine. But my question is, how do you have the meetings? Is it online, like a teams meeting, or is it there's
+
+Speaker 2  18:11  
+pretty much teams, all teams. It's all but there's no like, you guys have software that would be like, Hey, we're taking notes, we're recording it, you know what? I mean, yeah, taking notes like that's a software that would be beneficial to this company,
+
+me  18:27  
+okay, so that that's easy for us to do, like we already do that the only and then we would just need to everyone who joined the meeting, would then just get the action items, the summaries, and it's sent out, and
+
+Speaker 2  18:44  
+that's it, because if I miss now I'm in Tombstone, I come back Monday. It's like, what was last thing about? Hey, let me get up our chat, check out the last meeting notes before we joined the speed. So we all be on the same page. Hey, I just got hired today. Hey, this is the stuff that we noticed and started. Here's the last 10 meetings that we did through just so you kind of be aware of like stuff we're talking about. Yeah, beneficial to new people is beneficial to people on vacation. It's beneficial for people who just weren't able to make it, you know what I mean. But if I have bad reception, I couldn't hear nothing, because you guys are breaking up at least, at least five. I can't hear you guys because you guys because you guys break up the whole time. At least. I'll get an email on my notes, my summary, so I won't be left out. It'll make it more efficient as a company. You know what? I mean? Yeah, that type of software would be, it's a basic software, and it's something you guys, I think you guys, could present that the company will be like, huh, let's try it. And then he knows, like, we also offer this, this and this, after you guys get it put in, the door is key.
+
+me  19:47  
+So, okay, yeah, because we could sell that as, like a one off thing for meetings, so no one gets left behind. And then you said, the other thing is, just they have so much data that they don't know what to do with it. They're not doing proper reporting, and no, they don't
+
+Speaker 2  20:08  
+know how to use it reports and dumb them down, like, don't say that, but you know, we could simplify it, okay?
+
+me  20:16  
+Oh, because they have all the data, they have the reports, but they don't know when to
+
+Speaker 2  20:21  
+they send. They send me a message, right, or graph and stuff, and it's like all the store managers, and I get it, and I know how to read it, because I read it at different companies, or else managers for different companies. So I'm like, Oh, this is how much we're making. This is how many I really price today. I sold today. Dude, this person is doing good. This person is doing bad. This person's prices are too high, this person's prices are too low, whatever. And I called my boss. I was like, Hey, this is what they're saying. I believe. So they to break down that graph already, so so people don't got to guess,
+
+me  20:56  
+Oh, yeah. Explain the data.
+
+Speaker 2  20:58  
+Like, like, have the graph and then be like, explain
+
+Unknown Speaker  21:02  
+it. Yeah.
+
+Speaker 2  21:04  
+Joseph sold price 15 items at 1599 that's high, you know? Sophia price 15 items at 199 that's too low, you know. Let's raise it up. You know what I mean? Our average is $12 an item, something
+
+me  21:21  
+like that. Yeah, okay, that that makes sense, because that's some that's another really easy win that we can get
+
+Speaker 2  21:33  
+that's hard to present to them, because they just don't feel stupid. They think they know, but they don't, because when I ask questions, they're like,
+
+Speaker 1  21:42  
+why do you need that? I need that information. I don't know. I don't know if, if we have to worry about convincing them so much.
+
+Speaker 2  21:53  
+You do like, this is a group of people who don't know what they're doing. They know what they're doing. But the guy who you're going to be teaching this to before it goes to the top guy is 70 years old. I learned the system for a day to, like, Come, keep come, teach us. I'm in my head. I'm like, I don't know. I'm figuring out right here with you guys, and I know more than them. But like this, I'm just a store manager. I run the regional meeting. So, like, you gotta win them over, okay? Because if you don't, like, if it sounds too complicated, they're just gonna be like, yeah, now we're good. Okay, you you have to win that first pitch. You have to make something notice. Like I'm telling you, the one thing we lack is communication in this company. So I think the notes for the meetings go a long way. I think it's something simple for you guys to do, but it goes a long way, because no any you guys that nobody's left out, like, hey, we'll take all your notes that you have from your previous door opening, because they started this last year. They're opening 10 stores a year for next five to 10 years, but we take all your old information. I'm not sure if you could do this, so that you guys are you will restore soon. You guys have notes and stuff. Yeah, we just take all that information and put it in our system, and it'll be ready for everybody. Someone ever be open to stores, they know how to do it effectively. And so everyone guessing it's that type of stuff you guys have to do. We're like, Oh, that makes sense, because it is so stressful because it's hard to get answers. Like when I was over in my store, the brand new store we built every rack, everything. I had a question, I had to wait two, three days for an answer. But if I had something, I could already look at you get them saying, yeah.
+
+me  23:53  
+So the way I'm seeing it, yeah, the way I'm seeing it is we can take the old information, and just compile it and say, like, maybe five months ago, like you said you had a question about how to set up a store. It took you two weeks to get the answer, but we have that transcript of the two weeks later the answer, and then we just compile it like, take that as the new standard, right? And so every time,
+
+Speaker 2  24:23  
+let's say I sent you guys emails, 10 emails, 15 emails, about the store opening, or all the information that everyone did. Can you remember software then, like, kind of put it down, I won't say a spreadsheet, but kind of put it down in notes, or translate some notes to kind of bullet points, make it easy for the next person.
+
+me  24:41  
+Or, yeah, it'll make it, it'll make it like high level bullet points. So, so, okay, so we could say like, we can summarize your existing data and find the most recent like workflows and the most like the best way to do things that were recently brought up. So everyone's on the same page with what the new standards are, and you never fall back fall behind.
+
+Speaker 2  25:14  
+And this is the biggest thing like I did an OSHA walkthrough two days ago. It was on Thursday, so 20 seconds. So 22nd and they're like, Hey, where's your fine for your fight for the fire, right? I never received it. He's my district manager, looking for it. Could not find it. He then called another manager that remember I sent you, like, a year ago. That's the type of stuff we're working with. Like, he knows what form I need.
+
+Unknown Speaker  25:45  
+He can't find it, okay. He makes calls.
+
+Speaker 2  25:49  
+I can't give it to you because I don't know. I don't remember what's on. I don't remember what's called. I just know you have
+
+Unknown Speaker  25:55  
+to have, okay, that's what the subject lacks. When you do organization, you know what?
+
+me  26:00  
+I mean, yeah, when you do the walkthroughs like that, do you have to, like, submit forms for No,
+
+Speaker 2  26:08  
+he does it on an app. Okay, okay, they already have it all done, though. It's on the app.
+
+me  26:17  
+But you do need tracking of, like, what was sent to the store and when was it received?
+
+Speaker 2  26:25  
+That's all just me email in the warehouse. I need this, this and this, okay, Sam, like, that's something they're not worried about. Some things, like, that's if you guys go in late, we could track all your stuff that you guys sent out. And we already do that. You get I'm saying, like, and we don't need to pay that's all I'm saying. Like, you guys have to win them, win them over the first thing you pitch. And I think, like, the note taking for calls and stuff is very
+
+Speaker 3  26:49  
+beneficial. Yeah, are there?
+
+Speaker 2  26:53  
+Go with the thing where, if I know misses out, because that's their biggest thing, how come so didn't know about it? Oh, he wasn't part of that meeting. That's why, yeah, that's one of the issues with all the managers.
+
+me  27:08  
+Okay, so no one gets left behind. Should be the thing that we drive forward with, and then we can add in hints of reporting and breaking down data and simplifying, yeah, information.
+
+Speaker 2  27:24  
+And then with our software, we could make sure only certain people have access to certain stores, because, like, for instance, the only one to be able to see the San Bernardino stuff.
+
+Unknown Speaker  27:39  
+Yeah, yeah,
+
+Speaker 2  27:40  
+it's just stuff like that. I think you gotta win them over, no one left behind, and then just go forward as soon as you have their attention. Then just go forward with everything you guys got, and hopefully something bites.
+
+me  27:52  
+Yeah, no, that makes sense. And I think, yeah, that that makes sense, and I could definitely see moving forward
+
+Speaker 2  28:05  
+with that PowerPoint, if you guys could somehow have like a video where you guys are doing a video chat and the notes are being taken and then it's being emailed, have something to show them. Show like you guys do video chat and be like, Listen everything we spoke about. This is what our service was, our software does. And then show them like, this is the email that was sent. You know what I mean? Send it like, if I send you an email right now, this is how it would be. And blah, blah, blah, I'm trying to have to see it talking about there. But then you show them like, Oh, this is easy access. All the information is nice and clean. It's hard to say no at that point. You know what I mean for something that something could be,
+
+me  28:48  
+yeah, yeah, no, that makes a lot of sense. And yeah, we just need to come up with, like, a demo that knocks it out the water,
+
+Speaker 2  29:01  
+presenting to it's be honest with you. You're presenting people who Penny pitch everything. You're presenting to people who don't think they need nothing. They think they're one of the best companies already, and it's like, you're not. So they don't, they don't know what they need yet. But I told them this, and they're like,
+
+Speaker 2  29:32  
+yeah. If you guys have any more questions, call me. I do not mind helping. I do not mind helping you guys. Yeah, let me know.
+
+me  29:42  
+No, this is really appreciated. Thank you. Me too.
+
+me  29:57  
+So what are you thinking? I think the meeting thing would work. We would just need to do an integration with like zoom and teams to make sure we can connect into those apps and record and then the sending out the transcripts and action items would be good. The thing that would be hard is taking in all their data and saying, like, what are the new rules, the standards as they change? But if we could figure that out, then we can sell that to so many different companies, because that's a big issue. So you don't
+
+Speaker 1  30:40  
+think you so? Yeah, that would probably be time consuming having like, a scanner, a scanner, phone, a scanner, a barcode.
+
+me  30:50  
+No, that's not going to work, because the system he's talking about is what holds the barcodes. We won't have access to that so we can scan the barcode, but that's not going to tell us anything, no.
+
+Speaker 1  31:04  
+So what I'm thinking is, we scan the barcode, yeah, and all that's going to show up is whatever is read like whatever the numbers are, and as long as the numbers are, that doesn't even really matter. It's just keeping account of how many of what was sold, right? So if we scan the barcode with our system, yeah, we won't know what that barcode represents. We'll just know that barcode is 96758, but what matters is, how many? How many times do we sell a shirt? How many times do we sell a sweater?
+
+me  31:40  
+But that's not what he's he's saying that is important. It's the subcategories. So he wants to know, like, everything just falls under shirt. You don't know if it's a sweater, long sleeve, short sleeve. So he's saying he needs to know long sleeve, short sleeve, so that he could, in in advance, make sure he has the right amount of stuff at the right time of the year. Okay?
+
+Speaker 1  32:06  
+So I still think, Well, I think the issue with what I'm bringing up is, is the fact that it's going to take Hello long to scan things at the register and then itemize what what they are, and I do, and I have in mind all those subcategories. So they the first category you scan that barcode, and the first category it locks in, whether it's a
+
+me  32:35  
+top so the thing is, we don't have access to know what that barcode means. Like, it's the other system. If we scan it, we won't, we won't know anything. People would have to manually enter it. And he's saying, like, no one's gonna sit there and manually enter something. And when you're checking people out, like, you just got to go fast, yeah. So the barcode thing, I think that that's also, like, way different than what the app already does. And it would be hard to to figure that one out, like, if, if the, yeah, I don't know how we would we could get the subcategories in there, but if we had the if the data was already there, then we could do something with it. That makes more sense. But if the data, data is not there,
+
+Unknown Speaker  33:29  
+like I understand,
+
+Speaker 1  33:32  
+I understand what you're saying completely. But I think we don't need, we don't need a system that knows what those what that barcode, what that barcode is, you get what I'm saying, because that barcode is that's only information for the other software, but they need to know the subcategories of how many, how many of what has been sold, right?
+
+me  33:55  
+But how do they get the subcategories into our system? Okay?
+
+Speaker 1  34:01  
+So what happened? Alright, if I scan a barcode with my phone, with the with the any barcode with my phone, it'll just bring up the numbers that that bar, that those bars represent, right? Yeah, okay, and that's all that. All that is is, just imagine, like, like, a counter. Let's just consider the software as a counter. Now, that barcode is just registering that we have an item and it doesn't need what we're doing after the fact is putting okay, we're going to go screen. First screen is camera, boom. Camera captures the barcode. The camera captures the barcode, but the barcode has no information for the camera because it's not a part of that system. Next screen, after the barcode is scanned, it brings up the primary categories, source, lead, long sleeve, whatever quick action that you can click on. And then after you click on that, it brings up the subcategories, short sleeve, or, yeah, short sleeve, long sleeve. And then when you click on that now we know that one source leave shirt was sold.
+
+Unknown Speaker  35:26  
+Yeah, who's clicking the category,
+
+Speaker 1  35:35  
+the cashier and yeah, it might take a little depending on how easy we make that and how many categories.
+
+me  35:43  
+So the other thing is, you scan it to do the cat to go with the cash register, but then you would have to scan it again with our system. That's not going to flow like that's not that's not going to work, because you would need two different scanners, you would have to scan it twice, and with the second scanner, you then have to do the subcategory. And then, what if someone has, like, 10 items that's going to slow things down a lot?
+
+Speaker 1  36:13  
+Yeah, and that's what, that's what I'm saying. Like, I don't think the issue is the barcode not being able to read what it says. I think the issue is working, trying to figure out, Okay, where can we minimize that?
+
+me  36:27  
+I don't think this is something we should explore. It just if we were the system that they just bought for all the stores, then we could do it. But since they already have a system talking about, and, like, working with the barcodes, like, that's not going to work because, like, it's not our system. And if the the software doesn't allow you to pull in or, like, integrate with their system, it's not going to work. So it's a, it would be great, because we can then charge them 50 to 25k a store, like the other company did. But it's not that's not what we can do, like I, I can think about it, but Right? Like, without it adding more, like, extra steps that no one wants to take. I don't see how it's going to work.
+
+Speaker 1  37:26  
+Yeah, I get that. And what concerns me about the meeting, the note taking, thing that could just be, yeah, okay, if we provide that network system, that's something that maybe Gemini, or or, you know, like, yeah, Gemini couldn't, or doesn't have right now. But I don't know that. I know that every time I have, we have a meeting, and it takes notes and give those suggested next steps. It allows me to share it with the people that were in the within, well, they have to be within the system or in that call. That's something that's already, that's already out there. It's just, why is it not? Why is it not being used?
+
+me  38:16  
+They don't know about it. So if we pitch it and they pay for us to do it, then we just do it. Okay?
+
+Speaker 1  38:28  
+All right, for sure, for sure. Well, I'm just, yeah, I was just spitballing that because I'm trying to think of things that are pain points that have, that don't have a solution already,
+
+me  38:41  
+yeah, but if we could charge Salvation Army like one to 2k per user, because they have the money to cover it, I wouldn't feel bad taking it.
+
+Speaker 1  39:10  
+Okay, okay, so I got my sister on the phone the morning is on the phone as well. But yeah, Lori, big and no, oh, go ahead right now. We just got off the phone with a store manager from Salvation Army that was giving us some tips on the type of software we should bring to bring to Salvation Army, and then the pain points that are coming, you know, that's come from what they're dealing with. That's a pretty good insight. And it looks, it seems like it's a pretty easy fix too. Not, not like the easiest, easiest, but it's like,
+
+Unknown Speaker  40:01  
+relatively, okay, just gonna open up my laptop. Did you have a meeting for later, rather than New Hope? Yeah, oh. Okay?
+
+Speaker 2  40:32  
+Is that what? That was not nine o'clock. Was there another one today? Okay, y'all know we had one
+
+Speaker 1  40:41  
+at one at one o'clock with another app developer and Alejandro and Valerie. But we just were discussing, like the next the next step, what are, what our goals should be, and we kind of came up with being professional, making sure we look like we're worth something that we are but
+
+Speaker 1  41:17  
+for Salvation Army, so we're working on pitch deck, consumer pitch deck for Salvation Army. Right now we got some anti for what could possibly be
+
+Speaker 1  41:32  
+going to be looking at the certain certification classes for any for AI and AI marketing and stuff like that, so they can have some type of experience or backing along with what you can bring to the team. Yeah, you're already heavily immersed in like social service work. So that social service work and then management. So that's your, that's your in as far as like your professional strength, yeah.
+
+Transcribed by https://otter.ai

@@ -25,8 +25,12 @@ export async function POST(request: NextRequest) {
     const recordingStatus = formData.get("RecordingStatus") as string;
     const recordingDuration = formData.get("RecordingDuration") as string;
 
-    // Validate webhook signature in production
-    if (process.env.NODE_ENV === "production") {
+    // Validate webhook signature unless explicitly skipped for local development
+    const shouldSkipValidation =
+      process.env.SKIP_WEBHOOK_VALIDATION === "true" &&
+      process.env.NODE_ENV === "development";
+
+    if (!shouldSkipValidation) {
       const signature = request.headers.get("x-twilio-signature") || "";
       const url = request.url;
       const params: Record<string, string> = {};
@@ -36,6 +40,12 @@ export async function POST(request: NextRequest) {
 
       const isValid = validateTwilioWebhook(signature, url, params);
       if (!isValid) {
+        const ip = request.headers.get("x-forwarded-for") ||
+                   request.headers.get("x-real-ip") ||
+                   "unknown";
+        console.warn(
+          `[SECURITY] Twilio recording webhook validation failed - IP: ${ip}, URL: ${url}`
+        );
         return new NextResponse("Invalid signature", { status: 403 });
       }
     }

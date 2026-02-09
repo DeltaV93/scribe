@@ -1,0 +1,286 @@
+me  0:00  
+So I think, going back to what we were saying, I'm just doing it for my phone. We went through the forms. We found the bug where you can't generate forms with, oh, now the button's back. We found a issue with the form, where it wasn't generating when you click the next button, but it looks like it's there now. Doo, doo, doo, what else was going on? We looked at clients, and we said that when we get to the client view, if I'm a case manager and I'm looking at a client, Mike Jones, I can see the tasks that I have related to this client. We also said a really cool workflow that we wanted to work on is that from an org level, admin or set roles, management type roles will be able to define workflow requirements for follow ups. For example, we have, if we look at the client on the client tab for my account, I haven't contacted the client in 13 days. So we would say, after intake is completed, or whatever the trigger item is, we would want to automate reminders for follow up and X amount of days, and these are things that admins will be able to define. So for example, in my for my one of my clients, Mike Jones, I I did an intake with him 13 days ago. The admin for my organization can say, within three days of intake, we should do a follow up to see how things are going. And from there, the reminder will come up on the client page, where you can see Mike Jones in the table, there would be a red little alert box saying reminder to do a follow up with this person, and it's related to XYZ task, and if we Click on it will be taken to the clients page, the task column or tab and view that task. Another place that we can see this is in my action items. In the Action tab items column from the navigation, it'll automatically pop up here on top of when I'm in calls with that client. If I say I'm going to follow up with resource navigation or steps or connect them with another caseworker, those action items will come here clients. We also surface that clients should be able when we have an action item that involves pulling in another case manager, we should be able to tag them in that task, and they should see the same action item for this item and get access to the client information. And admin calls. I think that's that's everything we covered, right? Oh, and then for the programs, we said that we wanted to be able to in the programs table view, be able to see,
+
+Unknown Speaker  4:10  
+be able the system for
+
+Speaker 1  4:13  
+the audit type features. It would be, you would be able to group different requirements for funding.
+
+Speaker 1  4:31  
+Yeah, you would be able to set the requirements for the funding so, like, if you needed to contact, make successful contact with 50 individuals and another requirement for the grant was you also have to get five out of those 50 individuals housed through some type of supportive service. When you start in taking clients and working with those clients, your progress with that client will be tracked, and it'll also update where you are within that goal for your grant or the requirement for the grant, and it'll automatically summarize or create a report based on completion of that requirement. So if you may, if you successfully house five people, you would then get that report created or generated. If you are on it'll continue to give you updates on where you're at. So it'll track that progress. I don't know how to explain it. How you explain it? You're doing good for Gemini. I'm trying to break it down.
+
+me  5:45  
+Okay, so the, I think you got covered, everything that I would cover. I think the other thing that we talked about for programs is that we want to be able to see, like the we have one program that is set for June 29 but the status is draft. We should be sending out reminders and saying, Hey, probably like three to five days before the event is supposed to start. If it's in a draft state, send a reminder to let them know to activate. Or, yeah, activate program status, the program status so that it's good to go. And then we also said that we wanted to see how many sessions have been completed out of all active sessions, and have it easily viewable from this screen without doing additional clicks. So what we could do here is have a drop down for the table row, and in that drop down we can see the additional sessions and which one is next versus which one has been completed. And within each role of the session, we should see if there's any materials tied to it. And so we can just click and get a quick overview, as well. As for the main program name, if there's any materials, we can do a quick view of that as well.
+
+Speaker 1  7:22  
+Also for that sharing, for that sharing task. Do you think that that should be something that admin can allow if you're sharing it over to another case manager, so a permission based thing, where, if another task involves sharing client or client information, the admin will be able to select what level of information is, is transferred over or viewable by the added case manager, or even, or also, it'll allow them to accept or deny that client shared or, yeah, whatever. Break it down.
+
+me  8:07  
+Yeah, no, that makes sense. So when a client, so when you tag someone into a client's case, we want to make sure the manager is approving that so no one's information is just shared willy nilly. Okay. That makes sense, I think, and that could be that could be set as a org wide role. So do we want people to be able to just share automatically, or do they need to request it each and every time so it's flexible by or, I think the other thing we said we would do is when we talked about adding in assignment and quizzes so we can have we'll have overall materials like a syllabus for the entire course, but each session will get A ability to create a tab, to create quizzes and assignments, and to generate a new one, they would just go through and go through the same create a form workflow, but the focus would be either assessments or it would be generating a quiz. So that's something that else we talked about, and we wanted to be able to quickly update the status of a program from the program view page by just being able to quickly do that. And same thing for sessions.
+
+Speaker 1  10:09  
+You said, you also want to be able to track the history of what happened with the program. So say there was a session that was canceled, you'll be able to get a drop down of the sessions with their current state, and then also you'll be able to view back into like if a session was canceled, if it was rescheduled or not rescheduled, rescheduled?
+
+me  10:42  
+Yeah, so we would want to be able to update session status as well and have it easily viewable and easily edible editable. Okay, so I think that covered everything. I think the only other thing, what you what you talked about it. We said that we would have org, org, org, wide goals that will tie into the programs, and we can tag them. If there's a nonprofit this program will be in support of this grant. So we want to check these key things to show progress and growth, and if we achieved what we were supposed to do to create better outcome reports for the automated reporting feature,
+
+Speaker 1  11:39  
+so like tracking deliverables.
+
+me  11:42  
+Yeah, tracking deliverables, focusing for nonprofits on outcomes. But this could also be a really good feature for something like a tech company that has KPIs and OKRs. So the org would define OKRs, and then each of the programs could be related to steps needed to achieve that OKR. And then the different updates that we would generate throughout the app for for the source of truth through either meeting notes, team meetings or email updates or text or text based communication, we would use that information to then surface updates and generated Reports. All
+
+Unknown Speaker  12:38  
+of this information pulled from from East. What just happened? You? What?
+
+Unknown Speaker  13:13  
+I think his computer died. I
+
+Speaker 2  13:39  
+well, I Valerie, well,
+
+Unknown Speaker  14:10  
+oh violet, she's two African babies.
+
+Unknown Speaker  14:17  
+Two, two African babies. Okay, well,
+
+Unknown Speaker  14:25  
+kind of
+
+Speaker 1  14:26  
+I guess, yeah, I don't really talk to a lot of people. That's making that up. I talk to a lot of people.
+
+me  14:39  
+Oh, you're referring to yourself as African.
+
+Unknown Speaker  14:43  
+Look, we're all African.
+
+Unknown Speaker  14:46  
+I think you more than me.
+
+Speaker 1  14:51  
+Actually, we're all African. And if we all came from Africa, there is no Lord, anything you know, if you say so, Pangea is Africa, and this all came from Pangaea.
+
+Speaker 2  15:11  
+Okay, Richard, well,
+
+me  15:32  
+purpose and outcome. Okay, so I was able to fix this while we were on the call, and it like popped up live on the website.
+
+Unknown Speaker  15:53  
+We know now it's not, I swear it was showing i
+
+Unknown Speaker  16:08  
+Okay, you want intestine product,
+
+Unknown Speaker  16:17  
+I Guess it's not working AI generated, okay, Maybe this will be it.
+
+Unknown Speaker  16:30  
+Okay.
+
+me  16:42  
+Okay, I don't remember. Oh, I think you were saying something about the events or the programs.
+
+Speaker 1  16:56  
+Yeah, I just want all the All I'm trying to say, or I was trying to get at, is everything being able to, like, seamlessly update each other. Like, you don't have to go to one section of the app to update something and then go to another section. I have to update something like,
+
+Unknown Speaker  17:19  
+If, that's if you're working if a case manager is working with
+
+Speaker 1  17:26  
+Mike Jones and then a facilitator is working with Mike Jones, Mike Jones's progress is still being tried, and in his update, his caseload is being updated, regardless of boost cutting his caseload under a certain organization. Now, if it's a different organization and they're tracking different things, that's a different
+
+Unknown Speaker  17:51  
+thing. Oh, makes sense.
+
+me  17:58  
+Okay, I don't know if we're tracking that currently.
+
+me  18:08  
+So right now, if I take a look at the client, pay the clients, I don't think we're we have I don't know if we're tracking I don't
+
+me  18:27  
+know if we're tracking recent activity, so that's where it is. So we would want recent activity to be from multiple different sources, as long as the person's role means that they'll be able to see those different updates. So my question to you would be outside of the case manager who would be interacting with the client, And what actions would they be taking?
+
+Unknown Speaker  19:18  
+Super hot the
+
+Speaker 1  19:26  
+Alright, so outside of the case manager, you would have like facilitators, excuse me, facilitators that like rent classes or the programs they would
+
+Speaker 1  19:51  
+they would just be running the class so They would control like checking on assignments, grading assignments and they would have an overview of all attending, I guess. So how you have programs set up? Admin is able to admin is able to make a case manager, right, and also that case manager, a number admin should be able to Make those two and those roles would be like, just like, facilitate, I'm trying to overcomplicate it When it's not so only
+
+Speaker 1  21:01  
+so whatever you're doing one on one that can be tracked, and then whatever you will be doing in a group. And then sometimes a case manager doesn't run a group, you would have to be able to create a workflow for someone who runs the programs or give permission to a case manager to create programs or programs,
+
+Speaker 1  21:54  
+they would have to be able to enroll. They would have to be able to enroll people into A program. I manage the materials within that program.
+
+Unknown Speaker  22:14  
+I the progress of that program.
+
+Speaker 1  22:29  
+Okay, whether it be a class, or whether it be like, say, for healthcare, it will be like physical therapy or something, I'll have to put somebody in a physical therapy session, and then know, like what happened, track what happened,
+
+Unknown Speaker  22:58  
+and then also be able to follow up with that.
+
+Unknown Speaker  23:14  
+Okay, that probably didn't make too much sense.
+
+me  23:20  
+No, no, it does, and that's fine. I can get that going, and then
+
+Speaker 1  23:37  
+that's, that's there. That's what is this. Yeah, I think we just skipped, I just think we skipped that workflow because we created programs that we created we like allow people, we allow admin to group people into sessions, or what, who's who's grouping people into sessions.
+
+me  23:55  
+Case Managers, case managers and admins have that ability.
+
+Speaker 1  24:03  
+But then we never created anybody to facilitate. We never created a workflow for facilitating the class, or like managing the facilitation of the class.
+
+me  24:13  
+So you mean just adding people and removing people from no that's there
+
+Speaker 1  24:21  
+no not just adding people or moving people, but to check, like, oh, maybe I'm overcomplicating it.
+
+me  24:30  
+So, so for the programs right now, you can view who's that's what I was actually testing right now. So for a program, you can go in and let's see this program. It's a group program. We have two people attending. So you can add a session, you can do enrollment, so you can add people to be enrolled. There's only two people in this org so the two people are there. But how it should work is you start typing the person's name. If they weren't already enrolled, you can click them, but this one's already enrolled, so you close out of that. You can say in progress, complete enrolled. So we can move this to In Progress.
+
+Speaker 1  25:22  
+Oh, okay, and it's just, you would just remove the need for you just remove the call feature, right?
+
+me  25:31  
+If it's Yeah, someone who just takes classes, yeah. So they would just get access to, like, maybe programs, like, whatever we define that they would have access to, but they would probably only have access to programs, action items, settings, right? And then they would be able to go in here and see this. They would be able to do the attendance work. So say,
+
+Unknown Speaker  26:02  
+I think I've never seen how the I've never
+
+me  26:06  
+seen how the so this the session stuff. Your stomach is bubbling right now. Yeah, so this would be the flow that you go through if you're going to upload a photo of the attendance sheet, and it would do its thing there. You could do manual entry. You can say, like, oh, this person was here. It wasn't here. Save it and then. Or you can go back. That back button needs to be fixed. I'll fix it. Or you can go and you can attendance. Oh, sorry, I need to go to session. Generate a sheet. I could say, I want this for this date. So by default, it'll have time in time out, signatures and notes. I can say like, Hey, I actually don't need signatures, I don't need notes. I just need in and out, save configuration and download PDF. The PDF is not downloading, and that's what I was going to go check on right now to see why that's happening.
+
+Unknown Speaker  27:20  
+Okay, so each individual have their own
+
+me  27:23  
+QR code, yeah, but I think it's something. It's probably the QR code that's not working.
+
+Unknown Speaker  27:33  
+Where is this tab?
+
+Unknown Speaker  27:39  
+Scribe, logs.
+
+Unknown Speaker  27:48  
+There is logs.
+
+Speaker 3  27:54  
+Okay, I can't see any of this, but yeah, so that's how that would work. Sub asset. Why is
+
+Unknown Speaker  28:09  
+it saying? Oh, okay, let me try to do this. Go here, generate sheet,
+
+Unknown Speaker  28:25  
+generate fail to generate sheet. Go here, last minute. Okay, that's what I
+
+Unknown Speaker  28:42  
+that's what I asked first.
+
+me  28:50  
+Oh, it's missing undefined.
+
+Unknown Speaker  28:58  
+Okay, so like it was different.
+
+Speaker 2  29:06  
+I feel like there's also a way to like, you have to go like, against the green when you're trying to get up the waters.
+
+Speaker 1  29:13  
+Yeah, it's supposed to go against the granny. And you, you pull it back, and that's when it pulls the water up. He's talking
+
+Speaker 2  29:21  
+someone else. No carpet like the way you're facing makes a difference in how much water is getting, like symptom,
+
+Unknown Speaker  29:36  
+right? Great, colleague. Games, means
+
+Unknown Speaker  29:50  
+you want to move this
+
+Speaker 1  29:57  
+case, not back in there yet, chest on top of the bed. I'm sorry. I'm listening. I'm just,
+
+Speaker 1  30:09  
+I really, oh yeah, I figured out how to clean out the in and out, too.
+
+Unknown Speaker  30:17  
+Okay. Okay, so,
+
+me  30:24  
+yeah, that would that would work. So the PDF would you be able to download it and it would show the details? I think that's everything, the thing I need to do is, again, turn on, like, fix the little things that we went over, like this screen, like the the UI of this needs to update. We need to, oh, we need to, can we use
+
+Unknown Speaker  31:12  
+your other software?
+
+Unknown Speaker  31:15  
+What other software
+
+Speaker 1  31:18  
+create content? Because my girl, she sings, and there's this song that she got that's amazing. We're gonna make a music video for it.
+
+me  31:27  
+Yeah, as soon as I haven't finished building it, I've been building this instead,
+
+Speaker 3  31:39  
+okay, but I think that's it for this app, right? There's, there's nothing else.
+
+Speaker 1  31:50  
+Well, as far as like, that needs to be added for the pilot, or, you mean just like, like, done, done deal
+
+me  31:59  
+for the pilot. So like, I think we covered everything that we would want to go over for the app. But you're good with this branding, right?
+
+me  32:16  
+This is how I want the app to look. This is how it was. I like, I don't know why it went to this dark mode stuff.
+
+Speaker 1  32:29  
+Yeah, like this 20 hours. That's very disgusting.
+
+Unknown Speaker  32:35  
+Okay, I'll update that.
+
+Speaker 1  32:40  
+I mean, it could be just because I'm looking at it through the phone.
+
+me  32:48  
+I don't think that was a part of the branding guide that I created. I don't really know where that color came from. I
+
+Speaker 1  33:05  
+those boxes. Not so much. Okay, so places we don't have stuff to have icons or like, professional looking, I don't know.
+
+me  33:21  
+Oh, you mean the emojis, yeah, that's gonna be replaced with actual icons.
+
+Speaker 1  33:28  
+So I was like, Yeah, on his page, on the other guy's page, even though we're not working that's just what threw me off about his stuff is like he has places that needs to have things filled in, like, if we don't have just, just so it doesn't look tacky. But, I mean, I'm just expressing what I really didn't pay attention to it. So you guys started pointing out the stuff to pay attention to, like the numbers and like how things are just generated on there. Like to me, at first, it looked like personal website, yeah.
+
+me  34:14  
+Oh, my God, okay. Is there anything else we want to go over so I could just, like, work on this stuff, and then, like, tomorrow we can go through and practice how we want to demo it. I just want to get it to look good and everything work. So when we practice the demo, it's just like, smooth. No wait, let me go fix this. Let me fix that type of situation. Does that sound good?
+
+Speaker 1  34:42  
+Yeah, I'm ready to practice them, and whenever I'm ready to get it, it's something solid. I mean, it's already solid.
+
+me  34:54  
+Okay, well, that sounds good to me. I'm gonna need to drop because I think it's yeah, it's six, and I'm gonna need to feed her in a second. Yeah, thank you. But if anything else pops up, let me know. I'm gonna work through the stuff that we talked about tonight and get that in there. And I want to try to get the report creation in there too, so we can start testing that out, because I think that'll be a good thing to go Over for Carly. And then the next meeting, I Well,
+
+Unknown Speaker  36:09  
+and what was irritating me? I.
+
+Transcribed by https://otter.ai

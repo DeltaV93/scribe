@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { cleanupExpiredSessions } from "@/lib/services/portal-sessions";
 import { cleanupExpiredVerifications } from "@/lib/services/phone-verification";
 import { cleanupExpiredTokens } from "@/lib/services/portal-tokens";
+import { verifyCronRequest } from "@/lib/cron/verify";
 
 /**
  * DELETE /api/cron/portal-cleanup - Clean up expired portal data
@@ -16,22 +17,18 @@ import { cleanupExpiredTokens } from "@/lib/services/portal-tokens";
  */
 export async function DELETE(request: NextRequest) {
   try {
-    // Validate cron secret
-    const cronSecret = process.env.CRON_SECRET;
-    const authHeader = request.headers.get("Authorization");
+    // Validate cron secret with timing-safe comparison
+    const verification = verifyCronRequest(request);
 
-    if (!cronSecret) {
-      console.error("CRON_SECRET not configured");
+    if (!verification.verified) {
+      const statusCode = verification.reason === "missing_secret" ? 500 : 401;
+      const message =
+        verification.reason === "missing_secret"
+          ? "Cron not configured"
+          : "Invalid cron secret";
       return NextResponse.json(
-        { error: { code: "SERVER_ERROR", message: "Cron not configured" } },
-        { status: 500 }
-      );
-    }
-
-    if (!authHeader || authHeader !== `Bearer ${cronSecret}`) {
-      return NextResponse.json(
-        { error: { code: "UNAUTHORIZED", message: "Invalid cron secret" } },
-        { status: 401 }
+        { error: { code: statusCode === 500 ? "SERVER_ERROR" : "UNAUTHORIZED", message } },
+        { status: statusCode }
       );
     }
 

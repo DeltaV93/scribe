@@ -1,0 +1,211 @@
+me  0:00  
+Um, I think, I think that all sounds good to me. So I know the last time we talked, there was two features that you talked about. It was like the events, being able to add clients to different events, like register to them, to stuff, so that they can complete their hours, and then I think I have the other side of it fleshed out. So say, if a case manager wants to lead a session or something, they need to check attendance, but they're in the courthouse being able to print out that paper, take a picture, upload it, and Mark people as attended or not, right? Yeah. So that one's good. The one I had I wanted you to walk me through again was the events. So is the system supposed to just have like, a set number of events that people are supposed to go through to get, like, their complete their hours,
+
+Speaker 1  1:06  
+a set number of events that they have to go through to complete their hours. When you say events, are you generalizing like a term, or do you mean like actual engagement events?
+
+me  1:19  
+Just a general term, because I don't know, I don't remember exactly how you phrased it, but I know you said that
+
+Unknown Speaker  1:27  
+like sessions, group sessions and stuff like, stuff like that. Okay, so
+
+Speaker 1  1:35  
+to give you the best breakdown of what I think you're talking about, initially, I thought you were talking about, okay, so there are event coordinators, I guess you would call it, call them, where their sole purpose is, you know, finding out what events are, what events are going on in the community, community engagement, events, programs? Well, I wouldn't really necessarily say programs, because that could be for the network or the directory, but let's just say all the events, local events that are happening, they would get their E blast or their they would get their E blast to their emails, get the flyers and stuff and all that, and then be able to upload those flyers and then register that event there. Almost like, really bringing Eventbrite, bringing Eventbrite to the platform. If you ever used it?
+
+me  2:40  
+Yeah, I've used it. I think, okay, so I think it might be easier if people are just using Eventbrite. We just use their API, because there's ways to integrate Eventbrite into the system, and that could be easier than trying to build out something from scratch.
+
+Speaker 1  3:04  
+Okay, so that's and that's that was, thank you, because I was thinking about all the other resource directories that are already available, like, what does an API stand for? Because I could probably understand it more if I knew what it
+
+me  3:23  
+meant, application, program interface. So it's just like, you can write code. So there's code that's out there that like, say, I wanted to pull all of the events from Eventbrite and pull it into our platform. I would use their API the way that they tell me to use their code in our system to pull that data and just make it populate without having the API key. Yeah, you would need an API key, but in just plain English, it's how one system can talk to another system to get the data, to get or send data back and forth. And so it's formatted in a certain way, and you have to have certain credentials so that you can pull the information securely and display it on your website in the way that you want. So technically, we can set it up so that people within our system can create a whole entire event from one page and have it updated in Eventbrite. I don't think that's the way to go. That's I've done it before. It's a lot easier. People are already using Eventbrite to just let them use that, and we pull the data in initially. So we would just pull the data from Eventbrite and have them use a platform with all of this stuff that it's available in Eventbrite.
+
+Speaker 1  4:54  
+Okay, so with that, would you only be able to use one API key for a system like Eventbrite or could you put multiple platforms like Eventbrite ie connect, like there, because Okay, Eventbrite, Eventbrite and IE Connect will be really good. Find Help Eventbrite and IE Connect. Those are big resource directories that I know, the bigger organizations like 211, use and lighthouse and I use, I connect whenever I need to look up, just a general resource, Eventbrite, usually I use it for registering for an event if needed.
+
+me  5:56  
+So yes, I can pull in information from multiple platforms, that's fine. We would just need to, one, verify if they have it set up so I can pull that information, and two, we would just need to make sure everything syncs like all the data looks the way. Whoa,
+
+me  6:40  
+uh, we would just need to make sure that the the data is right, and everything like that. So that's the only thing that we would need to look at.
+
+Speaker 1  7:00  
+But to get back to, like, my basic description of that feature, the event feature, like we have a coordinator. She finds out the events from whatever sources, either via e blast, via text message, whatever the case may be, they get the they get their events, and then they can assign events for the case, for the case managers to go to, or what would they like the community outreach team. But we all wear multiple of the same hats, so I'm a case manager, but I also do community engagement events. So I'll get I'll get assigned to go to an outreach event.
+
+Speaker 1  7:54  
+So if, right now, it would be too complex to add a if it would be too complex to add, like a resource directory right now, that could, that could be put out, but creating,
+
+me  8:19  
+yeah, You could just put in the room, sorry, keep going,
+
+Speaker 1  8:26  
+creating a space where you can upload like flyers and just like the, oh, that was the future, but yeah, you can take a picture of the flyer, The an AI, or the picture, will capture the image and then read off what's on there, or analyze the wording that's on there, and then it will create that event. Boom, it's the young visionaries community outreach event on Wednesday at this time, and then it'll prompt you, after reading that the flyer, it'll add the flyer to the to that event, like a picture of the flyer or or not even, or it'll add the flyer to that event when you click on it, so You can see the flyer too. But it'll also prompt you do you want to make this an event like, like, put it on the event calendar, event list, or whatever the case may be.
+
+me  9:38  
+No, that makes sense. I think, okay, so what I thought I was talking about is, I know you tell me that, what I remember is that clients, so case manager will work with a client, and they have to do X amount of hours to complete the the little program that they're in, right, right?
+
+Speaker 1  10:05  
+So, like the certification training, so say they have to do the training is an 80 hour training,
+
+Speaker 1  10:20  
+okay, for the programs that was a like the sessions and the groups and stuff like that. So say they're in, like an in a class, and the NA class is six weeks. I would want to be able to make that like a session or a group, or you can call it whatever. You can call it a class, course, session, group. Just have the label customizable.
+
+me  10:45  
+Okay, wait, wait, take a step back. So what does na stand for?
+
+Unknown Speaker  10:49  
+Narcotics, anonymous?
+
+me  10:53  
+Oh, duh. Anyway, so, so you're saying this how the system should work, is that clients should be able to be grouped and tagged in different programs. So the program can be na and there will be different requirements for a program. The program requirements could be a set number weeks, set number hours. It'll have some type of description, and it'll have a start date and an end date, right?
+
+Speaker 1  11:26  
+And then when you could so, and then when, yeah, so when you click on that in a class, that class, course, group, session, that whatever term you want to use for it, and it, then it brings up the next dashboard will show you, okay, the list of clients that are in that that course. Then you have a section where you can click on Like course details, or course details, and then you can have a place to input the course details. You can upload the syllabus, if a lot of this stuff was if AI can be put in all of these functions, I okay. So say you have a syllabus, you upload the syllabus to the group session, the syllabus can be analyzed and it can create a description for the course, it can create the length of if they details the length of time that's in the course, it can automatically set the length of the course. It's a six week course, if it's Monday through Wednesday, then it automatically sets on those scheduled days. Okay? Now you have this many syllabus, you have this many attendance sheets for that. Or I don't know how to make it, you know, take it out to make it more simpler than that. But that's what the functionality I see coming out of it, like I see AI needing to be involved with that to make a lot of that stuff happen, like auto generate the class description. Have it generate the length or duration of the Okay, so you have the duration. Course, details, and then assignments, or course material, right? And then you upload those assignments, because we have to come up with the curriculum before the session is even ran, so nine times out of the 10 will already have whatever material is going to be there. We can just upload it and then be able to print that off for those days. It may not track what we may not need to have it be so integrated where it can, you know, place those assignments for those days. But if you have a log of all the assignments for that's going to be there, you know what assignment is going to be for what day. You can click it, print it, and then print print out the, print out the, if needed, you could print out the attendance sheet, attendance log, or whatever,
+
+me  14:24  
+and like, yeah, and then we would just do the upload when, like, take a photo, upload it, and Mark people as present or not. Okay, so I think I got a good understanding, um, I was gonna I have a system working so that you can put tags on the different clients and group them that way. So what I'll do is I'll just extend the tag system that we have to be able to include details like groups or programs or sessions for different different clients. Because the other thing I was thinking about is, okay, this is how it works for nonprofits, but when you generalize it, how would someone else like customer support for an insurance company use something like this? And so that is, I think, a more general way to leverage this. So we would just bucket people using the different tags. So going taking a step back for the different programs that someone could be in, so like na or a or something like that would who would be able to make this, I'm thinking, admins would be the ones who define these different.
+
+Speaker 1  16:16  
+Who would do that? Who would because I know in my at my nonprofit, we don't function. We don't have a lot of a lot of our people play a lot of different roles. So yeah, admin or the program manager would be the one to set the program like, create the syllabus, create the content, all that stuff, and then have someone facilitate that, facilitate that class, which would be like the case manager front the peer support specialist, or whatever. So I guess that can just be on permission based a permission based thing.
+
+me  17:05  
+Okay, okay, that makes sense.
+
+Unknown Speaker  17:14  
+Dang, am I? Is my does my brain works. Does
+
+me  17:17  
+it work? No, no, this is all good. Sorry, I'm taking notes. No, this makes sense. Um, I'm just trying to think of like, what does that mean for this system internally? But I think it's fine. I think that makes sense. I think I want to focus on this workflow, because I think that'll have the biggest impact to show like different nonprofits, the like value to be able to like, buy this like up front, I think adding in the event thing, I think that I would want to do that After, yeah, after the first phase, does that make Do you feel like that makes sense? Or do you feel like the event stuff would be important?
+
+Speaker 1  18:05  
+No, okay, so part of the conversation with Carly, we're talking about, like, what levels this will be integrated in and with the Workforce Development Program through Operation New Hope, the furthest extent that it would get to would be probably the case managers and here and there, the program managers. So like how we're coming already with the VoIP system, that would definitely show usability for that. There's already, if we can have these two functions, the group sessions, like you were saying, just so it can work in other other organizations that don't have that capacity or have other capacities. They can find usefulness in it too, in their own ways. But I want to focus on what's unique, and those two things are the unique beings, I think, like the resource directory, there already are resource directories we know that works, creating a network where we can communicate. This is coming. So the way that Carly framed it, it is so perfect. This is coming for the nonprofit work, at least having a network system in a field where there's already a lot of collaboratives and a lot of money funding collaboratives, they want other nonprofits to work together. So having this system where this is just a centralized platform that's usable by all these people only makes it a stronger a stronger asset. It's going to be integrated throughout more nonprofits, just based on the fact that's coming out of these coalitions. But that can also, that can also wait a little bit. We have to first show that it's that it's usable before there's a whole network of people who want to use it.
+
+me  20:15  
+Yeah, yeah. So I think that's good. And then, um, so I think we're on the same page there. So that makes sense. Trying to think, is there anything else
+
+Speaker 1  20:32  
+can we this? Okay, are you got other projects going on. But how do you feel about this project?
+
+me  20:39  
+Though, I feel good about it.
+
+Speaker 1  20:42  
+Do you feel like it's big, or do you feel like it's like a Do you have other bigger projects Toby, you see me like, really phase? You're really chill?
+
+me  20:54  
+No, it's just, I think I'm just used to doing this type of stuff, so I'm just like, oh, how do I extract the information I need need, so I could just move on, if that makes sense. I'm kind of cut and dry person, unless we're like, sitting there drinking and hanging out. But no, I think it's good. I think there are other projects that I'm working on that they're big systems that I'm building, and there's other, like, large grants that I'm trying to go after, which so I have one app that's like working with lawyers that requires a bit of money, so I'm going after a grant, and I think that's gonna be like the thing that makes me not have to work anymore. And then I have like smaller apps that I'm trying to I think there's like six different apps that I'm currently building that I'm trying to launch all this year. One's like automating social media and the different like flyers and stuff that you build. One is like a task manager. One is, I'm just like building like this ecosystem to help people build apps and build businesses. So it's like one of them is like, when you have a landing page for a product or something that you're trying to sell, have it dynamically changed based off of whatever the end user has been looking at. So say, I'm trying to learn about scribe, but I'm not a nonprofit, but I'm a business that has customer support. So I want the system to automatically change the landing page to be catered towards me. So have like the base information, but it's going to know to sell to
+
+Speaker 1  22:59  
+know to sell to a algorithm, yeah, data that's being collected?
+
+me  23:03  
+Yeah, yeah,
+
+Unknown Speaker  23:06  
+I'm a little versed in techie. Tech.
+
+me  23:10  
+No, I think you're doing really good. I think you're doing really good. But yeah, I It's not like I I'm weighing this as big as some of my other projects, but I'm also like, looking at like, what we're doing and how we're working. I'm like, Oh, I can see different things that I could build to help you navigate some of these conversations and stuff. So I'm also thinking about it like that,
+
+Speaker 1  23:32  
+okay, and then there's opportunity this way too. There's a lot of opportunity this way. Like, I don't know what other there's a lot of graphs. There's a lot of stuff that this is, this software is going to fit perfect for. It's literally so much like, you're going for grants. If I, if I, if you want me to start, I'm already applied for 11 different grants. I don't know if I mentioned that, but that was all of those deadlines were in January. So I should be hearing something from someone somewhere soon. But I'm I was looking at the LSTA grant for a cool minute before I even started developing this out. And then with the collaborative you got a team of people, just by having, I wouldn't say, just by having me, but you got a team of people because there's a team of people that want to see, that definitely believe in me, for sure, there's so many people so, like, you could swing a lot of stuff this way.
+
+me  24:45  
+Yeah, no, I definitely am rethinking things. So, yeah, there's, there's definitely some overlap with what we're doing in, like, what I'm trying to do,
+
+Speaker 1  25:02  
+no problem. I'll work as hard as you're putting in, and as hard as I'm putting in, I will put it in for the both of us and God in heaven. Like this one is a story to be told just based off. I'm not gonna lie. I'm trying to touch hearts, and I don't, I don't care. I'm trying to touch hearts. I'm trying to touch pockets. I'm trying to touch everything. Honestly, we just, it's a really dope story, Doggy Dog.
+
+me  25:32  
+Like, yeah, no, it is. But I think I I'm trying to think of like, the most strategic way to make it all work together. And I haven't fully figured it out, but I know the connection is there. I don't think I ever told you or showed you, like the stuff that I've built, or like the my nonprofit.
+
+Speaker 1  25:57  
+You haven't showed me nothing about your business life. I've seen everything on internet.
+
+me  26:05  
+It's because, like, I honestly, have slowed everything down, and like, so much has changed in the tech industry with AI. I don't I'm trying to find the best, the best way to position everything I'm doing, but that's the link I sent you. Is tech by choice, and then the latest thing that I've been doing is trying to build a like, a collective of like builders. So like, we all come up with business ideas, but we use tools and like, like how I'm saying I'm trying to build out that landing page thing we could all leverage and use the different themes that we build internally to help launch other apps. And then, like, if someone hits it big, then, like, we split the win between all of us, so it's like a collective of builders and businesses that collectively win.
+
+Unknown Speaker  27:16  
+This sounds smart, let's do it,
+
+me  27:19  
+but yeah, I'm still in my head trying to, like, map out how that would work, but I think it would kind of fall under some of the stuff that we're doing now. And soon, but yeah, but yeah, I think, um, I want to just get the MVP solid, and then we could start to figure out, like, how to strategize, like storytelling and starting to market everything. So it makes sense for for both of us, and we're both trying to go at this at the same time.
+
+me  28:12  
+Yeah, but, um, okay, you giving me a lot of information I'm gonna work on. I just got some coffee and dinner brought to me. So I'm gonna try to, like, hammer out these, these features I got the other two workflows, like creating the forms and the transcript mostly working. I'm just missing, oh yeah, sorry. I'm just missing the Connect, the connection for the trans uh, adding numbers on the fly, because we have to upgrade the account from a trial to a official one. So I'm going to wait to the last minute to do that. Um, I did the comparative analysis, and I'm going to send that in the chat with everyone in it so everyone can see it. I think we should really focus on just building out what we have now, like what makes us different, and putting everything else as like later phases after we get paying customers, which I think we already, you already said that. We already covered that. And then, sorry, I'm just going through my checklist to see everything that I've been working on for you. And then the other thing was, like pricing. So I just finished the price breakdown. Um, with everything, I need to look at the two workflows, features we just talked about, to see if there's any additional cost. But I did the breakdown of like, if we wanted to make it like HIPAA compliant, if we wanted to get our SOC, two compliance, which is what we would need to work with some of the government agencies, and then after that, everything else, like the other levels of like security and clearance, it would be like if we were working with some like Top government, like agency. So from my research that I did, we wouldn't need to even look at that until we were in talks with someone. We had a contract, and in that contract we would negotiate having them paid for us to get the system to that level. It's gonna be kind of hefty to get us to the SOC two compliance, because we're gonna have to pay a third party to run the SOC two compliance. I'm gonna ask around a couple of people that I know that's in security and see if we can get some type of discount. I know a handful of people that have their own like agencies that that do that. So let me see what I could do. But I'll, I'll send over that rough breakdown as well, too.
+
+Unknown Speaker  31:31  
+Okay, sounds groovy to me. Oh, and then the SMS feature is the last name that's also going to be included. Or was that not,
+
+me  31:47  
+that is right. We did talk about that, because people don't open their emails. So that was a part of the client portal that we talked about, right? So when a case manager is going back and forth and after they do the intake, any follow ups, any registering the client with any courses, checking in on how they're doing, all of that information should be going into a secure, encrypted like portal where the Okay, so how it should work is that the case manager should say, like, hey, I want to send a message to client, Jim Jones, right? And the client, like you send a message. Like you go to the client's profile, you go to send them a message. Once you send the message to the client, the client will get a text message if they have a phone number in the system that they approve accepting text notifications, and it will say, Hey, you got a new message from your caseworker. Hit this link to see it, and they would be taken to a portal where they will be able to see all of the past messages that they've had with their case manager, and then they will be able to reply there, right?
+
+Speaker 1  33:21  
+Okay, yeah. I mean, that works. That works 100% I was thinking it was going to be, I was trying to eliminate the need for a client portal and all together, so that in a way of like, wherever the message, wherever the number that we're calling from, it should be able to receive messages as well, right?
+
+me  33:43  
+It can. But in the times that I've built client portals where, like, there's HIPAA compliant or need it, security has always told us to build it, the have the messages in somewhere different, not going through text messages. Okay?
+
+Speaker 1  34:07  
+And that makes sense. That makes sense. I just know for my job, there's not that much stress on the compliance,
+
+me  34:17  
+yeah, so that that's what i If you think so I think, like, from a case manager, we can control what they send, but then I keep thinking about the client, like, what if the client just says something that is just like, out there? Yeah. Well, then,
+
+Unknown Speaker  34:35  
+yeah, okay, so that makes sense. Okay, that makes sense, and that'll be a selling point too.
+
+Speaker 1  34:46  
+So is every portal going to be accessible for from mobile and the web version, or is it only going to be admin and program managers that see it on the desktop and then, like case managers will have the mobile, mobile app, frontline workers will
+
+me  35:16  
+have the mobile I think right now, how I haven't thought too much about that. I think with the way that I'm currently building it, it wouldn't make a difference if we had a mobile app that worked for everyone.
+
+Speaker 1  35:35  
+Yeah, it wouldn't, I mean, it wouldn't make a difference. I just didn't think. I didn't know if that was going to be, like, cost effective or
+
+me  35:43  
+I think when you start talking about, I would hold off on a mobile app for a bit like post MVP, like once we get paying clients, I think we can switch over to building this for mobile just because, like, getting a mobile app into the Apple Store is a headache, and it's going to take some time, so I don't want that to be a blocker for us to get clients. What I can do is set it up so that I'm building a website that will work like a mobile app, like, it'll have like, little app icon and everything you can press it and jump into the website. It just won't be it's its own app up front. But I think, like, once we get everything solid, then I could start working on, like, the application to get it into the App Store and things like that.
+
+Speaker 1  36:39  
+Okay, I've seen, I've seen, uh So the app developer, when we were first, kind of, like breaking it down, he was telling me about the mobile web, like a mobile web app, or just like, basically bringing the you are down as a shortcut to the screen,
+
+me  36:59  
+right? Yeah.
+
+Speaker 1  37:02  
+And we had talked about we ended up spitballing, and he was saying, I actually wouldn't work for the VoIP.
+
+me  37:14  
+It might not, depending I have to again. I didn't fully look into all the features, but, oh no, I'm looking at my notes. I'm already, like I said I was gonna build out an app. I know a workaround. So there's, there's a workaround before it goes live in the app store, there is like a test environment that you can put apps into and send people special invite links to get it called test flight. And so you would have people download test flight, that's an app in the App Store for Apple, and then you would give them a link to get access to the mobile app, and they'll be able to use it before it's live in the app store.
+
+Speaker 1  38:12  
+Okay, it's gonna does that put more stress or stress on you when it comes to, like, developing it out,
+
+me  38:19  
+no, I think that's fine, because, like the it'll be more steps for our users to take up front. But like, once they do all the steps to get test flight and the app link, everything else will be straightforward. We will just need to
+
+Unknown Speaker  38:40  
+do, like an onboarding training.
+
+me  38:42  
+Yeah, we could do onboarding. We'll document it. We'll have, like, YouTube videos, tick tock, like, whatever they need. We'll, we'll create the content for them, and then we can just kind of like, go from there. Alright.
+
+Speaker 1  38:58  
+Sounds. Like a plan, and I've been ignoring my girlfriend all day today, so she's real mad at me, so I gotta go get make that better.
+
+me  39:06  
+All right, go work on that. I gotta go eat my dinner before I get cold.
+
+Speaker 1  39:13  
+All right. Well, have a good night. I appreciate you. Thank you very much.
+
+me  39:17  
+You're Welcome. Have a good one. You
+
+Unknown Speaker  39:39  
+Hello, hey, hey, there's something going on with your phone.
+
+Transcribed by https://otter.ai

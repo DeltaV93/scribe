@@ -1,0 +1,190 @@
+Speaker 1  0:00  
+In the way we moved around, the way that we weren't doing anything by the book. I don't think that that will be a barrier for like, getting in and into this, like to pilot it.
+
+me  0:14  
+It will be for the data that we're pulling in, like there, the way that Carly was talking about it, the way Carly was talking about it is like they would need sign off and then I think the guy's name was Roger, and he said that they want to bring in the compliance person to see if this is something that they can even really talk about.
+
+Unknown Speaker  0:50  
+Yeah. Are you talking about Russell? Oh,
+
+me  0:52  
+Russell. What did I say his name was damn, I really can't remember anybody's name because I was so confident that his name was Roger, like you couldn't tell me,
+
+Speaker 1  1:05  
+all right, so I do know, I do know that that environment, the WIOA program, I was in a wheel program, and then what I'm suggesting that we do for the pilot, so they're asking for the okay, As long it would have to be compliant, if we're capturing we're capturing and storing sensitive data, right? Yeah, okay, so that's what I've already made. The whole point of the workforce program is to have them integrate, like, maybe a day or two where they're going out to do outreach, to collect, to collect clients. We are the We Are the grant. We're not. They're not. They're basically creating a separate program for us. So we, we decide what data they capture to prove that it is that the app functions. So if we're just going out and capturing like, say, we do outreach. Say one of our requirements to pilot test this app, because we have to come with our requirements, is that they make a day, they make a day where either they go out to like a community engagement event, and then they have a sign up list, and what they'll have a sign up list for their clients, and then a sign up list for clients that are going to be entered into scribe. But it's not going to be any different for the people on the outside only we will know, you know, like and then the all that would all that sign up list usually is, from my experience, is name, date of birth, name, date of birth, age and contact information, so that we can reach out later on, when we get back to the office after collecting all of that data, and then we go and do that more in depth intake, all of that stuff that in depth intake later on. I mean, we're just offering resource navigation. It's not like we're offering housing services or we're not offering like we're not offering anything to get this pilot, to get this pilot running, except for resource navigation, which costs nothing, except for knowledge of your environment. When we reach out to these people, we're just going to be like, Hey, what is it? Was it? What is it that you need? Are you looking for housing support? Are you looking for food pantries? Are you looking for, you know, stuff like that. So now we don't have to capture sensitive data. We just name date of birth and type of resources. We'll reach out to you to you and help you navigate, navigate to those resources. So if they if once out of the week, they go to a community engagement event, take those signups or getting collect, collect contacts, and then maybe however long. How long would this pilot do you think would have to run to get a full scope of what we have?
+
+me  4:14  
+Three to six months would be a good beta. So when you say pilot, are you talking about the program where you're helping the folks go through the reentry, or are you talking about the actual app?
+
+Speaker 1  4:29  
+I'm talking about both at the same time.
+
+me  4:32  
+So I think we I think we need to. So there's two different things happening the conversation, like the way that I understand it is a conversation they want to have next is just about the app. I don't think we, huh? I don't think we even touch like the that pilot program. I'm sure that they're down for that. But I think where the real money is is selling the app. If we can get them to buy into the app, we can figure out everything else.
+
+Speaker 1  5:07  
+Alright, so I get, I get that, but I've been having these conversations with them this entire this, like entire time. So what I know for a fact is Carly so when I introduced the product, when I introduced it to her, the whole workforce, development, the software, all of that, we're just we're just spitballing different ideas of how we can, like, make it work without spending money out of my pocket, or without spending money utilizing what's already running. So the WIOA program is a training it's a training program so anybody can go in. That's, hey, youth, right?
+
+me  5:45  
+Oh, this is, wait, wait, I'm sorry. This is the lady that sent you over all the details and said, Oh, I'm just now putting that together. Oh, then, yeah, we can talk about both. At first I thought this that we haven't talked
+
+Speaker 1  6:02  
+lady, no, all of these. Wait, so the lady, you're talking about the workforce development, breakdown, all that stuff. No, okay, so that came out of the same room with the same people,
+
+Unknown Speaker  6:19  
+but not Carly, directly.
+
+Speaker 1  6:21  
+Not that information didn't come from Carly. No, but me and Carly have talked about, we direct. The reason why we went to own age was because of their real program. Carly is from Family Assistance. Russell is from Operation New Hope, and they give Family Assistance, gives the money for the training to Operation New Hope, and with the money that the operation, with that money, Operation New Hope has the WIOA program, or the whatever, they will enroll Any individual that is within that Tay youth age range, and they'll help them with their workforce development skills sets, that's the resume build and all that stuff. And then they'll also, once they finish that training program or that that workforce development, they will pay for their training in in whatever but they control the dollars. They control the structure of that program. We are tailoring that program to our need. So we they have the training dollars. They'll get them trained in a CHW, peer support, whatever the case may be, right? But that's just, that's just the idea. It doesn't have to be these trainings. It doesn't even have to be a certification. We can just, it doesn't have to be that complex, is all I'm saying. But that's the reason why we're we went towards Operation New Hope because they have the training dollars and we can they. We can train them how to do resource navigation, since they already have the money to pay for that, all we have to do is put our tool as the use. Our tool is the thing that they're using during that process that'll prove that our software works, so that they can purchase the software. So
+
+me  8:23  
+yeah, um, I think we need to go into this conversation and be ready to have a pitch and a breakdown for both. So, yeah, so, and that's what Carly was
+
+Speaker 1  8:37  
+saying too. Like, I don't want you thinking that we're not going to get any money out of this, because I'm already you. I'm already we have to word it or structure it in a certain way. So if we're paying so they may not be able, since they have training dollars, they may even be able to pay us to train them how to use the software and do resource navigation, but they may not be able to allocate that money to a software,
+
+Unknown Speaker  9:13  
+because it's the WIOA program,
+
+me  9:16  
+yeah, so I think, I think that's fine. Um, I think that works. I think the the still the gotcha is, like, the other part of the pilot that was good is that those people would test out the app for us, you know, um, I still think we need to really push to get the compliance part, yeah, finalized. Like, and we can we already have it so, like, we don't in the system, so we don't track like, sensitive fields. So maybe we can do some stuff like, before we get the compliance done by default. We're not tracking as much as we could, so we're going to come out and say, like, Hey, this is not going to be as accurate until we get that final like, the the certified that we're all good to go from all the different aspects.
+
+Speaker 1  10:22  
+Do and that's all I'm just saying. Like, I want to go for this compliance thing full, full fledged 100% for that. But I also don't want you to stress about the idea that we won't be able to use it unless we have the compliance yet for this, for what stage we're at right now, because all we have to do is just tweak what information we're we're going to take for this pilot, if we can't capture sensitive data, they'll use if they need to take that sensitive data in to enroll anybody that's on their end, that's on that's the road, and roll them on the wheel in the WIOA side. And then what we're collecting for operational tool, is it sensitive information we're offering our resource navigation, and that's just, just give us your name, date of birth, and your age, and what you're looking for, yeah.
+
+me  11:11  
+But the the other thing is, like, the resource navigation like that hasn't you're saying, I
+
+Speaker 1  11:21  
+brought it up with her multiple times. It was just that meeting with I guess I haven't brought it up with you in more detailed sense, because I don't know like, I've like, that's what I was doing. That's what, that's the like, what I would bring up to them, I'll be like, well, it's easy to run this as a pilot, because we're not you wouldn't expend any more money than you guys are already. You're paying the payroll of these individuals already, and it doesn't take much work. You guys already know the resources in the community as because that's what you guys do. So all you're doing is collecting a couple of clients and directing them to those resources. And because our tool is super efficient and effective, it's not adding a super so much. It's not adding a whole bunch of time to do that. It's not anything you guys are they are already
+
+me  12:14  
+so So wait, I get that, but you're saying, in order to make the pilot successful with the reentry program, we need to add in the future for the resources? No, they're just going to do that on their own. We don't have to worry about that.
+
+Speaker 1  12:34  
+No, we don't have to worry about that right now. We don't need a resource if you're thinking thinking like a resource directory feature, that was something I like, I had in mind for the future, but not that's a part of, like, the networking, that network feature, I would assume it will be a part of that network, yeah, reference here, and this, that, and whatever the case may be. But no, that's not, I don't we don't have to have a guide of resources. Already they have those resources. All they have to do is just know that resources, which they do, and they already are going to community engagement events currently, these, their, their, I promise you, one of their employees already went through the WIOA program. I was with her while she was going through it. And she goes to week. She goes to the community engagement events all the time. They haven't everywhere all the time, all they have to do is just pop up, put up their booth and sign people up for their programs. That's what they need to do anyway, so we're not adding anything to their workload, and that's the beauty. That's the perfect thing. That's the perfect thing. All we're doing is they bring a sheet, bring your sheet for your signups, and then bring our sheet for our signups, and just our sheets are not going to take as much sensitive data you
+
+me  14:03  
+Yeah, okay. So from my end, nothing needs to be done different. That is just the conversation we're gonna go have. And then, yeah, okay, then that's good. I was like, stressing out, like, what do I need a build? But I'm just like, Oh nothing. Okay, great,
+
+Unknown Speaker  14:24  
+yeah, like, I just maybe I'm really bad at
+
+me  14:27  
+wording things. No, it's I. I have a really short attention span, so you probably are saying everything right, but I'm only getting bits and pieces, not your fault. My brain is just fried.
+
+Speaker 1  14:42  
+Mine too. So we, we just hope you got the good parts and I got the other good parts, and we just go make sure they, you know,
+
+Unknown Speaker  14:50  
+yeah, basically.
+
+Speaker 1  14:52  
+So what I wanted to do today, if there was time, was kind of structure, what we're going to need out. And I kind of already, so kind of was already speaking on it like our requirements would be that they would go our requirements just implicate sign ups for us, wherever you guys go. So if you go to a community engagement event, just bring two sheets or dedicate half of that sheet to a quarter of that sheet to scribe and then, or actually, it wouldn't even be a thing of that, like, if anybody wants to be a part of the program that they have, mind you don't just spit balling. So nothing's concrete. Yet, they already have programs that they're going to want people to sign up for, and we don't want to take away from that. But they can also ask if they don't have a program that offers resource navigation, again, it doesn't cost nothing for it. So they can create that. All they have to do is say we can also offer resource navigation if you sign up on this sheet too, and that's just us letting you know what what services are out there. So I guess our request would be, is to offer resource navigation as well, and then show up to the events that they go to and offer that to other people. And if they're interested, have them sign up which people are always going to be interested in that, from my experience, because that was my whole entire role this whole year, and then follow up With the clients so they will that that's, that's another part of the criteria. So how often do we want them to check in with the clients? How much data do we want them to capture to show that we would have to know, how much will be needed to prove that it's to that it works? Right? Yeah. Because capacity of the software that we have, we know what we know what the capacity of our software is as of right now. So how do we maximize what we have now in this pilot, using resource navigation, we have, first and foremost, like the way Our interaction are, where we capture our interactions.
+
+Unknown Speaker  17:39  
+So and this is another way we can probably bring in a stream of revenue too,
+
+Speaker 1  17:48  
+if we also offer. So I'm a CHW and a peer support specialist, if I say, maybe we can offer like and to show that the group sessions work. Maybe I come in once a week and offer a class. I've actually taught a class at Operation New Hope before, once before, and I can't
+
+Unknown Speaker  18:14  
+remember what it was. I think it was emotional, like regulation or something like that,
+
+Speaker 1  18:23  
+something of this, of that sort. But so I know they have the time or space because they give that to people to come. Oh, that's perfect. I remember when I went in there for two seats, it was damn, I just remembered it lived it was about my lived experience. Literally, it was about my lived experience. And
+
+Speaker 1  18:56  
+then, well, yeah, we can come up with something that's pretty easy, pretty easy to like, teach about, talk about, and then I come in, I come in once a week and use use that As our group sessions. So when I come in, I track how many people are in the class and whatever, whether they come or whether they don't, it'll still be us using the same software.
+
+Speaker 1  19:39  
+And then nine times 10, we're going to have attending attendees, because they already Have attendees for these classes.
+
+Unknown Speaker  19:56  
+I think it'll work. I
+
+me  20:03  
+I think it will too, but I just want to confirm with with Carly, like, when we go into that next meeting, like, what should we focus on? So that way we can plan out and practice our pitch, but beforehand, because I was under the impression they wanted to learn more about the app, and it seems like you want to you feel like they want to know more about the pilot. And I feel like those are two different things at the moment, because we don't have the security clearance and stuff. And so I just need to know if I need to focus on building out those extra features or or just, like, focus on getting security clearance for what we have now and building out those features later. So like, if I, if I could get a better gage on what? Yeah, I think I could use my time a little bit more wisely.
+
+Speaker 1  21:06  
+Yeah, so let me text the group chat that we're all in, and I'm gonna say that I'm asked if she has a moment to speak for about five to 10 minutes to kind of gage the next like, what our next meeting is but we also have me and her have a meeting in person on Tuesday.
+
+me  21:26  
+I would just wait till it's Thursday. I think it would be okay to wait till Tuesday to follow up with her. I think if anything, um, I was looking at what we talked about, we probably we should have sent a follow up email with for both of them. What is his name? Russell? Yeah, okay with Russell. I'm gonna try to get better with names Russell and Carly. But I thought about that, like, literally, this morning saying, like, hey, it was great talking to you. We're exploring what we talked about. Can't wait to set up the next meeting, and just we should have some details that we can send over, like a so actually, what's really funny
+
+Speaker 1  22:17  
+is, okay, so this is a message that I sent to that I sent yesterday. I said, I said, a pm, I said, I take your time in this opportunity very seriously. I'm positioning. I'm positioning my team for the best, for the best outcome when we do our pitch and polishing things to the to the best of my ability. We're working on visuals, visuals for the for the pitch decks, my whole team is so to meet with you, and yeah, have a blessed week. So I just gave him an update of where we were. And, you know, we take that opportunity and want that. When I had that meeting. When we had the meeting with Russell, I sent a message on LinkedIn. I believe.
+
+Speaker 1  23:13  
+Okay, actually, it wasn't on LinkedIn. It probably was on iMessage. I do try to follow up.
+
+Unknown Speaker  23:29  
+Okay, yeah,
+
+Speaker 1  23:38  
+okay, but again, too. I want you to know that like these worlds, I'm very like I'm so very, very, very familiar with Operation New Hope, so very, very familiar, actually, with every nonprofit, I wouldn't say every nonprofit, but 80 to 95% of the nonprofits around Me, I've been used to go to almost every week in some shape, form or fashion, or we would see each other in a collaborative meeting or something, because the network is pretty tight. It's just, it's not, it's not cohesive, I guess. So I don't think we're gonna lose out on the opportunity because we didn't follow up. I know if you trust Carly and Carly,
+
+me  24:27  
+oh no, no, I don't think we're gonna lose the opportunity. I'm just saying, like, I think for this one we could be more like, No, we don't have to be as like Polish. But I'm just saying, like, going forward, like, we should not with them because, like, they're you have that connection with them. But say, if it's something like Salvation Army, we follow up through email. We say, like, hey, it was great chatting with you. Here's the deck that we went over. Oh, did I send you the deck? Yeah, and I was,
+
+Unknown Speaker  25:02  
+I was going to send him that same day.
+
+me  25:04  
+Oh, wait, don't, don't. Don't send any, any decks or anything. I wanted to go through them with everyone together, because I definitely have also made some changes. Because I don't, I don't know if you have the, the latest one,
+
+Speaker 1  25:24  
+okay, yeah, I just have the one that was in wording and no visuals. I was going to, I was reading it last night, trying to practice the first
+
+me  25:35  
+one, and oh, the like for the different types of people we would pitch to. Yeah, okay, yeah, that's good. I made. I'm working on the visuals for it, so that way it's all to it's all together, like we literally come, come in, share our screen, to go through the deck, and then that will have also pictures of the app, so it's like easier to demo.
+
+Speaker 1  26:07  
+Okay, off top off topic. But something I took this is on what Alejandro, oh, and I talked to Alejandro too, and he's fine with it. It makes sense. And just want to make sure that like he doesn't feel left out, just like as much as I want you to witness, like I want him in because I'm coming home. This man sent me. This man sent me about $4,000 total before, like, my first six, my first six months being out and not even on some I didn't even ask, really, it was just his, his sister is my girl, and the need was the need was a need. And he made sure that he came through with no questions asked. And I was like, damn, I got in my first car because my first two cars, he helped me get entirely, actually, and he helped me get the parts and the tools and stuff to do to, like, work on my cars. I was able to sell them. He's always looked out. This dude is like, 20. He's probably 19 or 20, but he has a really good head, like, a really good head on his shoulders. After he got his money. He's put his family in he's bought all of his brothers and sisters cars. He's brought he's bought houses, or two houses, yeah, for his family.
+
+me  27:32  
+I think, no, I think we'll still keep him on the team and make sure, like, eventually, like payroll and all that stuff. But I'm literally everything is just like, how can we position this the best way? So people have a lot of confidence, because once we get these pilots going, and we get these people in the app, and that's why I'm kind of pushing the app more than the pilot, because when I was talking to the my friend, who's an investor, he's just like, yeah, once you get some users and you're showing traction for like, six months to a year,
+
+Speaker 2  28:11  
+people will give you a couple of millions to keep it going.
+
+Speaker 2  28:22  
+You classroom, yeah, so that's what, like, that's what I'm talking about. I'm like, what do we need to say and what do we need to do? Like, if we can, as I'm saying, like, if we can get the app running so that it's someone, like, a nationally, then we can like that, not only for like revenue, but the amount of people
+
+Unknown Speaker  28:48  
+using it, and we can Get feedback from those, from those
+
+Unknown Speaker  29:01  
+people, then, like, we
+
+Speaker 2  29:11  
+we get like something like a Salvation Army, or maybe even two more like that, then
+
+me  29:19  
+Investors will be begging us to let us take their money. So that's the position I'm trying to get us in.
+
+Speaker 1  29:31  
+Of course, I'm down with that, and that's like when. So when we're talking to the manager of Salvation Army, and he was talking about all the things that they would need, the retail wise, like, that's why my like, position I was trying to position, or the position I was coming from was so struggling. Of like, okay, well, let's offer what we have to fit there.
+
+Unknown Speaker  29:55  
+Yeah, yeah,
+
+Speaker 1  29:59  
+that's what that's going to be that thing for us. Of course, Family Assistance is big, huge, retarded, huge. If we land them, we land for sure, at least seven, eight other nonprofits, just based on the strength of they pay for different programs and fiscal sponsor different program or organizations within San Bernardino. So if we become their operating tool, then their operate that's going to translate to those other organizations, maybe not entirely, but as far as like the way that they correspond through them, through their partnership with family assistance. That's why that network feature is super great too, because that could be the sole thing, even if they don't use it for that frontline, that frontline worker, whatever, that one or maybe seven or eight individuals out of every organization will have described just based on the fact that it keeps everybody connected.
+
+me  31:08  
+Yeah, no, I definitely think it the so that's a problem that most companies have, like every company I worked at, the biggest issue is like, how do we keep everyone up to date on what is currently the standard or the process or the direction, like everyone has like a different version of what they think is happening? So I'm telling you that solution alone would work for almost any company that's out there. So that's why I'm just like, No, that's actually super valuable, even if Salvation Army doesn't want it. I know companies that would. So that's a that's a good one. I know you wanted to get the barcode thing to work, because that would be like, a super easy win, but I don't know
+
+Speaker 1  32:05  
+it's I know, and I don't want to put apply pressure on that. Sorry, my might be like, on crazy things too. This morning, I was like, watching the news, and, no, I was scrolling through LinkedIn, and I seen that Elon Musk is coming out with x ai,
+
+me  32:31  
+oh, it's already, that's already a thing. It's not good. No, we should not use that,
+
+Speaker 1  32:38  
+okay, right? But all that did was, was trigger, like, my thinking about, like, how must kind of move around. I don't know him personally. I don't know him. I mean, of course, I don't know personally, but I don't study him. But I think Musk does have an individual to take over. He wants to take over whole, like, whole industries or whatever. And then I started thinking about, okay, what are going to be the things that are in five in 10 years with everything moving this fast? What are the going to be the things that actually continue to make money, the jobs that actually matter, because there's going to be a lot of jobs, like administrative jobs, or like education isn't going to become second isn't going to become like second hand, but people aren't going to be so worried, I don't think 1015, years from now, if you know how to, I mean, if you have a PhD or a doctorate in this or that, because there's going to be AI that, as long as you Know how to navigate that and understand, like, what you're what it is that you're doing, and looking at then it's going to be all good. So labor jobs are going to go up. Like, as far as like, the like, labor jobs are going to make more money. I feel like I could be very wrong, but it's going to be labor jobs, health care jobs, like anything to do with the medical field, to a certain extent, because a lot of that stuff can be automated too, and like goods and transportation. And then I started thinking, okay, what can we claim with just an idea for right now? This is stupid crazy, and maybe this is never be something that we can accomplish. But say we start building a system, that we start building the system and then patent it for something that we know is going to come in the future, right? I feel like very close in the future, there's going to be a lot more cars, driving, self driving. There's to be and once it goes from cars and it's going to go to busses and bigger transportation like trains and trains move goods. And what if there are systems that can, like, automate where, when the train stops and when it goes, and, like, how many people and stuff like that, I don't know. But if you build a system for, like, the railroad system using AI. That's crazy.
+
+me  35:27  
+See, I know, but, oh, wait, Richard, let me. Let me call you right back. I'm getting another call. Okay?
+
+Transcribed by https://otter.ai

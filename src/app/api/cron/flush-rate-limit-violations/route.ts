@@ -10,26 +10,23 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { flushViolationsToAudit } from '@/lib/rate-limit'
 import { createAuditLog } from '@/lib/audit/service'
+import { verifyCronRequest } from '@/lib/cron/verify'
 
 export const dynamic = 'force-dynamic'
 
 export async function GET(request: NextRequest) {
-  // Verify cron secret
-  const authHeader = request.headers.get('authorization')
-  const cronSecret = process.env.CRON_SECRET
+  // Verify cron secret with timing-safe comparison
+  const verification = verifyCronRequest(request)
 
-  if (!cronSecret) {
-    console.warn('[RateLimit Cron] CRON_SECRET not configured')
+  if (!verification.verified) {
+    const statusCode = verification.reason === 'missing_secret' ? 500 : 401
+    const message =
+      verification.reason === 'missing_secret'
+        ? 'Cron secret not configured'
+        : 'Unauthorized'
     return NextResponse.json(
-      { error: 'Cron secret not configured' },
-      { status: 500 }
-    )
-  }
-
-  if (authHeader !== `Bearer ${cronSecret}`) {
-    return NextResponse.json(
-      { error: 'Unauthorized' },
-      { status: 401 }
+      { error: message },
+      { status: statusCode }
     )
   }
 

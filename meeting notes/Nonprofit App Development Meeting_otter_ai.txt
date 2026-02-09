@@ -1,0 +1,520 @@
+me  0:00  
+Um, for every portal or account or for every profile, okay, so only case managers would need a phone number. Okay? Then that cuts the cost like way down, because I was under the impression that at some point other people would be calling clients too. But if that's the case, the numbers are slightly higher than they should be off the thing that I showed you. So there you go.
+
+Unknown Speaker  0:27  
+Okay, because look, even with that, I wasn't even concerned.
+
+me  0:30  
+Yeah, it's not bad. I wasn't
+
+Speaker 1  0:32  
+concerned with the costs, because I already got, I kind of got engaged from people using these apps already, like I'm very well interconnected with people who are in the nonprofit world. I work in a nonprofit world. So one of my colleagues, I could say, I don't know he was my case manager at one point, but he's a colleague now. He had told me about csrn and an apricot, and then charging like 150 per and how 150 for the programmer for the service, and even $200 for another service that's not being used internally in every component, but they were so quick to jump on some new software that was going to be used for save time, and I'll have he's really close Connect. He's really closely connected to those people who made that decision for that So, and that's just not, that's, that's not the only connection, you know, like he goes deeper than that. So I feel like getting this just getting this
+
+Unknown Speaker  1:42  
+creative, the numbers are not going to matter,
+
+Unknown Speaker  1:46  
+okay? Because I'm not. Yeah, the
+
+Speaker 1  1:50  
+this could be, if built right, it definitely could be the staple or used for casement or nonprofits that run like this or that are structured in this way, where they have programmatic managers, where they have teams that do outreach, I want it to be you useful in every aspect, and not just the aspect of being able to make calls and having that track, tracking the data and client interaction, but from that, from those group sessions, When they run, when they have curriculum, when nonprofits have curriculum that they can provide as a service, things of that nature, counseling, one on one sessions, like even if those are just appointment check ins, you have your you have your peer support that you're doing Your one on one sessions, and the information that sensitive information, whatever you guys are sharing, stories or whatever you counseling, not sensitive information. So that may not be needed to be documented, but just the fact that they checked in whatever notes and then whatever, but it's functionable for even a peers, a one on one interaction in person.
+
+me  2:59  
+Okay, no, I think that makes sense. And let me see, because I was mapping out like how to build this, like the features for it, and let me see,
+
+me  3:22  
+like I just Yeah, it's good when you can find stuff like this, because it just makes it a lot easier for you to just own what you have. Like I think that's something that I've learned is so important. You can learn the craft from the space that you're in, but once you have something that you can own, that's when you can really take off.
+
+me  3:57  
+Where do my notes go? I'm working on like two other projects, so my I keep switching between both notes. Oh, here it is.
+
+Speaker 1  4:10  
+There was something I wanted to touch base. So all those documents that I sent you about, they came from literally this band of time, like those are all the documents over the time. So some of them have the app structure out, maybe just a little bit different or different, some of the same information from different perspectives, or some things that have changed, like having the need there was one where I had the concept of the app, where there was a client portal. At first it was, I thought it was a good idea, but then I thought about how expensive that would make it one the chances of a person outside of the structure of the nonprofit or the client, the like. Likelihood of them downloading the app in order to interact with their one case manager or one you know, it's not likely at all having that VoIP system. And, you know, a messaging, a messaging function where it's it's already transcribing all conversations, so it's still taking that same information, whether it's a text, it's a call, and there's no need for the client to have a portal. Their communication is always being tried.
+
+me  5:30  
+Okay, okay, so they don't need okay. So I think that, um, I think that's good. I think that actually answered one of my questions, because I was just like, Oh, I was looking at it. I'm just like, I don't think, like, if we do this, it'll be easier for everything that we do with the clients just to send emails as to document versus having a place for them to land right away. And I think that's fine. We limited who has access to like the phone numbers, just case managers. How many case managers do you think would be under like one nonprofit, for instance, our nonprofit, we have,
+
+Speaker 1  6:22  
+I could say about we fluctuated from having like, six to seven to now four or five, okay. And then they also do different things too. Sometimes, sometimes we'll have somebody from a whole different program, fill in for an individual, do some work as a case manager for them, but they don't do any case management work on others. They do like they go into the schools to give you a lot of the facilitation of classes, but they'll fill in as a case manager. So it really just depends on what grants we have what they entail, but I'll say about six or seven. But for bigger nonprofits, we're small. We are like a small but mighty nonprofit. We got offices in different places, and we touch everywhere, but we also our outreach team, where we do those one on ones or out like Fallout, isn't it's not
+
+me  7:29  
+that big. Okay, so, okay, that makes things a little bit more manageable. Because the other thing I was thinking is where the price starts to jump up is for each case manager, they would have their own phone number, and that's where the pricing starts to go up. And so I was thinking like, Okay, if there might be a way for us to have, like, one phone number per organization, and then, like, the case managers, just like, can cycle and reuse that same number. So I'll, yeah, I'll play around to see, like, what are the options to make it the most cost efficient? Because I think that is an option. But worst case scenario, every case manager would have to have a number, but then that would just, we would just have to tie that into the pricing for the organization. So the more cost to build it is, the higher the price is going to go up for the nonprofits, so that you can have good margins. That that's what you really want to focus on, also
+
+Unknown Speaker  8:42  
+for with,
+
+Speaker 1  8:49  
+okay, so, yeah, them having a number that they cycle through. I was thinking like, we can also have like prices. It's called seats, like one, so one nonprofit versus media, small size nonprofit, it'll be like this many case manager accounts, this many admin accounts, this many, whatever the case may be, and they just have that set, set amount, and then they cycle through that.
+
+me  9:18  
+Yeah, yeah. I think that's the best way to do it, especially with nonprofits, because if you're talking about bigger companies, they have more money and they're willing to pay more. But bulking that, I think that's good. And then so we talked about the phone number. I uh oh. The other thing is, like, no, go ahead.
+
+Speaker 1  9:47  
+You had said something about like, the contact me from a client to a case manager, like via email. One thing I know for a fact from live experience is that that's. Number. If we base this off of or we try to shine a light on things or ways of going about things that already aren't effective, like emails and stuff, then I don't think it's going to grab as much of attention, because we are, like, as a case manager, I know 80% of my contact is going to if I initiate contact in person after that, 80% of it is going to be 80 to 90% of it's going to leave me a phone, text or call. So that's why I was I really want to highlight that. I want to highlight that problem, and then that solution with the, you know, tracking of the messaging and then tracking of the calls. So that was all those interactions are still being caught. Are still being because anytime you're in, anytime you have an interaction with a client, it's important data to capture.
+
+me  10:57  
+Yeah, okay, so if email doesn't get checked often, which doesn't get checked often in lots of different spaces, text is definitely the best way to do it. So it might make more sense, because when you start talking about sending text messages, that cost is not that bad. I think it's like 50 bucks a month for like, 200 300 texts. I'll look at the numbers for sure, because if it's just like so what could happen is say we build, like, a very simple portal for the clients, right? It could literally just be you get a notification that you got a message from your case manager, and that's all it is. And you can click it, and it takes you to the message, and then you can respond in there. So it's just like, just chat, and we make sure that it's secure. That is one way we can get around sending a lot of texts. Or we could just send a text that's like, Hey, you got a notification. Check the portal to see what your case manager said. That could be a way around it. Or we could just, even if we don't want to have the portal at all, we can send everything via text. I think the only time it gets a little questionable around that is if there's any personal information that is sent in text, I think they would want to have it being being in a secure portal. So that's the only that's the only thing that I could think of would push you to want to have a portal and just use text to notify people to go check the portal.
+
+Speaker 1  12:47  
+Well, what if, on the receipt, what if the receiving end for any messages is that secure? Once it comes in, it's secure. If they're sending that message, they're sending that message, they're liable for whatever they do or sin, we can only respond to or we can't. We can't respond to anything that's, you know, obviously sexual, anything that's this, this or that, and that'll be tracked from whatever content was being sinned. And then I can let those, those can, those flies can be raised. Okay?
+
+me  13:19  
+So do you think that having the full conversation text base would be better, or do you think having the Portal would be better with the chat?
+
+Speaker 1  13:30  
+I feel like having the portal with the well, not I feel like having a text base would be the best. But again, if it's cost, I just I kind of want to throw everything at it, like everything that I know works from my from my perspective, from my work environment. I want to throw all of that at it, because I'm building this from a case manager perspective, with all the insight gathering from all the other components of this organization.
+
+me  14:02  
+I don't think building the chat would be that hard. Just put it on like the last thing I would would build, because we need all those other pieces in order to get to the chat anyway. So I think it's fine. So that makes sense to me. Oh, then the other thing I had was about the forms that you that the nonprofits like. So we're taking the transcripts and throwing it into the forms, right? But every nonprofit probably has, like, different types of forms. So we want to make it flexible. And so I had written down that I was just going to make it that the nonprofits can create their forms, like whatever their input they want to capture. It's in there. Maybe there is some set of information that. That you want every nonprofit to track, because it's going to be important for us to track success of the app and to get, like, the numbers and data like that. So I'm just going to make it flexible, knowing that there's going to be some forms that are going to be required, and then, like, we could define those later. We don't have to have those up front. And then, let's see. So the forms that's fine, confirm that it's flexible. And then there was something else that I like when I was making the text bike. Oh. I was saying, like, from the surveys, I think one of the things that, oh, you're hungry, one of the things that I have questions about is the price, like, you should definitely verify, is the pricing. So, like, if you, I don't know if you're able to do this on Google Forms, because I know that's how you did the survey. If you are talking sending the survey to someone who is someone who's approved surprising or by does the purchasing for an organization, you would ask them, Hey, if you got this product that had x all the features we talked about, what is the price range you would be willing to pay for this? And then you can, like, some of the stuff that I listed off, you could put it there for pricing and see, like, where people fall, because, like you said apricot, that's like 141, 50, all the nonprofit platforms and subscriptions that I've seen has been lowest, like $50 and it was like a throwaway product. But I've seen stuff charge 234, $100 a month just to have access to, like, donor management systems and things like that. Those are really important. So you have the ability to, like, really up the price. You just want to see how much you can up it. So having a question in there that says, like, what are you willing to pay for a product like this? But you just want to make sure the people who are answering that question? Are people who actually sign off on buying new products? Yeah, so I'm
+
+Unknown Speaker  17:27  
+getting ready. Once I get back to work, this is tomorrow. The founder of my CEO, my nonprofit, he knows nothing
+
+Speaker 1  17:41  
+but the work that I'm doing. I've been building this, like, internally the entire time, and I kind of just hinted at, like, you know, I've been working on something, and he told me to send it over during the weekend, but I've been working. I kind of wanted to get the website up and looking better before I get sent it out, but I'm going to bring it to him tomorrow. But I know you can give me, give me a lot of those people to make that connection with,
+
+me  18:11  
+okay, okay, then that's good. So that that's what I would if I were you, I would actually send the survey to them first and then for case managers, because you have that experience, I would just have them test out. Or actually, do you know, like, use it, what usability testing? Tests are based off
+
+Unknown Speaker  18:38  
+the time, like, the ease of the ease
+
+me  18:41  
+of use? Yeah. So you know how the developer you were working with sent you those screens, and you had to figure out how it worked. So basically, that's what you would do. So you would go to a whole bunch of case managers, show them the platform, and ask them to just complete a task of like, try to run through getting information from a client. You wouldn't tell them what to click. You wouldn't tell them how to navigate the app. You would see if we built something where they knew how to navigate it on their own, and as they're navigating through it, they'll give you feedback or like, Oh, I didn't know I had to press this button to get this that doesn't make sense. So that way we know what to go back and fix for the app. So I think for the survey, for the initial validation, like, is this something people would buy? Send that to people who would actually sign off on budgets and say, like, what should what tech organization should use? That's because the survey, and then once we get that information, that'll help us, like, clarify how to build things. And then once we build it, we'll put in front of case managers, and we'll say, like, Hey, did we build this? Right? Is there anything we need to update for this? And they would verify that for us. And so I think that's the different ways that we can go through and kind of just test. This very quickly,
+
+Speaker 2  20:02  
+okay, okay, I just, I don't know, I love hearing it come from you too, because it's like, dang, you really know everything
+
+me  20:15  
+about everything. No, I've been doing this, surprisingly, for over 10 years. Like I said, I started when I was like, literally, 2021, I remember, for my 21st birthday, I was like, never mind. Anyway, I was like, drunk at work, and I worked at a startup. But, yeah,
+
+Speaker 1  20:42  
+yeah, that's absolutely crazy. I had ended up working at a animatronic engineering company. I got the job as an intern at 17, and then I got hired on, yeah, at 17, I think, the end of summer, and was working there for a year, until, like, I got locked up and arrested. I lost my job. To being incarcerated, I could have still had the job, but it was really dope. Like, I don't know. I just know I wanted to get into the
+
+me  21:13  
+tech field. You could still do it. Like most of the tech jobs don't even do background checks. And so I always tell people, if you got a record tech, is low key, a really good place for you to work, because they don't, they don't like I've worked at a online pharmacy, so, like, when I would go to work inside of my job, they had, like, Little medication it looked like the inside of a Walgreens, the pharmacy part, and they never gave me a background check. I'm like, I could be a drug dealer, and you got me working in a building with like, medication, like, I could literally just walk across and I'm standing in the middle of all these pills. Like, tech doesn't make sense. Like it, there's a lot of money flowing into it, and there's not a lot of checks and balances, to the point where I'm just like, this is a this isn't good, but whatever.
+
+Unknown Speaker  22:15  
+Yeah, it's a crazy
+
+Speaker 1  22:17  
+it's a crazy thing. I think I found I feel like with this, and the work that I already do is super rewarding. I know the work that I do wasn't isn't going to pay like for my future, for sure, but finding something within the field that I aspire to be in and then work within the that works within the world that I learned to like, love, actually, it makes it like, worth it. Really, yeah, really worth it. So I'm I'm not opposed to getting deeper into tech. I know that's going to happen just naturally from being within this world. Creating this app is going to have me around people and places that are also in this type world. So I'm going to learn on it, just learn it by proximity. But I do see myself investing more time into it, but just not yet. I want to get this out there.
+
+me  23:21  
+Yeah, you're already, you're already in it, whether you know it or not, just by being here. Sin, okay, so I'm trying to sign into the Wix again. I don't know if I can share my screen. It says, verify it's you.
+
+Speaker 1  23:52  
+Okay, okay, so just Okay. There it goes. I
+
+me  24:11  
+so it's probably this one.
+
+me  24:22  
+I'm Are you already paying for Wix? Yeah, okay. I'm like, I could have probably saved you, I don't know, maybe 20 bucks a month, and just built you a landing page myself, and you just pay for the domain.
+
+Speaker 1  24:43  
+I paid for the year subscription, and I think I still might have time to refund it. I have this is a part of moving a lot faster than what I was well, not even moving a lot faster. I had to go to get to this funders make sure I needed to have a website up. So that's why I paid for it. I didn't have the connections that I. Needed, or I didn't make those connections that I needed in time for this opportunity when it came. So I get a landing page. Definitely another note too. I actually just invested in getting I have. My brother has a friend that lives in issyria, and he does website design and all of that. And he's charging me for, he's charging me $500 to get it professionally done. He sent me some work, but he's going to do that on his own domain, on another thing. So eventually I'm going to, eventually I'm going to take that and switch over, either switch over or have this switched over to his domain. But I would that's what I was saying. Like you don't have to put a lot of work into getting this looking professional or whatever. I do want it to look better than what it does now, but if building out this app is going to take more time than just, hold on, Bobby's right now,
+
+me  26:13  
+don't tell him. I'm talking to you.
+
+Unknown Speaker  26:17  
+All right. Hello, where's
+
+Speaker 1  26:21  
+the word brother? I trying to figure out this little dude. I got, I got the Fund for the website. Paid for that, but now I'm getting, I'm waiting on getting the rest of the money together for another, for a friend
+
+Unknown Speaker  26:42  
+of mine to do the app
+
+Speaker 1  26:47  
+website designer? No, she's gonna help me with the she's gonna help me stretch throughout the app site design. But I'm gonna stop it up with you in a minute. 3045, minutes, you and just got these glasses.
+
+Speaker 2  27:16  
+Now, okay, okay, my bad, he ain't up there yet.
+
+Speaker 1  27:28  
+Yeah, some of us still rocking that too. Man, just give me like 12 more minutes.
+
+Unknown Speaker  27:37  
+Alright? Hello,
+
+Unknown Speaker  27:47  
+yeah, it's okay. I was already I wouldn't I wouldn't
+
+me  27:56  
+even picked up. No, no, it's fine. But Bobby always I ignore his calls a lot, and then he gets mad if he finds out I'm talking to somebody else. I completely understand.
+
+me  28:17  
+I just feel like Bobby always calls, like, right when I'm going into like, a work call or something, and then by the end of the work call, I forget, and it'd be like, three months later I call him back, like, oh, yeah, you called me. That's how
+
+Unknown Speaker  28:33  
+it is with our family in general. Yeah, that's how that's how it is.
+
+me  28:41  
+That's crazy because, yeah, yeah, yeah, no, I feel like I'm still getting used to having so many siblings to talk to, because growing up, I only had two. So I guess so. Were your
+
+me  29:09  
+mom like, friends with our mom? No, you know what's so crazy? Like, our mom went to call to report, like, while she was pregnant with me, she went to, like, the doctors or something, and they were being mean to her for being pregnant again. And so she went to a call to report them. And at the time, like my mom, like my adopted mom, was like the head something of some healthcare company, like insurance company, and she was the one who picked up our mom's call to report them. And like, my mom was saying, like, Oh, don't feel bad about being pregnant. She said that. My mom was saying that she wanted to have so many kids, but couldn't. And like, was in the process of trying to adopt. She wanted more kids, so bad. Just trying to. Make her mom feel better about the whole situation. And it was just telling her, like, she like, how much of a blessing it is, and all this other stuff. And then made sure that those people got reprimanded. And then, like, months later, our mom was trying to get in contact with my mom again to say, like, Hey, would you adopt my kid. I can't do it for whatever reason. And my mom said yes. And like, my mom was living out in LA and our mom was in San Bernardino, and she would go, my mom would go back and forth to, like, meet her, and like, meet the family and everything before I was born. And they became friends that way, but they didn't. They were strangers. So and
+
+Speaker 1  30:45  
+that's like, Thank you, because the way my mom and my sister and my
+
+Speaker 1  30:59  
+brother have put it, not that it's anything against my mom at all, but she was just like, they were just like, oh, like, what we heard was that they were friends, and she just was like, basically, I was too much like, they were friends, longtime friends, and like, there shouldn't have been any reason why. Like, you didn't know what happened, or 25 or whatever the case may be, because they were friends. And that just was confusing for me, because I'm like, Yeah, they were friends.
+
+me  31:33  
+Then how? Yeah, no, they became friends, and they became very close. And like, there would be times that, like our mom would call my mom and they would just talk, and it was pretty frequent, like it was never, no secret, no nothing like I knew when she had leela, I knew when she had you and your brother, like I knew she got married, like I knew all of these milestones in her life. And then, like, because she would call and tell us she would call and talk to us, but then, like, we just stopped getting phone calls, and we just thought, like, oh, maybe she moved, maybe she lost her number. Like, we didn't know what happened. So we just like, you know, let it be Yeah. And so we're just like, okay, like, you know, maybe something happened. She grew up. Things change. But yeah, like, it was just weird. But we, like, when I got back in contact with everyone, apparently our mom was the only one who had my mom's number. So when she passed, no one knew how to get in contact with me. My dad was supposed to know, but clearly he didn't. And so that that's what happened. So it was just strange,
+
+Unknown Speaker  32:56  
+crazy world, yeah,
+
+me  32:59  
+but yeah, like I knew about everyone, like I knew when you were born, I knew, like, all that stuff, like she
+
+Speaker 1  33:05  
+told us, do you know if they were married before I was born or after? I think it was before. I don't know,
+
+me  33:17  
+because I remember her calling saying that she found someone new when she met your dad, and that thing seemed good, and then I remember her sending pictures of the wedding, or maybe talking about the wedding, and then she sent pictures of you too. But it was just like, she told us, like, months later. So I don't know. There has to be a way to for us to, like, look up, to find marriage records. You tried it.
+
+Unknown Speaker  33:58  
+So did I ever send you the story?
+
+Speaker 2  34:03  
+I'm so sorry, that's my ADHD. I'll try to tell you. Promise this is real truth, not fake one.
+
+Speaker 1  34:13  
+Yeah, like stumbling upon the story itself was like mind blowing, because I've always heard like here and there, like other people have seen it, other people have heard it, other people have read it, other people watched it, you know, like on TV or in the newspaper, and it was never anything that I could Ever find actual proof of having existed, except for literally, gravestones and not ever my dad's either. I found, I found my first picture of my dad's gravestone, everything, everything really is my first time getting information. Ever since I came home like I got. Yeah, it started when I was locked up, like, my last couple of years being down, I started reaching out more and, like, reconnecting with people. And I got, like, the pictures of the wedding, some some pictures of him at the wedding. I didn't get, like, a lot of pictures of the wedding. And it wasn't even, our like our parents wedding. It was my sister Cambridge and her mom's wedding with our father. With my father, our Father, it's a lot of it's a lot of this and that and this and this and that stuff. But yeah, that was when I see my first pictures of him. I've only ever had one picture of our mom, and it was always like it was just this rainy photo of her sitting on a couch, and it was like a Miller, like beer can or something. And it was like, not the best picture to have of her, but I've only ever had that picture of her for, like, since I was like we did, and I know there were, I've seen other pictures. I've probably seen like, three or four other pictures outside of that one when I was with like, nothing. Sadia will go over there and she'll, like, bring us to the side or something. But that's just it. I've never really, you know, got a lot of information until I came home, and then when I came home, and that's like with the searching online and all that stuff like I have, I pass subscriptions to the sun, news, all these different newspapers, articles I've been to the to the library, told you I like searched a little monochrome, the micro, whatever I've done all of that, and I could never find anything ever. And one day I was at work, like a few months ago, maybe like six months ago. And this is why I'm in the process of building all this stuff, all this stuff coming home just, you know, I kind of want everything in life. I kind of want to know more about everything, even within myself. So that was a part of my journey. Like, since I've been home, I've filed to get my adoption records on Sue so I can get my original birth certificate so I can get my citizenship in Ghana. That's been a journey, like, it's been a journey. I've had to get stuff certified by the state, send it up to Sacramento, all type of stuff. And I'm not even done, like, I still I got all of those copies. I have to get notarized now, because I sent it up and they sent it back. Now, really, yeah, because it wasn't notarized, and unfortunately, I don't even know where I put that paper, those those forms, but by the public, again, it's part of the process. But yeah, I came across the News, the news article because I got a notification from the Sun News from a subscription, and I was just reading the newspaper in the car, in the company vehicle, and I was, I scrolled all the way to the bottom, and it said, like, call newsroom, and they're inquired and whatever, all the little redirecting links. And I was like, all this time, what I haven't done is tried to call the newsroom. So I bought and I had to ask if they had any records from 2003 and the lady immediately was like, No, I'm sorry. We're not like, 9000 we're not going to have it because we didn't start, like, filing beans or storing them a certain way until 2005 or seven or something along those lines, like, just have to cut us. And she was like. I was just like, alright, well, it's all good. And she was like, Well, what is it like if you give me a name or something? I was just about to give up. And I was like, Oh, well, you can look up Richard Jones, Valerie buzz, Newell Butler, January. And then I she was like, Okay, anything specific? I said, Well, it's like a murder, homicide, suicide, whatever case may be. And then she was like, okay. Then she asked for my name, and she said, and I said, Richard Jones. She was kind of like, okay. And then she went into her job. Two hours later, she had called me back, and then she asked her to run. She was like, oh my god, I'm sorry. And I was like, Oh no, I'm thinking. She's like, didn't find it because all the stuff I've been through to look for it, ancestry, all of this stuff, and death records.org, all that stuff marriage. She was like, No. Like, I'm sorry. What happened to your family? Like, you're you said your name is Richard, right? Like, you're that the two year old in the story. And I was like, yeah. She was like, I'm happy I found this for you. And I was like, No, it's cool. Like, that's crazy. She said, right over to the email. I was like, damn. But it was the first time I ever like one thing for sure, when you read the story like you can only have ever heard it from somebody telling the story to you from what they heard. So they can't ever paint the picture of what they see on the scene. This is kind of, I never thought about it looking or being anything like that. Stories to the same it's just now it got colored.
+
+me  40:32  
+Yeah. How do you feel about all of it?
+
+Speaker 1  40:42  
+How I feel about it now is like I just feel blessed, really blessed. Like that could have been one. I could be a completely different person, not to make it about myself, but I could be definitely completely different person. My dad could have definitely been on some super hiatus, like he was already triggering whatever, like whatever triggered that day was whatever. You know, it was terrible, but it could have been a lot worse, and, like a lot more of us, could not be here.
+
+me  41:16  
+Yeah, that's kind of how I see it too. Like it doesn't make sense why I was the only one that was adopted at the time. But then, like, hearing a story, and when I was younger, I was sick a lot, so I was at home for, like, I miss a lot of school, so I'm like, I could have been home that day too. So who knows why things happen the way that they did, right? But, yeah, I think it's, I think my perspective has always been so strange, because I was always kind of, like, detached from everyone just being adopted so early, and then, like, hearing what happened. Like, I think it took me probably, like, a year, so to, like, really, like, understand, like, what happened? Like they told me. And I feel like I just, like, blocked it out for a bit, and I'm just like, okay, at some point I'm gonna have to process this. But yeah, at the end of it, I just feel like you're saying, like, it's like an this is a bait the best scenario for one of the worst cases a family can go through, right? Because at the end of it, our siblings that are here mostly Okay. Everyone got their problems, their quirks, but they're mostly okay. Yeah.
+
+Speaker 1  42:40  
+Like it took, we got pretty we got to have, like, some resilient genes, like some smart and resilient genes, because it definitely, like, I've had issues with my identity. Like, these are things that I know I can't I can label now from looking back on myself, but being younger, like not understanding what it what my issue was, was crazy, because I didn't feel like I had an issue. And, yeah, it was very everything was pretty much just like I was looking through blinders, and I was really blaming myself and blame like I was internalizing a lot of things, but yeah, like I had to transition a lot, because from the outside looking in, I feel like everybody thought, definitely thought I was okay, because
+
+me  43:37  
+you're doing good. I remember when I got back in contact with everyone, I think I for some reason, identifying you or your brother on Facebook, but for some reason, I found an article about you, and I'm just like, Oh, you're doing real good. Like, this is great. And then the next thing I know, Bobby's calling me frustrated, saying that you got you went to jail. I'm like, No, that can't be like, you'll figure it out, like you'll get back on your feet. Because I remember reading all the stuff you did in the article and stuff and you did, you figured it out, you got back on your feet. You're doing good, so you're right about the resilient part.
+
+Speaker 1  44:20  
+Yeah, for sure, I'm just hoping to stay this way. I'm not even hoping like I feel like there's nothing at this point, like I feel safe as weird to feel like this app makes me feel a little bit safe, because I feel like I built, I built this, and it has it's going to have some type of significance. It's going to be meaningful, not just to me, but to like other people. Like, it's gonna ease, it's gonna be something that's gonna be useful so, and a part of being grateful, like, somebody's gonna buy this just because we made it
+
+me  44:56  
+Yeah, and then, like, I think the. I've never leaned into that part of my story, like but it seems like you're a little bit more okay with okay with talking about it. And I think in the nonprofit world, that works a bit more than like me just working in pure tech. And I think that's also I don't know, because Trump is still president, so they don't like nobody for nothing. So who knows? But no, I think like your story, what you're you're saying, like what you're building, it's good. I think the other thing about safety, it may be just that you're trying to find some way to create something that's stable and that you have control over, and that it will help you move forward. Because it seems like that was missed.
+
+Unknown Speaker  45:58  
+Yeah, yeah, yeah. That's crazy. Got got brains up there.
+
+me  46:08  
+I went to school for psychology and art, and I wanted to be an art therapist, so my brain is always on, like, psychology. I just couldn't afford grad school, and I got, like, really upset and like, I learned how to code to be able to afford grad school, and then realize I make more money working in tech than going into psychology. So yeah, so I want to show you my first
+
+Speaker 1  46:39  
+time, believe it or not, I probably promise I would not make no visa, because I would not like, I've dibbled and dabbled in drawing. But just like any other kid would like, I've dibbled and dabbled dabbled in drawing, I outlined, I traced some things. And probably the most extensive experience this is,
+
+Unknown Speaker  46:56  
+this is my latest art you
+
+Unknown Speaker  47:10  
+it right? Like I don't have, I
+
+Speaker 1  47:13  
+don't have skills. This is I don't have skills at all whatsoever, right? I just started. We're doing a sibling, and it's been a long time since I've drawn, and I really, I don't got an artistic feel, but I'm talented, so crazy talented, and I don't know how to watch so my first time ever doing portraits like I can draw portraits crazy, and my first time ever doing a portrait is nuts. It's nuts. It's not It's nuts. And then I drew a portrait of my girl, and I was the second time, and that's the only two times I've ever drawn. And I just don't know where it came from. And then you're like, I went psychology, the 48 Laws of Power, artist production, the law of human nature. Robert, Robert greens, all his books, the outwitting, the devil, all that stuff like I got so in, like compassed in psychology, and the way the mind works, and all that stuff. And it just was,
+
+Unknown Speaker  48:25  
+that's, I love, that I wanted to go to school for psychology too. But I don't know I found my thing. I think
+
+me  48:35  
+I found it. I don't think I gotta work that hard on the floor. I think it's
+
+Unknown Speaker  48:39  
+fine, yeah, you got it? No, I think
+
+me  48:42  
+it's I Yeah, because Todd can draw too, and I didn't even know that, yeah, Todd can draw. I don't make art that much anymore, but I used to, and I didn't know I could draw either. It's literally one day. So I a teacher gave us a, I think it was in high school, and she's like, draw this. And she's like, Oh, wait, you actually know how to draw. Why have you been drawing stick figures? I'm like, Oh, I didn't know I could draw right?
+
+Unknown Speaker  49:12  
+Like, I cut hair and everything. But the drawing thing, it just blew my mind. Mind. It was astonishing, because I was like, I didn't even know my fingers could do this. Okay, so here it is.
+
+me  49:35  
+Let me see. Oh, man, okay, no one's been been mean to you or your brother or nothing weird like that, because of, like, what happened between our mom and your dad, right?
+
+Unknown Speaker  49:49  
+That's a weird way. No one tells me, like, I put thought into that.
+
+Speaker 1  49:57  
+But again, we're kids. So nobody's gonna directly be like, I don't or this or that, or Yeah, but definitely I've again, but I could definitely have just been internalizing that, like I I just changed my name on Instagram to my my to Richard, out Richard Albert or Richard Jones Jr. Whatever the case may be, those awards, have Richard Jones Jr on it? I didn't. I had a personality issue. I didn't like being called Richard. I didn't like being called, like, by my name in general, like, I hated it like 110% so I also felt like any comparison of me to my father was a slight or like kind of, you know, even with my mom, like my adopted mom, like she's she said some like crazy stuff To me before, but she's a crazy woman as well. Like, I don't
+
+me  51:08  
+fault her for all the swear coming. Yeah, they should definitely do some mental health checks on people who want to adopt, because, you know, if I'm going to have the trauma of being adopted, I might as well go to a family that's a little bit more balanced or rich, either one like we figure
+
+Unknown Speaker  51:31  
+this out. Crazier prediction,
+
+Speaker 1  51:40  
+I'm trying to figure out how to say photo. Here we go. Now save my channel, and now I can send it to this individual so I can put it on screen and make it
+
+Speaker 1  51:58  
+and then what trips me out about tech so much now it's like I used to really be so immersed in it, to where I was following all of the iOS updates I was preparing iPhone like my dream was to work for Apple or Google, and like I wanted that, but I think I found what I wanted to do. It wasn't really coding because I got into c plus, but into Python, into Java, I got into the block coding and all that. And I just, like, just gave me brain spat.
+
+me  52:34  
+Well, did you were you learning it in college? No, I was learning all this on my own, on your own, okay? Does that say way they teach it in college is not how it really is.
+
+Speaker 1  52:48  
+Present something else allows for you
+
+Unknown Speaker  52:54  
+to share window. All right, open
+
+Unknown Speaker  52:59  
+this, share this screen. This isn't much, right?
+
+me  53:04  
+No, what? No, that's amazing. You did that,
+
+Speaker 1  53:07  
+yeah, but this part, that's not even that's my first time. And now I did that in prison, and I was like, maybe a month before I got released, because I was just so bored and wanted time to pass. I'll show you what I did for my what I did for
+
+Unknown Speaker  53:27  
+my girl. I just got to go.
+
+me  53:41  
+But that's good, I think. Like when I heard this story, the first thing I was concerned about is like, how the family would treat you too. And like I would ask people like about you, and just to see what they would say. I never heard nobody say anything bad. They always knew where you and your brother were or how you were doing. So it seems like everybody's been pretty much okay. But then again, like, you never really know you know, yeah, like, I never was
+
+Speaker 1  54:19  
+treated bad by anybody, stuff that stuff that also, like, put me off, that like, was off putting is that we are those kids, though, like no matter what, we are those kids. So when we go to places, family settings and all that, like one no matter what, we always have a disconnect with what's really going on, because we're not connected to the valley. So then we're we miss out on all those little those moments, social cues, those internal cues, and all that stuff, like we're not, we're not meeting that.
+
+me  54:57  
+That could I feel the same way? And what I do is like, I literally just talked to Bobby Todd and leela, because those are the people that I'm close to everybody else. It's just like, they're not they're not mean, they're not, like, trying to not be close to me, but it's just I literally don't talk to them. And even with, like, some of our aunts and our uncle, they always asked me to come by for family stuff, and I I went once or twice, and I'm like, this shits weird. Like, I don't know you fucking people, and you're adults. Like, I don't need to know. Like, so I
+
+Speaker 1  55:40  
+last the last time, please don't tell me I have not been note taking
+
+me  55:51  
+this entire time. It's okay. I take, I take notes.
+
+Unknown Speaker  55:58  
+Oh, it's okay.
+
+Speaker 1  56:04  
+So especially because we're talking about this, like, I do want to, I did want to take note of, like, this type of conversation. I can't find the full version of what I finished for my girl, but I found a portion. But, yeah, the last time I had interacted with well, specifically uncle re it was like three days after I got that newsletter. You it was like
+
+Speaker 1  56:56  
+three days after that, there was a red Corvette parked in the front of the house, a red Corvette, a gold Corvette, and a red minivan.
+
+Unknown Speaker  57:06  
+Sorry, that's the that's one
+
+Speaker 1  57:09  
+article that's by the news, that's by enterprise, and then this is the one that the sun I sample, Well design sample, but we've never really had the
+
+Speaker 1  57:35  
+fastest we never really had the thoughts, like, anything that was left behind. We never thought to ask, like, if there was anything for any anything what? Because, I guess we're not ever around, that's how they're founding for them to talk about that type of stuff. But even when we were they never brought anything up, like, really, yeah, they never brought anything up about their possessions or what they owned, or what they really, what they did for a living, or anything like that. Like, I've only ever known my mom for her name and the fact that she was our mom, and that she had us and she was a great person, and that she passed away because our dad and our you know. So that's all,
+
+Unknown Speaker  58:25  
+dang girl, you did go
+
+Speaker 1  58:34  
+forever. Oh yeah, they're dropping them off, okay, but yeah, like, they just never brought up anything about their possessions. So I was very curious about, like, okay, my dad had a red Corvette. I mean, adult Corvette. Like, that's probably, that's pretty, I never seen that. What are y'all driving the Corvette?
+
+Speaker 2  59:00  
+Like, it wasn't so regular. So delete. It's not cool. We're sad. Like, where the record
+
+Speaker 1  59:09  
+and my goal, my goal in asking them, was literally just that. Like, Well, what happened? What just to get some clarity on that, like, what happened to all the possessions? Like, what happened to the stuff that could be, that could be, that could have been left behind that was meaningful, you know, like we don't have anything except for a name and an address to go to to visit them. Like we don't, none of us have anything, and it was so long ago, like pictures aren't readily accessible for everyone. Videos aren't something that's even there, like present, so to have nothing to be like, Yeah, this was my mom and this is my dad, or this is what, you know, like, they work for whatever the case may be. Like, it was very interesting. It was just a really like reading. I. I read the story like six times this, like six times before it really my girl read it to me. She read it back to me, and when she got to the gold Corvette part, I
+
+Unknown Speaker  1:00:12  
+was like, Wait, did it say Corvette? Immediately,
+
+Speaker 2  1:00:22  
+I had questions. Where, what's going on, like, what's going on? So I had talked to Uncle Remy,
+
+Speaker 1  1:00:31  
+and Uncle Remy was like, I texted uncle Rebbie, and he said, what's up, nephew? And I had a taste, and I'm like, he got a minute to talk. And he was like, I came right now, so I'm like, alright, but he's, like, an absolute question. I said, Do you know anything about, like, what was left behind my parents? And he was like, like, What are you talking about? And I was like, I responded. I said, Yeah, I got this newsletter and said that there was, like, a red, red miniature Corvette, like, my dad had a Corvette. Like, what happens to that? Would whatever happens. Mind you, only ask about the Corvette because I had talked on society about the minivan, and she told me, see how I got that. So I was like, Well, what happened to it? And he was like, he got texted back, and he he was like, you're asking me about stuff that happened so many years ago, like, you're bringing up bad memories. For me, that's human, and this this, and that I'm like, all the times you talked about, like, you brought up, like, our family and our mom was like this, and our mom was like that, and the one time, the one only, the only, the one time I have a question, I never asked you any questions before, because I'm not thinking to
+
+Unknown Speaker  1:01:44  
+ask questions when I come around to be realistic, like, I'm being programmed,
+
+Speaker 1  1:01:54  
+you know, like, so when I get around you guys, you guys go into the Know Your mom was actually, you know, this lady, and, you know, this happened, and all this other you guys did that. Now I got one question about some stuff that y'all probably never thought
+
+Unknown Speaker  1:02:10  
+I'd ask about. Now
+
+Speaker 1  1:02:13  
+that's crazy. And I told him that I was like, How is it, how is it that, you know, this is raising all of that. When I asked a simple question. I was only expecting a simple answer. I was trying to get the Corvette back.
+
+Speaker 2  1:02:25  
+I don't expect nobody to just pull up. Oh yeah, that's where it's been at this whole time. No, like, just what happened?
+
+Speaker 1  1:02:36  
+And he was like, he had responded to that. And he was like, You know what? Nephew, he was like, here's the deal your mom. He was like, I can read it all this stuff. I tried to, like, paraphrase exactly, and I don't think I did a bad job, but this part,
+
+Unknown Speaker  1:02:56  
+like, it's just like, it made me really feel extremely different
+
+Speaker 1  1:03:01  
+about the way I used to see them in general.
+
+Speaker 1  1:03:11  
+Our conversation from what I started, it wasn't that long. It wasn't that up. I said, Uncle Remy is like, I called he was like, I was like, I called me, and he hung up and he said he'll call me right back. I said, Okay. He was like, What's going on next? I said, I wanted to ask something. He said, Okay. I said, Whatever happened to my my mom and dad's car? Actually, I did ask about both my bad and then I said, nobody ever told me that he had, he had a quarter vet. And he was like, talking about 20 years ago. I said, I'm just asking, What happened to the stuff that's he's like, it's gone. That's it. It's gone. And I'm like,
+
+Unknown Speaker  1:03:48  
+what? Like, you're strange for that. Like, then
+
+Speaker 1  1:03:53  
+I responded, I said, but what happened to it? And he said. And then he didn't respond for hours. Then I takes it back. I was like, alright, Uncle Remy, thank you for all the help. I hope it wasn't a bother. And he said, you're talking about things I don't care about talking about. I just I don't care about talking about, you're just bringing up bad memories to me. Nothing against you. I don't like to talk about that. Remember, you're remember you lost a mother and I lost a sis. I lost a sister and a nephew the same day. So like that rubbed me the wrong way, because that touched like nerves from a young end that I used to have like I would battle with feeling wrong, about feeling bad because everybody else was old enough to have known my mom and my dad and my uncles and my you know, like they've had a relationship. So all the stuff that I was dealing with in my head about like the way I felt about my. So forgot about the situation and all those things. Like, I definitely know I internalized that a lot, and it was because I felt like I didn't have room to say anything about being confused or being lost or being heard about this loss that I can't visual say I visually remember but I kind of realized, like, that's not even, like, there's so much that I lost that we have all lost, just based on the fact that we didn't have them from the start. Like, we didn't get to experience growing up with a family and having that bond. We didn't get to experience knowing what it's like to be like, you know, brothers and sisters with the people that they actually look like and care like, feel like, think the same about. You know, it's like, there's so much more than that. And it took a lot of reading to get to understanding this and probably being able to process that and coming out of that like mindset. So that triggered me, because I was already in this place where it's like, I'm not saying that your hurt was bigger than my hurt, or my hurt was bigger than your hurt, but I'm not going to disrespect your hurt in any way, because I know that you genuinely felt that, and I genuinely feel this. But for you to be like
+
+Unknown Speaker  1:06:23  
+after this watch. So he says that,
+
+Speaker 1  1:06:35  
+okay, and my view, okay. So he says that. And I said, I asked a simple I asked us. I asked a simple, straightforward question. I was expecting a simple, straightforward answer, but I guess I can expect that from my own people, nothing against you. I remember, remember I lost a mother, a brother, a father, and almost all ties to the side of my to the side of to my blood family in this situation, but yeah, you lost your sister and your you lost your sister and
+
+Unknown Speaker  1:07:04  
+your nephew, and
+
+Speaker 1  1:07:07  
+you didn't My thing is too what made me, what makes me so frustrated, is all those connections that we had as an adult, any connections that you didn't maintain or or that you love so much, or that You would have cherished to have, that you didn't keep. It's literally on you. But I didn't have the choice, or wasn't conscious enough to make the decision and say, Hey, like no, regardless of what happened to my parents, I still want to be connected to my sisters and my brothers and my uncles and my nephews and my nieces all your all the adults had to make that decision to come and get around us?
+
+me  1:07:43  
+Yeah, I think I get what you're saying, like, and that's why I try not to interact with the adults. Um, like, it's a little bit different for me, because they couldn't contact me. Like, no one had access to me, but they definitely had access to you, so I get it, but also I don't know. I just feel like, can they really help help us? No, I feel like they just add more frustration to everything. So I'm like, I'm not talking to any of y'all. Um, I say I'm
+
+Speaker 1  1:08:21  
+sorry to cut you off, but I do want to say this like, I feel like I'm very, some I do have an issue with controlling my emotions when they become like an overload, and I can be honest about that, but I'm very I'm way different than what I know I came a long way from where I was at, and a lot of it is being able to like, process things like I know I know myself a lot better, being able to dissect how I feel about what he said. I'm not lost or confused and I'm not angry. I definitely addressed what it was, and I definitely addressed how I felt about it with him, and it's already known, I'm not going to make that effort to reach out to nobody, yeah, not anybody who's going to not I want to level like right here, and I kind of get up here, and I'm not going to try to try to measure where your level is at, but if I feel like you're not working towards betterment and relationships that you have with people and whatever your work environment and your personal growth, if you're Not trying for better, then I'm immediately going to step back, and with every response that he gave me, it didn't seem like even if he felt guilty about where it left, where it went, it had now I'm talking to you about it, and not only am I talking to you about it, even if you've gotten your feelings or whatever the case may be, I still let. You know, I'm here to listen, and I'm trying to get a question, and he's still like it wasn't for the better, like you're being selfish about how you feel about the situation. And I could let you do that, and
+
+Unknown Speaker  1:10:14  
+I'm gonna keep going. Yeah, that's what
+
+me  1:10:18  
+I think. The older I get is the more I realize that not everybody grows up, but they get older. And I think I don't know, like, some of the things that I've, like, no one has said, but like I picked up on is that after our mom passed, people maybe didn't do the right thing with the money that they got that was supposed to be used for our siblings. Maybe they didn't do the right things with the stuff that they got of hers after she passed. Like, it seems like there was some back and forth about all of that that caused, like, fights, you know, like how after someone passed, and the will and all that, it seems like something like that happened, because I had no clue there was cars, you know, but it makes sense that they would have cars, because I've seen other Pictures also. Leela has pictures. You can ask Leela about some of the pictures she has of our mom. I'll pull out. I have a big bin that I got from my mom of like family pictures, and she has pictures of our mom too, and I'll find them, go through them and send them to you. But yeah, I think some of that guilt could be how things were handled with her stuff, with the money, because I don't know if they did this with you, but when I talked to Sadia for the first time, after getting back in contact with them, Sadia says some weird she kept saying some weird line about Valerie had nine kids, and she left money for nine kids. So there should be something for me, or I can't remember who said. I don't remember it was Sadia or Keisha or some, someone,
+
+Speaker 1  1:12:15  
+someone, yeah, you never got the money from Auntie San Dana. Okay, so there was something weird that happened with your money, and I don't know, I don't know what happened. I don't know nothing about that. I swear to God,
+
+me  1:12:30  
+I will tell you, No, it's okay. I don't want the money. I don't need the money. I
+
+Speaker 1  1:12:40  
+come here, oh, whatever. They got the tablet, and we got to get into the tech field. The world is going to tech anyways, yeah.
+
+me  1:12:52  
+But from what I picked up on is, like our aunts and uncles, when they first talked to me, that was the first thing that they brought up. And so, like that told me that they they did some fuck shit with it. Oh, sorry. The kids are there. They messed up that part of it. And and so, like, I'm like, Oh, something weird happened after she passed with the money and situations. And just hear how I hear, like, Bobby Todd and Leela was going around to different people's houses, like, did something weird happened and, like, they were a lot younger when all that went down, so they probably just weren't the Best about handling all of that.
+
+Unknown Speaker  1:13:38  
+So, you know, I Yeah, no, definitely some weird stuff. The only thing I
+
+Speaker 1  1:13:50  
+heard about that, I just directly heard that you had, you hadn't, got the money, and the money was just $3,000 not just $3,000 but $3,000 is, like, that's one, and that's the thing. Like, why was it $3,000 I don't know what's going on. It's my kids, my nine times three. What? That's 27 something like that.
+
+me  1:14:12  
+Yeah, but I don't think our mom had, like, a real good, steady job. It took her a while to find it from, like, what I get from my mom, but she was doing good. But yeah, there, there's something weird that happened about the money, the her stuff, like, and I just let it be, because I kind of feel like you like, I don't have the memories. Like, my memories of her are phone calls. Like, I don't remember seeing her as a kid, like, I have pictures with her, but I was a baby, so like, I'm low key in the same boat as you like, as far as like memories go, and like, the last phone call I remember having with her. Her was on my seventh birthday. But I know there was other phone calls. I just only remember one, and I just remember saying hi. She's like, Do you know who this is? I'm like, yeah, don't remember anything else about the phone call. So it's just like, that's the only memory I have. And I also have the guilt of, like, not feeling like I had this space. I felt like I had the the guilt of not having the space to grieve, because I learned years later, and everyone has passed and done all their grieving together, more or less, in their own ways. And then I find out, like 20 years later, what happens 1015, years later. So it is just a weird space to be in for me, too. And then, like, when I talk to Leela about it, I don't think Lila has a lot of memories of her either. So like, there's a couple of us that just you may feel really alone in how you feel about this situation, but I think a lot of us have a lot more similarities with those feelings than we realize. It's not going to be all 100% the same. I think maybe I don't even think Bobby and Todd see it the same way, just with the way that they both live their lives very differently.
+
+Unknown Speaker  1:16:26  
+Not sorry, yeah.
+
+Speaker 1  1:16:31  
+Don't mean to cut you off at all. It's just that reminded me something that you had touched on about doing like this. Anybody ever been mean to me like that's
+
+Unknown Speaker  1:16:40  
+like, if anybody,
+
+Speaker 1  1:16:44  
+I if anybody, like, I don't know why, but I felt like it would have come from Bobby, or it would have come from Todd, but they have never been, yeah, even the slightest bit. Like, even when it comes to talking about my dad, like, Bobby will say what he said, Hey, for sure, he's like, yeah. Like, I don't understand why your dad did that. Like, I don't understand. Like, it was weird, but he will give it to him every time, like, even when, when it came to building this up, he was like, I'm not gonna lie, bro, that's your dad. Your dad was hella smart. And your dad, you know, he used to help us with our homework, and he used to let me drive the Corvette, and he used to do this and that. Like, your dad was cool, and I just don't know why. I don't know why he
+
+me  1:17:24  
+did what he did, but I something. I never told anybody else this, but my mom told me, once we figured out what happened, she told me that probably, like our mom had, like, stopped reaching out as much as she used to. And my mom said that she thought it was just because, like, she got a good job, she got married, and things were getting better for her. But then she said that our mom had gotten in trouble going back and forth with, like, your dad, like something, like a big argument, and the cops are called, and she called and told my mom about that, and then, like, a month or two later, she had called and said they had moved and something had happened that she needed to tell my mom about, but she was using the neighbor's phone because their phone wasn't on or wasn't working, and that she couldn't talk at the neighbor's house, but she would call my mom back, and she had never called my mom back, and we found out, like, a few weeks later, she had passed. So I think something was going on, like that on both sides that triggered everything. And I feel like somebody in the family has to know what was going on, because no one talks about that. It's
+
+Unknown Speaker  1:18:59  
+so I'm so tired of her sick, twisted truth. Twisted, true what is it? True Crime Story?
+
+me  1:19:07  
+It is this? This would literally, if we could figure out what happened, would be like one of those podcasts that like go viral and make millions,
+
+Speaker 2  1:19:16  
+for sure. I mean, we could do that. It's not a why? Why talk about an idea who we could be, about poor mindsets. Never pass over an opportunity. I'm the first one on it every time.
+
+me  1:19:28  
+Yeah, I don't know. A part of me wants to figure it out, but I'm just like, maybe being in the dark is a little bit better.
+
+Speaker 1  1:19:39  
+And I get that this is a part of my journey, as far as, like, getting so connected with my roots that are outside of here, like, there's so much international stuff going on. I got family in London, I got family in Africa.
+
+me  1:19:57  
+Like, yeah, I would say. I from, I hate to say this, because it's as much my blood as it is yours. Some of the family that we got isn't worth it, like the connections, not that they're bad people or whatever. It's just like, like you said, They're not trying to do better. They're kind of stuck where they're at. And so I don't, because I feel the same way. I always say I want to reach out, I want to connect, but at some point I'm just like, to what extent like I'm trying to do better. Let me try to find the family that's trying to do better and just stick with them. Because if you work this hard to build yourself up, you want to keep yourself there, and sometimes family, it's important, but that could pull you down. So just got to be mindful of who you're connecting with. And I sometimes feel some parts of our family from that side, it's not always worth it.
+
+Unknown Speaker  1:21:01  
+Yeah, you gotta be selected. Yeah, what are you making? What is it
+
+me  1:21:15  
+that you need me to do? I think you answered a lot of my questions, I'm gonna go through and clean up your landing page a little bit more and then start specking out more of the app, and then I can give you over the next couple of days, I think I gotta, no, yeah, next couple of days, I'll be able to have a timeline of when we can start knocking stuff out for the app. I don't think I need anything else from you. If I have questions, I'll just send them. Hi.
+
+Unknown Speaker  1:21:55  
+This is my girl, my fiance.
+
+me  1:22:02  
+Really Rosa. Oh, wow. Okay, hi, Rosa. She's
+
+Speaker 2  1:22:08  
+actually an amazing person. She has a beautiful voice, so maybe one day we go to one of her
+
+Unknown Speaker  1:22:12  
+concerts. Yeah, okay,
+
+Speaker 1  1:22:18  
+yeah. But, alright, that's cool. So just so that my brain can rest easy, I know, I just want to say, even though I know you probably already got it, definitely the highlight is the VOIP and that messaging, the messaging system, the call system, but this is also an app that's integral. It'll be like I wanted to be a staple for nonprofits, so not just for the case managers, not just for the admins, and not just for the for the CEOs, the execs, the other the other nonprofit or the organ itself, but for everyone.
+
+me  1:22:55  
+Yeah, no, that makes sense. I would last thing I'll say is like government tech, because you got to think of like county buildings, they they're case managers too, and low key social workers. So you're when the numbers you quoted me like, that's including all of that, right?
+
+Unknown Speaker  1:23:19  
+So the numbers I quoted 200,000 nonprofits. Or, what do
+
+me  1:23:30  
+you mean? What numbers? Yeah, you sent me a quote like, oh, just in California there's X amount of people.
+
+Speaker 1  1:23:36  
+And that's what's so beautiful about it, because it's if it's customizable, all right, so maybe I should have told you about this too. But scalability, like I got three major phases. And the first phase is obviously this, this development for this field of sector of workers, but then the second element would be developing. It also could be, it can be user friendly for even a dispatch company, trucking company or they have to make calls to find out where my girl's job is.
+
+Unknown Speaker  1:24:04  
+The perfect example she worked at she
+
+Speaker 1  1:24:10  
+did polls, what for the elections. So she's worked as a assistant lead or lead position as
+
+Unknown Speaker  1:24:18  
+a for the ballots, election, stuff, voting. Yeah. Election, yeah.
+
+Speaker 1  1:24:25  
+So her job consisted a lot of her having to make those calls to different to different stations to find out either when they're going to be able to drop off their ballot boxes, they're going to be able to pick them up, who's going to be there? The drivers, all of that. It's same thing if it's just a if we're able to change the titles instead of leaving for a case manager portal, but have the title flexible and customizable. It could be for dispatch, a dispatcher. Now you have your dispatchers and your team leads, and the team leads are like programmatic managers, and the programmatic managers will be the ones that said, Okay, we have, we have invoices for this amount of gas and and this repair, and that repair, whatever your case may be. So it's tracking invoices. It's just populating different types of forms. And if it's customized with this system,
+
+Unknown Speaker  1:25:28  
+it'll be usable for everyone.
+
+Speaker 1  1:25:31  
+That's That's what I'm saying. This, we got this.
+
+Speaker 2  1:25:36  
+No, this is like
+
+me  1:25:43  
+that. Yeah, that's definitely the wrong the wrong name, but,
+
+me  1:25:56  
+yeah, okay, um, all right, I got a better sense of this is the core of it is like taking calls, transcribing and filling out forms on the fly, and then you can use that information for anything else, like metrics, For a nonprofit, understanding how like call centers are doing and all like it could be used for on the back end, the admin side for a number of different industries. We're just starting with nonprofits to get it started and then expanding, okay, okay, got it. No, that sounds good. This also helps me understand how to build it, build it on the back end, so that it's more flexible for the scaling part. So I think we're good to go. I don't think right now I need anything from you. I think I got everything I need. If I have more questions, I'll just send it over, and then in the next two weeks, I should have some details, like something to send you, at least, like a sample. Oh, the mixer that you wanted to go to. When is it the 14th? The 14th? Okay, then we should have a rough demo up by the 14th. I
+
+me  1:27:25  
+Yeah, okay, I'll start working on the harder parts first, so everything else will just fall into peace, into place by the 14th. All right, sounds good. Have fun for the rest of your day. Stay safe, because I know it's raining.
+
+Unknown Speaker  1:27:48  
+All right, all right, bye.
+
+me  1:27:57  
+It's okay, yeah, we have a lot to catch up on, so little by little. All right, bye, bye.
+
+Transcribed by https://otter.ai

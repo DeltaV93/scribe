@@ -1,0 +1,142 @@
+Speaker 1  0:04  
+And then you would for that highlighter, maybe listen, or yeah for that highlighted,
+
+Speaker 1  0:14  
+okay, all right, so say it's a transparent rectangle. You rectangle, and when you take a screenshot of this color, the color will be blue.
+
+Speaker 2  0:42  
+Okay. Wait, wait, wait, let. Can I re say what you said to see if I'm following along. So what you're talking about is, how do we capture data like, say, from an existing system and get it into scribe so someone takes a screenshot of a client's profile, right, and they upload it to the system. The system will create these overlays of the data that we're seeing from the screenshot, and we'll say, like, hey, we think that this field is a name we think and in the field that we're talking about is a blue field, and then we think that the red field that we over have the overlay is date of birth. Are we? Are you saying like? Then we just show that to a user. The user reviews it and say, like, we labeled an address, for some reason, as like, internal notes. And then they would say, like, Oh no, internal notes is actually a home address. Is that? What you're saying you want to happen everything?
+
+Speaker 2  2:00  
+Awkward information. Okay, so the way that I was seeing it, and the way that I've built out things to work before, is when someone uploads existing let's say they upload their data, like, most of the time the data will come out in a CSV or like an Excel sheet, right? And they'll say, like, Okay, we want to, we're going to upload our Excel sheet with over 1000 rolls of data, information for this user, for all of our users. And I want to map this to the to the scribe system. What we would do is we would do the on the system. Would say, Okay, we will take in the roles that you the Excel sheet, and we'll try to map what you have as the heading for each role to what we're expecting. And so it would show an option that like a screen that says, like, Hey, we're 100% confident that what you have down as first name are what you have down as name matches what we call first name. And you can just like, literally scroll through and see how everything maps together. But then, though, there might be some additional headers that we don't have a one to one match, but we can say, hey, we think that this data, like, maybe internal notes, like on their side would just be our notes. And we say we think that we're like, 70% confident that this is what this match is. Can you confirm? Is that what you're saying? Yeah, okay, so yeah, we can do, we'll I can build a system like that where we do, like, the one to one match will automatically be lined up, and then anything else that we're like, we have a kind of an idea. We can show them the different options, and they can select whatever option makes the most sense for our system, and then for things that we have no clue what it means, we can allow them to create a custom field, or we can allow them to map it to something that's existing in our system.
+
+Speaker 2  4:55  
+Yeah, but I think I the thing that I would want to know is just because she said she used like, cat sticks, I want to look online to see if I can get a sample of like, their data export. So during our next demo, we could just show her what it looks like to import that data and like solve her biggest headache. Yeah.
+
+Speaker 1  5:22  
+Cool. The
+
+Speaker 2  5:30  
+same I've always felt, yeah, I told you, like, this is a really good solution. I saw it from the beginning. It's just positioning messaging and connections.
+
+Unknown Speaker  5:52  
+But yeah, so one thing for sure is that the app
+
+Unknown Speaker  6:02  
+developer I or what app developer
+
+Unknown Speaker  6:12  
+just right now, I thought his name was Alex. Where did I get that from I really don't be paying attention.
+
+Unknown Speaker  6:31  
+You said the other lady's name was Carly Russell,
+
+Unknown Speaker  6:41  
+for contact.
+
+Speaker 2  6:49  
+Well, wait, wait, wait, wait, let's focus. We first need to get the branding done, and we need a mask. We need to get really good at telling the story and giving the pitch. So let's make our focus for the next two days, the only thing we should focus on is branding, and that means making sure, like the guy, like how to use a logo and all that stuff that's created. I'm going to take a look at that, and then I'm going to take a look at how can we update the land page to look like an enterprise app, right? So it's all like visual stuff that we see online, that people will look up, and then, uh huh, yeah.
+
+Unknown Speaker  8:00  
+Economical
+
+Speaker 1  8:09  
+listed, because I was telling you before the breakdown of the to Tell them? Do we have to tell the
+
+Unknown Speaker  8:42  
+group as
+
+Speaker 2  8:54  
+I still think you should the initial investments should fall under friends and family, and that way you don't have to really explain much of anything when you say it's your your you just close your friends and family round, and now You're looking for like, pre seed or seed funding. Yeah.
+
+Speaker 2  9:23  
+Yeah, so that's how I would I would suggest you, you do it or it, and then the other thing is too, because Alejandro is set up as like a co founder, you may not even need to disclose that upfront, but when you, when you get down to, like, the nitty gritty of someone's willing to commit money to the to the project, they might want to see financials, And so with that, they would want to know, what is the equity breakdown of people you're working with? How many people do you have on board? What are they expecting? Things like that.
+
+Speaker 1  10:22  
+Anything as far as like, what you get out of it.
+
+Speaker 1  10:39  
+And it's also like, depending upon like, the type of work and what's being done, that'll determine what's going to be split or what's going to be like, distributed or committed to her. Because we don't have revenue right now, we're really close. I think we're really close to revenue right now. But I don't know. I'm sure that we're gonna get this piloted, yeah,
+
+Unknown Speaker  11:21  
+okay, we got the biggest non profit in fabric. So they feel that there's need, then there's probably really,
+
+Speaker 2  11:38  
+it's actually better, because if he would have, if the organization literally could have taken ownership of this, if they felt away about the product you were building, because you were doing some Things on company during company hours. So yeah, it's fine. You can still pitch to them and charge them to Use your stuff. It's
+
+Unknown Speaker  12:24  
+he would never be ready.
+
+Unknown Speaker  12:42  
+I understand
+
+Unknown Speaker  12:50  
+and respect another
+
+Speaker 1  13:08  
+of them, I really have been working this homework for this for us.
+
+Speaker 2  13:22  
+Yeah, it happens, but I think, um, I wouldn't put too much thought into it. Let let the focus be if you do think about them, say, think about them in the terms of, oh, this is a potential client I could sell to later and not give a discount. That's it. Yeah. Um, but yeah, so the need for
+
+Unknown Speaker  14:06  
+having that network register, registration, early.
+
+Speaker 2  14:27  
+No, because I kind of already have that set up. It's just extending what's already there. But she was talking more about how to handle like admin, like, handle employees, like the admin side of monitoring employees and things like that, which it kind of is in there, but it's just very limited. I'll do some research to see what platforms are currently open out there and do some details about what the gaps are. So again, when we go into that demo, we have some of that stuff already fleshed out. Because I think I said, Yeah, that's how it works to a lot of stuff that doesn't currently work that way. Yeah.
+
+Speaker 1  15:22  
+Taking information, yeah,
+
+Speaker 2  15:35  
+yeah, and I already have part of that built out for the scanning, so it would Be easy to extend that to the form. So I
+
+Speaker 1  16:00  
+I'm happy. I'm scared that they would hire me.
+
+Speaker 2  16:13  
+They can no so the way that you would structure it is that they would pay your company do um, to license the framework you build, or the workshop or the the you know, what I'm trying to say, yeah. So it's not like they wouldn't hire you. I mean, if you want to do that and try to get hired through them, yes, but another way you can go about it is they can do like you would consult for them, or they would pay You to do run the program through your company.
+
+Unknown Speaker  17:01  
+I either,
+
+Speaker 2  17:04  
+yeah, either one. And I think it might be a little bit from a business standpoint, easier to do it through your company versus through like you being hired, because then the organization can say, yeah, that they could own What you're building with
+
+Unknown Speaker  17:40  
+everything you have,
+
+Unknown Speaker  17:48  
+yeah, alright.
+
+Unknown Speaker  18:15  
+So Let me see you
+
+Unknown Speaker  18:32  
+Guys, you out here so
+
+Unknown Speaker  19:02  
+of billionaire,
+
+Speaker 1  19:14  
+day, but actually, plenty of that stuff, but really good test me and my Sister were talking about social media posts,
+
+Unknown Speaker  19:40  
+everything, Right? And every day we
+
+Unknown Speaker  19:55  
+run the work like anybody taking money on
+
+Unknown Speaker  20:13  
+this account,
+
+Speaker 1  20:22  
+to vehicles, or however long the length of That class or program is
+
+Unknown Speaker  21:01  
+that If we
+
+Speaker 1  21:20  
+and then we contract the same for six months, 10 or 20 years, a major 40% of your revenue from advertising work to the company. And that's.
+
+Transcribed by https://otter.ai

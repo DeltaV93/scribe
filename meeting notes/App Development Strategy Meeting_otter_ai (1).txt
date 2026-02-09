@@ -1,0 +1,544 @@
+Speaker 1  0:00  
+It, because it's kind of like around along the lines what we already discussed about the program and how we would incorporate it between me and her Elise.
+
+Unknown Speaker  0:13  
+Yeah, you just changed the
+
+Unknown Speaker  0:17  
+name, right? Yeah, that's it. So I
+
+Speaker 2  0:22  
+think this looks good, but the thing that makes me a little bit worried is that I think that would put us behind three to six months for the app, because, like, they won't be using the app during the pilot.
+
+Speaker 1  0:36  
+No, but I don't think it's going to take, I don't think it's going to take three to take three to six months to prove that the app is like usable, like at the finish, the pilot finishing isn't going to determine whether they're going to use it or not. It's seeing that it works.
+
+Speaker 2  0:55  
+Yeah, but I'm saying the core things that are the selling point of the app is, like, translating phone calls into like data, like automatically, it's like what Carly is interested in, like the mass note, stuff, Like the attendance. So I think this looks good for the pilot, for training people to get go through this, you know, service, but like, really showing that our the app is solving, like, the major pain points, I feel like, because we don't do the what's it called, like the secure or the private information, or whatever it kind of like, just leaves most of The app not validated. Okay?
+
+Speaker 1  1:59  
+Clarify the secure data,
+
+Speaker 2  2:03  
+you know how we said, because we don't have compliance then, oh, non sensitive. So like, if we're only doing non sensitive data by just having them do like intake in and like outreach for like resources, like resource navigation, that's not a part of the the main app, you know.
+
+Speaker 3  2:28  
+Okay, so I got you. But so it's the automated data collection, the automated collecting and formatting of the data, yeah, in my head is the is the core of like, where it started from, at least, and how I see the program highlighting. That is because in order to navigate clients to those resources, you will still have to call the clients and let them know. Okay, hey, this is what I found. This is what, what might work. If you're interested in it, they don't necessarily have to take advantage of of so we're not talking about the individuals in the pilot. The individuals in the pilot are just using the app as a tool. Whoever it may be, 123, or 20 people, but the data that's going to be collected is from the clients that we pick up from the resource navigation aspect of it. So we go out, it'll this will be like a this would a day would look like
+
+Speaker 1  3:42  
+inscribed in this program. So our week, so let's say Monday, there's a there's a community engagement event that we say we need operation new hopes team to go to. They go there. They collect anybody who's interested in their pro, let's not even say their programs in resource navigation, not helping people navigate to resources, but being the individual that needs the resources. So they will sign up on that list, and it will be just name contact information, name contact information. Then that's, that's Monday. Okay, so Tuesday. Now everybody who is within the wheel program that's quote, unquote, a case manager or Resource Navigator, they're reaching out to all of the clients to do the intakes. So now they're reaching out saying, okay, hey, you signed up on this list to get resource navigation, we have to do an intake and assessment with you. In order to see the intake is to put you in the system, and the assessment is to see what what needs you have. Then. It would go through a non sensitive intake. Well, that could just be demographic age, demographic area, and that all will populate in whatever format they'd like to see it in. And then comes the assessment. So the assessment, the assessment will be whatever what their needs are and their current situation, as much as as much as we can collect without it being sensitive information. So all of the aces, the adverse childhood experiences, anything to do or related to, like being just as impacted. I mean, that's not sensitive information in itself, like I've previously been incarcerated. I don't think that's going to be an issue to have someone share that information. But that's, that'll be that form, or that'll be, yeah, that'll be that form that's completed. So now we have, so by day two, say it was a day by day, we'd have intakes, or we'd have clients, we'd have the intakes, and then we also have assessments, so that scope would already be covered, and then it's that continuous check, it. So then the check ins, and those check ins lost, let's say, let's say that happens Tuesday, we figure out what they need. Then Wednesday, those individuals are doing a little bit of research. Say somebody needed the bus pass, or say somebody needed housing assistance or whatever the case may be.
+
+Speaker 3  6:44  
+Then, then those case managers or resource Navigators are going to be doing research to find out what would fit for that individual, whether they find something or not that's just, that's just the way resource navigation is. You can't give anybody anything that's not available. But say you do find some services. For instance, the way world outreach gives out bus passes Mondays and Tuesdays at such and such time. So you call Jessica, one of the individuals needing that bus pass, and you're like, Hey, Jessica, just wanted to check in with you. I did some research, and I found out that operation, I mean, arrowhead. Wait, what did I just say something church? I forgot.
+
+Unknown Speaker  7:32  
+It's okay keep going.
+
+Speaker 3  7:35  
+The Church has bus passes, and you can pick them up Monday and Tuesday. So now that check in and the information that those responses are going to be tracked, that check in will be just giving her that resource, and then maybe next week, because Monday and Tuesday has to come back around. You check in on Wednesday, and then you ask, Hey, last week, I gave you information about such and such, and could pick it up. Were you able to successfully, you know, get that resource? Jessica says, Yes, that's a complete That in itself, just because it's a bus pass, is a successful outcome. So then that would be captured. And then say, we did that 10 times with 10 different people. I feel like it will cover those aspects. And even though, I mean, we could do stuff like, well, let's just keep it that simple. It being sensitive information, I don't think will be the thing that that changes. If we can prove that the software works, we can also show that we have levels of security in that are for different data, whether it's sensitive or not. By I remember telling you, like, if the admin has a capability to,
+
+Unknown Speaker  9:10  
+like, block out some of the stuff that's some of the stuff that the information that's given
+
+Speaker 3  9:19  
+in the assessment or the intake. So say it was sensitive information, like a social security number, and then they give you the full social but once you when you go back to that client, you can only see that last four, the last four digits.
+
+Speaker 2  9:33  
+So when you do intake, do you need people's social?
+
+Speaker 3  9:37  
+No, this, every intake, every intake is going to be different for every organization, so the requirements or the information needed is going to be different for every I've never taken a social ever once in a year that I was doing that work. But let me see, have I ever given my social honestly? I don't think. Ever given my social either for any programs I've ever I've ever signed up for, but there are programs that ask for, like, your medical ID number so that they can bill you if you have, like, qualifying insurance that would be considered sensitive information. So you would put in a system the whole ID number, but then admin once, once it's submitted, once all that information is submitted, then the full scope of that information won't be able to be viewed unless you get permission.
+
+Speaker 3  10:41  
+So we could just recreate that with something that's not as sensitive. Maybe an address, yeah, maybe like an address. If a person gives us an address and then we only put that they we get the street number and zip code and all that, but we only put the city. I mean, not only for the city, but admin only allows us to see the city that they reside in.
+
+Unknown Speaker  11:07  
+Okay, um, I think that's fine.
+
+Speaker 2  11:13  
+Not displaying full sensitive data in the app is not a big deal. I think this makes sense to me, because we're still using the platform in all the workflows. We're just not capturing the sensitive data, is what you're saying. Until we get that clearance, yeah, okay, and we will be able to stress test all of the workflows, and once we get the compliance done, then we can go through and say, okay, we can take sensitive data. I think this makes sense to me for testing the platform and making sure it's working. I still don't know if this would work for the nonprofit like Carly's nonprofit, just because, from some of the places that I worked in the past, even when we were testing stuff, like before we could test it, it would have To kind of like, go some through some vetting to make sure that we're not wasting our time to into a platform that we won't be able to use because they don't have the right security set up. You know.
+
+Speaker 3  12:35  
+Okay, so. And then, is there a possibility? Is there a possibility that would be an issue, like not having
+
+Speaker 2  12:43  
+it could, like, I think this sounds like a good plan. What you're saying, I'm 100% on board with I'm just saying, like, there's like, a 10% chance or something, that even if they agree to this, they may like, depending on how the organ, how strict the org is, they may say, like, Oh, before we move forward with this pilot, we need to check for XYZ thing, for compliance. Because I know, like, I don't know. Maybe it's just the companies I worked at. They had, like, a lot of regulation, especially the company I'm at now. So that could just be me being hesitant because of that. I don't know how like
+
+Speaker 3  13:35  
+nonprofits are, very, very their whole. Nonprofits are workarounds. The fact that nonprofits exist are because the government needed workarounds. But I wouldn't, I mean, I wouldn't say that, but it has become 501, C, threes have become workarounds for tax and, like, pay and all that stuff.
+
+Speaker 2  13:55  
+Like, yeah, I know that, but I'm just saying that because Russ brought that up saying, and Carly saying, if you don't have the security stuff, we can't touch this at all. And then, like Russ said, that to continue the conversation about using the platform, the compliance person and this, like that, checks off all of this stuff needed to be there to talk about the technical side. So that's why I'm just saying, like, I know what you mean, because, like, I've worked with nonprofits, too, and I get it, like, there's they're more flexible, but just because they both brought that up, I would just be, I would just wonder, like, how it goes.
+
+Unknown Speaker  14:41  
+Yeah, I necessarily don't.
+
+Speaker 1  14:44  
+I don't remember him saying anything about so when our first meeting, not even our first meeting, so when I actually face to face, ran into Russell that Friday. He was talking about having the same individual join in on that we. Meeting that we went to, but she is, he said, he had said that she wanted, he wanted to have her join for another reason, like maybe to be involved in some type of way, because they were looking for a seat a CRM or something
+
+Unknown Speaker  15:16  
+like that. Yeah.
+
+Speaker 3  15:19  
+But I don't think it was a thing of, like, trying to vet, vet what we have,
+
+Speaker 1  15:28  
+considering it wasn't much that I had told him about the software then, and he didn't have much about we didn't really go through, we went through some of that stuff with him. But if you remember, like, we stopped that, like, but the programs or something, we stopped at the programs. We stopped at the client, Form Builder or the Form Builder thing. Yeah, I could be remembering it wrong. I definitely could it could be a concern from him, for him, but I promise, if it's not, if we have it in writing that we're not taking sensitive information, I don't see, I don't see a barrier in that, until we are actually claiming that we can take in sensitive information. I
+
+Speaker 2  16:18  
+would just check with Carly when you send this over to her, just asked, like, Hey, we're still waiting on our clearance, our security clearance for sensitive data. It should come soon, but we don't have a timeline, because it's we're working with the third party. Would this be a deal breaker? Because if so, then we'll still do this this pilot, but I would rather check with her first before finding out in the meeting.
+
+Speaker 1  16:51  
+Okay, well, then I'm sent this to her right now she has like,
+
+Unknown Speaker  17:01  
+a quick moment to speak about it. I don't want to wait until
+
+Speaker 1  17:09  
+my meeting with her on Tuesday to find out if we need to, because that meeting on Tuesday is it just a prerequisite meeting for a later meeting that week, and I don't think that's going to be enough Time to kind of readjust, Yeah,
+
+Unknown Speaker  17:31  
+let me See I you
+
+Speaker 1  18:22  
+Oh, okay, I Okay, I just sent that out. Rick sent me some links
+
+Speaker 3  18:57  
+from Operation New Hope. He has sent me some links because I told you we had talked earlier, yeah, called me earlier this morning to let
+
+Speaker 1  19:04  
+me know he was still interested in working with me, yeah, just, he's just really busy coming back from his medical leave. Then I had told him about the, you know, in the future, having the idea of putting together classes that can get integrated into school districts, the entrepreneurial stuff, yeah, and he thought that was an amazing idea. I was like, we have in order to pull it off, we might not have enough staff or the capacity in order to make that happen. We're looking into working with other people too in order to get this, to spread this, and he's interested. He sent me over. He actually gave a couple of references. He sent these two links for this entrepreneur. Normal high school in San Bernardino and Fontana, and said that they will be a good suit because they like charter schools, but only missing that just because that's even a skill optional, an
+
+Unknown Speaker  20:19  
+optional Avenue, for that later future, and then
+
+Unknown Speaker  20:26  
+people Were interested in working with us, or at least,
+
+Unknown Speaker  20:40  
+um,
+
+Unknown Speaker  20:46  
+okay, well, that's good.
+
+Speaker 2  20:49  
+What um, so you were talking to him about the pilot or the workforce development program?
+
+Unknown Speaker  21:00  
+No, no, I was talking to him about your software,
+
+Speaker 1  21:08  
+and then a couple of other, maybe different types of softwares that help people run, start and run their own businesses. And he was saying that, you know, the entrepreneurial High School,
+
+Speaker 2  21:20  
+like they have, oh, sorry, the workshops.
+
+Unknown Speaker  21:23  
+Yeah, the workshops. There you go.
+
+Speaker 2  21:26  
+I'm following, I don't know, but you could do the reentry in school districts. Sorry, I felt like I'm just a step behind today.
+
+Speaker 1  21:36  
+No, no, okay, so that's the thing we you say we reentry, and I hope I don't like populations, we're not just talking about reentry like I I'm reentry. And the the collaborative that intro like is really willing to work with me and help me out our reentry entry collaborative, but,
+
+Speaker 2  22:04  
+yeah, this will work for anyone. Yeah, I know, but I was just thinking because I know the pilot that you're talking about doing, like the nonprofit with the LLC that's like the with the re entry program right to get them certified and trained and everything with with Carly's nonprofit.
+
+Unknown Speaker  22:27  
+Yeah, it would actually
+
+Speaker 1  22:40  
+be operation nonprofit that pays for that pays for the training. Okay? So they pay for the training and also give us, like, the capacity the facility like to do it,
+
+Speaker 2  22:59  
+yeah, okay, I swear at one point in my life, I was smarter and was able to hold information longer,
+
+Unknown Speaker  23:08  
+but not anymore.
+
+Speaker 2  23:12  
+It like I didn't think that was a real thing. I didn't think it lasts as long, but it really does.
+
+Unknown Speaker  23:23  
+It's all good. I just I don't want it to seem like
+
+Speaker 1  23:30  
+narrow my or not narrow minded, but like tunnel vision, like everything that I'm doing or everything that I'm trying to think of, I want to make it as versatile as possible so that it works for in every aspect, in any idea. But my focus, or who we're targeting right now, are the people who have open doors for us, but then it works for everyone else. It just, I don't know how easy it would be to get everyone else to say, Hey, let me try it.
+
+Speaker 2  24:08  
+Yeah, I have a friend who who does like. So what he did was
+
+Unknown Speaker  24:16  
+sells for this big tech company.
+
+Speaker 2  24:21  
+And he would sell the like, it's called Tech sales, so basically it's just a salesman, but for tech products. And so he would do a lot of outreach and stuff so that you know how you're you're doing it based off of your connections. To get us started, like, eventually we're gonna have to find different ways to get people to just like, sign up for us. I think he could be someone to help us when we get to that part of it, because that's something I've never done.
+
+Speaker 1  24:54  
+Well. I mean, I wouldn't, I wouldn't mind at all bringing that person. In sooner rather than later. Because, I mean, depending on, you know, the battle with everyone's bad, because if we could start making revenue off of it, what we can't do that until we get compliance dates in order. I don't think,
+
+Speaker 2  25:17  
+yeah, but I think I'm working on the last few features now, and I've already paid for some of the other accounts, so it's just like set, like putting in new credentials to really test it. So like I said, by the end of this month, I want to be done with the core features. So next month, we're just focused on compliance. And once we get the compliance done, then we're then we can just focus on revenue. I'm trying to do the size. Yeah, maybe I don't know. I know. I think maybe see, we could, we could find, like, a company that does this work that would want to use this, that doesn't need compliance. This would be perfect, because, like, we could start off with them, and then, well, I think the perfect setup is, of course, planning. Carly says, Yeah, this works with the no compliance version first, and the organization would be okay with us doing it. That's it. That's like the perfect scenario, because then we don't have to do any more legwork like we're good to go. But then if, if we need a plan B, we would want to find a organization that does something like this, or that would have these workflows that could use us, but they don't. They're not heavily reliant or need a lot of compliance, outside of making sure that the app is built securely, which I can, I can confirm. And then, if that doesn't work out, Plan C is we just focus on knocking out compliance before we roll out with the connections we have.
+
+Speaker 2  27:36  
+But yeah, the quickest way to money is just to find organizations that don't need compliance, but I don't know who that would be that we use our product.
+
+Unknown Speaker  27:49  
+Yeah, yeah, I don't let me see,
+
+Unknown Speaker  27:57  
+because I'm just thinking like, what can quickly get us to that million, million dollar deal. You know,
+
+Speaker 1  28:09  
+it says you cannot. Can you ask about compliance with victims data, dv, XD data is highly confidential. Can you how she could allow but it would be a hang up as it Yeah, so even she, so even that's what I'm saying, like she's not giving me any reason to believe that with my experience, and what she's giving me, she's not giving me any reason to believe that compliance is a need for right now. What is she saying? She said, can you ask your sister about compliance with victims data, dV and HT data? It is highly confidential. Can you ask how she could allow for this data to be compliant? I'm thinking into the future here, but that would be a hang up as it as it has while
+
+Unknown Speaker  29:13  
+it has, while researching other software.
+
+Speaker 2  29:17  
+So she's saying, No, we need to be compliant for this to work?
+
+Speaker 1  29:22  
+Yeah, we need to be compliant for it to be integrated. But she's, she said she's thinking into the future.
+
+Speaker 2  29:27  
+So so no, can you ask her for the pilot? Could we use it for the did she say yes to the pilot, and then for the future? You could tell her we're working on getting our getting certified. Like, okay, so wait, let me take a second. What I want to say is let her know that the system is set up to be compliant. We're just waiting to get certified through a third. Party. Okay, that's what I'm trying to say. But you want to know while we wait on that to get certified, if we're okay to go forward with the pilot without getting the cert? Yeah, as long as Okay, I got you. I have
+
+Speaker 1  30:19  
+no problem breaking you, I have no problem breaking that down. Yeah, I'm confident that it's going to be all right, because there's really no reason other than, yeah, there's no reason,
+
+Speaker 2  30:39  
+no, but she there is. She's saying that it stopped them for from working with other like talking to other people about using their software in the past. So she's saying, if you want to go into the conversation and get the organization serious, we have to show that we have that you so that might mean we have to, we might have to hold off on some of these conversations. We just need to know what you want to hold off on. Because my fear is we get told no once, and then they don't want to have a conversation with us in the future, not in a serious manner, like, like they are willing to now, or it will be a bigger like, we would have to do more work to get them to sign on. You know what I'm saying?
+
+Unknown Speaker  31:33  
+Yeah. Why can't you just stay asleep as long as you're transparent?
+
+Speaker 1  31:44  
+Ah, yeah, I think as long as we're transparent, because my relationships are built off the work that I've done and the person, the person I've been around. So this, if we're not selling them an idea that we're all, they find out.
+
+Speaker 2  32:04  
+Yeah, because she would just, I feel like, tell her where we're at. She would just tell us the best time to have the conversation. So we would just like, win. Oh. Yeah,
+
+Speaker 2  32:29  
+compliance can be if they come back and we don't have anything critical we need to fix, we could be good to go the after the first time they run through the app, right? Or it could be like, Oh, the app requires you to do XYZ thing different. It has to be built in this way. I would just need enough time to make the code changes, and then we can, dang, she always knows when it's almost time for another bottle. Yeah, as long as it's nothing critical, like, oh, you built the whole like, foundation of the platform, wrong, and you're gonna have to change all of that. That's when it would take a long time. The themes that I could see going wrong, that they would tell us to fix would be small changes, and even the big stuff, I don't think it would take longer than, like, a couple of days for me to make the code changes and then and then get it back to them. Then they would just have to test again and say if we passed or not,
+
+Speaker 3  34:01  
+just bringing up the same concern I have, same concern I have, like, with a different aspect, having the ability to, like, track responses in person,
+
+Unknown Speaker  34:19  
+capture we don't.
+
+Speaker 2  34:27  
+So I think I know you're saying that that's important, but there, if we're basing everything on the transcript, right, basically, if we were doing in person recording, I don't, I don't. I would need to research this, right? But what I would think, in order to have a high quality transcripts, we need to make sure that we can hear both people clearly, so it could be something like both people put on a mic. One person holds the mic and, you know, that's the only thing I can think of to make it clear, there could be other things that we do that is a little bit more simple, but I just don't know how that works. I don't know. I've done stuff with like zoom and like virtual meetings. I've never done anything where we're trying to record in the space, like in person. I just know from like, trying to capture things during conferences and things like that. It gets really complicated, unless both people have mics.
+
+Unknown Speaker  35:44  
+Okay, here's, here's a
+
+Speaker 3  35:48  
+just an idea. So say we're in person. Say a client comes in and they're already on my caseload, so we're not doing an insect. They're already in the system, but they just showed up at the office. So they come in and they want they're just coming in for a check in. When you click on that client profile bring into an option for in person, and then it'll give you, it'll start like, give you a recording screen, or I wouldn't even say, recording screen, like it gives you, yeah, recording I guess, and it has the prompts, so it's a check in So the first couple of the first couple of questions,
+
+Speaker 2  36:44  
+well, you know what? Wait, wait, wait, I take this back. I think it will work, but that will require everyone to have a phone.
+
+Speaker 3  36:55  
+To have a job. In this field, you have to have a phone. You have to have a phone. Yeah, in this field, you have to have a phone. There is no way that you're going to be hired without a form of communication, without a form of like cellular communication. It's just and then that's another selling point in itself. A lot of companies spend money on separating or getting individuals their own company, phones or tablets or devices, because that would be their way of communicating and keeping their numbers separate. But one of the functions that I have talked about before, I don't know if I ever talked about it before with you, but just so we can cut the cost of whatever service providers these companies are using for these for their employers, phones, they won't have to pay that anymore.
+
+Speaker 2  37:53  
+I don't know that we would have to ask people that, because I know, at least from my job, even right now, if we wanted to, like, do work from our phone, depending on what type of work it was, we would a company phone because of compliance. I'm not saying that's true if that's that's true for nonprofits, but it could be true for some people who would use our platform,
+
+Speaker 3  38:24  
+yeah, and for the nonprofits. It probably maybe at some point I see that. I see your point. But so to safeguard that situation, admin or Yeah, admin, or the organization itself, can set the parameters for when that app is is active, so say, between the hours of nine and five when you press on the app, or when You log into the app you're able to get through between the hours after that, you don't have access to the software. You don't have access to any of those profiles, so that you're not getting like notifications and all types of stuff when you're off the clock, you don't have access to getting any client information while you're off the clock, stuff like that. Or you would give that permission to say you have a 24 you're on a clock 24/7 you're an on call case manager. The case manager could click and hold on the app, and then it'll be like silence mode or airplane mode or whatever the case may be between these hours. So now, depending on that individuals like work flow or lifestyle whatever, when they're off of work or when they're not available. The pool, they don't have to receive any messages or get consistently blown up, or whatever case may be when having the app on their phone.
+
+Speaker 4  40:14  
+Yeah, no, that makes sense. I get that and that's doable. We would call like work working hours,
+
+Speaker 2  40:29  
+and we say that you you only have access to your information, to your workflow, your caseload during work hours.
+
+Unknown Speaker  40:41  
+I think that's fine.
+
+Speaker 2  40:45  
+I think that's something we can ask in some of the future meetings, or, like,
+
+Speaker 4  40:52  
+when we do like calls, to get more insight on how people work
+
+Unknown Speaker  40:59  
+and make sure we're building the right thing.
+
+Unknown Speaker  41:03  
+That's interesting.
+
+Speaker 3  41:08  
+I know exactly what we need. I know we need for sure. Well, I don't know exactly what we need in other aspects. I can't say from admin or like stuff like that, but basic HIPAA compliance measures and stuff for,
+
+Speaker 2  41:25  
+oh shit, you know what I never thought about. Sorry to interrupt you, the legal contracts for. So we'll need a terms, terms of service on the website that protects us, so if anything goes wrong, they can't come after the business, right? So that's one two we need when you when we go into contracts with like pilots. I think the one with Carly is okay. I don't think we need to again, because you have that established relationship. I mean, it would be ideal if we could draft up something for a pilot so that we just seem more official. Yeah, I think like that would, if we can get it, that would be great. But that's the other part of some of the conversations I'm not always in, like at work,
+
+Speaker 4  42:34  
+or if I was in it, I just don't remember it because now I'm thinking about it. No, I used to talk to legal a lot, I just wouldn't pay attention. But yeah,
+
+Speaker 3  42:50  
+it's actually, it's actually they have a legal Beagle on AIDS, and I don't like him.
+
+Speaker 2  42:59  
+Oh, well, legal to it's like legal and sells people like they're hit or miss.
+
+Speaker 3  43:07  
+Yeah, I don't like him personally in the sense of, I like I like him. I like his person. I don't like what I believe he perceives me as. And I can almost kind of tell in the in his remarks, and like, the way he the way he was, yeah, in his remarks and stuff, he's not ever really disrespectful. But at one point he was, like, we were both going to our urban Peace Institute training, and I was talking about getting rental assistance from another organ, an organization that was helping me pay my rent. And mind you, like I have a BMW. I got a BMW. I got what someone would people would may maybe say is like a decent job, and I don't look like I'm struggling. My job is just homeless and all this stuff he doesn't know. Or if he does know, he might not believe to the extent of what this was, but in his eyes, he's seeing me as someone who's trying to take advantage of the system. And I know that because, well, I wouldn't say I know that, but I have a really strong feeling that that was his outlook on me, because in those conversations, he will be referencing to people who took advantage of the system. So it would be like, What are you trying to get at? Yeah, I actually, truthfully, 100% like trying to make it, and I'm not trying to take advantage of anything, but I'm trying to utilize what I can so I can make sure I'm stable by. The time I need to be, and I've addressed that to him. Actually, I'm not in I hope you know, like, I'm a very
+
+Speaker 1  45:10  
+good talker, at least I can express how I feel. But, yeah, let him know. Like, I don't know what type of person like you think I am. I'm working really hard, trying to do what I can do, and if it looks good, then it looks good, but it's not, it's not easy. That conversation broke down into a couple of different subcategories, but at the end, he was like, yeah, no, man, I don't have any problem with you or anything like that. Like, I'm not saying anything about you. This did not but again, seven, eight months down the line, they have a program that offers rental assistance that I'm trying to get a part of because my rental assistance was coming to an end and in my plan for stability didn't go the way that I thought, and only because my my fiance, she didn't get a job until, literally, November, and we moved in in June, so savings weren't what they were supposed to be, stuff like that. So I needed a little extra assistance. And went there, and he kind of made some snarky remark like, oh man, you're, you know, you trying to, trying to get this rental assistance to or did you ever finish your other regional assistance? And I'm like, What? What are you worried about it for? And then our last encounter was he, I was just filing for my nonprofit. I just paid for my nonprofit to be filed. And then I had, I walked in a back door, and I was like, I seen him. And I'm like, Hey, I might need a little bit of help trying to get some of these, like, legal things together. I couldn't. I could use a legal Beagle for sure, like you. And he's like, oh man. Like, I'm too I'm too booked up. I'm working on my daughter's my daughter's non profit. And yeah, she she just filed. And this is not I'm like, Oh yeah, man, I just filed mine too. But nothing's gonna my 501, c3, status isn't gonna be approved until it's not gonna get looked at until January 31 and then he starts questioning what I'm saying. Like, Oh, January 31 that sounds weird, because my daughter just, she just put hers in, and I think everything is going pretty fine. He starts going through his paperwork and trying to prove, at least, it felt like he was trying to prove that I didn't know what I was talking about, like I was just talking in a nice way. And, yeah, that's it. That's all though
+
+Speaker 4  47:41  
+that kind of sounds self conscious.
+
+Speaker 2  47:48  
+I feel like the only time people really try to sit there and judge is when they have, like, other stuff going on. I can even say that about myself, like, if I'm sitting there judging people all the time, I'm like, huh, something's wrong with me. Why do I care about other people so much? Yeah, I must not have a lot going on in my life, and the times I was most judgmental like that, I didn't have a lot of other stuff going on in my life. I'm like, Oh, let me go get a life, because I need to stop paying attention to other people,
+
+Speaker 1  48:23  
+right so. But I will say he just throws me off because he is a warm person. That's why I say I don't have any issue with his personality. But whatever he's seen and like, the relation he's trying to connect with me to that is not like I feel that and I don't like that. Yeah, no, working with his boss, so it might not even be an issue, like we might. I might be able to just say, Hey, man, can we work out something? We're doing this with Russell, and he might just take me that much more serious. Like, oh shit. Like, because I've been talking to him about it.
+
+Speaker 2  49:12  
+Like, wait, is this a person that works at the same org that Russell works at?
+
+Speaker 1  49:17  
+Yeah, don't worry about that, though. Please don't worry. No.
+
+Speaker 2  49:21  
+Because, like, okay, legal is only there to they're like, HR, they're only there to protect the company.
+
+Speaker 1  49:28  
+Oh, no, he's not. He's he doesn't work. He, that's his side thing. Like, that's what he does as, like, a hobby. He helps, like, people break down legal cases and stuff like that. But he doesn't even have he can't, I don't know if he can, but he can't legally be like a paralegal or anything like that, because he has a record like he hadn't done 20 something years or something like that.
+
+Unknown Speaker  49:57  
+Oh, really, yeah, and he's acting. Like them, right?
+
+Speaker 1  50:02  
+But he that's the thing. So here's another layer of it. When I meet people that's been in prison that acts snarky like that and feels like this, it makes me think that they were a snitch, that they were some type of
+
+Unknown Speaker  50:14  
+they probably were, yeah,
+
+Speaker 1  50:17  
+like you, you're a weirdo and but we're not in our environment anymore for me to call you out on that, so I'm gonna just let it be but yeah, and then it's not my it's not for me to say or judge or look into. I really don't care, but it's just that natural. I mean, I grew up in a world where it's like, no, it's no, yeah, snow, bueno, yeah.
+
+Speaker 2  50:52  
+But no, I think um so. Two things. One, he sounds real questionable. Two, we need someone who could do terms and services like the legal paperwork that you would put on a website to keep everything solid, and we might be able to, I think there might be a website that we can go to that will either generate it for us to keep everything good, or there's another service where I think I pay, like, a couple $100 and I got paired with the lawyer who drafted Terms of Service for me. And I only say that because, like, with AI stuff and, like, the type of data we're getting, we want to make sure we have all the legal paperwork on the website, so that if anything were to happen, we're covered. We could say, like, oh, well, you agreed to this. So this is what you get, you know,
+
+Speaker 1  52:02  
+yeah, so let me see I'm a text. I mean, I'm a hit up. How do you feel about getting in other countries, not going to other countries, but having this moved around or talked about another in other countries?
+
+Speaker 2  52:16  
+It's going to be complicated, because the laws are different. So what I mean is like, okay, you know how we're getting caught up on, like, compliance, right? So with building compliant applications, or how do I explain this? Okay, so we're storing, eventually we'll store
+
+Unknown Speaker  52:46  
+not a credit. What the fuck is word?
+
+Speaker 2  52:50  
+What is it? Not secret credentials. No, sensitive we'll start sensitive information, right? And no, you're good. And when we store sensitive information, it has to be the data has to be saved in a database that's based in the same country, right? So if we start working in like Africa, we need to have the data saved in a different location, so it just makes it really a much more complicated system to build and maintain, and it's going to cost more money to because then we would have to remake all of the databases that store sensitive data and have a copy of that of Africa, sensitive data versus America, sensitive data, and they can never cross, okay.
+
+Speaker 1  53:50  
+So the reason why I bring that up is because I met this guy named, well, he has a company name next next Genovese or next generation innovation, right? And we met on Instagram. He was trying to give me some advice about like, credit and stuff. But my instinct, every time someone has a little more information or like is more established to me, is like, okay, how can we help each other out? Because I'm not just trying to pay for a certain risk, I'm trying to build a team. So I started breaking down some of the stuff that I've been doing, and he's super he was super intrigued, super duper intrigued. And he's been hitting me up. He wants to be involved. I have, I told him I have family in Africa and people working for building my website in Nigeria. And his last conversation we had had, he said that he's liquidating some stuff so that he can he can get about 30. $40,000 to take part in this program, in this platform.
+
+Speaker 2  55:06  
+So you can have him invest in it. I don't think you should have him work for us. So the thing with having so if you're going to build a team, and like you want to build a team of people who have the skills to do the things you need, it'll make things run a lot smoothly. And then once you have a team set up that's running smooth, you can pull in other people you want to just bring in with you. I think trying to start with other people up front who may not have the skills up front may not be the best, like I did that. I did that with the nonprofit, and I had to restart the nonprofit three or four times. Is not because those people weren't hard workers are, like, down to do it like they did work, like they put in the hours. It just ended up being meaningless, you know? Yeah, really.
+
+Speaker 1  56:16  
+But again, I mean, okay, so I'll put that on hold. But as far as you, if it's a thing of skill set, if,
+
+Speaker 2  56:27  
+if, for skill set, we need someone who, um, I think if we had a designer, that'd be really cool. Because just, I'm just going off of, like, when you have other people working on stuff, so we could just have an internal designer? Well, no, I would think a designer would be necessary.
+
+Speaker 1  56:55  
+My the one that was building a website, he's my brother's longtime friend. And I don't know if it would take paying him or, you know, somehow, like involving him in a different way, but I could definitely talk to him about it. He's he thinks it's a great idea. Talk to him all about it. When ever we're looking at the site together. Oh, that's what I wanted to do. Do you want wanted to do. Do you want to take
+
+Unknown Speaker  57:24  
+that out the figma file? Yeah,
+
+Speaker 2  57:29  
+yeah. Wait, let's go over because this is actually a good thing to talk about, of like, what skills are needed. So I think when it comes to the technical stuff, like with AI, I think I'm good. I don't think there's anything outside of me just not having as much time as I used to have. I'm good. I think I could cover us for the technical parts. I think we could be more organized with what we're building and how we're building it, but it's, it's not a lot of people,
+
+Speaker 1  58:12  
+yeah, so I actually hit up the morning this morning about that, because she's supposed to help with keeping us organized and, like all of our information, you know, categorized and stuff. And she's done with the with the few amount of times that we've talked on the phone, with the amount of work that she's done alone, I feel like she's doing a great job having checked a lot of the like. Let me see she had shared a lot of stuff on that Google Drive where she was making some adjustments and changes and adding information, our information and stuff. But I had hit her up and I asked her if she felt comfortable with the workload, basically, like, I don't want to put anybody in the same position that I was in, especially because she has a job some way out the way. And then she told me that she was she told me she's fine. She wants to, she wants to be a part of it. She's, you know, it's just let me see where exact response was actually,
+
+Speaker 2  59:25  
+yeah, she we just need to be careful with meetings, making sure that you people only join meetings if they're truly free,
+
+Unknown Speaker  59:36  
+right? So,
+
+Speaker 1  59:40  
+yeah, I said, Hey, good morning. Good morning. Just wanted to check in with you and make sure you're okay. Things are moving fast due to what recently happened to me, I wanted to be sure that you have the bandwidth to handle this, this side job. I'm happy you're here, and you are a great fit, but always feel free to set your boundaries. It. And then she said, Good morning. I was wondering if I should be on call, or I was wondering if I should be on call or remote. I think remote entails more, but I'm committed to assisting you in this process. I think I do best with context and deadlines. And I said, Okay, noted, I'll be sure to keep that in mind. But you're in this and I'm excited to have you on the same thank you.
+
+Speaker 2  1:00:24  
+Um, yeah, I think, I think she's what she's doing is fine, because I did notice, like, when I went to the Google Drive, I'm like, Oh, God, this is great. Like, everything's here, and it's, like, easy to go through. I hope I'm not messing it up by adding stuff to it. But, yeah, no, I think that's good. But I think the so with the stage that we're at, you know how we talk to that guy from the Salvation Army, and how we talk to Carly, I kind of just want to do more calls like that, like, what are people's pain points? What do they think about what we have so far, and is there anything else we could, like, do to help or, like, solve their problems?
+
+Unknown Speaker  1:01:10  
+Yeah, yeah, what I can do is go back through the
+
+Speaker 1  1:01:19  
+contacts that I have. But also, okay, so I have sent the flyer. I'm a member. I don't want to miss out on this Chamber of Commerce stuff. I have a year a year membership, and they're sending me flyers. They're sending me all these mixer games and stuff of that nature. I do want to go and make those connections, because they might not all be nonprofits, they might not all be, you know, within this industry, but it'll still be good for networking and other fields or industries, and then getting our name out there, getting that publicity. Can you go on untouched solutions? So are you confident that he ain't really legitimate, like us, or we're not really legitimate? I mean, we're legitimate. We got the software. I sure I don't understand.
+
+Speaker 2  1:02:12  
+He has, like, press and stuff, like local press, so, like, his name is out there. But I'm saying, like, as far as is everything on his website valid, I don't know. Like, we would have to, like, literally, reach out to those nonprofits and ask them if they're using that platform. Yeah, a top
+
+Speaker 1  1:02:39  
+solutions platform is, is that the game of this platform, is my thing, or is that the company?
+
+Speaker 2  1:02:46  
+I think the company is called untapped solutions. But from what he from what I saw like, there's a possibility it could be real, but it could also be a possibility it could be fake.
+
+Speaker 1  1:03:02  
+I don't think that it's fake in a sense of like the idea of it, because it was brought up to me at the IRC. It was one lady, literally one lady. When I was walking past, talking to other people about it, she had stopped me and she was like, Hey, do you know Andre Perret or whatever? I didn't remember the name until I knew it, until you until, you know the LinkedIn stuff. I just remembered untapped solutions CRM and she had said, like he's working on building something out, and I should reach out to him and stuff of that nature. Do. Uh, so in that room, it's definitely a thing, or I wouldn't even say in that room, but to some people that were in that room, it was a thing. I No one confirmed that it was she didn't confirm that it was being used at her nonprofit or where she works at but only that she knows of something along the lines of what I was talking about. Let me see I'm on the website right now. It says job seekers, for employers, for government, for organizations. I uh, trusted by leading funders aligned, and it doesn't have any leading funders, funder validated platform. It says that it's a funder, funding, funder validator platform. But I don't see how it could be when it doesn't show any of the people that validated it. The IMPACT Conference, IMPACT Conference 2026, conference redefining human services through technology. West Westchester County Center New York, 400 400 plus, 400 plus and 10.
+
+Speaker 1  1:05:40  
+Or Courtyard by Mary, by Maria, Renaissance Manchester, where to stay. So it has, he definitely has something going on, because he has all of these places where people can put,
+
+Unknown Speaker  1:06:00  
+yeah, it's like he had a conference.
+
+Speaker 1  1:06:04  
+The conference is going to happen in 82 days, 70 and yeah, in 82 days, April, 20, what? 3060, 90, January, February, March, February, March, April. Okay, yeah, so we got three months to make a notable answer
+
+Speaker 2  1:06:36  
+before he does see that's what I'm saying. Like, I think we should just focus on like, I know the pilot program is important, but if the pilot program isn't testing all of our features, then that's going to set us back, because we'll finish the pilot program, and that's going to take a lot of like, focus to make sure that's Done Right, right. And then, on top after that, we'll we'll still have to make sure that the app works.
+
+Speaker 1  1:07:18  
+What is untapped impact? Untapped impact is a premier national conference focused on future human resources through technology. Each year we spotlight the key sector. This year's focus is reentry and justice, involved services. Who attend, nonprofit professionals, government leaders, case workers.
+
+Speaker 2  1:07:43  
+So you should honestly, this sounds like you should be speaking at this conference. Yeah. So I would connect with him, or I can connect with him either one.
+
+Unknown Speaker  1:07:56  
+Yeah, if you do it, it'll be best, because it could be looked at as like I could get shadow banned,
+
+Speaker 2  1:08:08  
+yeah, so I can reach out and say I'm interested in Speaking at the conference, if he has any spaces left.
+
+Unknown Speaker  1:08:27  
+Where is it happening? In San Bernardino.
+
+Speaker 1  1:08:31  
+It's not anywhere near missing Westchester. It's in New York.
+
+Unknown Speaker  1:08:40  
+Oh, never mind. That's upstate New York. I hate New York.
+
+Speaker 1  1:08:48  
+Is that not like that's not close to like the city, like
+
+Speaker 2  1:08:55  
+it's outside of the city. I believe I
+
+Unknown Speaker  1:08:59  
+would love to go. I've never been and
+
+Speaker 4  1:09:06  
+it's in April. Yes, in April that's actually when I go back to work, like, that's when my maternity leave ends.
+
+Speaker 2  1:09:18  
+So that would be hard to pull off like, TV gone for like six months, and then say, like, oh, by the way, yeah.
+
+Unknown Speaker  1:09:28  
+I mean, I could still attend. I just don't know how this is gonna
+
+Speaker 2  1:09:35  
+I think you should attend. I think the key here is speaking. But before we get through that look, if you want to make a big splash before the conference, we got to get the app finished and get people using it to validate it, yeah, and then people to pay for it. I think that should just be our focus.
+
+Unknown Speaker  1:10:01  
+So, um,
+
+Unknown Speaker  1:10:05  
+I know we wanted to talk to the guy from the Salvation Army,
+
+Unknown Speaker  1:10:14  
+but maybe tomorrow, do we have another team meeting coming up?
+
+Speaker 1  1:10:30  
+I don't think we have another team meeting until Tuesday or Wednesday, as far as like the morning schedule goes, but Alejandro is always or more more available. He doesn't work, so we can definitely pull him in, and then I can request that the morning show up exercise. Actually send her. How soon would you want to have this meeting?
+
+Speaker 2  1:11:07  
+I would want to meet probably, I want to try to finish all of the features. So if you can give me the weekend and I can come back like Monday or whenever her the morning schedule is free with all the features done. And then we could talk about, okay, here's the app. Let's make a plan to break down what we need to do for to get ready to sell this. So now we built it. What do we need to do to sell it? And then that meeting should be focused on breaking up those tasks and having different people work on the different parts of it, right? So, like, I would be working on getting the compliance stuff done, then someone would need to work on some of the legal documents that need to get done.
+
+Speaker 3  1:11:59  
+And then, sorry, wait, can we pause? I just had an epiphany. Yeah, I'm sorry. It might not be an epiphany, but you know how you have the message thing set up, or at least how we're going to set it up, where they goes to a secure like, it's a link and it brings them to, like, a secure chat, yeah, so say we have the ability to put those forms into like, say, the initial forms assessment check in. They we send out an intake to their number, and the intake is like I was just recently doing an application for funding, and it was an AI chat, and it would read off a proper it was show me a prompt, and that prompt would be a question. So it'd be like, What is your name? And then you would click, you would either type in your name, or you could click the voice in to continue that chat. And what's your name? Richard Jones, what city are you from San Bernardino that could probably take place of needing to have, I wouldn't want to say take place because I would like to have that same ability in person, but it probably could take place of having having that in person, AI agent, so that when they're in person and you need to do the do an assessment, you'll say, like, Okay, I'm gonna send you over our intake. Just go over the intake is going to read how questions, and you would just read it, you know, respond, and then it'll capture that data.
+
+Speaker 2  1:13:51  
+So what you're talking about is like a self service chat bot that that websites usually put up. So we could do that, but there's always issues with that, like the Chatbot is not 100% that doesn't mean we shouldn't try it, or it's not a good possibility. I'm just saying that that's the only con I have that I'm aware of off top about those.
+
+Speaker 3  1:14:26  
+And what are those issues in like, specific, like, do they don't capture the information properly?
+
+Speaker 2  1:14:31  
+Yeah, so say, like, sometimes people are have like, different things that they want to talk about, and it's not, it doesn't follow the script directly. It doesn't do a really good job all the time as like catching up with what the person is trying to say. I think for some things, like a check in, it might actually make more sense to do that. But then that kind of that could remove the need for some of the casework. It's like, if a lot of what you do is intake, right, and people are going to the box and not to the person, then what's the point of having people, like a paid role, do this well?
+
+Speaker 3  1:15:15  
+So I see that being something very useful either. I don't think it'll eliminate eliminate the need for the role, because the role is more than just doing the intakes. It's keeping its consistent contact. It's a they call it, I don't want to say enhanced care management, because that might be just a little bit different. But along along those lines, like having that person follow you through, through that process of development, or health care, or whatever the case may be, that service, the intake is literally only we're trying to take away the need for documentation so that we can have that more in, more direct, one on one, the check in, I don't think so. I think an inverse to that. I think for the assessments and the intakes, we have set data that we need to collect. Now the check ins are going to be the things that are going to differ depending on the individual and their situation. So if there was like a chat bot, a chat I don't want to call it a chat bot, because I don't. I'm not. It's not a response back and forth thing. It's more of a script. Here's the questions, or here's the prompts after the prompts. So it can collect the data. If we have just specific data points that we need to capture, like for the and they have say the most detailed responses, the most detailed responses would be things like the Calvin the violence intervention and Provision Assessment or or the ACES so say a question, have you ever Been Have you ever been assaulted, or whatever the case may be, and it will be a yes or no, and that's where that that logic, the conditional logic, you can apply that to that so if it says yes, if the individual says yes, the conditional logic right after that would only be, would be as simple as,
+
+Speaker 2  1:17:39  
+So wait. So this is having people just fill out a talk to a chat bot instead of talking to a person to get the information. But isn't the whole point of the program? Like having that person to person connection, right? So that's
+
+Speaker 3  1:17:56  
+what I'm saying. Like we don't need to that that person to person connection doesn't come from, doesn't come from.
+
+Speaker 2  1:18:06  
+I think we can test it out to see how it works and what feedback we get on it. But my gut is saying that I wouldn't want to talk to a chat bot about my trauma. Yeah, so I would rather if I'm going to do all that, I'm going to talk to a person, and then I don't know, like you were talking about, that the chat bot could be something that would replace the in person check ins. We could just send someone a link and they could fill that out. I still think that makes it impersonal, because you came in to talk to your your worker, your case manager, and they send you a link to say, fill out this form to me, like, I'm just saying to me that I feel impersonal. I feel like, Well, damn, I could have just stayed home. Like, why did I make the effort to come here to talk some talk to someone in person, and I still have to do something through the computer,
+
+Speaker 3  1:19:05  
+then they will be conditional, right? This is all these things are like component. These components are to have something for every situation. So you might get like we might receive for one. This is already being by pear team, which is another organization, pear team, you might call pair team and say, Hey, like, I'm looking for resources. I heard you guys can help out. We'll say, Okay, well, let me get your numbers up, and can you fill out the intake, and then we'll assign you a case manager.
+
+Speaker 2  1:19:42  
+Oh, okay, I see. So it's just for intake.
+
+Speaker 3  1:19:45  
+It will be for intake or and then, so, like you were saying, if it's again, with that logical condition, with that logical condition, we get into those Now we're talking. About trauma, we'll know what what questions are like that trauma. So once we get to once we fill out the basic information for the assessment, maybe that conditional logic will be like, Okay, the next informant, the next set of questions are going to be because that's how we have to break it down to our just so you know, none of this information is going to be used against you. This information that we know how best to serve you. If you feel uncomfortable at any point in time, you can always skip the question or ask to come back to the question later, and so on and so forth, and that same approach will become, would come as conditional logic for that next part of the assessment.
+
+Speaker 2  1:20:48  
+We could, we could build that out like that's fine, and we can make it an optional way for people to gather some information. That's fine. We could add a chat bot. That's not that big of a deal. I just think, yeah, I just want to be careful with some of the details that you capture from a chat bot. It's like, again, the impersonal, yeah. So it's just like, how do you keep that balance? If, like, our thing is we're building this so that people can get back to people helping people. I think that's a really good line that we could use that kind of, I don't know we'll see
+
+Speaker 3  1:21:35  
+you give people an option, and that's the best way to serve people.
+
+Speaker 2  1:21:38  
+Yeah, you're you're right. I just think, like, I'm thinking about what I would want, and I would be pissed off if you asked me to put my trauma in a tough spot, yeah, but that's not true for everybody. Some people are probably be like, Thank God I don't have to talk about this in person. I could just write it down, right?
+
+Speaker 3  1:21:56  
+Like, once it gets to that part, it'll do what you rather speak to a case manager in person to take these details, or would you continue on with the whatever?
+
+Speaker 2  1:22:13  
+Yeah, that works. Um, okay, so we could do a chat bot, so there would be three different ways that we could input form data. I'm just calling it form data, because at some point it was a paper form that we were trying to fill out. So it is, we can generate the form with AI from scratch, through the platform, you can take a picture and then, like the if you go down down that route, you would just use no no. Wait, let me take a step back so there are three different ways that you can create forms that can capture data in the system. Two ways are the first two common ways is either you create a form through our workflow, or you take a picture of an existing form AI will like, generate it, maybe add some improvements to it, and the that would be good. Then the third way is to grab information. Is you can allow, well, no, that's not actually what I'm trying to say. Let me try it again. There are two different ways within our system that you can do that. What did you call it like the response
+
+Speaker 3  1:23:33  
+Yeah? Tracking, yeah. Response tracking.
+
+Speaker 2  1:23:36  
+There are two ways to do response tracking. It's either through phone calls, where you're talking to a person, one on one, and you are filling out a form that was either uploaded or created from scratch through our platform. The other way is that each form that gets created also creates a chat bot with the with some additional logic. So if you're talking about something that needs that human touch, the user will be able to opt out of the chat and get to get connected with the human so that way, we can keep track of all of our data and make our system the source of truth, while still allowing that person to person touch, beautiful. Okay, I got it beautiful. I think that's good, but you just added another feature that I need to build out.
+
+Speaker 3  1:24:39  
+Hey, are you in this? Want me to learn? The thing is, I don't want to take up. This is so big for me that I don't want to even so
+
+Speaker 2  1:24:53  
+after we get done with that's what I'm saying. Like, I want to get us to the money, like, as quickly as possible. Cool. So we have to put a line in the sand saying we are not adding any more features. We can write them down. I think the chat bot is actually a good one to write down and say, like that's coming up in our roadmap to show people we're offering all of these different options. I don't know if that needs to be there for launch, right? Dang. I need to make her another bottle. But, um, but we need to put a line in the sand to say we're gonna stop building anything else. I think if we're gonna build something additional, we need to build out the admin tool set. You know how Carly was saying, like, hey, they have to do a lot of stuff to manage employees, and they need help with that. I think that is something that would be good for us to explore and see, because that could be a make or break.
+
+Speaker 3  1:25:59  
+So that's, I'm glad you touched on that. I've been afraid to talk about these, added, these admin like adding these other admin features, because I don't know what, how much more work that will put on you. But as far as admin staff goes, internal is one thing. External is a whole nother thing. But they both exist. What external would be, would be like when they're reaching out to other organizations, or where they're reaching out to other companies or organizations that they're getting donations from, or they need to do drop offs at, or they need to do, like stuff for invoices and things of that nature. Oh, actually, and in the case managers. So for our programs, I'm sorry for our programs. Sometimes we're going to need supplies. When we need supplies, it could be either for booth setups or for for sessions or groups, our organization would give invoices to our HR like, Hey, we're going to need like, 30 we're going to need 30 bags of chips, and we're going to need this amount of toys and this amount of gifts. Or the case, whatever the case may be, for the group session, there will be a need unless, unless that stays like paper documents. But that's going to be something that's going to be needed for the grant, for the funders too, because all those invoices are to keep track of the money being spent for that program, and that money is going to come out of that grant money. So that's going to be a need for both the case managers or frontline workers are going to need to be able to request things from and then the admin is going to have to be able to also things for their staff. If they have to make a Walmart order, they should be able to upload their that Walmart receipt as an invoice, or the invoice, and then the Walmart receipt to go along with that.
+
+Speaker 3  1:28:21  
+Okay, and that'll track the money that's being spent. So let me see.
+
+Speaker 2  1:28:27  
+So I think that the again, these are all features that are important, but we need to have more conversations with people like Carly that will tell us exactly how important those are. Because Carly said, like, yeah, that's an aspect. But what she really got excited about was the default notes, like the those pain points, right?
+
+Speaker 1  1:28:53  
+Yep, but only because those pain points are the things that aren't that don't exist right now. But what about if we bring them this service and focus so much on the pain points that we didn't
+
+Speaker 2  1:29:04  
+build everything else. So what I could do, because I this, is this has been on my list of things to do for a while. I need to go through and look at what apricot and some of the other like, all of the their features, because that's what people are using for nonprofits like we could literally just look up the services that they're using and just build what they've already have for that, and then ask people if they're if they wanted to do work differently, or if they want something different. She
+
+Speaker 1  1:29:42  
+works and it's so diverse. It's so diverse from what like the nonprofits out here do not all of them, but it'll give us a good idea of what could be needed. In other settings. But yeah, she's the perfect person to talk about. Her features list from admin, not the only person, but definitely a good person to come to reference like, what is it? What is it that her job entitles as a that's what we can do, if we look up like those positions and what they do.
+
+Transcribed by https://otter.ai

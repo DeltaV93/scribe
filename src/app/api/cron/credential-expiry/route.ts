@@ -5,6 +5,7 @@ import {
   getCredentialsNeedingAlerts,
 } from "@/lib/services/credentials";
 import { sendCredentialExpiryAlert } from "@/lib/services/credential-notifications";
+import { verifyCronRequest } from "@/lib/cron/verify";
 
 /**
  * POST /api/cron/credential-expiry - Daily job to update credential statuses and send expiry alerts
@@ -20,22 +21,18 @@ import { sendCredentialExpiryAlert } from "@/lib/services/credential-notificatio
  */
 export async function POST(request: NextRequest) {
   try {
-    // Validate cron secret
-    const cronSecret = process.env.CRON_SECRET;
-    const authHeader = request.headers.get("Authorization");
+    // Validate cron secret with timing-safe comparison
+    const verification = verifyCronRequest(request);
 
-    if (!cronSecret) {
-      console.error("CRON_SECRET not configured");
+    if (!verification.verified) {
+      const statusCode = verification.reason === "missing_secret" ? 500 : 401;
+      const message =
+        verification.reason === "missing_secret"
+          ? "Cron not configured"
+          : "Invalid cron secret";
       return NextResponse.json(
-        { error: { code: "SERVER_ERROR", message: "Cron not configured" } },
-        { status: 500 }
-      );
-    }
-
-    if (!authHeader || authHeader !== `Bearer ${cronSecret}`) {
-      return NextResponse.json(
-        { error: { code: "UNAUTHORIZED", message: "Invalid cron secret" } },
-        { status: 401 }
+        { error: { code: statusCode === 500 ? "SERVER_ERROR" : "UNAUTHORIZED", message } },
+        { status: statusCode }
       );
     }
 
@@ -144,21 +141,18 @@ export async function POST(request: NextRequest) {
  * GET /api/cron/credential-expiry - Health check / status
  */
 export async function GET(request: NextRequest) {
-  // Validate cron secret
-  const cronSecret = process.env.CRON_SECRET;
-  const authHeader = request.headers.get("Authorization");
+  // Validate cron secret with timing-safe comparison
+  const verification = verifyCronRequest(request);
 
-  if (!cronSecret) {
+  if (!verification.verified) {
+    const statusCode = verification.reason === "missing_secret" ? 500 : 401;
+    const message =
+      verification.reason === "missing_secret"
+        ? "Cron not configured"
+        : "Invalid cron secret";
     return NextResponse.json(
-      { error: { code: "SERVER_ERROR", message: "Cron not configured" } },
-      { status: 500 }
-    );
-  }
-
-  if (!authHeader || authHeader !== `Bearer ${cronSecret}`) {
-    return NextResponse.json(
-      { error: { code: "UNAUTHORIZED", message: "Invalid cron secret" } },
-      { status: 401 }
+      { error: { code: statusCode === 500 ? "SERVER_ERROR" : "UNAUTHORIZED", message } },
+      { status: statusCode }
     );
   }
 

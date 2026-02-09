@@ -1,0 +1,295 @@
+me  0:00  
+Platform, it would have to do with Canvas does. So basically, what you're saying is, the programs that we have now, we can upload materials that people can access if they're registered to the class. And for every program, you can have a number of different sessions, so that could be like activities or court or classes or whatever. So the update we would make is say we have an overall program, the like scribe certificate certified program, or whatever you want to call it. It'll be default for every organization and everyone who goes through it, it could be like self paced. So it's just like learning modules that they would have for each session, and then each session would most likely have either quiz or some assignment that they would have to complete. And once that they completed the amount of hours required by the state or whatever, and all of the modules then they could get say that they're certified and good to go.
+
+Unknown Speaker  1:11  
+Right? Yeah,
+
+Speaker 1  1:15  
+perfect. I mean, that's as long as it can do what cannabis can do. It sounds like exactly everything I did through Canvas, everything you explain that'll be a really big program in the first place, because that'll
+
+Speaker 2  1:39  
+be good for that'll be
+
+Speaker 2  1:52  
+good for you can't bring those assignments. What about like, actually being able
+
+Unknown Speaker  2:01  
+to, like, get those assignments done
+
+Unknown Speaker  2:11  
+within software. Okay? Sorry, this is bringing me to and I don't want there to
+
+Speaker 1  2:18  
+be a client portal, as much as I mean when I say a client portal, I don't want there to be, like, some type of logging that a client would have to do unless, maybe, unless it's directly, directly connected to the training training programs. If that's possible, it makes it easier. Like, maybe they'll have, like, a temporary
+
+Unknown Speaker  2:39  
+access code to the sessions, they'll only be able to view their session or their assignments, a syllabus, stuff like that.
+
+Speaker 3  3:00  
+So I think is it would make more sense we're talking about, they would have to, like
+
+me  3:08  
+in within the platform, do all this stuff. I'm starting to wonder if we're building two distinctly differences.
+
+Speaker 1  3:21  
+And that's that's the thing, if you're to veer towards that idea of it being two different softwares, because of the simple fact that nonprofits specialize in so many different things, to a nonprofit is very good. Navigation, but that resource navigation isn't that's not a direct service. It's just directing people to people who have direct services. It's not going to get us different doors. I different doors. Know that now all these other features
+
+Unknown Speaker  4:08  
+to kind of they're appealing enough for a nonprofit to take them on, matching for clients
+
+Speaker 1  4:21  
+as far as the you know, the paper or not the paper list, but this approach for also the network, You know, organizations that are within this network can relay information like those deep those things are crutches that will be appealing, but in order for organization To take it as a full operational tool, I
+
+Speaker 2  5:02  
+definitely canvas, at some point it's going to have Canvas
+
+Speaker 1  5:12  
+type those sessions or classes that nonprofits have can be ran, can be ran through the software.
+
+Speaker 1  5:27  
+Yeah, it is, it is like, it is a lot. I don't, well, I don't know when I say a lot. I don't know. I just know that I'm telling you. I'm telling you a lot of
+
+Unknown Speaker  5:42  
+stuff. It's gonna take a restructuring. I wouldn't even just be something that's an add on to
+
+Speaker 1  5:51  
+to that or more in depth, more in depth, working system for that program, feature or group feature, session feature, then I would say, let's take that route. Because, yeah, generally, resource navigation is only going to be good for nonprofits like young visionaries, contacting clients to connect them to a resource is, isn't I mean, not just connecting them to a whether it be the resource that you're that you're offering, or whether it be a resource that, oh, and How do you sorry? My brain just kind of flipped the switch again. What about when we finish that? So the program, theme, trainings and sessions in a classes, if those things can be done on the platform, we open ourselves up to different types of nonprofits. It could be for like the mornings nonprofit, if they're having classes to teach kids on I don't know how to maintain, maintain their autistic so emotional, emotional, self control or something. Or that's a session that they will be able to teach, but
+
+Unknown Speaker  7:33  
+that session that they'll be able to like, have, like, use the software to run that, if we're
+
+Unknown Speaker  7:49  
+only documents
+
+Speaker 1  7:50  
+to the take engagement from the participant, and that engagement is going to be tracked. What we have right now is more like a well, I don't know what we have right now, but from the last time that I've seen it and what we talked about, my understanding is that what we have is kind of good for organizing our group group sessions and stuff like that. But then how do we turn it into organizing the group sessions, and then also making it more efficient and effective too. Or if it's not more efficient or effective, if they still gotta do all the they still gotta do all the classes a certain way, ooh, that would be a great approach trying to figure us stop talking. Yeah, so making this platform something that they can go to, for their clients, for anything, for the
+
+Speaker 1  9:00  
+org, having as many features as to incorporate all of the services that a nonprofit would provide. We are. I mean, the goal is to kind of beat the competition right
+
+Speaker 1  9:29  
+and right now, a lot of our competition, they have what we have, so building what they have right now they have what we have. And we have a couple of different like unique things, but blowing them out the water is going to probably take bringing other angles in it like this. And then the epiphany I just had a second ago is like for these sessions, a lot of what I did lived experience in order to take in order to do my my peer support. I hate typing, so I did a lot of the I did a lot of the responses using like my voice. I would click their microphone respond, and then I would clean up my response by, you know, using the AI to clean it up, little features like that will make it easier for the user or for the participant, taking that taking that class. But, yeah, I know that now we're built that will be definitely building out something, not something different, but something more robust.
+
+Speaker 1  10:58  
+And it's complete, if we got to see if we got to keep it that what we have, then that's fine. I mean, you're the developer, but, I mean, I think,
+
+me  11:13  
+I think these are good ideas, but I think I would so the way that I would want to, all right? I've thought about building stuff in the past is I'm going to build out the perfect workflow that's going to get people to buy up front, and then I can build everything that will make it so that they won't leave the platform, right? Okay? So when you stray away from the one thing that you and you want to get really good at, the one thing that's going to make you stand out. And if you get really good at that, other people can't just copy it, and then you can add on everything else. So that's what I'm saying. Like, if I think it's fine, if we use the programs and just extend it so that people can submit quizzes and and not artifacts. Why did you say quizzes and works assignments. I think that's fine, but I don't want it to turn into a learning platform, if that is just a single feature, when, yes, we're building this for nonprofits to start, but like we talked about, we can explore this, working for a lot of different industries, right? So I think it's fine to add this in, but I want us to make sure we understand what is our core features of the app that we're building that makes it stand out. And it's at the form generation, response tracking, and having the app be the source of truth of all communication within an organization. And it then it could do like, the automatic reporting based off of the business needs, like, right? Like, those are the main workflows that are going to make us stand out. We can customize things for different industries. So, like, yeah, I can see the programs that you put people through, clients through, and things like that that'll be that can be reused in a lot of different ways for a lot of different industries. But when it comes to like, the learning platform, I definitely see that as a good add on to have, because we could also do that as like employee training. So like, if we're tracking that case most case managers, on average, work with X amount of people and take X amount of time. But there is one case manager that you found through reports that always takes two times two to three times longer working with this type of client because they don't have XYZ training, then you put them through the training, you get what I'm saying, like,
+
+Speaker 1  14:24  
+yeah, with that staff accountability, like making sure your staff is well trained and up to date, and yeah.
+
+me  14:33  
+So I could definitely see that feature being used in the nonprofit space, but I could also see it be used in a lot of different other spaces. So I think, I think there is flexibility or extendability with that feature. I just want to make sure, like, we don't sit there and say like we're learning platform. Then I think it makes it hard for us to
+
+Speaker 1  15:02  
+Yeah, no, yeah, that wouldn't I feel you, I feel you, I understand you, I hear you. All of those things. There is no but it's just in hand, and there is the added, there's just, I have the lived experience in these in these spaces, so I'm just basing it off of what I know I've seen, and what I know is bringing in the clients. So for instance, at young listeners, they have a class where they're teaching. I actually have a certificate from that class. It's called Healthy perspectives. It teaches people how to raise children in a healthy manner. I guess it used to be called something else. It doesn't matter, but the type of traction that they got from having that class, that those sessions brought from the first time that it started, it was like three or four individuals the next month, when they reached when they did it again, because of how well the class went, it was 20 participants that came. Everybody was blown out. Like everybody was like, Damn, I'm doing it up with this R and D bingo and and all this other stuff, like these, these little giveaways and stuff. But that was to pull in, and then they stayed for the curriculum. Now, with that being said, those just having those participants in the class brought a lot of I would say, I don't know if I know it brought a lot of revenue for the nonprofit. I know it did. Now I don't want to miss out on covering that base when I know that's going to be a base that's needed for nonprofits now for other industries, I can understand, I understand where you're coming from, but not even, but and, but right now and our and our target, our target, our target industry right now has been nonprofits, and I want to sell them all the way they got. It's too much money in there. It's too much money for us to be like, somebody's gonna come with an all in one. That's what I'm afraid of. Somebody else is gonna come in with an all in one that covers those bases. And then when they come with that all in one platform, that's even if we solidify through the relationships of them just liking me. Carly was like, I have a very strong I have really good feeling that you're just going to mess with you, or these organizations are going to want to use your software, just based on the fact that you're Tay youth. You came from San Bernardino, and you have this experience, and you already have these elbow to elbow relationships with these organizations, but that'll only be for a few of the nonprofits in San Bernardino, but my, but our our reach is going To start to diminish if we don't have enough ground covered to satisfy other other nonprofits.
+
+me  18:26  
+No, I agree. And I think, like, like, what I've been building out is, is covering a lot of that, like, I went through and I looked at, like, apricot and all of those, and see what the the main features are. And I've been building those into it. So I think it's fine, and I'm okay with building the additional thing, and I think we're in agreement. Like, yeah, this is a good add on. Like, it's not gonna work for everyone. So there's a way for us to like, Hey, if you want this feature, pay an extra $10 a month, yeah?
+
+Speaker 1  19:03  
+And that's all like, that's how I was kind of seeing it for those who for for those who need that, all these things can be like, yeah, like you said, add ons, plugins, whatever the case may be.
+
+Speaker 3  19:19  
+But I guess my question to you is, do you think we need this to for the pilot?
+
+Speaker 1  19:27  
+Um, for the pilot, not with the organizations that we have right now, the two organizations right now, I would say no, only because they're willing to, they're going to follow what we what we want to get tested, and we know that that was our approach, like we know what it is that we have ready for them, or we know what we want to to wow them, and that's the VoIP, that's that network system, that's the matching all of those things will wow then, but we have that room to be like, hey, test these features out without having those other features included already. Now, when it comes to working, getting more pilots going with other nonprofits, they might not be willing to be like, hey, they might not even have a workforce This is really happening because of the workforce development strategy. Other than that, what? How else can we integrate this without using resource navigation as our as our crutch, without using workforce development programs as our crush, we have to come with an approach that's going to be appealing to other to other services that these nonprofits provide. So yes, I don't think that we need it right now for these two to get software, to get the software tested, but I do believe we're going to need it for other nonprofits, just based on the fact that they they might not be offering the same they are not going to be offering the same services.
+
+Unknown Speaker  21:19  
+Okay, you
+
+Speaker 1  21:26  
+but, and then, and then, this is one of those things too, where, if you need me to hire some help to get this stuff, like some of this stuff done, let me know, and I'll try to find out how much it's going to cost to get somebody else to or you can work, find one of your buddies, your tech buddies, and then, like, give them a give them a price. Like, would you work on this for 3000 making sure that this is three 5000 I don't know how much I know. I know software developers make some bang, but, I mean, I'm hoping your relationships could make it cheaper.
+
+Speaker 3  22:11  
+No, I think it's fine, as long as I can explain what I'm trying to build. It's no big deal.
+
+Unknown Speaker  22:19  
+And then I what was, what was I working on a text message?
+
+Unknown Speaker  22:33  
+So I think, um, I think all that's fine. Um, I would want to
+
+Speaker 3  22:47  
+spend some time going over the demos we want to run so they're a little smoother, and then I think we should look into getting more people added to our pilot.
+
+Speaker 1  23:01  
+Yeah, and more people added to our pilot, like more organizations or more different industries, different industries.
+
+me  23:12  
+Because what I'm worried about is, if we make it, if we're too focused on nonprofits, it's only an app for nonprofits when we can reach out to like a lot of different spaces. So I was going to talk to one of my friends who does like the tech sales to see it, to explain this to him and to see like, how he would target finding users that would actually pay that's the other thing I would want us to get to. Oh, shoot, where did I just put your bottle? I would want us to get to paying customers faster. And I think that would be one way to do it, like, if we move out of the like, we can still build. I'm not saying we stop building for anybody, but if we think about how to do a pilot that people like pay to be early users and to give us feedback, I would want to target a couple of different industries, like, we could target maybe healthcare or maybe even a law firm, because they do client intake too, you know, like,
+
+Speaker 1  24:37  
+okay, yeah, I'm a reset if it's a law firm. So the email being, how do you import email? Is it possible to import emails as something that can be tracked the same way that we track the phone calls?
+
+me  24:53  
+That's what I've been trying to figure out. The best way to do, the only thing I can think of is we would have to somehow redirect, no, it's just like, there's some, there's this platform called Zendesk, right? And so it's a way for people to do support, manage support, emails and calls and things like that, and everything is, you have your own like company email, but then you connect it to Zendesk, and then Zendesk has like a like inbox for you, yeah, and then, like they're tracking everything through that inbox. We would have to do something like that,
+
+Speaker 1  25:39  
+okay, because that's, that's the first thing I thought of when, because I communicate with my law firm through email mostly, and they communicate with me through Email mostly. So though that though they do like fall, do
+
+Speaker 1  26:07  
+that's like on a need for me and my experience with my law firm, it was, it's just a needed, need to know basis. I mean, that's when they'll call it, like urgent things or whatever. I uh, so I just wanted to be something that can be used. I want to pay $50 to 80 to $75 a month for a software that you're only going to use, like three to four times. So even if it does, even if it does do all the tracking and all that stuff like your contact, this will be good for people who frequently contact their clients, if we are not involving the email structure, if not, then we need to find out what other methods of contact these people are using, and it's only there's only a few methods of Contact, and it's email and text and call.
+
+Speaker 1  27:22  
+So for that industry, I think we would have to have, like, that email thing set up again. I don't know, but it's just the only that's like, these are things that are coming to me naturally. So I could definitely be out the out the way, way?
+
+me  27:44  
+Yeah, I can take a look at a few things and see like, how I can build that out quicker. But um, because that is still a big question of, how am I going to get existing data and new data into the system.
+
+me  28:08  
+So I'll do some more exploring with that. I also will try to sync up, get my friend to sync up with the bulk of us, so he could talk to you a little bit more about strategy with getting new clients, because I think it's good the nonprofits are willing to do this testing for us. But I'm telling you like we could be getting paid, getting them to pay, pay us to do the testing, like use a platform. I think it's fine. We're doing it initially with with an org that has really good connections and stuff like that, and can get us in the door other places. But yeah, I would want us to get money coming in. The other thing I was thinking is we didn't ask Carly, like, she's talked about the budget, but she's never talked about, like, how much they would be willing to pay for this. So I think the next time you have a one on one with her, if you could,
+
+Speaker 1  29:19  
+well willing to pay for the software. Yeah. Okay, so I'm not hurt, but I'm thinking along the lines of like within they have certain individuals using certain softwares, like all their all their case managers. She had told me something like, if the logins are shareable, not logins are shareable, but why pay for a whole bunch of logins for an account or for a software when those logins can be shared amongst the team with that in mind, $50 easy,
+
+me  30:15  
+so I think we need to figure that out like I so it seems like she doesn't Want to pay per user. But instead, she wants to just whatever it costs a month we charge them, which is fine, we get literally just worded differently. So we're saying for up to x amount of users, you paid this amount, and that would cover the cost of like per you. So say we want to have the good margins right? And say, I don't know, I don't know the actual numbers off the top of my head. But say it costs $5 per user to run the system per month, but we charge them $15 so that we that way we have, like, that markup, right, right? And say that. We say that we want to have no let's, let's just do a 10. Say we do 10, so it's just like a 50% markup, right? And then we say, for the first tier, it covers like 15 users, right? So we would just make sure that within the cost of 15 users, we still have that 50% markup. You get me? No, I get
+
+Speaker 1  31:31  
+it. I get it. 100% I just we can I have no problem with it. We decide the pricing is, just want to make sure we also have, like, flexibility with the way that we price things, and we've already talked about
+
+me  31:51  
+that, yeah, as long as all I'm saying is, as long as it's going to cover the cost to run the application, I could click, carry less everything after that, like, once we break even everything after that, that's just saying, like, are we? Are we building a sustainable business, you know, like with when we hit so say, like, our goal by the end of the year is to have 100 users in the app, right? And we say, like, by the end of the year, we want to have your salary fully paid for, like, fully covered. So we want to say, like, if our goal is, like, to do that within a year. And we say that 100 users should get us there, and that would be our baseline, that we would never want to go under 100 users. You know, am I making sense? Yeah, yeah. Just make sure, like, that's manageable for organization. But if we make it too low, and we say, like that, that golden ratio where your salary is fully paid is like 1000 users, and we can't go under 1000 that's, you know, that's a little bit harder to to manage, you give me, yeah,
+
+Speaker 1  33:08  
+and that makes sense. All right, I don't like doing this, like, I don't like doing this by myself, because I don't know what I'm not doing it by myself. But as far as, like, the research stuff, I know I can look into things and then get caught up looking at one thing.
+
+me  33:29  
+Well, yeah, okay, so I think if we be super focused and we look at what we need to do next, we need to prep for the meeting with the Salvation Army guy, and then the next meeting with Carly.
+
+Speaker 1  33:49  
+Right? So I have, I put those things as to do, to do task on my calendar, and to have them done by the 11th and right now, since we have, we're having this conversation, and it reminded me, I need you to let me know when you're available for next week so we can have this meeting. Because everybody else gave me a response. Pretty much, Friday is probably Friday midday or morning time, if you can make it. But that's the thing. This is really like you are kind of the what, not the wild card, but you're one of the stronger suits in this. So if it has to be sooner, so that you can be there. I'd rather it happen on that day, but we have it set out for next week, so I don't want to, I don't want it to fall into the week after, before we have this meeting with them. Okay?
+
+me  34:56  
+So I think it's fine whatever day or, oh shoot, wait, you said Friday, right? I have the baby's doctor's appointment is coming up. As long as it's not on her doctor's appointment, then we're good to go. Oh no, sorry. Her doctor's appointment is 18th. I thought we were in the second week of February. This is still just the first week. Okay?
+
+Speaker 1  35:21  
+So while you're on the phone right there, I'm about to set this incident to the group chat as a scheduled meeting.
+
+Speaker 1  35:34  
+Yeah, so Friday the 13th, and he has availability, one hour duration, time durations and availability from eight all the way to 1230
+
+Unknown Speaker  35:52  
+let's do Is there something around 10?
+
+Unknown Speaker  35:59  
+There's a team. There's a 930
+
+me  36:01  
+1010, 30, let's do 10, because I'll have the baby fed and she should be asleep by then.
+
+Unknown Speaker  36:09  
+Okay, and then it's her name, Richard Jones and scribe team. I and
+
+me  36:25  
+then, if we're doing this Friday, I want us by so let's I know I came up with that, like that script in the slide deck that we'll go through to demo it, maybe tomorrow. We'll set aside some time and you want to practice going through it?
+
+Speaker 1  36:46  
+Yeah, I don't have, I don't have an issue with that. It's kind of hard to practice the debt when I'm like, packing tactics, practicing, practicing it by myself, because I could just read it, and then it's like, well, you're just ready. Info. Scribe solutions in order to add you guys, oh, I just use your guys other email for right now.
+
+Unknown Speaker  37:15  
+Guest,
+
+me  37:21  
+yeah, because I think, like, if we it's okay if we weren't that polished around Carly, because she had that connection with her. But is this guy's name? Carl, yeah. Um, okay, that's my brother's name. But, um, with him, because we don't have that connection, we got to be poli like, we have to be polished and official. And then the other thing I was going to ask you is the the next meeting we have with Carly and Russ and stuff. His name is Russ, right? Yeah, um, I'm getting better with the names. Did you want me to come in person? Because I remember Carly saying we can meet in person. And I'm just like, damn, I don't want to drive. But when we have been when would I want? When would it make sense for me to show up in person?
+
+Speaker 1  38:27  
+I think that was, I don't think that might be necessary right now only because that that in person meeting was brought up with Russell, like coming in person, but we're no longer going to be I wouldn't say we're not going to run into Russell anymore. That's unlikely, but for the next couple of meetings and trying to set out who's who's going to be tasked with what for this pilot, yeah, I think that can be definitely virtual. It would, yeah, the only thing that coming in person would do, which is strengthen like, that relationship in regard to like, you know, you're you're coming in person, you're showing your face, and that's always great. But as far as a necessity, a need for that, if you don't feel like it, or if it's too much to take, not too much to take on, but
+
+me  39:34  
+it's not too much to take on, it's just too much to figure out with a two month old. Yeah, that's what it's throwing me out because the rest of my family is old because I'm just like, dang, are they too old to deal with the baby? I don't know,
+
+Unknown Speaker  39:52  
+yeah, and understand that. Well, yeah, I wouldn't put too much of a
+
+Speaker 1  40:02  
+like stress on that. Okay for right now. Valerie Phoenix, singing, good morning. Oh.
+
+Speaker 1  40:20  
+The silver. Okay, yeah, but I get what you're saying about the I get what you're saying about getting ready for other industries. I don't want to let this one go. I don't want to let,
+
+me  40:36  
+well, we're not going to let, no, we're not letting this go. There's a lot of money in the nonprofit space, and they're way easier to please than everybody else. I get it, I do, but I also just want to the other thing I'm worried about is if we build, I'm not saying none of the features you said are are fit in this category, or like this or nothing like that, but what if we just build a platform that's like, so hyper focused on nonprofits, then we lose access to everybody else, you know?
+
+Speaker 1  41:09  
+Yeah, I get I get that. I just think that we also can be like, creative with what we build as as far as, like, how it can be tailored to other industries, yeah, just like you were saying, just like you were saying, like, that training, training game for
+
+Unknown Speaker  41:28  
+employees, employees, yeah,
+
+Speaker 1  41:32  
+that that would be, that's, that's something that would work for the employees and work for the training thing that I was, that I was speaking on just making sure that it's customizable. All these features are things that these nonprofit every organization is doing some type, I wouldn't say every organization, but every industry, at some point, is doing some type of training and onboarding and some type of whatever, whether it just be in person or just watch this video or whatever, and I want to make sure that, well, I wouldn't say I want to make sure that for the other industries, because I definitely was only speaking to the nonprofit field, but with the mind of with The idea that it can be taken we're offering some offering.
+
+Unknown Speaker  42:39  
+These are functions and services. Trying
+
+Unknown Speaker  42:45  
+to integrate
+
+Speaker 1  42:48  
+using into one platform so they don't have to pay for other platforms to do it in. And that makes it a lot easier. That's that is our selling point, like where all these fragmented systems for, the learning platform. That's the thing. It's not going to ever be a learning platform if we build this out, because we already have all the other things for all these other things integrated into the software. It will never just be a learning platform, but it'll be a platform perfect for any business because we have a learning platform integrated in it.
+
+me  43:32  
+No, no, I agree. I think that that's fine, but um, and I said, like, for everything we've talked about, that's not the case, but I'm saying, The deeper we go with nonprofits without checking in with other people, that's what can happen, and that's also not a bad thing. It just cuts off the amount of money that we could possibly make.
+
+Speaker 1  43:56  
+Would it be illegal to like so say, we say that ends up happening, we still have the software, and the software is the code. All the code needs to do is be re masked into something else, just put another cover on top of it, and then, you know, we can sell it to someone else. So I
+
+me  44:15  
+was thinking about that too, because I was doing some more like, out, get out. Dog, get out. I was doing some more research for the other industries. Because I was, I was going to talk to my friend this weekend and ask her like if she would use it to do some user testing and like for tech companies. Yeah. And I just wanted to see, like, what they currently use, and stuff like that. And there's really nothing out there like that. Um, but you know how every time we talk to Carly, we find these new ways that we could make the platform better for them? I'm like, Oh, I bet that there's, there's ways, like, when I talk to her about it, she could tell me, what are ways we can make this better and easier for people that are in the tech world to use and things like that. But no, that's that's literally just what I was thinking like, how can we add more like add ons, or like different ways to like, we have the base of the app that does the core logic and everything like that. But then we could do these special add ons, like law firm add on, or school district, because school district add on, or, you know, different things like that, because I can see this being used a lot of different places. But like, we're both saying it'll need different things to make it perfect for them. So like, how do we do that without over complicating? That's it.
+
+Unknown Speaker  45:55  
+Yeah, yeah. All right, for sure,
+
+Speaker 1  46:00  
+because I don't disagree. Like, I don't know if my like the way that I've talked sounds combative or
+
+me  46:07  
+no, you're fine. I'm just used to working with white people, and you have to be, like, extra cautious with how you worried stuff with them, because they're real sensitive, and
+
+Speaker 1  46:19  
+that's why I talked the way up. That's what I'm talking. The way I'm talking, I'm like, I'm not a butt. But also, this is just realistically, not even realistically I know the nonprofit field, and why? Why cut ourselves short when we have all this internal knowledge, like I know what we're going to need to sell this. And, well, I know what we're going to need as far as the service providers perspective, to sell this, all the different aspects. And then some things come to me as like, Oh yeah, you forgot about this. Remember you seen this? And this is, like, the group sessions and all that stuff like that didn't come until I was already done breaking down my workflow for what my job was. But then I also have experience. I also have experience because I help them lead groups. I've asked the questions about what they need for these sessions. I've asked those questions to the individuals doing these
+
+Unknown Speaker  47:19  
+things so yeah,
+
+Speaker 1  47:22  
+it's like, I don't want to, I don't want that to go to waste, to not cover those grounds when we're trying to, yeah, like you said, we want this to be configurable, but let's lock in this market. Like, let's lock in this market, give them what they need, give them what they need, and then also give them what they want that they don't even know that they want yet, because I can see it, rather than just giving them what they need for right now and Then them needing to have something else later on, I
+
+me  48:03  
+Yeah, yeah, no, it makes sense. Um, I don't know if I told you, I finally got the site up and running in the new environment. It took way longer than I expected, because the way I set up the old environment, it was literally two clicks and the site was up this new environment, it took like, 20 different steps.
+
+Unknown Speaker  48:28  
+Well, more compliance, more steps,
+
+me  48:30  
+yeah, and I'm just like, This is why I build fun stuff and nothing serious for my free time, but, but anyway, it's up and running, and I'm going through and testing the app to make sure everything is working as expected, and so far, it is. I think tomorrow I'll be able to go through a demo. I just want to get through testing that finished testing the app on my own. So I'm not like finding broken stuff while I'm talking to you about it or your team.
+
+Unknown Speaker  49:07  
+Yeah, if you need help, look, I don't care. I'm not
+
+Speaker 1  49:14  
+I don't care about seeing no broken stuff. It doesn't make me nervous. It just makes me feel like, well, don't even make me feel like anything other than same thing that you'll probably but I can understand what you mean. Send it to people you know, other people outside of that circle. I'm willing to walk through it with you. So you're I'm trying to save you time as well. So whenever you go through it, if it's one o'clock, two o'clock, am or pm, just give me a call. And then we can go through it until you find a broken parts. And then, all right, well, that's that's not working. We're moving on to the next it's working and not. It's not. And then I have an idea of where we're at, instead of being like, you know, two weeks, a week or two down the line, and which is not a problem, I trust the work that's being done 100% but when I want to speak to people,
+
+me  50:12  
+yeah, you want to know what's done, like, you want to know that the current state? Yeah, I'm down. I think I know for sure tomorrow I'll be in a good place to, like, walk through everything. There's a couple of things that I've been saying I wanted to fix. Like, I think the form creation part is too complicated right now, so I'm just gonna, like, there's just little things I want to fix up first and make sure everything's working, and then we can go through it. Through it, because there's just, like, little stuff that I need to do.
+
+Speaker 1  50:48  
+Can you also print out that for Okay, so we can enter data too. We're not eliminate, are we? Are we eliminating the need that capability for four case managers to input data, or is it?
+
+me  51:06  
+No, they can do both. They can manually it, put the put data into the form, or do the phone call. Oh, that's the thing I need to set up. I need to start paying for Twilio. Oh, did you ever get the business bank account done?
+
+Speaker 1  51:19  
+Yeah, I got the mercury done. Okay,
+
+me  51:22  
+maybe we can sit through that tomorrow, so I'll make sure everything is working, and stuff for the Twilio thing, because I'll need you to help me test that anyway.
+
+Speaker 1  51:32  
+Yeah, all right, sounds good. And I gotta go pick up the girls right now, clear my head a little bit. I gotta sign up for this Cal Mesa exam so I can get my peer support certification through the state. I told you I'm in a year long training. I got, oh, that's what I wanted to talk to you about. So before my my termination, I was invited to join this thing called the credible messengers cohort. And the credible messengers cohort comes with the peer support, CHW, case management, like seven different certifications in this training. It's a year long training, and it's two days out of the month, and it was something that's like only being offered to like 15 individuals throughout California, 1520 individuals throughout California, and I request, requested to get in so much so where I called the dude that was running the program. Anyways, all the spots were filled by everybody. But okay, so on my team, I had four individuals that worked with me in my program, tone Maurice, the name.
+
+Transcribed by https://otter.ai

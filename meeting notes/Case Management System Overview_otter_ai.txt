@@ -1,0 +1,313 @@
+Speaker 1  0:00  
+Or after having that in person, in person, check in, because sometimes it's not going to be it doesn't stop at just an intake or an assessment. Sometimes they'll come in and just need a resource and couldn't call, or could it, you know, some type of whatever situation. Or they were just, they were just close by and thought they can get some resources. Say they come in for that, and you just click the check in, and it start, you start recording the conversation, and then it note takes for you. And then the case manager, after they leave, they'll go back to the computer or to the app. Oh, I'm sorry, one important factor so this recording app, or recording the option, wouldn't just be found like as soon as you open up your Case Manager Dashboard, you would typically use it after you go to that client, that specific client profile, so that when you capture The conversation, it still logs it automatically to their their case, without any extra
+
+Unknown Speaker  1:32  
+like back and forth. How's
+
+Speaker 2  1:42  
+that? Underwater. Oh, I found it
+
+me  2:02  
+that could work, like we could do that. I think, I think we talked about that before, about that being a feature that we build out, and I think it will work really well. To take this
+
+Speaker 1  2:25  
+one. Please don't be what we got.
+
+me  2:30  
+They're they're building a CRM. So it's a little bit different, but it the feature we talked about was about, can
+
+me  2:47  
+wait so day. AI is a is looking to rethink such software with a tool that knows everything about your business in just 15 minutes. It can do basic, automated meeting, prep notes, building and managing to do lists and pipelines of prospects, but day AI assistant operating under the name customer chooses, it will guide you through a maze. It's kind of like what we're talking about, but I still think world based. Man, no superstars are wider business world is he's told them, it always to be mostly exciting other star to raise more money recently and chase similar opportunities for everyone. For today, the first word Thomas serum, yeah,
+
+me  3:56  
+it's basically just, they're just building an AI version of like, Salesforce. Do you know Salesforce?
+
+Speaker 1  4:06  
+I've heard of So Salesforce as a competitor, yeah.
+
+me  4:10  
+So it's just like, Salesforce is like, like, lead capture, like,
+
+Unknown Speaker  4:14  
+um, oh, okay, understood, yeah.
+
+me  4:18  
+It's like, what? What people usually like in nonprofits that you work with, um, they will, okay, yeah, this is not what we're doing. I think what I was, I think this was, like, the first thing I saw this morning, and then after that, I stopped scrolling, because I'm just like, I don't need to see this right now. But But looking at how much money he was able to raise and like, that's just showing you, like, how much money we could make. We just got to get it in front of the right people and say the right things.
+
+Unknown Speaker  5:01  
+So this is a group chat. Yeah,
+
+me  5:05  
+I thought I was sending it to the group chat. Sorry, I keep I don't be paying attention to what I be sending.
+
+Speaker 1  5:19  
+I'm not gonna lie. I'm saying, but I'm trying to get better. My biggest thing with like the impatient is when I see a message and I get to the part, if I get to a part of a message that I like or dislike, that that's where I stop reading. And I don't realize that's where I stopped reading until I like, I'm I've already replied, so I'm out of the message after I reply. And then I'll go back to the message after getting a response, and they'll be like, either, yeah, it's very noticeable that I missed something.
+
+Speaker 1  6:00  
+Some sticky situations. But yeah, I need to get some money quickly.
+
+me  6:10  
+Yeah, let me I'm gonna send you over some links to learn about, like cap tables and startup funding and the difference between, because I don't want to make it seem like I'm the one who has all the knowledge. Like, I'll share it in the in the group text too, but I'll get you some links that go over, like cap tables pitching to like tech investors. So masters and just like, how do we think about like, equity and break that down and things like that, so that way it's looking good. I've been spending the last two days setting up the app so that it will work in a more secure environment that will pass the all the compliance testing. I'm like 90% there, like, where it's all set up and done, and then the whole app is up and running again and it's good to go. So I think I'm going to work on it a little bit tonight, and then probably rest the day tomorrow. So my goal is like, by Friday, I could do a full demo of the app with all the features, so we can start seeing, like, what, what we need to add, what we need to take away, what we need to simplify.
+
+Speaker 1  7:46  
+Okay, um, I'm looking at Mercury right now too. Is it pretty simple to open up?
+
+me  7:53  
+Yeah, it usually takes like, two, two days, two, three days max. And your counts open. Um, and I, if I remember correctly, you need your articles of incorporation. And I think you're like ein
+
+Unknown Speaker  8:12  
+core. I think I have those.
+
+me  8:16  
+I think I did see them in the doc. You sent me over this morning. Oh, by the way, you want to keep your EIN like, hidden, yeah, that's like, that's like, your business social. I don't know if anyone told you that, because I didn't know I was just posting it places, and people are like, Stop
+
+Unknown Speaker  8:40  
+doing that. Ahead and lock that up.
+
+me  8:46  
+Yeah, because people can open stuff up in your I had a situation where somebody was, like, saying they were a part of the nonprofit and like, taking in donations and stuff under my nonprofit's name it, but like we weren't associated with them and nothing. The only thing that saved us is that they did not use our EIN.
+
+me  9:19  
+So it's a it's one of those things where people will do weird stuff. If you keep yourself like protected, then you're good,
+
+Unknown Speaker  9:38  
+okay, I'll definitely put more
+
+Speaker 1  9:48  
+I store that, but I definitely I need, I wish I had there was an app that could just go through all of my PDF, read what They were, and categorize them.
+
+Unknown Speaker  9:58  
+There is AI. It's
+
+Unknown Speaker  10:02  
+okay. It's
+
+me  10:04  
+okay, yeah, you put it on your computer. Well, yeah. Well, that's for real, yeah,
+
+me  10:20  
+immediately, yeah, I'll send you over a link about it. I think it's called like Claude co work or something like that.
+
+Speaker 1  10:32  
+Verify Email for mercury. I'm going to verify, but I use, yeah, I use my personal, my business email,
+
+Unknown Speaker  10:42  
+yeah, get your business email.
+
+Unknown Speaker  10:49  
+Okay, I did. What are y'all go flush the toilet. Flush the toilet. It flush the toilet. Girls are nasty.
+
+Speaker 2  11:22  
+Stranger. Feel. Wait.
+
+Speaker 1  11:50  
+Anyone copy? Okay, so it says, Is your company? The following, following, registered with the SDE, sec, do?
+
+Unknown Speaker  12:02  
+Surprise, no internet
+
+Speaker 1  12:14  
+involved in sales, distribution or manufacturing, Nope, it's made squirrel heard touch call. Touch, call and I'm ready to fight. No surprise. Oh, I was like, Are you some trick questions or what?
+
+me  12:36  
+Like, yeah, no, they're trying to see if you're you're on like in a highly regulated industry?
+
+Unknown Speaker  12:49  
+Do you know about low risk and high risk in AICS codes? Where do you see that?
+
+Unknown Speaker  13:00  
+Well, no, that's not on here. It's just general question.
+
+me  13:06  
+Oh, I'm like, when did a bank start asking that? Um, no, I just know, like, I have one of my LLC set up to do government contracting, and I think we were super general, like software company or something like that. Yeah.
+
+Speaker 1  13:29  
+So depending on the code that you use for establishing your business, it can have a really big impact on like, how fundable your business
+
+Speaker 3  13:46  
+is, I think for government grants and stuff like that, maybe
+
+Speaker 1  13:54  
+I know I mean, like, as far as, like credit, like, how easy it would be to prove for loans and other like funding like that. Oh, okay.
+
+Speaker 1  14:08  
+And it just so happened I was doing a lot of research about, like, business structure. Well, when I say a lot of research, I mean scrolling on my Instagram. Hey, what is wrong with you? Go lay out. Go lay out. I don't
+
+Unknown Speaker  14:34  
+know. What the heck was this happening right now?
+
+Speaker 1  14:43  
+Um, I don't know how Paris could be. Paris, just play it. I love it. Yeah. So I was doing some scrolling my Instagram, it's all business stuff, for the most part, different like, people post different things about hacks, on how to structure your business, hacks, but just trying to do how to structure your business and, like, build your credit. Build your business credit, all type of stuff like that. And one thing that a lot of them mention is, like, the use of Nica code.
+
+Unknown Speaker  15:40  
+So because
+
+Speaker 1  15:48  
+moderate risk business, IT positions us really well for funding, if needed. But we don't need no funding. We're about to get investment $20 million dollars.
+
+me  16:03  
+Why'd you get scared? Oh, no, don't be sad. Don't be sad. Okay. Well, that's good. I didn't know that. I'll keep that in mind for well, I already have one set up for one. I'll keep it in mind for my other one.
+
+Speaker 1  16:26  
+It do beat? Does she add me in here? Because she didn't mean this post? Oh, she did. She posted it.
+
+Unknown Speaker  16:41  
+Keep talking to no now, now that I said something, oh, okay, so, how, how is she
+
+me  16:55  
+does take a shit on me again. I gotta figure out these diapers that like, I don't know if it's just like, it's just a massive amount coming out of her, or if I just have the wrong diaper size, I'm trying to figure it out a massive
+
+Speaker 3  17:14  
+amount coming out because she only does it when I hold her, when her dad holds her and she poops. It's not It's nothing serious.
+
+me  17:25  
+When I hold her and she poops like I literally have to go shower, change my clothes, basically give her a full on bath. So
+
+Speaker 1  17:42  
+for the industry, we would be Software, Software B to B, software developer tool.
+
+me  17:49  
+I would just say software just make it generalize.
+
+Speaker 1  17:58  
+We need an S corp, shell court. But that's when we started getting somebody up company description mercury.
+
+me  18:11  
+I would just for the descript if they're asking you to describe what you're Yes, what your company does. You could just put, put what you put on the articles of incorporation. Always just copy and paste everything. I think this is right.
+
+Unknown Speaker  18:46  
+Tree. Do you think this is funny? Okay,
+
+me  19:01  
+yes, you do. It's the, if you open up a doc, you sent me, it's the, it's just a paperwork establishing like your, I think it's an LLC, right? That's what that is operating
+
+me  19:21  
+and remain. No. No. So it's, it's something you got from the state saying that the scribe LLC, the paperwork saying that you have an LLC,
+
+Unknown Speaker  19:41  
+okay? I see it. I'd
+
+Speaker 1  19:47  
+love to, but purpose statement, the purpose of the limited liability is to engage in
+
+me  19:57  
+lawful it should say, like, something about, like, what your business does. Let me see if I can open it real quick. Oh, shoot, my phone's on 3%
+
+Unknown Speaker  20:15  
+Oh, yeah, it's your articles. Oh, wait, which one is it?
+
+me  20:30  
+I think Articles of Organization, yeah, it's that one. Is that? Ah, it's that document.
+
+Unknown Speaker  20:59  
+You Want, your pacifier. Here you go.
+
+Speaker 1  21:28  
+Everything the purpose of the company is to any lawful act or activity permitted under California law. That's
+
+me  21:42  
+weird. That's weird. I don't know why. Because people be doing weird stuff when you can make an account online for a bank account, like they'll try to commit that that's like the whole form is just making sure you are who you say you are, and you're not trying to just commit fraud. Why? Why?
+
+Speaker 1  22:14  
+Just don't know how to how that would fit in this because it says, for example, Mercury is a financial technology company that provides banking services, including credit cards, venture debt.
+
+me  22:25  
+So you would just put they just wanted to describe what you're doing, yeah, so I see what you're saying. That's not the right. There was some form I saw that describe,
+
+me  22:56  
+no. So what you want to put is that we're a software company
+
+me  23:09  
+building applications to support existing businesses. That's it.
+
+Unknown Speaker  23:17  
+Software company building application
+
+Unknown Speaker  23:22  
+supporting other business that support other businesses,
+
+Unknown Speaker  23:26  
+that support other businesses.
+
+Unknown Speaker  23:53  
+Us. Sorry. That. Sorry, ticklish. Come on, guys. I
+
+Unknown Speaker  24:20  
+keep relaxing.
+
+Unknown Speaker  24:37  
+I know it was a big climb. Was a big climb.
+
+Unknown Speaker  24:57  
+Be stronger than we are.
+
+Unknown Speaker  25:09  
+Is UVU,
+
+Unknown Speaker  25:22  
+where ready for
+
+Unknown Speaker  25:39  
+my Social Security here, yeah, supposed to be protected on social from my business.
+
+me  25:48  
+It is separate, but again, it's like they have to
+
+Speaker 3  25:52  
+damn it, make sure you are who you say you are. Blame all the people committing fraud. 24/7,
+
+Unknown Speaker  26:10  
+so do I.
+
+me  26:21  
+Oh, but for the colors that you saw that I sent you, you like the brown one, right? That's good to go.
+
+Speaker 1  26:28  
+Yeah, that's good to go. It's just because it was closer to what we have already.
+
+Speaker 3  26:33  
+Oh, but if we were starting fresh, what would you pick? Oh, I What
+
+Unknown Speaker  26:50  
+are you laughing at? So this is for the revamp.
+
+Speaker 1  26:58  
+Yeah. All right, let go of the old and come in with the new. Let's go with the green, really. Yeah, green is my favorite color.
+
+me  27:10  
+That was actually the one I was hoping you would pick. So I'm like, Oh, that's really pretty
+
+Speaker 1  27:15  
+well. There must be more deeper than we think.
+
+Unknown Speaker  27:22  
+Yeah, mind, yeah, yeah, you sound so happy.
+
+Speaker 3  27:39  
+She should be sleep. Yeah, you're not supposed to be awake right now. Yeah, what you doing awake?
+
+Unknown Speaker  27:55  
+Just make your own special. This is just your world you
+
+Speaker 1  28:20  
+where driver's license or an ID, I didn't even live in America. I need a notary so I can get my citizenship and Ghana.
+
+Unknown Speaker  28:38  
+You can do it online.
+
+Unknown Speaker  28:42  
+Get a notary, yeah,
+
+me  28:43  
+if you search notary online, you like, there's online services where you get it signed with someone.
+
+Speaker 1  28:55  
+I don't know why. Just be thinking about the hard way. Well, honestly, there's even that I think about, think about doing things the hard way. I'm just a very like in person guy.
+
+me  29:07  
+I can be with some things too, but with like paperwork. No, let me do it online. I hate doing paperwork.
+
+Speaker 1  29:18  
+I hate doing paperwork, but I hate looking at a screen to do paperwork more. But if we could talk, like, if I can, AI, that's what, that's what's been helping me get, man, I told somebody at the gas station today. I was like, you know, hey, I'm gonna make the next couple of millionaires.
+
+Transcribed by https://otter.ai

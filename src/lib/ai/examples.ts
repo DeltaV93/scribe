@@ -1,5 +1,40 @@
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import type { ExtractionExample } from "./types";
+
+// UUID v4 regex pattern for validation
+const UUID_REGEX =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+/**
+ * Validate that a string is a valid UUID v4
+ */
+function isValidUUID(value: string): boolean {
+  return typeof value === "string" && UUID_REGEX.test(value);
+}
+
+/**
+ * Validate that an array contains only finite numbers (for embeddings)
+ */
+function isValidEmbedding(embedding: number[]): boolean {
+  return (
+    Array.isArray(embedding) &&
+    embedding.length > 0 &&
+    embedding.every((n) => typeof n === "number" && Number.isFinite(n))
+  );
+}
+
+/**
+ * Safely create a pgvector literal from a validated embedding array
+ * Uses Prisma.sql for proper parameterization
+ */
+function createVectorLiteral(embedding: number[]): Prisma.Sql {
+  // Create the vector string representation: [n1,n2,n3,...]
+  const vectorStr = `[${embedding.join(",")}]`;
+  // Use Prisma.raw for the vector literal since pgvector requires specific casting
+  // This is safe because we've validated all values are finite numbers
+  return Prisma.sql`${vectorStr}::vector`;
+}
 
 // Embedding model configuration (disabled until OpenAI or alternative embedding service is configured)
 // const EMBEDDING_MODEL = "text-embedding-3-small";
@@ -42,12 +77,21 @@ export async function findSimilarExamples(
   fieldIds: string[],
   limit: number = 5
 ): Promise<ExtractionExample[]> {
+  // Validate fieldIds - must all be valid UUIDs to prevent SQL injection
+  if (!fieldIds.every(isValidUUID)) {
+    console.error("Invalid fieldIds provided to findSimilarExamples");
+    return [];
+  }
+
+  // Validate limit is a positive integer
+  const safeLimit = Math.max(1, Math.min(Math.floor(limit), 100));
+
   // Check if pgvector is available
   const hasPgvector = await isPgvectorAvailable();
 
   if (!hasPgvector) {
     // Fall back to basic search
-    return findExamplesBasic(fieldIds, limit);
+    return findExamplesBasic(fieldIds, safeLimit);
   }
 
   try {
@@ -55,11 +99,20 @@ export async function findSimilarExamples(
     const embedding = await generateEmbedding(transcriptSnippet);
     if (!embedding) {
       // Embeddings not configured, fall back to basic search
-      return findExamplesBasic(fieldIds, limit);
+      return findExamplesBasic(fieldIds, safeLimit);
     }
-    const embeddingStr = `[${embedding.join(",")}]`;
 
-    // Perform cosine similarity search
+    // Validate embedding values are all finite numbers
+    if (!isValidEmbedding(embedding)) {
+      console.error("Invalid embedding values - must be finite numbers");
+      return findExamplesBasic(fieldIds, safeLimit);
+    }
+
+    // Create safe vector literal
+    const vectorLiteral = createVectorLiteral(embedding);
+
+    // Perform cosine similarity search with proper parameterization
+    // Note: fieldIds are validated as UUIDs above, making them safe for ANY()
     const results = await prisma.$queryRaw<
       Array<{
         id: string;
@@ -74,12 +127,12 @@ export async function findSimilarExamples(
         "fieldId" as field_id,
         "transcriptSnippet" as transcript_snippet,
         "extractedValue" as extracted_value,
-        1 - (embedding <=> ${embeddingStr}::vector) as similarity
+        1 - (embedding <=> ${vectorLiteral}) as similarity
       FROM "ExtractionExample"
       WHERE "fieldId" = ANY(${fieldIds})
         AND embedding IS NOT NULL
-      ORDER BY embedding <=> ${embeddingStr}::vector
-      LIMIT ${limit}
+      ORDER BY embedding <=> ${vectorLiteral}
+      LIMIT ${safeLimit}
     `;
 
     return results.map((r) => ({
@@ -91,7 +144,7 @@ export async function findSimilarExamples(
     }));
   } catch (error) {
     console.error("Vector search failed, falling back to basic search:", error);
-    return findExamplesBasic(fieldIds, limit);
+    return findExamplesBasic(fieldIds, safeLimit);
   }
 }
 
@@ -222,6 +275,12 @@ async function generateAndStoreEmbedding(
   exampleId: string,
   text: string
 ): Promise<void> {
+  // Validate exampleId is a valid UUID
+  if (!isValidUUID(exampleId)) {
+    console.error("Invalid exampleId provided to generateAndStoreEmbedding");
+    return;
+  }
+
   const hasPgvector = await isPgvectorAvailable();
   if (!hasPgvector) {
     return; // Skip if pgvector not available
@@ -232,11 +291,19 @@ async function generateAndStoreEmbedding(
     if (!embedding) {
       return; // Embeddings not configured
     }
-    const embeddingStr = `[${embedding.join(",")}]`;
+
+    // Validate embedding values are all finite numbers
+    if (!isValidEmbedding(embedding)) {
+      console.error("Invalid embedding values - must be finite numbers");
+      return;
+    }
+
+    // Create safe vector literal
+    const vectorLiteral = createVectorLiteral(embedding);
 
     await prisma.$executeRaw`
       UPDATE "ExtractionExample"
-      SET embedding = ${embeddingStr}::vector
+      SET embedding = ${vectorLiteral}
       WHERE id = ${exampleId}
     `;
   } catch (error) {

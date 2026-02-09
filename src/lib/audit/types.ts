@@ -38,6 +38,8 @@ export type AuditResource =
   | "ORGANIZATION"
   | "FILE"
   | "CALL"
+  | "NOTE"
+  | "MESSAGE"
   | "REPORT"
   | "SETTING"
   | "ATTENDANCE_UPLOAD"

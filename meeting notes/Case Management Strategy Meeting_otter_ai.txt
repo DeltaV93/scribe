@@ -1,0 +1,217 @@
+Speaker 1  0:00  
+Clients who need a service front that can be paid for by their medical insurance, to individuals who have the certification qualified to offer that service.
+
+me  0:09  
+Yeah, and so, like, my understanding of this is like, once the admin approves that a case manager is able to offer service, whether the case manager marks themselves as they're able to do it, or if the admin says it, whatever the case is, whichever flow they go through, anybody, any case manager can do intake for a person, for a client. But that doesn't mean that the case manager will be, that will be their case manager after intake is completed. Or the client can come through the, oh, that's the one thing I didn't build. The client can also come through the chat bot that you can do the automated intake themselves, like they send a link and then they can go through the questionnaire. But if they get to something like childhood ace, the ACE scoring, or ACE conversations, they would be redirected to talk to a human but basically, no matter how they come in, like a human case manager doing it or through the bot, we would then take in that information, see who would be the best case manager for them, based off of what the client needs in their insurance, and If their insurance will cover any of the services that the case managers would be available to provide. And this is like big because it's a new revenue stream, like you said, grant compliance. So that's like the auto generating the forms to track outcome and things like that. Medical Billing, we already talked about that, making sure that things are structured to get that money back from insurance companies, really focusing back on the why now, like all of the issues that we have been able to surface, really doubling down on the one that you brought up about the CHWs and the law that was passed, and how there's money now to push it in there. And then I also highlighted the staffing crisis, because I was thinking about your pilot program, how you want to train people to solve this need. And yes, I think it can be a thing that the nonprofit does, but I've been trying to figure out, how can we like more directly, make this part of like, the service that we offer. Like, maybe we can have a training model module to train people to be certified in this, you know, something like that. I yeah, sorry, didn't mean to cut you off.
+
+Speaker 1  3:16  
+This will be perfect to have. I mean, I mean, so nay, Brown is certified to train. CHW, she's looking for an opportunity, and I don't know how training works, but if she's able to create a curriculum, my training was 152 hours. If she can create a curriculum that can be recorded, and then we can like, segment that recording out, is that a pop like, can you get? Can you get a certification through, pay, through, like, pre recorded video?
+
+me  3:58  
+So I was looking into that. And some like, I was looking at it to for, like, anger management, because I think Never mind that was just a different, weird revenue model I was trying to go down sometimes, yeah, let's have all the revenue models, period. It depends on how the state defines, like the training. It could be on all online, but they could require, like, some things be done in person or with, like, a human instructor. So like, even if your zoom, it can you, there would be a human needing to, like, conduct the workshop, or versus like you just watch like YouTube videos to like get up to speed. So we would need to do just a little bit of research to figure out what the requirements are. Did you say Khadija Brown? No, that's not her name. What did you What was this lady name
+
+Speaker 1  4:58  
+that is so Oh, no, no, no, that's great. Her name is nashay N A name is Nisha n a t nishay Brown. Anyways. So with my trainings, with my peer support training, there were three different avenues you could take. You can do 100% self pace that's online, but you were required to make these you have to make these deadlines and Canva. You have to have so many hours logged on, on the session. You have to have a certain amount of logged hours and deadlines made before it can, before you can move on. So that was one route. The other route was like a hybrid, where you would do a zoom session once a week or twice a week, and then the rest you would do on your own, and then there's a full, a full, like instructor led version, where you're joining class every day of the week for about an hour, two hours, and you will just follow along the curriculum with the class.
+
+me  6:18  
+Okay, okay, so, yeah. So I think if it's just online stuff, we could become the portal to like, get the training done online for this like through like as like an add on that people can pay like per user that goes through it. I think it would get a little tricky if we wanted to have an actual teacher, because then we would have to pay the teacher to run the classes, and we would have to, you know, get money up front. It just, it's not impossible. It's just something different. But anyway, I added that here so that that could always be something that we explore. Okay, um, I got down, like the competitive, like landscape, I think the bone, Tara, like aI stuff was like the most, the closest thing to us. And so the thing that I got is that we need to get this done quickly, because they just said, AI, with all this stuff coming 2026, and so, like, if we can jump in front of this before them and just, like, fix everything that they like, messed up, that people are talking about that they don't like, we can get a really big share at the market. And that is, I think we're literally there. We're just waiting on, like I said, getting the last touches of the website done and then the security clearance. I think this is our big thing. We're already validated just with Carly, because she's so high up in her in the company, and she has access to such a huge revenue, if we get her and get her to like, put us in front of other people, which that are also at the same spot, at other com, at other orgs, which she seems down to do like we we just need a few more quotes, a few more, like commitment letters from people, and we're good. And then something that I was exploring with what we talked about, forum, Salvation Army. Like, if we talk to investors like, this is going to be something even bigger. So we say, like, oh, after the MVP is built and it's perfect, then we can, like, build out more of the case management industry markets. Yeah, so the enterprise knowledge like that, I'm telling you, that would be huge. If we can keep companies up to date with what's going on and the impact of that, they would pay hand over foot for that, like we could charge large companies like Microsoft and stuff would want access to this. And then we also have the idea of, like, healthcare docs, like we talked about billing insurance automatically, and then, like, removing people from having to do that. But yeah, it just shows, like, how this application starting in one place. But I don't know why it does this. It can go into something really huge. So how
+
+Speaker 1  10:18  
+long? And this is this is the the only pitch deck, or this is the, like overall pitch deck,
+
+me  10:33  
+yeah, this would be, like the overall pitch deck that we would send to someone who's used to investing in tech startups, I we need to talk about the pricing model again, but like, I just did it based off of how much it costs per user. So it's like, it's around like $7 per user a month. Infrastructure, is like $2 a month per user. Oh, my God, this is so annoying. But I, yeah, I did a small breakdown off of, like, after doing all the security updates and everything, and it's still not that bad. So it's about like, $12 a month, a month per user. And so, like, I broke down the pricing like this, and we can definitely talk about it. I said user per month, but we could figure out what makes more sense for actual nonprofits. I um, what did I say?
+
+me  11:54  
+I said, like, if we were asking like tech start, like tech investors for money, this would be the ask amount for the first year, and that way we can get you salaried, as everything is being built. And then we could even hire maybe one or two more people, full time or part time, or however we want to do it, but making sure, I think this number came up, I said, with like four to five people salaried at like minimum, 100k a year, and when we break even, so that we could pay out those salaries just from the revenue from the business. And it was saying like 15 months. So if we can get investors to give us this, we would have 15 months to be able to make this in more a year, to make it a successful business. Awesome.
+
+Unknown Speaker  13:05  
+I like the numbers,
+
+me  13:06  
+yeah, so that is what I did here. And I also, at some point created a sales deck. I
+
+me  13:23  
+I think it was maybe this one. So there's going to be like a sales deck that will click through to do the demo for whenever we get in front of Russ again.
+
+me  13:42  
+And just like, again, yeah, I think this is the one. So that way it's easier for us to just, like, talk through the different features, like AI, calling, smart documentation, program management. I'll need to update this to have, like the other features we talked about, because I think this was before I built in all that other stuff. But this one's just a little bit more simple, so that we can just make sure we're talking about the i out the main points again, we need to get we need to have, just like a meeting to go over pricing.
+
+Unknown Speaker  14:32  
+Okay? And if you want me
+
+Speaker 1  14:36  
+to do some research on, like, current pricing for platforms right now, I can the pitch decks are looking amazing. Honestly, they are looking like, I want to send them over already, because I'm ready to talk. I need to get we need to get a bag in here.
+
+me  14:59  
+Yeah, yeah. I try to make it. I try to make it like things that I've actually seen when
+
+Speaker 1  15:12  
+so the I want to say, I want to set up a meeting with him. Maybe not. This week, if it's going to take a little longer to, you know, have him smash out all the little details by night.
+
+Unknown Speaker  15:31  
+Detail I can't so
+
+Speaker 1  15:33  
+what I'll do, for sure, I'm going to speak to the website designer so we can get that figma sent over, and maybe website posting so we can get that
+
+Unknown Speaker  15:47  
+that landing page that'll be my next move for today.
+
+Speaker 1  15:54  
+I can also next look into pricing, if that's what you want me to work on, and then I can break down what I needed. So for that, those current numbers for cost per user,
+
+Speaker 1  16:21  
+those are accurate, and then how much? Okay, I'll come up with that. So if those numbers are accurate, then I can, like, adjust the numbers so it can make sense for the pricing. But how much do you want? How much profit are we We're trying to make sure we make around how much profit per user, I think the minimum, yeah, and then I can, I'll let me know the minimum. I'll do some research.
+
+me  16:51  
+I think that the sweet spot is like, of course, the more money you can make, the better. But I think to show that the company is healthy and has lots of room for growth is anywhere from, if I remember correctly, like 70 to like 85% is like healthy margins. You get above that, you're like a plus gold star, whatever, if you start to go below 70% it gets just a little bit harder to make sure you can cover things like payroll and investing back into the company to make it expand. So it's just going to be if you go below that, you're going to say, like, okay, the company is stagnant. We can't do much more than what we're doing without trying to get more investors to invest in the bill the business. And then when that happens, you lose more equity in your company. So right now, let's say you like let's say the company is 100% owned by employees. We get investors to come in. Now we're saying that 25% of the company is owned by investor investors. The rest is owned by employees. You raise another round of funding. That means they take another like 10% now it's 35% is owned by investors, and the more you have to fund you raise money is the more equity you lose. So if you were able to build this up, sell it for a billion dollars, you get 100% of your cut, but say, you have to invest so many times with an outside investors, you sell for a billion dollars, but you only get a small percentage of that. So it all, it all depends on, like, how. I don't even know why I'm saying this. Oh, I was saying this basically to say, No, I don't remember why I was saying this. What were you talking about?
+
+Unknown Speaker  19:12  
+Pricing breaking down, like, pricing?
+
+me  19:14  
+Oh, yes. So you always want to make sure your margins are good, so you don't have to ask people for more money and lose equity in your company. Okay?
+
+Speaker 1  19:24  
+So 70 to 70 to 85, or 90% we're looking for profit around there, and those ranks are, yeah, profit, yeah. Make it make sense,
+
+Unknown Speaker  19:43  
+and then
+
+Speaker 1  19:47  
+for the legality things. So the terms and certain the Terms of Services and the TOS, I didn't know. Now that's a new acronym for me. A TOS is not done, but it's what you looked at. I don't know if you want me to cover any bases or cover anything else from that, but let me see, because I wanted to ask a question about something that would get set in there. I
+
+Speaker 1  20:23  
+princes. And then I'm also doing, like, a whole bunch of different things with life, stuff, hold on.
+
+Speaker 2  20:35  
+And I come around around one. I
+
+Speaker 1  20:49  
+and then back to our conversation. Terms of Service eligibility. The authorized users got to be 18, okay? Customer Data, ownership and process in privacy and confidentiality compliance responsibilities. So in a compliance and responsibility it says because customers are solely responsible for compliance with law, with all laws, regulations, contracts and funding requirements applicable to custom customer programs and use of service, this may include requirements related to privacy, data retention, consent and reporting. The service may this service may support workflows related to compliance, such as auditing, audit logs, permit, permissions and reporting, but service does not, but the service does not guarantee compliance. So by putting our, by putting that, would that, like scare away, I
+
+me  21:52  
+don't think people really read that, if I'm being honest, like their legal team will probably read it, but that, I think that's pretty standard. So I think that's fine. Because, like, Yeah, I think that's fine.
+
+Speaker 1  22:17  
+Okay, I was thinking that it was, it was like it did look standard, like it looked like it was, I mean, yeah, yeah, if customers require specific compliance, comments, commitments, for example, business association agreement, a business association agreement for HIPAA to figure out what that is.
+
+me  22:44  
+So I actually have that down. So there are agreements to say, like, we'll have to create a template for it to say that we're so we have to create a template, and then we have to get it reviewed by an attorney that's focused on these. But it just basically say that we built our application in a way that is protecting data. And anytime we use any third party application, we also get a BAA from them, and have it on file to make sure that if our system was to get hacked, like we have, like we've done what we can to prevent it, where, what else does it cover? It covers like, how we hold the data, like, what we do it that it like, how can you get it deleted? How, like, how is it secure? Like, all of that information. So that way that companies can say, like, Okay, you're doing everything like you're supposed to. We vetted you, and we can promise to to their customers that they're doing everything and to keep their system secure. So, yeah, I have that down as, like, we need to create the template and then get it reviewed by attorney, and then, as I'm, like, connecting the site to all of these different platforms we probably will need, yeah, as I'm connecting to all these different platforms, I'm getting that their BAA signed like, so they'll have to send one over to us, and then we have to store it. I think you're current, currently working on this. But we would need yeah
+
+Speaker 1  24:43  
+for HIPAA compliance, for HIPAA compliance, I didn't do anything specifically tailored to HIPAA or so for all of the different compliance measures. I'm not going to have to create documentation for each one, because, if so, then I can work on that. I just thought, you know, one covers all, or there are certain things that have to be done specifically.
+
+me  25:14  
+Um, I think we so. Let me see, I think we'll need a term and service, a privacy pal, policy, data process. So some of this,
+
+me  25:37  
+I'll send, okay back. So send me this list. Yeah, I'll send you over this list, and this is basically what we need to get into. Um, did they make no, they didn't make sub tickets for this. Um, here's Mr. Remy.
+
+me  26:02  
+I Okay,
+
+Speaker 1  26:07  
+hey, Remy, how you doing? I'm doing good. How are you Yeah, I had just hopped on a call with my team right now, but we're talking about terms of services and things that I need Sure. I might have some questions, I might have some questions, or I will have some questions about some of these things, and then see how we can work, work with each other, get some of the stuff knocked out in the meeting. Or do you want to do the meeting? And then let me know? Yeah, yeah. Just because we're already, we're already, like, five, seven, yeah, we're already in it. So just give me about 20 minutes, and then if you have that time,
+
+Speaker 3  26:52  
+yes, I will be available in 20 minutes. I cook. Came very late today to work, so I have nothing on my calendar right now. I but I'm about to but I'll put you on my calendar for 20 minutes. All right, thank you.
+
+Speaker 1  27:11  
+All right, look at this.
+
+Speaker 1  27:22  
+That's cute. Yeah, I just bought them there. You know how much these costs? Probably a lot,
+
+me  27:32  
+$400 Nah, it's okay. It'll come back to you. Times 10.
+
+Speaker 1  27:39  
+Yeah, because Jesus, I only brought him to keep a promise. And because my girls threw my other I have a, actually, I got pretty much says.
+
+Speaker 1  28:07  
+Yeah, I'm never gonna be broke, or at least I'm never gonna not have a way to make some money. I got too much going on, but I have these clippers and these actually are really cool because they come with, like, charger packs. But do you know how many times I've boughten or I've bought the charger stand, just for these? Too many times. It's only because the babies don't. They don't want me to charge my battery packs. They want to throw my battery packs or my battery charger stands in the toilet and get the toilet cloth or bring them to school, and then they disappear. I don't even know. I don't understand,
+
+me  29:04  
+like little things like that disappear naturally over time, just like being a human. But once you add kids into the equation every other month, something disappears. So good luck with that.
+
+Speaker 1  29:18  
+Yeah, well, these ones don't have the battery pack. These are unless they throwing away the charger, which I'll be so upset, unless they throw away the charger, we always gonna be good, because I can plug these in.
+
+me  29:35  
+Yeah, no, that that's good. It. Chargers are easier to replace than the full on battery packs. So sounds like a big win, but, um, maybe I should just add you to this board because, like, it also, like all the stuff that I'm doing, it's being tracked here, too. So what I'm using is it's called linear, and it's a way to keep track of tasks. So like, things that we need to do, want to do all that stuff, like, I just have it all organized here. I don't know if this would be helpful or if this would be overwhelming. It
+
+Speaker 1  30:26  
+probably it probably would be. My thing is, without like tasks for me to see that needs to get done, it's hard for me to like, you know, get that done. So as long as I know that there's stuff to work on, then I can get that done.
+
+Speaker 1  30:55  
+Also, if it's like, is it something to add? Is it categorized and stuff, or is everything
+
+me  31:04  
+kind of just in one place? I've been adding labels to it. So the way that it works is you can create a what is something we said we need to do just off of this call. So looking at the policy and compliance
+
+Unknown Speaker  31:18  
+policies, stuff like that, or even finding out the pricing.
+
+me  31:29  
+So let's say we have a task to find the best pricing for the app. We need to do so
+
+me  31:48  
+we keep good margins, right? So first you want to say, like the status of it, like backlog just means like we'll do it at some point to do means that we'll do it within a set time, I would say that this is low key urgent, because if we're talking about getting it done soon, we want to knock it out. We can say who's assigned to it, like you mean, I think you can do, oh, I don't think you could do multiple people. But anyway, you can say who owns it. It'll always be on the scribe board. And then you can have labels. So I have labels like legal marketing.
+
+me  32:39  
+I don't know we could add new ones too, but anyway, we cannot have labels to it to, like, keep it organized. So let's do non tech, because I think that makes the most sense. Because, like, it's like, it's a it's work that needs to be done, but it's not like nothing to do with the code, design, anything. It's like just business, yeah. And so we can create this. And so it's categorized in like the to do's, I mean, in the status, like to do, backlog, done, progress. But we can also filter it by labels and just say, like you want to just look at all the non tech stuff. You could filter it by that. You could filter it by a whole bunch of different stuff so that you could just see, like, the themes that you're interested in. Yeah? So, yeah, you could, or you could just see everything. I'd say,
+
+Unknown Speaker  33:54  
+I'd use whatever you can. And then what happened to the video is,
+
+me  34:02  
+like, the video invite? Oh, shit. So I fell asleep and woke up a few minutes before the event. I could send you the video of it if you want to watch it back.
+
+Speaker 1  34:17  
+Yeah, okay, look at it and be involved a little bit. You. Not even a little bit. I just want to kind of get my wrap my head around what it looked like to be in this tech field, talking about AI, and build stuff out with it.
+
+Unknown Speaker  34:33  
+Because I've been,
+
+Speaker 1  34:36  
+every day, I'm kind of selling and selling your the same idea kind of have about, like, generational wealth is kind of the same concept that's behind your Enigma, like, except for the fact of like, you know, you break off and then you kind of do your own thing with the Okay, yeah, with that, I've kind of been talking to people about like, you know, we all kind of start our credit, start our business, and then coincide with different portions of each of our business, so we're contracting work. So like consulting services, it would be tech consultant. I don't know what that would like, software development consulting company or whatever, and I would consult with you about I would then be able to pay you for your service through my business to help me software every time you go, go into it, and then for administration, administrative business, administrative consulting, somebody within our business would have a business for that, that service, and then creating that where I'm trying to establish Black Wall Street again. But many of your Black Wall Street just with my people?
+
+me  36:05  
+Yeah, no, that's, that's kind of what we ended up talking about at the end of the meeting yesterday. And we said that the way that we would because I think the most successful thing about us working together is I know how to build, and then you have the industry knowledge and the industry network, and that's when most people are missing when they launch something, and then people who are successful, they have that dynamic, Right, right? So I think what I was talking to you about the team, about moving forward, is we build these tools that we can leverage, like with AI as much as we can, or we rely on different people's skill set, like within the organization. So, like, we have one person who's like, if you think I'm good with AI, he knows, like, all the stuff that's like, literally popping up today with AI. He knows how to use it. So someone who's like, on the bleeding edge of technology, you have, like, I'm more like security, like compliance focus when building we have someone who's really good at that's a designer that can make logos, look books, guide books, all that stuff. We have someone who's in tech sales and things like that, someone who does who's really good at research and business, like testing and all this like, so we basically have, like, the full team. I think we're literally just missing someone from legal on our side.
+
+Speaker 1  37:50  
+I was speaking to somebody, oh yeah, tell me that's a bad idea.
+
+me  37:57  
+It's a good idea to have someone from legal, it's always just a bad idea to work with someone you have a past history with. And I just say that as someone who is trying to keep a committed relationship, long term relationship going, it's not even it's like it then if you add the layer of business in there. It could get messy,
+
+Speaker 1  38:27  
+yeah, and that's understandable. I just with my relationships, I would say I'm pretty good guy, so I don't think I have too many relationships where people are going to be on some like, you know, weird stuff. But then again, there are like, other factors. I'm not going to treated her extremely well. But then there could be jealousy, or could be other stuff. So I understand I
+
+Speaker 1  38:57  
+can reach out to another person that that towards the guy, like, keep your enemies, keep your enemies close and your or keep your friends close and your enemies closer. I don't think he's an enemy, but having him, I guess I would have to, it would have to be more serious. No, I don't know how much more serious it can be. I don't think he knows how he's meeting with Russell, so I think that'll change up his whole little outlook
+
+me  39:25  
+on so I think we need to find someone who's more so focused on, like compliance and stuff, versus just like someone Who does who's who's in law. So it's just like, We need someone like, focused on being able to review these applications. And there's like, a service where you play, pay a couple 100 bucks to get paired with the lawyer, and let me see if I could find that. Because, like, I use this service, but then, like, I never, I think I got sick or something, and like, I never follow, backed up with the lawyer. And then like, tech fell apart, so that the idea I was building was no longer possible.
+
+me  40:32  
+Let me see. But yeah, I
+
+me  40:44  
+Oh, my God, I hate when you have to do, oh, I sent you the invite to that tool linear. Yeah, I see. Okay, cool. I
+
+me  41:11  
+lawyer. Oh, actually, I'm connected with lawyers. What am I thinking?
+
+me  41:30  
+Whatever,
+
+me  41:41  
+I'll try to find the website I went to, but it was like you got connected directly with lawyers, and they did everything for us, or maybe it was through my other email I
+
+me  42:32  
+trademark i.
+
+Transcribed by https://otter.ai
