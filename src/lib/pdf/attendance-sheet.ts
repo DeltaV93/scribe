@@ -423,8 +423,17 @@ export async function generateAttendanceSheetPdf(
 
   const pdfmake = await getPdfMake();
   const pdf = pdfmake.createPdf(docDefinition);
-  const buffer = await pdf.getBuffer();
-  return buffer;
+
+  // pdfmake's getBuffer uses a callback pattern, not Promises
+  return new Promise<Buffer>((resolve, reject) => {
+    try {
+      pdf.getBuffer((buffer: Uint8Array) => {
+        resolve(Buffer.from(buffer));
+      });
+    } catch (error) {
+      reject(error);
+    }
+  });
 }
 
 /**
