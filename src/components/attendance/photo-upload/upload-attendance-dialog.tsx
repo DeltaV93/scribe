@@ -11,7 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { ImagePreview } from "./image-preview";
 import { QualityWarning } from "./quality-warning";
-import { Camera, Loader2, Upload, Sparkles, ClipboardList } from "lucide-react";
+import { ArrowLeft, Camera, Loader2, Upload, Sparkles, ClipboardList } from "lucide-react";
 import { toast } from "sonner";
 
 interface UploadAttendanceDialogProps {
@@ -227,6 +227,21 @@ export function UploadAttendanceDialog({
               <Button variant="outline" onClick={handleManualEntry}>
                 <ClipboardList className="mr-2 h-4 w-4" />
                 Enter Manually
+              </Button>
+            </div>
+            <div className="pt-2 border-t">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="w-full"
+                onClick={() => {
+                  setFile(null);
+                  setUploadId(null);
+                  setStep("select");
+                }}
+              >
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Upload Different Photo
               </Button>
             </div>
           </div>
