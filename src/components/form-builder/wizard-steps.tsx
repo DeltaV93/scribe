@@ -62,9 +62,9 @@ const allSteps: StepConfig[] = [
   },
   {
     id: "ai-config",
-    label: "AI Config",
+    label: "AI Settings",
     icon: Sparkles,
-    description: "Configure AI extraction",
+    description: "Set up automatic data extraction",
   },
   {
     id: "publish",
