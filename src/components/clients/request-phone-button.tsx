@@ -10,8 +10,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Loader2, Phone, Clock } from "lucide-react";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 interface RequestPhoneButtonProps {
   hasPendingRequest?: boolean;
@@ -87,24 +94,45 @@ export function RequestPhoneButton({
 
   if (isPending) {
     return (
-      <div className="flex items-center gap-2">
-        <Button variant="outline" size={size} className={className} disabled>
-          <Clock className="h-4 w-4 mr-2" />
-          Request Pending
-        </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={handleCancel}
-          disabled={isCanceling}
-        >
-          {isCanceling ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            "Cancel"
-          )}
-        </Button>
-      </div>
+      <TooltipProvider>
+        <div className="flex items-center gap-2">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="outline"
+                size={size}
+                className={cn(
+                  "cursor-not-allowed opacity-60 bg-muted/50 text-muted-foreground border-muted-foreground/30",
+                  className
+                )}
+                disabled
+              >
+                <Clock className="h-4 w-4 mr-2 text-yellow-600" />
+                Phone Number Pending
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" className="max-w-xs text-center">
+              <p>
+                Your request for a phone number is pending admin approval.
+                Please contact your site administrator if you need immediate access.
+              </p>
+            </TooltipContent>
+          </Tooltip>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleCancel}
+            disabled={isCanceling}
+            className="text-muted-foreground hover:text-destructive"
+          >
+            {isCanceling ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              "Cancel"
+            )}
+          </Button>
+        </div>
+      </TooltipProvider>
     );
   }
 
