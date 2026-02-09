@@ -13,17 +13,23 @@ export async function GET(request: NextRequest) {
     const unreadOnly = searchParams.get("unreadOnly") === "true";
     const limit = parseInt(searchParams.get("limit") ?? "20", 10);
     const offset = parseInt(searchParams.get("offset") ?? "0", 10);
+    const cursor = searchParams.get("cursor") ?? undefined;
 
     const result = await listNotifications({
       userId: user.id,
       unreadOnly,
       limit: Math.min(limit, 100),
-      offset,
+      offset: cursor ? undefined : offset, // Don't use offset if cursor is provided
+      cursor,
     });
 
     return NextResponse.json({
       success: true,
-      data: result.items,
+      data: {
+        notifications: result.items,
+        cursor: result.cursor,
+        hasMore: result.hasMore,
+      },
       pagination: {
         total: result.total,
         limit,
@@ -50,11 +56,12 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
 
     if (body.action === "mark-all-read") {
-      await markAllNotificationsRead(user.id);
+      const result = await markAllNotificationsRead(user.id);
 
       return NextResponse.json({
         success: true,
         message: "All notifications marked as read",
+        count: result.count,
       });
     }
 

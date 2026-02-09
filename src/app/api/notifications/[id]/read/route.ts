@@ -1,20 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth";
-import { getNotification, markNotificationRead } from "@/lib/services/notifications";
+import { markAsRead } from "@/lib/services/notifications";
 
 interface RouteParams {
   params: Promise<{ id: string }>;
 }
 
 /**
- * POST /api/notifications/[id]/read - Mark a notification as read
+ * PATCH /api/notifications/[id]/read - Mark a notification as read
  */
-export async function POST(request: NextRequest, { params }: RouteParams) {
+export async function PATCH(request: NextRequest, { params }: RouteParams) {
   try {
     const user = await requireAuth();
     const { id } = await params;
 
-    const notification = await getNotification(id);
+    const notification = await markAsRead(id, user.id);
 
     if (!notification) {
       return NextResponse.json(
@@ -23,19 +23,9 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       );
     }
 
-    // Verify the notification belongs to the user
-    if (notification.userId !== user.id) {
-      return NextResponse.json(
-        { error: { code: "FORBIDDEN", message: "Access denied" } },
-        { status: 403 }
-      );
-    }
-
-    const updated = await markNotificationRead(id);
-
     return NextResponse.json({
       success: true,
-      data: updated,
+      data: notification,
     });
   } catch (error) {
     console.error("Error marking notification as read:", error);
@@ -44,4 +34,11 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       { status: 500 }
     );
   }
+}
+
+/**
+ * POST /api/notifications/[id]/read - Mark a notification as read (legacy support)
+ */
+export async function POST(request: NextRequest, { params }: RouteParams) {
+  return PATCH(request, { params });
 }

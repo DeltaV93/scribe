@@ -25,6 +25,8 @@ import {
   User,
   Loader2,
   AlertTriangle,
+  Pencil,
+  Plus,
 } from "lucide-react";
 import { formatDistanceToNow, format } from "date-fns";
 import { FormSelectionModal } from "@/components/calls/form-selection-modal";
@@ -32,6 +34,9 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { toast } from "sonner";
 import { RequestPhoneButton } from "./request-phone-button";
 import { MessageList, SmsPreferenceCard, MessageComposer } from "@/components/messaging";
+import { NoteDrawer, NoteDetailDrawer, NotesFilterBar, getTagColor } from "@/components/notes";
+import { useClientNotes, type ClientNote, type NotesFilters } from "@/hooks/use-client-notes";
+import { cn } from "@/lib/utils";
 
 interface ClientAddress {
   street: string;
@@ -76,17 +81,7 @@ interface Call {
   };
 }
 
-interface Note {
-  id: string;
-  content: string;
-  type: string;
-  tags: string[];
-  createdAt: string;
-  author?: {
-    name: string | null;
-    email: string;
-  };
-}
+// Note interface is now imported from use-client-notes hook
 
 interface FormSubmission {
   id: string;
@@ -107,7 +102,7 @@ export function ClientProfile({ clientId }: ClientProfileProps) {
   const router = useRouter();
   const [client, setClient] = useState<Client | null>(null);
   const [calls, setCalls] = useState<Call[]>([]);
-  const [notes, setNotes] = useState<Note[]>([]);
+  const [recentNotes, setRecentNotes] = useState<ClientNote[]>([]);
   const [forms, setForms] = useState<FormSubmission[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("overview");
@@ -129,6 +124,35 @@ export function ClientProfile({ clientId }: ClientProfileProps) {
   const [smsOptedIn, setSmsOptedIn] = useState(false);
   const [showMessageComposer, setShowMessageComposer] = useState(false);
   const [messageCount, setMessageCount] = useState(0);
+
+  // Notes state
+  const [showNoteDrawer, setShowNoteDrawer] = useState(false);
+  const [showNoteDetailDrawer, setShowNoteDetailDrawer] = useState(false);
+  const [selectedNote, setSelectedNote] = useState<ClientNote | null>(null);
+  const [editingNote, setEditingNote] = useState<ClientNote | null>(null);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+
+  // Notes filter state
+  const [notesFilters, setNotesFilters] = useState<NotesFilters>({
+    tags: [],
+    startDate: null,
+    endDate: null,
+    search: "",
+  });
+
+  // Use the client notes hook for filtered/paginated notes
+  const {
+    notes: filteredNotes,
+    isLoading: isLoadingNotes,
+    error: notesError,
+    hasMore: hasMoreNotes,
+    refetch: refetchNotes,
+    loadMore: loadMoreNotes,
+  } = useClientNotes({
+    clientId,
+    filters: notesFilters,
+    enabled: activeTab === "notes",
+  });
 
   // Check if client is locked before showing call modal
   const checkClientLock = useCallback(async () => {
@@ -181,6 +205,23 @@ export function ClientProfile({ clientId }: ClientProfileProps) {
     fetchPhoneStatus();
   }, []);
 
+  // Fetch current user ID for notes ownership
+  useEffect(() => {
+    const fetchCurrentUser = async () => {
+      try {
+        const response = await fetch("/api/users/me");
+        if (response.ok) {
+          const data = await response.json();
+          setCurrentUserId(data.data?.id || null);
+        }
+      } catch (error) {
+        console.error("Error fetching current user:", error);
+      }
+    };
+
+    fetchCurrentUser();
+  }, []);
+
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
@@ -188,7 +229,7 @@ export function ClientProfile({ clientId }: ClientProfileProps) {
         const [clientRes, callsRes, notesRes, formsRes, smsRes, messagesRes] = await Promise.all([
           fetch(`/api/clients/${clientId}`),
           fetch(`/api/clients/${clientId}/calls?limit=10`),
-          fetch(`/api/clients/${clientId}/notes`),
+          fetch(`/api/clients/${clientId}/notes?limit=3`), // Only fetch a few for overview
           fetch(`/api/clients/${clientId}/forms`),
           fetch(`/api/clients/${clientId}/sms-preference`),
           fetch(`/api/clients/${clientId}/messages?limit=1`),
@@ -206,7 +247,9 @@ export function ClientProfile({ clientId }: ClientProfileProps) {
 
         if (notesRes.ok) {
           const data = await notesRes.json();
-          setNotes(data.data);
+          // Handle both array and paginated response formats
+          const notesData = Array.isArray(data.data) ? data.data : (data.data?.notes || []);
+          setRecentNotes(notesData);
         }
 
         if (formsRes.ok) {
@@ -371,7 +414,7 @@ export function ClientProfile({ clientId }: ClientProfileProps) {
           <TabsTrigger value="messages">Messages ({messageCount})</TabsTrigger>
           <TabsTrigger value="calls">Calls ({calls.length})</TabsTrigger>
           <TabsTrigger value="forms">Forms ({forms.length})</TabsTrigger>
-          <TabsTrigger value="notes">Notes ({notes.length})</TabsTrigger>
+          <TabsTrigger value="notes">Notes ({client._count?.notes || 0})</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4">
@@ -437,7 +480,7 @@ export function ClientProfile({ clientId }: ClientProfileProps) {
                     </div>
                   </div>
                 ))}
-                {notes.slice(0, 2).map((note) => (
+                {recentNotes.slice(0, 2).map((note) => (
                   <div key={note.id} className="flex items-start gap-3">
                     <MessageSquare className="h-4 w-4 text-muted-foreground mt-0.5" />
                     <div>
@@ -450,7 +493,7 @@ export function ClientProfile({ clientId }: ClientProfileProps) {
                     </div>
                   </div>
                 ))}
-                {calls.length === 0 && notes.length === 0 && (
+                {calls.length === 0 && recentNotes.length === 0 && (
                   <p className="text-sm text-muted-foreground">No recent activity</p>
                 )}
               </div>
@@ -551,49 +594,155 @@ export function ClientProfile({ clientId }: ClientProfileProps) {
 
         <TabsContent value="notes">
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
+            <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <CardTitle className="text-lg">Notes</CardTitle>
                 <CardDescription>Internal notes and documentation</CardDescription>
               </div>
-              <Button size="sm">
-                <MessageSquare className="mr-2 h-4 w-4" />
+              <Button size="sm" onClick={() => {
+                setEditingNote(null);
+                setShowNoteDrawer(true);
+              }}>
+                <Plus className="mr-2 h-4 w-4" />
                 Add Note
               </Button>
             </CardHeader>
-            <CardContent>
-              {notes.length === 0 ? (
-                <p className="text-sm text-muted-foreground py-4">No notes yet</p>
+            <CardContent className="space-y-4">
+              {/* Filter Bar */}
+              <NotesFilterBar
+                selectedTags={notesFilters.tags || []}
+                onTagsChange={(tags) => setNotesFilters((prev) => ({ ...prev, tags }))}
+                dateRange={{
+                  from: notesFilters.startDate || null,
+                  to: notesFilters.endDate || null,
+                }}
+                onDateRangeChange={(range) =>
+                  setNotesFilters((prev) => ({
+                    ...prev,
+                    startDate: range.from,
+                    endDate: range.to,
+                  }))
+                }
+                searchQuery={notesFilters.search || ""}
+                onSearchChange={(search) => setNotesFilters((prev) => ({ ...prev, search }))}
+                onClearFilters={() =>
+                  setNotesFilters({
+                    tags: [],
+                    startDate: null,
+                    endDate: null,
+                    search: "",
+                  })
+                }
+              />
+
+              {/* Notes List */}
+              {isLoadingNotes ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                </div>
+              ) : notesError ? (
+                <div className="text-center py-8">
+                  <AlertTriangle className="h-8 w-8 text-destructive mx-auto mb-2" />
+                  <p className="text-sm text-muted-foreground">{notesError}</p>
+                  <Button variant="outline" size="sm" onClick={refetchNotes} className="mt-2">
+                    Try Again
+                  </Button>
+                </div>
+              ) : filteredNotes.length === 0 ? (
+                <div className="text-center py-8">
+                  <MessageSquare className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                  <p className="text-sm text-muted-foreground">
+                    {(notesFilters.tags?.length || notesFilters.search || notesFilters.startDate)
+                      ? "No notes match your filters"
+                      : "No notes yet"}
+                  </p>
+                  {!notesFilters.tags?.length && !notesFilters.search && !notesFilters.startDate && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setEditingNote(null);
+                        setShowNoteDrawer(true);
+                      }}
+                      className="mt-2"
+                    >
+                      <Plus className="mr-2 h-4 w-4" />
+                      Add your first note
+                    </Button>
+                  )}
+                </div>
               ) : (
-                <div className="space-y-4">
-                  {notes.map((note) => (
-                    <div key={note.id} className="p-3 border rounded-lg">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-medium">
-                          {note.author?.name || note.author?.email}
-                        </span>
-                        <span className="text-xs text-muted-foreground">
-                          {format(new Date(note.createdAt), "MMM d, yyyy h:mm a")}
-                        </span>
-                      </div>
+                <div className="space-y-3">
+                  {filteredNotes.map((note) => {
+                    const wasEdited = note.createdAt !== note.updatedAt;
+                    const isAuthor = currentUserId === note.author.id;
+
+                    return (
                       <div
-                        className="text-sm prose prose-sm max-w-none"
-                        dangerouslySetInnerHTML={{ __html: note.content }}
-                      />
-                      {note.tags.length > 0 && (
-                        <div className="flex gap-1 mt-2">
-                          {note.tags.map((tag) => (
-                            <span
-                              key={tag}
-                              className="px-2 py-0.5 bg-secondary text-secondary-foreground text-xs rounded"
-                            >
-                              {tag}
+                        key={note.id}
+                        className="p-4 border rounded-lg hover:bg-muted/50 cursor-pointer transition-colors"
+                        onClick={() => {
+                          setSelectedNote(note);
+                          setShowNoteDetailDrawer(true);
+                        }}
+                      >
+                        {/* Header row: Author + Date */}
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-medium">
+                              {note.author?.name || note.author?.email}
                             </span>
-                          ))}
+                            {isAuthor && (
+                              <span className="text-xs text-muted-foreground">(you)</span>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            {wasEdited && (
+                              <span className="flex items-center gap-1">
+                                <Pencil className="h-3 w-3" />
+                                edited
+                              </span>
+                            )}
+                            <span>{format(new Date(note.createdAt), "MMM d, yyyy h:mm a")}</span>
+                          </div>
                         </div>
-                      )}
+
+                        {/* Tags row */}
+                        {note.tags.length > 0 && (
+                          <div className="flex flex-wrap gap-1 mb-2">
+                            {note.tags.map((tag) => (
+                              <span
+                                key={tag}
+                                className={cn(
+                                  "inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border",
+                                  getTagColor(tag)
+                                )}
+                              >
+                                {tag}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+
+                        {/* Content preview */}
+                        <div
+                          className="text-sm text-muted-foreground line-clamp-2 prose prose-sm max-w-none"
+                          dangerouslySetInnerHTML={{
+                            __html: note.content.substring(0, 200) + (note.content.length > 200 ? "..." : ""),
+                          }}
+                        />
+                      </div>
+                    );
+                  })}
+
+                  {/* Load More */}
+                  {hasMoreNotes && (
+                    <div className="text-center pt-2">
+                      <Button variant="outline" size="sm" onClick={loadMoreNotes}>
+                        Load more notes
+                      </Button>
                     </div>
-                  ))}
+                  )}
                 </div>
               )}
             </CardContent>
@@ -621,6 +770,46 @@ export function ClientProfile({ clientId }: ClientProfileProps) {
             .then((res) => res.json())
             .then((data) => setMessageCount(data.data?.pagination?.total || 0))
             .catch(console.error);
+        }}
+      />
+
+      {/* Note Drawer - Create/Edit */}
+      <NoteDrawer
+        open={showNoteDrawer}
+        onOpenChange={setShowNoteDrawer}
+        clientId={clientId}
+        note={editingNote ? {
+          id: editingNote.id,
+          content: editingNote.content,
+          type: editingNote.type,
+          status: editingNote.status,
+          tags: editingNote.tags,
+          isDraft: editingNote.isDraft,
+          authorId: editingNote.author.id,
+          createdAt: editingNote.createdAt,
+          updatedAt: editingNote.updatedAt,
+          rejectionReason: editingNote.rejectionReason,
+          author: editingNote.author,
+        } : null}
+        onSave={() => {
+          // Refetch notes after saving
+          refetchNotes();
+          setShowNoteDrawer(false);
+          setEditingNote(null);
+        }}
+      />
+
+      {/* Note Detail Drawer - Read-only View */}
+      <NoteDetailDrawer
+        note={selectedNote}
+        open={showNoteDetailDrawer}
+        onOpenChange={setShowNoteDetailDrawer}
+        currentUserId={currentUserId || undefined}
+        onEdit={(note) => {
+          // Close detail drawer and open edit drawer
+          setShowNoteDetailDrawer(false);
+          setEditingNote(note);
+          setShowNoteDrawer(true);
         }}
       />
     </div>

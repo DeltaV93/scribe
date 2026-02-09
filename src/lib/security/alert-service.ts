@@ -169,10 +169,11 @@ export async function triggerSecurityAlert(alert: SecurityAlert): Promise<AlertR
     for (const admin of orgAdmins) {
       try {
         await createNotification({
+          orgId: alert.orgId,
           userId: admin.id,
-          type: "warning",
+          type: "SYSTEM",
           title: `Security Alert: ${alert.type}`,
-          message: `Suspicious activity detected. Risk score: ${alert.riskScore}. ${alert.violations.length} threshold violations and ${alert.anomalies.length} anomalies detected.`,
+          body: `Suspicious activity detected. Risk score: ${alert.riskScore}. ${alert.violations.length} threshold violations and ${alert.anomalies.length} anomalies detected.`,
           metadata: {
             alertId,
             alertType: alert.type,
@@ -526,10 +527,11 @@ ${body}
   // Create notifications for admins
   for (const admin of orgAdmins) {
     await createNotification({
+      orgId,
       userId: admin.id,
-      type: "warning",
+      type: "SYSTEM",
       title: `EMERGENCY: ${title}`,
-      message: description.substring(0, 500),
+      body: description.substring(0, 500),
       metadata: { alertId, emergency: true },
     });
   }

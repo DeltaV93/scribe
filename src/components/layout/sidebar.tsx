@@ -32,6 +32,7 @@ import { signOutAction } from "@/lib/auth/actions";
 import { useState, useEffect } from "react";
 import type { SessionUser } from "@/types";
 import { Badge } from "@/components/ui/badge";
+import { NotificationBell } from "@/components/notifications";
 
 interface SidebarProps {
   user: SessionUser;
@@ -246,6 +247,18 @@ export function Sidebar({ user }: SidebarProps) {
                 )}
               </>
             )}
+
+            {/* Notifications with unread badge */}
+            <NotificationBell
+              collapsed={collapsed}
+              className={cn(
+                pathname === "/notifications"
+                  ? collapsed
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-primary text-primary-foreground"
+                  : ""
+              )}
+            />
           </nav>
         </ScrollArea>
 

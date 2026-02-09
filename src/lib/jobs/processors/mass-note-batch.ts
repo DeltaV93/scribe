@@ -6,7 +6,7 @@
  */
 
 import { Job } from 'bullmq'
-import { NoteType } from '@prisma/client'
+import { NoteType, NoteStatus } from '@prisma/client'
 import { prisma } from '@/lib/db'
 import {
   MassNoteBatchJobData,
@@ -134,10 +134,12 @@ async function processMassNoteBatch(job: Job<MassNoteBatchJobData>): Promise<voi
           const resolvedContent = resolveTemplateVariables(templateContent, variables)
 
           notesToCreate.push({
+            orgId,
             clientId: client.id,
             sessionId,
             authorId,
             type: noteType as NoteType,
+            status: NoteStatus.PUBLISHED,
             content: resolvedContent,
             tags,
             isMassNote: true,

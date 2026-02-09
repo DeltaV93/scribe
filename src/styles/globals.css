@@ -200,3 +200,60 @@
     background-color: hsl(var(--obsidian));
   }
 }
+
+/* TipTap Editor Styles */
+@layer components {
+  /* Editor prose styles */
+  .ProseMirror {
+    @apply outline-none;
+  }
+
+  .ProseMirror p {
+    @apply my-1;
+  }
+
+  .ProseMirror p:first-child {
+    @apply mt-0;
+  }
+
+  .ProseMirror p:last-child {
+    @apply mb-0;
+  }
+
+  .ProseMirror ul,
+  .ProseMirror ol {
+    @apply my-2;
+  }
+
+  .ProseMirror li {
+    @apply my-0.5;
+  }
+
+  .ProseMirror a {
+    @apply text-primary underline underline-offset-2 cursor-pointer hover:text-primary/80;
+  }
+
+  /* Mention styles */
+  .ProseMirror .mention {
+    @apply bg-primary/10 text-primary rounded px-1 py-0.5 font-medium;
+  }
+
+  /* Placeholder styles */
+  .ProseMirror p.is-editor-empty:first-child::before {
+    @apply text-muted-foreground pointer-events-none float-left h-0;
+    content: attr(data-placeholder);
+  }
+}
+
+/* Tippy.js popup styles for mention suggestions */
+.tippy-box[data-theme~='light-border'] {
+  @apply bg-popover text-popover-foreground border border-border rounded-md shadow-md;
+}
+
+.tippy-box[data-theme~='light-border'] .tippy-content {
+  @apply p-0;
+}
+
+.tippy-box[data-theme~='light-border'] .tippy-arrow::before {
+  @apply border-b-border;
+}

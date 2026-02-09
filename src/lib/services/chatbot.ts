@@ -675,10 +675,11 @@ export async function handleCrisis(
   // Notify organization admins
   for (const admin of session.organization.users) {
     await createNotification({
+      orgId: session.organizationId,
       userId: admin.id,
-      type: "warning",
+      type: "SYSTEM",
       title: "Crisis Alert: Chatbot Intake",
-      message: `A potential crisis was detected in a chatbot intake session. Session ID: ${sessionId}`,
+      body: `A potential crisis was detected in a chatbot intake session. Session ID: ${sessionId}`,
       metadata: {
         sessionId,
         crisisContact,
@@ -742,10 +743,11 @@ export async function requestHandoff(sessionId: string): Promise<HandoffResult> 
   const availableUsers = session.organization.users;
   for (const user of availableUsers) {
     await createNotification({
+      orgId: session.organizationId,
       userId: user.id,
-      type: "info",
+      type: "SYSTEM",
       title: "Chatbot Handoff Request",
-      message: `A user in the chatbot intake is requesting to speak with a person.`,
+      body: `A user in the chatbot intake is requesting to speak with a person.`,
       metadata: {
         sessionId,
         requestedAt: new Date().toISOString(),
@@ -933,10 +935,12 @@ export async function completeSession(
 
   // Notify assigned case manager
   await createNotification({
+    orgId: session.organizationId,
     userId: assignTo,
-    type: "info",
+    type: "SYSTEM",
     title: "New Client from Chatbot Intake",
-    message: `${firstName} ${lastName} completed intake via chatbot and has been assigned to you.`,
+    body: `${firstName} ${lastName} completed intake via chatbot and has been assigned to you.`,
+    actionUrl: `/clients/${client.id}`,
     metadata: {
       clientId: client.id,
       sessionId,

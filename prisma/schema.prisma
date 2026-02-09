@@ -123,6 +123,21 @@ enum NoteType {
   SHAREABLE
 }
 
+enum NoteStatus {
+  DRAFT
+  PENDING_APPROVAL
+  PUBLISHED
+  REJECTED
+}
+
+enum NotificationType {
+  MENTION
+  APPROVAL_REQUEST
+  APPROVAL_RESULT
+  REMINDER
+  SYSTEM
+}
+
 enum ConsentMode {
   AUTO_RECORDING
   CASE_MANAGER_SCRIPT
@@ -376,6 +391,11 @@ model Organization {
   jobProgress           JobProgress[]
   noteTemplates         NoteTemplate[]
 
+  // Notes Feature Relations
+  notes                 Note[]
+  noteTags              NoteTag[]
+  notifications         Notification[]
+
   // Form Conversion Relations
   formConversions       FormConversion[]
 
@@ -472,10 +492,15 @@ model User {
   assignedClients Client[]       @relation("AssignedClients")
   createdClients  Client[]       @relation("CreatedClients")
   calls           Call[]
-  notes           Note[]
+  authoredNotes   Note[]         @relation("NoteAuthor")
+  approvedNotes   Note[]         @relation("NoteApprover")
   twilioNumber    TwilioNumber?
   formSubmissions FormSubmission[]
   formEditLogs    FormEditLog[]
+
+  // Note Version and Mention Relations
+  noteVersions    NoteVersion[]  @relation("NoteVersionEditor")
+  noteMentions    NoteMention[]  @relation("NoteMentionedUser")
 
   // Phone Number Request Relations
   phoneRequests         PhoneNumberRequest[] @relation("PhoneRequests")
@@ -1203,30 +1228,108 @@ model Call {
 // ============================================
 
 model Note {
-  id         String    @id @default(uuid())
+  id         String     @id @default(uuid())
+  orgId      String
   clientId   String
-  callId     String?   // Optional link to call
-  sessionId  String?   // Optional link to program session (for mass notes)
+  callId     String?    // Optional link to call
+  sessionId  String?    // Optional link to program session (for mass notes)
   authorId   String
-  type       NoteType  @default(INTERNAL)
-  content    String    @db.Text // Rich text HTML, max 10000 chars
-  tags       String[]  // Flexible tagging
-  isMassNote Boolean   @default(false) // Flag for mass-created notes
-  isDraft    Boolean   @default(false)
+  type       NoteType   @default(INTERNAL)
+  status     NoteStatus @default(DRAFT)
+  content    String     @db.Text // Rich text HTML, max 10000 chars
+  tags       String[]   // Flexible tagging
+  isMassNote Boolean    @default(false) // Flag for mass-created notes
+  isDraft    Boolean    @default(false)
+
+  // Approval workflow fields
+  approvedById    String?
+  approvedAt      DateTime?
+  rejectionReason String?
+
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
   deletedAt  DateTime? // Soft delete
 
   // Relations
-  client    Client          @relation(fields: [clientId], references: [id])
-  call      Call?           @relation(fields: [callId], references: [id])
-  session   ProgramSession? @relation(fields: [sessionId], references: [id])
-  author    User            @relation(fields: [authorId], references: [id])
+  organization Organization    @relation(fields: [orgId], references: [id])
+  client       Client          @relation(fields: [clientId], references: [id])
+  call         Call?           @relation(fields: [callId], references: [id])
+  session      ProgramSession? @relation(fields: [sessionId], references: [id])
+  author       User            @relation("NoteAuthor", fields: [authorId], references: [id])
+  approvedBy   User?           @relation("NoteApprover", fields: [approvedById], references: [id])
+
+  // Version history and mentions
+  versions  NoteVersion[]
+  mentions  NoteMention[]
 
   @@index([clientId])
   @@index([callId])
   @@index([sessionId])
   @@index([authorId])
+  @@index([orgId, status])
+  @@index([orgId, createdAt])
+}
+
+// ============================================
+// NOTE VERSION HISTORY (HIPAA Compliance)
+// ============================================
+
+model NoteVersion {
+  id         String   @id @default(uuid())
+  noteId     String
+  editedById String
+  content    String   @db.Text
+  createdAt  DateTime @default(now())
+
+  // Relations
+  note     Note @relation(fields: [noteId], references: [id], onDelete: Cascade)
+  editedBy User @relation("NoteVersionEditor", fields: [editedById], references: [id])
+
+  @@index([noteId])
+  @@index([editedById])
+}
+
+// ============================================
+// NOTE MENTIONS (@mentions)
+// ============================================
+
+model NoteMention {
+  id              String   @id @default(uuid())
+  noteId          String
+  mentionedUserId String
+  notified        Boolean  @default(false)
+  createdAt       DateTime @default(now())
+
+  // Relations
+  note          Note @relation(fields: [noteId], references: [id], onDelete: Cascade)
+  mentionedUser User @relation("NoteMentionedUser", fields: [mentionedUserId], references: [id])
+
+  @@unique([noteId, mentionedUserId])
+  @@index([mentionedUserId])
+}
+
+// ============================================
+// NOTE TAGS (Predefined Tags)
+// ============================================
+
+model NoteTag {
+  id           String   @id @default(uuid())
+  orgId        String
+  programId    String?
+  name         String
+  colorHash    String   // Auto-generated from name
+  isRestricted Boolean  @default(false) // Cannot use on shareable notes
+  sortOrder    Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  program      Program?     @relation(fields: [programId], references: [id])
+
+  @@unique([orgId, programId, name])
+  @@index([orgId])
+  @@index([programId])
 }
 
 // ============================================
@@ -1396,6 +1499,9 @@ model Program {
   materials             ProgramMaterial[]
   attendanceSheetConfig AttendanceSheetConfig?
   noteTemplates         NoteTemplate[]
+
+  // Note Tags scoped to this program
+  noteTags              NoteTag[]
 
   // Grant Tracking Relations (PX-697)
   grantLinks            GrantProgramLink[]
@@ -1919,18 +2025,24 @@ model JobProgress {
 }
 
 model Notification {
-  id        String   @id @default(uuid())
+  id        String           @id @default(uuid())
+  orgId     String
   userId    String
-  type      String
+  type      NotificationType
   title     String
-  message   String
+  body      String?          @db.Text
+  actionUrl String?
   metadata  Json?
-  read      Boolean  @default(false)
-  createdAt DateTime @default(now())
+  isRead    Boolean          @default(false)
+  readAt    DateTime?
+  createdAt DateTime         @default(now())
 
-  user User @relation(fields: [userId], references: [id])
+  // Relations
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id])
 
-  @@index([userId, read])
+  @@index([userId, isRead])
+  @@index([orgId, createdAt])
 }
 
 // ============================================

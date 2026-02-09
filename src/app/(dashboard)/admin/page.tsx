@@ -8,6 +8,7 @@ import { UsersTab } from "@/components/admin/users-tab";
 import { TeamManagementTab } from "@/components/admin/team-management-tab";
 import { SettingsTab } from "@/components/admin/settings-tab";
 import { PhoneCostCard } from "@/components/admin/phone-cost-card";
+import { NoteApprovalsTab } from "@/components/admin/note-approvals-tab";
 import { Button } from "@/components/ui/button";
 import { Loader2, Shield, FileText } from "lucide-react";
 import Link from "next/link";
@@ -33,11 +34,13 @@ export default function AdminPage() {
   const [stats, setStats] = useState<PhoneStats | null>(null);
   const [pricing, setPricing] = useState<PhonePricing | null>(null);
   const [pendingRequestCount, setPendingRequestCount] = useState(0);
+  const [pendingNoteApprovalCount, setPendingNoteApprovalCount] = useState(0);
 
   useEffect(() => {
     checkAuth();
     fetchStats();
     fetchPendingCount();
+    fetchPendingNoteApprovalCount();
   }, []);
 
   const checkAuth = async () => {
@@ -82,9 +85,22 @@ export default function AdminPage() {
     }
   };
 
+  const fetchPendingNoteApprovalCount = async () => {
+    try {
+      const response = await fetch("/api/admin/note-approvals?countOnly=true");
+      if (response.ok) {
+        const data = await response.json();
+        setPendingNoteApprovalCount(data.data.count);
+      }
+    } catch (error) {
+      console.error("Failed to fetch note approval count:", error);
+    }
+  };
+
   const refreshData = () => {
     fetchStats();
     fetchPendingCount();
+    fetchPendingNoteApprovalCount();
   };
 
   if (isLoading) {
@@ -138,6 +154,14 @@ export default function AdminPage() {
               </span>
             )}
           </TabsTrigger>
+          <TabsTrigger value="note-approvals" className="relative">
+            Note Approvals
+            {pendingNoteApprovalCount > 0 && (
+              <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-destructive text-destructive-foreground text-xs flex items-center justify-center">
+                {pendingNoteApprovalCount}
+              </span>
+            )}
+          </TabsTrigger>
           <TabsTrigger value="settings">Settings</TabsTrigger>
         </TabsList>
 
@@ -154,6 +178,13 @@ export default function AdminPage() {
             pendingRequestCount={pendingRequestCount}
             onDataChange={refreshData}
             pricePerNumber={pricing?.monthlyCost}
+          />
+        </TabsContent>
+
+        <TabsContent value="note-approvals">
+          <NoteApprovalsTab
+            pendingCount={pendingNoteApprovalCount}
+            onDataChange={refreshData}
           />
         </TabsContent>
 

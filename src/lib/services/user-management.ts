@@ -452,7 +452,7 @@ export async function deleteUser(
           assignedClients: true,
           calls: true,
           formSubmissions: true,
-          notes: true,
+          authoredNotes: true,
         },
       },
     },
@@ -472,11 +472,11 @@ export async function deleteUser(
     user._count.assignedClients +
     user._count.calls +
     user._count.formSubmissions +
-    user._count.notes;
+    user._count.authoredNotes;
 
   if (totalItems > 0) {
     throw new Error(
-      `This user still has associated data (${user._count.assignedClients} clients, ${user._count.calls} calls, ${user._count.formSubmissions} submissions, ${user._count.notes} notes). Please transfer or remove this data before deleting.`
+      `This user still has associated data (${user._count.assignedClients} clients, ${user._count.calls} calls, ${user._count.formSubmissions} submissions, ${user._count.authoredNotes} notes). Please transfer or remove this data before deleting.`
     );
   }
 

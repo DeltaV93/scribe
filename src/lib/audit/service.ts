@@ -480,6 +480,133 @@ export const AuditLogger = {
     });
   },
 
+  async noteCreated(
+    orgId: string,
+    userId: string,
+    noteId: string,
+    clientId: string,
+    noteType: string,
+    ipAddress?: string,
+    userAgent?: string
+  ) {
+    return createAuditLog({
+      orgId,
+      userId,
+      action: "CREATE",
+      resource: "NOTE",
+      resourceId: noteId,
+      details: { clientId, noteType },
+      ipAddress,
+      userAgent,
+    });
+  },
+
+  async noteUpdated(
+    orgId: string,
+    userId: string,
+    noteId: string,
+    clientId: string,
+    changes: Record<string, unknown>,
+    ipAddress?: string,
+    userAgent?: string
+  ) {
+    return createAuditLog({
+      orgId,
+      userId,
+      action: "UPDATE",
+      resource: "NOTE",
+      resourceId: noteId,
+      details: { clientId, changes },
+      ipAddress,
+      userAgent,
+    });
+  },
+
+  async notePublished(
+    orgId: string,
+    userId: string,
+    noteId: string,
+    clientId: string,
+    noteType: string,
+    newStatus: string,
+    ipAddress?: string,
+    userAgent?: string
+  ) {
+    return createAuditLog({
+      orgId,
+      userId,
+      action: "PUBLISH",
+      resource: "NOTE",
+      resourceId: noteId,
+      details: { clientId, noteType, newStatus },
+      ipAddress,
+      userAgent,
+    });
+  },
+
+  async noteApproved(
+    orgId: string,
+    userId: string,
+    noteId: string,
+    clientId: string,
+    authorId: string,
+    ipAddress?: string,
+    userAgent?: string
+  ) {
+    return createAuditLog({
+      orgId,
+      userId,
+      action: "APPROVE",
+      resource: "NOTE",
+      resourceId: noteId,
+      details: { clientId, authorId },
+      ipAddress,
+      userAgent,
+    });
+  },
+
+  async noteRejected(
+    orgId: string,
+    userId: string,
+    noteId: string,
+    clientId: string,
+    authorId: string,
+    reason: string,
+    ipAddress?: string,
+    userAgent?: string
+  ) {
+    return createAuditLog({
+      orgId,
+      userId,
+      action: "REJECT",
+      resource: "NOTE",
+      resourceId: noteId,
+      details: { clientId, authorId, reason },
+      ipAddress,
+      userAgent,
+    });
+  },
+
+  async noteVersionsViewed(
+    orgId: string,
+    userId: string,
+    noteId: string,
+    clientId: string,
+    ipAddress?: string,
+    userAgent?: string
+  ) {
+    return createAuditLog({
+      orgId,
+      userId,
+      action: "VIEW",
+      resource: "NOTE",
+      resourceId: noteId,
+      details: { clientId, action: "view_version_history" },
+      ipAddress,
+      userAgent,
+    });
+  },
+
   async submissionViewed(
     orgId: string,
     userId: string,

@@ -60,13 +60,15 @@ export async function sendCredentialExpiryAlert(
   // Create in-app notification
   try {
     await createNotification({
+      orgId: caseManager.orgId,
       userId: caseManager.id,
-      type: (daysUntilExpiry <= 7 ? "warning" : "info") as NotificationType,
+      type: "REMINDER" as NotificationType,
       title:
         daysUntilExpiry === 7
           ? `Credential Expiring in 7 Days`
           : `Credential Expiring in ${daysUntilExpiry} Days`,
-      message: `${clientName}'s ${credentialName} expires on ${formattedExpiryDate}`,
+      body: `${clientName}'s ${credentialName} expires on ${formattedExpiryDate}`,
+      actionUrl: `/clients/${clientId}?tab=workforce`,
       metadata: {
         credentialId,
         clientId,
@@ -75,7 +77,6 @@ export async function sendCredentialExpiryAlert(
         expiryDate: formattedExpiryDate,
         daysUntilExpiry,
         urgencyLevel,
-        link: `/clients/${clientId}?tab=workforce`,
       },
     });
   } catch (error) {
