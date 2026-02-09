@@ -329,6 +329,29 @@ model Organization {
   sessionTimeoutMinutes Int         @default(30)  // 15-60 minutes configurable
   maxConcurrentSessions Int         @default(3)   // Max sessions per user
 
+  // Real-Time Chat Settings (PX-713)
+  realTimeChatEnabled   Boolean     @default(false)
+  businessHoursStart    String?     // "09:00" (24h format)
+  businessHoursEnd      String?     // "17:00" (24h format)
+  businessHoursTimezone String?     // "America/New_York"
+  businessHoursDays     Int[]       @default([1, 2, 3, 4, 5]) // 0=Sun, 1=Mon...6=Sat
+
+  // Chatbot Intake Settings (PX-702)
+  chatbotEnabled        Boolean     @default(false)
+  chatbotFormId         String?     // Default form for chatbot intake
+  chatbotCrisisContact  String?     // Phone/email for crisis alerts
+  chatbotAuthRequired   Boolean     @default(false) // Require auth before chatbot
+
+  // In-Person Recording Settings (PX-703)
+  inPersonRecordingEnabled Boolean  @default(false)
+  maxRecordingDurationMinutes Int   @default(60)    // Max recording duration (default 60 min)
+
+  // Workforce Development Settings (PX-711)
+  workforceEnabled      Boolean     @default(false)
+
+  // Insurance Eligibility Settings (PX-712)
+  eligibilityCheckEnabled Boolean   @default(false)
+
   createdAt             DateTime    @default(now())
   updatedAt             DateTime    @updatedAt
 
@@ -385,6 +408,21 @@ model Organization {
 
   // OKR Relations
   objectives            Objective[]
+
+  // Email Integration Relations (PX-705)
+  emailLogs             EmailLog[]
+
+  // Real-Time Chat Relations (PX-713)
+  chatRooms             ChatRoom[]
+
+  // Quiz Relations (PX-704, PX-707)
+  quizzes               Quiz[]
+
+  // Chatbot Intake Relations (PX-702)
+  chatSessions          ChatSession[]
+
+  // In-Person Recording Relations (PX-703)
+  inPersonRecordings    InPersonRecording[]
 
   @@index([slug])
   @@index([stripeCustomerId])
@@ -538,6 +576,17 @@ model User {
   objectiveUpdates            ObjectiveUpdate[]     @relation("ObjectiveUpdateCreator")
   keyResultProgress           KeyResultProgress[]   @relation("KeyResultProgressRecorder")
 
+  // Quiz Relations (PX-704, PX-707)
+  createdQuizzes              Quiz[]                @relation("QuizCreator")
+  quizAttempts                QuizAttempt[]         @relation("QuizAttemptUser")
+  quizAnswerReviews           QuizAnswer[]          @relation("QuizAnswerReviewer")
+
+  // Chatbot Intake Relations (PX-702)
+  chatSessionHandoffs         ChatSession[]         @relation("ChatSessionHandoff")
+
+  // In-Person Recording Relations (PX-703)
+  inPersonRecordings          InPersonRecording[]
+
   @@index([orgId])
   @@index([email])
   @@index([supabaseUserId])
@@ -679,6 +728,7 @@ model Form {
   access       FormAccess[]
   submissions  FormSubmission[]
   conversions  FormConversion[]
+  chatSessions ChatSession[]    // Chatbot intake sessions using this form
 
   @@index([orgId, status])
   @@index([createdById])
@@ -998,6 +1048,11 @@ model Client {
   status           ClientStatus @default(ACTIVE)
   assignedTo       String       // Case manager user ID
   createdBy        String
+
+  // Email Bounce Tracking (PX-705)
+  emailBounced     Boolean      @default(false)
+  emailBouncedAt   DateTime?
+
   createdAt        DateTime     @default(now())
   updatedAt        DateTime     @updatedAt
   deletedAt        DateTime?    // Soft delete
@@ -1033,6 +1088,23 @@ model Client {
 
   // Client Sharing Relations
   shares                ClientShare[]        @relation("ClientShares")
+
+  // Real-Time Chat Relations (PX-713)
+  chatRoom              ChatRoom?
+
+  // Chatbot Intake Relations (PX-702)
+  chatbotCreatedSessions ChatSession[] @relation("ChatSessionCreatedClient")
+
+  // Workforce Development Relations (PX-711)
+  jobPlacements         JobPlacement[]
+  credentials           Credential[]
+
+  // Insurance Eligibility Relations (PX-712)
+  insurancePlans        ClientInsurance[]
+  eligibilityChecks     EligibilityCheck[]
+
+  // In-Person Recording Relations (PX-703)
+  inPersonRecordings    InPersonRecording[]
 
   @@index([orgId, status])
   @@index([orgId, phone])
@@ -1601,6 +1673,18 @@ enum SmsDeliveryStatus {
   FAILED
 }
 
+// ============================================
+// EMAIL INTEGRATION ENUMS (PX-705)
+// ============================================
+
+enum EmailStatus {
+  QUEUED
+  SENT
+  DELIVERED
+  BOUNCED
+  FAILED
+}
+
 model Message {
   id            String              @id @default(uuid())
   orgId         String
@@ -1624,6 +1708,9 @@ model Message {
   sender          User?               @relation("MessageSender", fields: [senderId], references: [id])
   attachments     MessageAttachment[]
   smsNotification SmsNotification?
+
+  // Email Integration Relations (PX-705)
+  emailLogs           EmailLog[]
 
   @@index([clientId, sentAt])
   @@index([orgId, clientId])
@@ -1678,6 +1765,42 @@ model SmsPreference {
   client        Client    @relation(fields: [clientId], references: [id])
 
   @@index([clientId])
+}
+
+// ============================================
+// EMAIL LOGGING (PX-705)
+// ============================================
+
+model EmailLog {
+  id              String      @id @default(uuid())
+  organizationId  String
+  messageId       String?     // Link to Message if applicable
+  clientId        String?     // Link to Client if applicable
+  recipientEmail  String
+  subject         String
+  templateId      String?     // Template used (e.g., "client_message", "appointment_reminder")
+  body            String?     @db.Text // Email body content
+  status          EmailStatus @default(QUEUED)
+  sesMessageId    String?     @unique // AWS SES Message ID for tracking
+  sentAt          DateTime?
+  deliveredAt     DateTime?
+  bouncedAt       DateTime?
+  bounceType      String?     // "permanent" or "transient"
+  bounceReason    String?
+  retryCount      Int         @default(0)
+  nextRetryAt     DateTime?   // For retry scheduling
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  // Relations
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  message         Message?     @relation(fields: [messageId], references: [id])
+
+  @@index([organizationId, status])
+  @@index([organizationId, createdAt])
+  @@index([sesMessageId])
+  @@index([clientId])
+  @@index([status, nextRetryAt])
 }
 
 model PortalToken {
@@ -3005,4 +3128,405 @@ model ObjectiveUpdate {
 
   @@index([objectiveId, createdAt])
   @@index([createdById])
+}
+
+// ============================================
+// REAL-TIME CHAT (PX-713)
+// ============================================
+
+model ChatRoom {
+  id              String    @id @default(uuid())
+  organizationId  String
+  clientId        String    @unique  // One chat room per client
+  isActive        Boolean   @default(true)
+  lastActivityAt  DateTime  @default(now())
+  createdAt       DateTime  @default(now())
+
+  // Relations
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  client          Client       @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, clientId])
+  @@index([isActive, lastActivityAt])
+  @@index([organizationId, isActive])
+}
+
+// ============================================
+// STAFF TRAINING & QUIZZES (PX-704, PX-707)
+// ============================================
+
+enum QuizQuestionType {
+  SINGLE_CHOICE   // Select one answer
+  MULTIPLE_CHOICE // Select all that apply
+  FREE_TEXT       // Open-ended response
+  SCALE           // 1-10 rating (self-assessment)
+  MATCHING        // Match items to categories
+  ORDERING        // Put items in sequence
+  FILE_UPLOAD     // Upload document/image
+}
+
+enum QuizAttemptStatus {
+  IN_PROGRESS
+  PASSED
+  FAILED
+}
+
+enum QuizAudience {
+  STAFF   // Only for staff training
+  CLIENT  // Only for client learning
+  BOTH    // Available to both
+}
+
+model Quiz {
+  id              String        @id @default(uuid())
+  organizationId  String
+  title           String
+  description     String?       @db.Text
+  audience        QuizAudience  @default(BOTH)
+  passingScore    Int           @default(80) // Percentage required to pass
+  maxAttempts     Int?          // Null = unlimited attempts
+  isActive        Boolean       @default(true)
+  createdById     String
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  archivedAt      DateTime?     // Soft delete
+
+  // Relations
+  organization    Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdBy       User          @relation("QuizCreator", fields: [createdById], references: [id])
+  questions       QuizQuestion[]
+  attempts        QuizAttempt[]
+
+  @@index([organizationId, isActive])
+  @@index([audience])
+  @@index([createdById])
+}
+
+model QuizQuestion {
+  id            String           @id @default(uuid())
+  quizId        String
+  type          QuizQuestionType
+  question      String           @db.Text
+  options       Json?            // For choice/matching questions: { choices: [...], pairs?: [...] }
+  correctAnswer Json             // Correct answer(s) - format depends on type
+  points        Int              @default(1) // Points for correct answer
+  order         Int              // Fixed question order
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  // Relations
+  quiz          Quiz             @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  answers       QuizAnswer[]
+
+  @@index([quizId, order])
+}
+
+model QuizAttempt {
+  id            String            @id @default(uuid())
+  quizId        String
+  userId        String
+  score         Int?              // Final score percentage (0-100)
+  totalPoints   Int?              // Total points earned
+  maxPoints     Int?              // Maximum possible points
+  status        QuizAttemptStatus @default(IN_PROGRESS)
+  startedAt     DateTime          @default(now())
+  completedAt   DateTime?
+
+  // Relations
+  quiz          Quiz              @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  user          User              @relation("QuizAttemptUser", fields: [userId], references: [id])
+  answers       QuizAnswer[]
+
+  @@index([quizId, userId])
+  @@index([userId, status])
+  @@index([startedAt])
+}
+
+model QuizAnswer {
+  id           String       @id @default(uuid())
+  attemptId    String
+  questionId   String
+  answer       Json         // User's answer - format depends on question type
+  isCorrect    Boolean?     // Null for FREE_TEXT/FILE_UPLOAD pending review
+  pointsEarned Int?         // Points awarded (null if not yet graded)
+  fileUrl      String?      // S3 URL for FILE_UPLOAD answers
+  reviewedAt   DateTime?    // When manual review was completed
+  reviewedById String?      // Who reviewed (for FREE_TEXT/FILE_UPLOAD)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  // Relations
+  attempt      QuizAttempt  @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  question     QuizQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  reviewedBy   User?        @relation("QuizAnswerReviewer", fields: [reviewedById], references: [id])
+
+  @@unique([attemptId, questionId]) // One answer per question per attempt
+  @@index([attemptId])
+  @@index([questionId])
+}
+
+// ============================================
+// AUTOMATED CHATBOT INTAKE (PX-702)
+// ============================================
+
+enum ChatSessionStatus {
+  ACTIVE       // Session in progress
+  COMPLETED    // Intake successfully completed
+  ABANDONED    // Session abandoned (no activity)
+  ESCALATED    // Escalated due to crisis detection
+}
+
+model ChatSession {
+  id                String            @id @default(uuid())
+  organizationId    String
+  formId            String
+  status            ChatSessionStatus @default(ACTIVE)
+
+  // Client identification (collected during conversation)
+  clientPhone       String?
+  clientEmail       String?
+
+  // Extracted data from conversation
+  extractedData     Json?             // Field slug -> extracted value
+  lastQuestionIndex Int               @default(0)  // Track progress through form
+
+  // Handoff tracking
+  handoffRequested  Boolean           @default(false)
+  handoffUserId     String?           // Case manager who accepted handoff
+  handoffRequestedAt DateTime?
+
+  // Crisis detection
+  crisisDetected    Boolean           @default(false)
+  crisisDetectedAt  DateTime?
+
+  // Session cookie for resume (hashed)
+  resumeToken       String?           @unique
+
+  // Completion
+  completedAt       DateTime?
+  clientId          String?           // Created client after completion
+
+  // Analytics
+  dropOffField      String?           // Last field answered before abandonment
+
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  // Relations
+  organization      Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  form              Form              @relation(fields: [formId], references: [id])
+  handoffUser       User?             @relation("ChatSessionHandoff", fields: [handoffUserId], references: [id])
+  createdClient     Client?           @relation("ChatSessionCreatedClient", fields: [clientId], references: [id])
+  messages          ChatMessage[]
+
+  @@index([organizationId, status])
+  @@index([organizationId, createdAt])
+  @@index([resumeToken])
+}
+
+model ChatMessage {
+  id          String      @id @default(uuid())
+  sessionId   String
+  role        String      // "user" | "assistant" | "system"
+  content     String      @db.Text
+  metadata    Json?       // Additional context (e.g., field being asked, crisis flags)
+  createdAt   DateTime    @default(now())
+
+  // Relations
+  session     ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId, createdAt])
+}
+
+// ============================================
+// WORKFORCE DEVELOPMENT ADD-ON (PX-711)
+// ============================================
+
+enum CredentialStatus {
+  ACTIVE     // Credential is valid and current
+  EXPIRING   // Within 30 days of expiry
+  EXPIRED    // Past expiry date
+}
+
+enum PlacementStatus {
+  ACTIVE      // Currently employed
+  ENDED       // Employment ended normally
+  TERMINATED  // Employment terminated
+}
+
+model JobPlacement {
+  id            String          @id @default(uuid())
+  clientId      String
+  employerName  String
+  jobTitle      String
+  hourlyWage    Decimal?        @db.Decimal(10, 2)
+  startDate     DateTime
+  endDate       DateTime?
+  status        PlacementStatus @default(ACTIVE)
+  notes         String?         @db.Text
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  // Relations
+  client        Client          @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@index([clientId])
+  @@index([clientId, status])
+  @@index([startDate])
+}
+
+model Credential {
+  id            String           @id @default(uuid())
+  clientId      String
+  name          String
+  issuingOrg    String?
+  issueDate     DateTime?
+  expiryDate    DateTime?
+  status        CredentialStatus @default(ACTIVE)
+  documentUrl   String?          // S3 path to credential document
+  notes         String?          @db.Text
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  // Relations
+  client        Client           @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@index([clientId])
+  @@index([expiryDate, status])
+  @@index([status])
+}
+
+// ============================================
+// INSURANCE ELIGIBILITY VERIFICATION (PX-712)
+// ============================================
+
+model ClientInsurance {
+  id              String    @id @default(uuid())
+  clientId        String
+  planName        String
+  memberId        String
+  groupNumber     String?
+  payerCode       String?   // Standard payer ID for clearinghouse
+  payerName       String?   // Human-readable payer name
+  effectiveDate   DateTime
+  terminationDate DateTime?
+  isPrimary       Boolean   @default(true)
+
+  // Subscriber information (if different from client)
+  subscriberName  String?
+  subscriberDob   DateTime?
+  subscriberRelation String? // "self", "spouse", "child", "other"
+
+  // Additional plan details
+  planType        String?   // "PPO", "HMO", "EPO", "POS", etc.
+  planPhone       String?
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Relations
+  client          Client    @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  eligibilityChecks EligibilityCheck[]
+
+  @@index([clientId])
+  @@index([clientId, isPrimary])
+  @@index([memberId, payerCode])
+}
+
+model EligibilityCheck {
+  id              String    @id @default(uuid())
+  clientId        String
+  insurancePlanId String?   // Link to ClientInsurance if used
+  serviceCode     String    // CPT code or service type code
+  serviceName     String?   // Human-readable service name
+
+  // Eligibility result
+  isEligible      Boolean
+
+  // Full response data from clearinghouse
+  responseData    Json      // Parsed 271 response
+  // Structure: {
+  //   planName, memberId, groupNumber,
+  //   effectiveDate, terminationDate,
+  //   copay, deductible, deductibleRemaining,
+  //   coinsurance, outOfPocketMax, outOfPocketRemaining,
+  //   priorAuthRequired, limitations, exclusions,
+  //   rawResponse?: string
+  // }
+
+  // Generated documents
+  documentUrls    String[]  // S3 URLs to generated PDFs
+
+  // Caching
+  checkedAt       DateTime  @default(now())
+  expiresAt       DateTime  // 7 days from checkedAt by default
+
+  // API metadata
+  requestId       String?   // External API request ID
+  providerNpi     String?   // NPI of the checking provider
+
+  createdAt       DateTime  @default(now())
+
+  // Relations
+  client          Client         @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  insurancePlan   ClientInsurance? @relation(fields: [insurancePlanId], references: [id])
+
+  @@index([clientId, serviceCode])
+  @@index([expiresAt])
+  @@index([clientId, checkedAt])
+  @@index([insurancePlanId])
+}
+
+// ============================================
+// IN-PERSON RECORDING (PX-703)
+// ============================================
+
+enum ConsentMethod {
+  DIGITAL     // Client signs on device
+  VERBAL      // First 10 seconds of recording captures verbal consent
+  PRE_SIGNED  // Reference to existing consent document
+}
+
+model InPersonRecording {
+  id                String        @id @default(uuid())
+  organizationId    String
+  clientId          String
+  userId            String        // Case manager who recorded
+
+  // Recording storage
+  recordingUrl      String?       // S3 key: in-person/{orgId}/{recordingId}.webm
+  duration          Int?          // Duration in seconds
+
+  // Transcription and extraction
+  transcriptText    String?       @db.Text
+  extractedData     Json?         // Field slug -> extracted value (same as Call)
+  confidenceScores  Json?         // Field slug -> confidence score
+
+  // Processing status
+  processingStatus  ProcessingStatus @default(PENDING)
+  processingError   String?
+  processedAt       DateTime?
+
+  // Consent tracking
+  consentMethod     ConsentMethod
+  consentRecordedAt DateTime      // When consent was captured
+  consentSignature  String?       // S3 key to signature image (for DIGITAL)
+  consentDocumentId String?       // Reference to consent document (for PRE_SIGNED)
+
+  // Form linkage (optional - for extraction)
+  formIds           String[]      @default([])
+
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  // Relations
+  organization      Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  client            Client        @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  user              User          @relation(fields: [userId], references: [id])
+
+  @@index([organizationId])
+  @@index([clientId])
+  @@index([userId])
+  @@index([processingStatus])
+  @@index([createdAt])
 }
