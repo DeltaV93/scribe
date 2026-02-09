@@ -50,3 +50,23 @@ export {
   validateFileSize,
   formatFileSize,
 } from "./types";
+
+// Virus scanning with quarantine
+export {
+  uploadWithQuarantine,
+  scanFile as virusScanFile,
+  processQuarantinedFile,
+  getQuarantineStatus,
+  listQuarantinedFiles,
+  retryFailedScans,
+  cleanupOldQuarantinedFiles,
+  getVirusScanStatus,
+  isVirusScanEnabled,
+  isScannerAvailable,
+  QuarantineStatus,
+  VIRUS_SCAN_CONFIG,
+  type FileMetadata,
+  type QuarantinedFile,
+  type VirusScanResult,
+  type QuarantineRecord,
+} from "./virus-scan";
