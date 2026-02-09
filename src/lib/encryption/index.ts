@@ -71,7 +71,38 @@ export {
   encryptJsonForOrg,
   decryptJsonForOrg,
   ENCRYPTED_FIELDS,
+  TIER_2_ENCRYPTED_FIELDS,
 } from "./field-encryption";
+
+// Two-tier encryption for high-sensitivity fields
+export {
+  // Tier configuration
+  TIER_1_FIELDS,
+  TIER_2_FIELDS,
+  TIER_2_FIELD_DISPLAY_NAMES,
+  TIER_2_MASKING,
+  Tier2AccessAction,
+  // Core functions
+  encryptTier2,
+  decryptTier2,
+  maskTier2Field,
+  // Helper functions
+  isTier2Field,
+  getTier2MaskedValue,
+  isTier2Encrypted,
+  getTier2FieldsForModel,
+  getModelsWithTier2Fields,
+  getTier2FieldDisplayName,
+  // Batch operations
+  encryptTier2Fields,
+  decryptTier2Fields,
+  maskTier2Fields,
+  // Migration helpers
+  migrateTier2Field,
+} from "./two-tier";
+
+// Two-tier types
+export type { Tier2DecryptResult, Tier2AccessContext } from "./two-tier";
 
 // Types
 export type { EncryptionResult, EncryptedData } from "./crypto";

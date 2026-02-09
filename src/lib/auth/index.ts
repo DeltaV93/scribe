@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { redirect } from "next/navigation";
 import type { SessionUser, UserPermissions } from "@/types";
 import { UserRole } from "@/types";
+import { checkMFARequired, getMFASetupRedirectUrl, isAdminRole } from "./mfa-enforcement";
 
 /**
  * Get the current authenticated user with organization context
@@ -29,7 +30,19 @@ export async function getCurrentUser(): Promise<SessionUser | null> {
     // Fetch user from database with organization
     const user = await prisma.user.findUnique({
       where: { supabaseUserId: authUser.id },
-      include: {
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        avatarUrl: true,
+        role: true,
+        orgId: true,
+        canCreateForms: true,
+        canReadForms: true,
+        canUpdateForms: true,
+        canDeleteForms: true,
+        canPublishForms: true,
+        mfaEnabled: true,
         organization: {
           select: {
             id: true,
@@ -59,6 +72,7 @@ export async function getCurrentUser(): Promise<SessionUser | null> {
         canDeleteForms: user.canDeleteForms,
         canPublishForms: user.canPublishForms,
       },
+      mfaEnabled: user.mfaEnabled,
     };
   } catch (error) {
     console.error("Error in getCurrentUser:", error);
@@ -67,13 +81,27 @@ export async function getCurrentUser(): Promise<SessionUser | null> {
 }
 
 /**
- * Require authentication - redirects to login if not authenticated
+ * Require authentication - redirects to login if not authenticated.
+ * For admin users (SUPER_ADMIN, ADMIN), enforces MFA setup if not enabled.
+ *
+ * @param options - Optional configuration
+ * @param options.skipMFACheck - Skip MFA enforcement check (for MFA setup page)
  */
-export async function requireAuth(): Promise<SessionUser> {
+export async function requireAuth(options?: {
+  skipMFACheck?: boolean;
+}): Promise<SessionUser> {
   const user = await getCurrentUser();
 
   if (!user) {
     redirect("/login");
+  }
+
+  // Check MFA requirement for admin users (unless explicitly skipped)
+  if (!options?.skipMFACheck && isAdminRole(user.role)) {
+    const mfaRequired = await checkMFARequired(user);
+    if (mfaRequired) {
+      redirect(getMFASetupRedirectUrl());
+    }
   }
 
   return user;

@@ -5,7 +5,9 @@
  * This middleware intercepts Prisma operations and automatically handles
  * encryption on write and decryption on read.
  *
- * Encrypted Fields:
+ * Two-Tier Encryption System:
+ *
+ * TIER 1 (Standard PHI) - Transparent encryption/decryption:
  * - FormSubmission.data (JSON with PHI)
  * - FormSubmission.aiExtractedData (JSON with PHI)
  * - Note.content (Rich text HTML)
@@ -14,19 +16,33 @@
  * - Call.extractedFields (AI-extracted data)
  * - Signature.imageData (Signature image bytes - handled separately)
  * - Message.content (Message text)
+ *
+ * TIER 2 (High-Sensitivity PHI) - Requires audit logging on every read:
+ * - Client.ssn (Social Security Number)
+ * - Client.healthConditions (Health condition data)
+ * - ClientInsurance.memberId (Insurance member ID)
+ *
+ * NOTE: Tier 2 fields are NOT handled by this middleware's automatic decryption.
+ * They must be explicitly decrypted using decryptTier2() from two-tier.ts with
+ * proper audit context. The middleware DOES handle Tier 2 encryption on write.
  */
 
 import { Prisma } from "@prisma/client";
 import { encrypt, decrypt, encryptJson, decryptJson, isEncrypted } from "./crypto";
 import { getOrCreateOrgDek } from "./key-management";
+import {
+  TIER_2_FIELDS,
+  encryptTier2,
+  isTier2Encrypted,
+} from "./two-tier";
 
 // ============================================
 // CONFIGURATION
 // ============================================
 
 /**
- * Field encryption configuration
- * Maps model names to fields that should be encrypted
+ * Tier 1 Field encryption configuration
+ * Maps model names to fields that should be encrypted with automatic decryption
  */
 export const ENCRYPTED_FIELDS: Record<string, {
   fields: string[];
@@ -55,14 +71,39 @@ export const ENCRYPTED_FIELDS: Record<string, {
   },
 };
 
+/**
+ * Tier 2 Field encryption configuration
+ * Maps model names to high-sensitivity fields that require audit logging on read
+ *
+ * IMPORTANT: Tier 2 fields are encrypted on write but NOT automatically decrypted.
+ * Use decryptTier2() from two-tier.ts to decrypt with proper audit context.
+ */
+export const TIER_2_ENCRYPTED_FIELDS: Record<string, {
+  fields: string[];
+  jsonFields: string[];
+  orgIdPath: string;
+}> = {
+  Client: {
+    fields: ["ssn"],
+    jsonFields: ["healthConditions"],
+    orgIdPath: "orgId",
+  },
+  ClientInsurance: {
+    fields: ["memberId"],
+    jsonFields: [],
+    orgIdPath: "client.orgId", // Nested - need to fetch
+  },
+};
+
 // Models that need orgId lookup from related records
-const MODELS_NEEDING_ORG_LOOKUP = ["Note", "Call"];
+const MODELS_NEEDING_ORG_LOOKUP = ["Note", "Call", "ClientInsurance"];
 
 // ============================================
 // TYPES
 // ============================================
 
 type EncryptableModel = keyof typeof ENCRYPTED_FIELDS;
+type Tier2EncryptableModel = keyof typeof TIER_2_ENCRYPTED_FIELDS;
 
 interface EncryptionContext {
   model: string;
@@ -77,6 +118,10 @@ interface EncryptionContext {
 /**
  * Create Prisma middleware for automatic field encryption
  *
+ * This middleware handles:
+ * - Tier 1 fields: Automatic encryption on write AND decryption on read
+ * - Tier 2 fields: Automatic encryption on write ONLY (decryption requires explicit call with audit)
+ *
  * Usage:
  * ```
  * import { createEncryptionMiddleware } from '@/lib/encryption/field-encryption';
@@ -87,24 +132,34 @@ export function createEncryptionMiddleware(): Prisma.Middleware {
   return async (params, next) => {
     const model = params.model as string;
 
-    // Check if this model has encrypted fields
-    if (!ENCRYPTED_FIELDS[model]) {
+    const tier1Config = ENCRYPTED_FIELDS[model];
+    const tier2Config = TIER_2_ENCRYPTED_FIELDS[model];
+
+    // Check if this model has any encrypted fields
+    if (!tier1Config && !tier2Config) {
       return next(params);
     }
 
-    const config = ENCRYPTED_FIELDS[model];
-
-    // Handle writes (create, update, upsert)
+    // Handle writes (create, update, upsert) for both tiers
     if (["create", "update", "upsert", "createMany", "updateMany"].includes(params.action)) {
-      await encryptWriteData(params, config);
+      // Encrypt Tier 1 fields (if applicable)
+      if (tier1Config) {
+        await encryptWriteData(params, tier1Config);
+      }
+      // Encrypt Tier 2 fields (if applicable)
+      if (tier2Config) {
+        await encryptTier2WriteData(params, tier2Config);
+      }
     }
 
     // Execute the query
     const result = await next(params);
 
-    // Handle reads (findUnique, findFirst, findMany, etc.)
-    if (result && ["findUnique", "findFirst", "findMany", "create", "update", "upsert"].includes(params.action)) {
-      await decryptReadData(result, model, config);
+    // Handle reads (findUnique, findFirst, findMany, etc.) - TIER 1 ONLY
+    // Tier 2 fields are NOT automatically decrypted - they require explicit
+    // decryption with audit context using decryptTier2()
+    if (result && tier1Config && ["findUnique", "findFirst", "findMany", "create", "update", "upsert"].includes(params.action)) {
+      await decryptReadData(result, model, tier1Config);
     }
 
     return result;
@@ -116,7 +171,7 @@ export function createEncryptionMiddleware(): Prisma.Middleware {
 // ============================================
 
 /**
- * Encrypt data before writing to database
+ * Encrypt Tier 1 data before writing to database
  */
 async function encryptWriteData(
   params: Prisma.MiddlewareParams,
@@ -150,6 +205,58 @@ async function encryptWriteData(
         continue; // Already encrypted
       }
       data[field] = encryptJson(data[field], dek);
+    }
+  }
+}
+
+/**
+ * Encrypt Tier 2 (high-sensitivity) data before writing to database
+ *
+ * Tier 2 fields use a distinct encryption format that requires explicit
+ * decryption with audit context. This function handles encryption on write.
+ */
+async function encryptTier2WriteData(
+  params: Prisma.MiddlewareParams,
+  config: typeof TIER_2_ENCRYPTED_FIELDS[Tier2EncryptableModel]
+): Promise<void> {
+  const data = getWriteData(params);
+  if (!data) return;
+
+  // Get organization ID for key lookup
+  const orgId = await getOrgIdForWrite(params, data);
+  if (!orgId) {
+    console.warn(`[Encryption] Could not determine orgId for ${params.model} Tier 2 write`);
+    return;
+  }
+
+  // Encrypt Tier 2 string fields
+  for (const field of config.fields) {
+    if (data[field] && typeof data[field] === "string") {
+      // Don't re-encrypt if already Tier 2 encrypted
+      if (isTier2Encrypted(data[field] as string)) {
+        continue;
+      }
+      // Don't re-encrypt if it's Tier 1 encrypted (migration case - should be handled separately)
+      if (isEncrypted(data[field] as string)) {
+        console.warn(`[Encryption] Tier 2 field ${params.model}.${field} has Tier 1 encryption - migration needed`);
+        continue;
+      }
+      data[field] = await encryptTier2(orgId, data[field]);
+    }
+  }
+
+  // Encrypt Tier 2 JSON fields
+  for (const field of config.jsonFields) {
+    if (data[field] !== undefined && data[field] !== null) {
+      // Check if it's already encrypted
+      if (typeof data[field] === "string" && isTier2Encrypted(data[field] as string)) {
+        continue; // Already Tier 2 encrypted
+      }
+      if (typeof data[field] === "string" && isEncrypted(data[field] as string)) {
+        console.warn(`[Encryption] Tier 2 JSON field ${params.model}.${field} has Tier 1 encryption - migration needed`);
+        continue;
+      }
+      data[field] = await encryptTier2(orgId, data[field]);
     }
   }
 }
@@ -268,7 +375,7 @@ async function getOrgIdForWrite(
     return data.orgId;
   }
 
-  // For models that need lookup (Note, Call), check if we have enough info
+  // For models that need lookup (Note, Call, ClientInsurance), check if we have enough info
   if (MODELS_NEEDING_ORG_LOOKUP.includes(params.model as string)) {
     // These models get orgId from related records
     // For writes, we need the related ID to be present
