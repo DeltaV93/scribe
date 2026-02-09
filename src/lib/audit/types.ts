@@ -42,7 +42,9 @@ export type AuditResource =
   | "SETTING"
   | "ATTENDANCE_UPLOAD"
   | "ATTENDANCE_RECORD"
-  | "ATTENDANCE_SHEET";
+  | "ATTENDANCE_SHEET"
+  | "EMAIL"
+  | "IN_PERSON_RECORDING";
 
 export interface AuditLogEntry {
   id: string;
@@ -155,6 +157,7 @@ export const DEFAULT_RETENTION_POLICIES: RetentionPolicy[] = [
   { resource: "SUBMISSION", retentionDays: 2555, archiveAfterDays: 365 }, // 7 years
   { resource: "FILE", retentionDays: 2555, archiveAfterDays: 365 },
   { resource: "CALL", retentionDays: 2555, archiveAfterDays: 365 },
+  { resource: "IN_PERSON_RECORDING", retentionDays: 2555, archiveAfterDays: 365 }, // Same as calls
   { resource: "FORM", retentionDays: 2555 },
   { resource: "USER", retentionDays: 2555 },
   { resource: "CLIENT", retentionDays: 2555 },
