@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,10 +19,18 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { ClientStatusBadge } from "./client-status-badge";
 import { ClientStatus } from "@prisma/client";
-import { Loader2, Plus, Search, Phone, Mail, User } from "lucide-react";
+import { Loader2, Plus, Search, Phone, Mail, User, PhoneCall } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { FormSelectionModal } from "@/components/calls/form-selection-modal";
+import { toast } from "sonner";
 
 interface Client {
   id: string;
@@ -63,7 +71,130 @@ export function ClientList({ showAssignedFilter = true }: ClientListProps) {
     totalPages: 0,
   });
 
-  const fetchClients = async () => {
+  // Call modal state
+  const [showCallModal, setShowCallModal] = useState(false);
+  const [selectedClientForCall, setSelectedClientForCall] = useState<Client | null>(null);
+  const [isInitiatingCall, setIsInitiatingCall] = useState(false);
+  const [isCheckingLock, setIsCheckingLock] = useState<string | null>(null);
+
+  // User's phone status for making calls
+  const [phoneStatus, setPhoneStatus] = useState<{
+    hasPhoneNumber: boolean;
+    phoneNumber: string | null;
+    hasPendingRequest: boolean;
+  } | null>(null);
+  const [isLoadingPhoneStatus, setIsLoadingPhoneStatus] = useState(true);
+
+  // Fetch user's phone status
+  useEffect(() => {
+    const fetchPhoneStatus = async () => {
+      setIsLoadingPhoneStatus(true);
+      try {
+        const response = await fetch("/api/phone-numbers/my-status");
+        if (response.ok) {
+          const data = await response.json();
+          setPhoneStatus(data.data);
+        }
+      } catch (error) {
+        console.error("Error fetching phone status:", error);
+      } finally {
+        setIsLoadingPhoneStatus(false);
+      }
+    };
+
+    fetchPhoneStatus();
+  }, []);
+
+  // Check if client is locked before allowing call
+  const checkClientLock = useCallback(async (clientId: string): Promise<boolean> => {
+    try {
+      const params = new URLSearchParams({
+        resourceType: "client",
+        resourceId: clientId,
+      });
+      const response = await fetch(`/api/locks?${params}`);
+      if (response.ok) {
+        const data = await response.json();
+        if (data.data?.locked && !data.data?.isOwnLock) {
+          toast.error(`${data.data.lockedBy || "Another user"} is currently on a call with this client`);
+          return false;
+        }
+        return true;
+      }
+    } catch (error) {
+      console.error("Error checking lock:", error);
+    }
+    return true; // Allow call if check fails (optimistic)
+  }, []);
+
+  // Handle call button click
+  const handleCallClick = async (e: React.MouseEvent, client: Client) => {
+    e.stopPropagation(); // Prevent row click navigation
+
+    // Check if user has phone number assigned
+    if (!phoneStatus?.hasPhoneNumber) {
+      toast.error("You need a phone number assigned to make calls");
+      return;
+    }
+
+    // Check if client has a phone number
+    if (!client.phone) {
+      toast.error("Client has no phone number");
+      return;
+    }
+
+    setIsCheckingLock(client.id);
+    const canProceed = await checkClientLock(client.id);
+    setIsCheckingLock(null);
+
+    if (canProceed) {
+      setSelectedClientForCall(client);
+      setShowCallModal(true);
+    }
+  };
+
+  // Initiate the call
+  const handleInitiateCall = async (formIds: string[]) => {
+    if (!selectedClientForCall) return;
+
+    setIsInitiatingCall(true);
+    try {
+      const response = await fetch("/api/calls", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ clientId: selectedClientForCall.id, formIds }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        router.push(`/calls/${data.data.id}`);
+      } else {
+        const errorData = await response.json();
+        toast.error(errorData.error?.message || "Failed to initiate call");
+      }
+    } catch (error) {
+      console.error("Error initiating call:", error);
+      toast.error("Failed to initiate call");
+    } finally {
+      setIsInitiatingCall(false);
+      setShowCallModal(false);
+      setSelectedClientForCall(null);
+    }
+  };
+
+  // Get tooltip message for disabled call button
+  const getCallButtonTooltip = (client: Client): string | null => {
+    if (isLoadingPhoneStatus) return "Loading...";
+    if (!phoneStatus?.hasPhoneNumber) {
+      return phoneStatus?.hasPendingRequest
+        ? "Your phone number request is pending"
+        : "Request a phone number to make calls";
+    }
+    if (!client.phone) return "Client has no phone number";
+    return null;
+  };
+
+  const fetchClients = useCallback(async () => {
     setIsLoading(true);
     try {
       const params = new URLSearchParams();
@@ -87,11 +218,11 @@ export function ClientList({ showAssignedFilter = true }: ClientListProps) {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [search, status, pagination.page]);
 
   useEffect(() => {
     fetchClients();
-  }, [search, status, pagination.page]);
+  }, [fetchClients]);
 
   const handleSearch = (value: string) => {
     setSearch(value);
@@ -155,18 +286,19 @@ export function ClientList({ showAssignedFilter = true }: ClientListProps) {
               {showAssignedFilter && <TableHead>Assigned To</TableHead>}
               <TableHead>Activity</TableHead>
               <TableHead>Last Updated</TableHead>
+              <TableHead className="w-[80px]">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={showAssignedFilter ? 6 : 5} className="text-center py-8">
+                <TableCell colSpan={showAssignedFilter ? 7 : 6} className="text-center py-8">
                   <Loader2 className="h-6 w-6 animate-spin mx-auto" />
                 </TableCell>
               </TableRow>
             ) : clients.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={showAssignedFilter ? 6 : 5} className="text-center py-8">
+                <TableCell colSpan={showAssignedFilter ? 7 : 6} className="text-center py-8">
                   <div className="text-muted-foreground">
                     <User className="h-8 w-8 mx-auto mb-2 opacity-50" />
                     <p>No clients found</p>
@@ -222,6 +354,40 @@ export function ClientList({ showAssignedFilter = true }: ClientListProps) {
                       {formatDistanceToNow(new Date(client.updatedAt), { addSuffix: true })}
                     </span>
                   </TableCell>
+                  <TableCell>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span tabIndex={0}>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8"
+                              onClick={(e) => handleCallClick(e, client)}
+                              disabled={
+                                isLoadingPhoneStatus ||
+                                !phoneStatus?.hasPhoneNumber ||
+                                !client.phone ||
+                                isCheckingLock === client.id
+                              }
+                            >
+                              {isCheckingLock === client.id ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <PhoneCall className="h-4 w-4" />
+                              )}
+                              <span className="sr-only">Call {client.firstName} {client.lastName}</span>
+                            </Button>
+                          </span>
+                        </TooltipTrigger>
+                        {getCallButtonTooltip(client) && (
+                          <TooltipContent>
+                            <p>{getCallButtonTooltip(client)}</p>
+                          </TooltipContent>
+                        )}
+                      </Tooltip>
+                    </TooltipProvider>
+                  </TableCell>
                 </TableRow>
               ))
             )}
@@ -256,6 +422,18 @@ export function ClientList({ showAssignedFilter = true }: ClientListProps) {
           </div>
         </div>
       )}
+
+      {/* Call Modal */}
+      <FormSelectionModal
+        open={showCallModal}
+        onOpenChange={(open) => {
+          setShowCallModal(open);
+          if (!open) setSelectedClientForCall(null);
+        }}
+        onConfirm={handleInitiateCall}
+        clientName={selectedClientForCall ? `${selectedClientForCall.firstName} ${selectedClientForCall.lastName}` : ""}
+        isLoading={isInitiatingCall}
+      />
     </div>
   );
 }
