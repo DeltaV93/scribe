@@ -16,6 +16,8 @@ export type FeatureFlag =
   | 'sms-messaging'
   | 'client-portal'
   | 'form-logic'
+  | 'performance-metrics'
+  | 'quizzes'
 
 // Feature flag configuration
 export interface FeatureFlagConfig {
@@ -36,6 +38,8 @@ const DEFAULT_FLAGS: Record<FeatureFlag, FeatureFlagConfig> = {
   'sms-messaging': { enabled: false },
   'client-portal': { enabled: false },
   'form-logic': { enabled: false },
+  'performance-metrics': { enabled: false },
+  'quizzes': { enabled: false },
 }
 
 /**
