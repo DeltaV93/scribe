@@ -25,7 +25,8 @@ export type AuditAction =
   | "OVERRIDE_ATTENDANCE"
   | "QUICK_ENROLL"
   | "SHARE"
-  | "REVOKE";
+  | "REVOKE"
+  | "ARCHIVE";
 
 export type AuditResource =
   | "FORM"
@@ -34,6 +35,7 @@ export type AuditResource =
   | "SUBMISSION"
   | "CLIENT"
   | "CLIENT_SHARE"
+  | "CLIENT_GOAL"
   | "USER"
   | "ORGANIZATION"
   | "FILE"
@@ -46,7 +48,9 @@ export type AuditResource =
   | "ATTENDANCE_RECORD"
   | "ATTENDANCE_SHEET"
   | "EMAIL"
-  | "IN_PERSON_RECORDING";
+  | "IN_PERSON_RECORDING"
+  | "GOAL"
+  | "KPI";
 
 export interface AuditLogEntry {
   id: string;

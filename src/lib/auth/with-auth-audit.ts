@@ -148,6 +148,7 @@ function extractResourceIdFromParams(
     REPORT: ["reportId", "report_id", "id"],
     SETTING: ["settingId", "setting_id", "id"],
     CLIENT_SHARE: ["shareId", "share_id", "id"],
+    CLIENT_GOAL: ["goalId", "goal_id", "id"],
     NOTE: ["noteId", "note_id", "id"],
     MESSAGE: ["messageId", "message_id", "id"],
     ATTENDANCE_UPLOAD: ["uploadId", "upload_id", "id"],
@@ -155,6 +156,8 @@ function extractResourceIdFromParams(
     ATTENDANCE_SHEET: ["sheetId", "sheet_id", "id"],
     EMAIL: ["emailId", "email_id", "id"],
     IN_PERSON_RECORDING: ["recordingId", "recording_id", "id"],
+    GOAL: ["goalId", "goal_id", "id"],
+    KPI: ["kpiId", "kpi_id", "id"],
   };
 
   const possibleParams = resourceParamMap[resource] || ["id"];
