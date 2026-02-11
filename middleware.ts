@@ -171,13 +171,56 @@ const protectedRoutes = [
   "/settings",
   "/billing",
   "/templates",
+  "/goals",
+  "/programs",
+  "/action-items",
+  "/reminders",
+  "/admin",
 ];
 
 // Auth routes - redirect to dashboard if already authenticated
 const authRoutes = ["/login", "/signup"];
 
+// Legacy route redirects - old routes that should redirect to new Goals Hub
+const legacyRedirects: Record<string, string> = {
+  "/grants": "/goals?type=grant",
+  "/okrs": "/goals?type=okr",
+};
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  // Handle legacy route redirects
+  // Check for exact matches first
+  if (legacyRedirects[pathname]) {
+    const url = request.nextUrl.clone();
+    const [newPath, query] = legacyRedirects[pathname].split("?");
+    url.pathname = newPath;
+    if (query) {
+      const params = new URLSearchParams(query);
+      params.forEach((value, key) => url.searchParams.set(key, value));
+    }
+    return NextResponse.redirect(url, 301);
+  }
+
+  // Handle legacy route with ID (e.g., /grants/123 -> /goals?type=grant&highlight=123)
+  const grantsMatch = pathname.match(/^\/grants\/([^/]+)$/);
+  if (grantsMatch) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/goals";
+    url.searchParams.set("type", "grant");
+    url.searchParams.set("highlight", grantsMatch[1]);
+    return NextResponse.redirect(url, 301);
+  }
+
+  const okrsMatch = pathname.match(/^\/okrs\/([^/]+)$/);
+  if (okrsMatch) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/goals";
+    url.searchParams.set("type", "okr");
+    url.searchParams.set("highlight", okrsMatch[1]);
+    return NextResponse.redirect(url, 301);
+  }
 
   // Generate or extract correlation ID for request tracing
   const correlationId = getCorrelationId(request.headers);

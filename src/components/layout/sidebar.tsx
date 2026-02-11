@@ -70,8 +70,8 @@ const navItems = [
     icon: ListChecks,
   },
   {
-    title: "Grants",
-    href: "/grants",
+    title: "Goals",
+    href: "/goals",
     icon: Target,
   },
   {
