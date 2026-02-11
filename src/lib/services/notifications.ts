@@ -533,3 +533,59 @@ export async function createReminderNotification(
     metadata,
   })
 }
+
+// ============================================
+// POLLING SUPPORT (PX-725)
+// ============================================
+
+/**
+ * Check for new notifications since a timestamp
+ * Optimized for polling - returns minimal data for 30-60 sec intervals
+ */
+export async function checkNewNotifications(params: {
+  userId: string
+  since: Date
+}): Promise<{ hasNew: boolean; count: number; latestId: string | null }> {
+  const { userId, since } = params
+
+  const newNotifications = await prisma.notification.findMany({
+    where: {
+      userId,
+      createdAt: { gt: since },
+      OR: [
+        { expiresAt: null },
+        { expiresAt: { gt: new Date() } },
+      ],
+    },
+    orderBy: { createdAt: 'desc' },
+    take: 1,
+    select: { id: true },
+  })
+
+  const count = await prisma.notification.count({
+    where: {
+      userId,
+      createdAt: { gt: since },
+    },
+  })
+
+  return {
+    hasNew: newNotifications.length > 0,
+    count,
+    latestId: newNotifications[0]?.id || null,
+  }
+}
+
+/**
+ * Delete expired notifications (for cleanup cron job)
+ * Handles 90-day expiration from PX-734
+ */
+export async function deleteExpiredNotifications(): Promise<{ count: number }> {
+  const result = await prisma.notification.deleteMany({
+    where: {
+      expiresAt: { lte: new Date() },
+    },
+  })
+
+  return { count: result.count }
+}
