@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/db";
-import { MetricType, DeliverableStatus } from "@prisma/client";
+import { MetricType, DeliverableStatus, KpiMetricType } from "@prisma/client";
 import { incrementDeliverable, ProgressSource } from "./grants";
+import { recordKpiProgress } from "./kpis";
 
 // ============================================
 // TYPES
@@ -21,7 +22,7 @@ export interface MetricEvent {
 // ============================================
 
 /**
- * Track a metric event and update applicable deliverables
+ * Track a metric event and update applicable deliverables and KPIs
  * This function is called from other services when trackable events occur
  */
 export async function trackMetricEvent(event: MetricEvent): Promise<void> {
@@ -34,25 +35,40 @@ export async function trackMetricEvent(event: MetricEvent): Promise<void> {
     event.programId
   );
 
-  if (deliverables.length === 0) {
-    // No deliverables tracking this metric type - silently ignore
-    return;
-  }
+  // Find all applicable KPIs
+  const kpis = await findApplicableKpis(
+    event.orgId,
+    event.metricType,
+    event.programId
+  );
 
-  // Update each applicable deliverable
+  // Update deliverables
   const source: ProgressSource = {
     sourceType: event.sourceType,
     sourceId: event.sourceId,
   };
 
-  await Promise.all(
-    deliverables.map((d) =>
-      incrementDeliverable(d.id, delta, source).catch((err) => {
-        // Log error but don't fail the entire operation
-        console.error(`Failed to increment deliverable ${d.id}:`, err);
-      })
-    )
+  const deliverableUpdates = deliverables.map((d) =>
+    incrementDeliverable(d.id, delta, source).catch((err) => {
+      // Log error but don't fail the entire operation
+      console.error(`Failed to increment deliverable ${d.id}:`, err);
+    })
   );
+
+  // Update KPIs
+  const kpiUpdates = kpis.map(async (kpi) => {
+    try {
+      await recordKpiProgress(kpi.id, kpi.currentValue + delta, {
+        sourceType: event.sourceType,
+        sourceId: event.sourceId,
+        notes: `Auto-tracked from ${event.sourceType}`,
+      });
+    } catch (err) {
+      console.error(`Failed to increment KPI ${kpi.id}:`, err);
+    }
+  });
+
+  await Promise.all([...deliverableUpdates, ...kpiUpdates]);
 }
 
 /**
@@ -202,6 +218,93 @@ async function findApplicableDeliverables(
   }
 
   return applicableDeliverables;
+}
+
+/**
+ * Find all KPIs that should be updated for a given metric event
+ */
+async function findApplicableKpis(
+  orgId: string,
+  metricType: MetricType,
+  programId?: string
+): Promise<{ id: string; currentValue: number }[]> {
+  // Map MetricType to KpiMetricType - COUNT-based metrics map to COUNT
+  const kpiMetricType = mapMetricTypeToKpiMetricType(metricType);
+
+  if (!kpiMetricType) {
+    return [];
+  }
+
+  // Get all active KPIs for this org that match the metric type
+  const kpis = await prisma.kpi.findMany({
+    where: {
+      orgId,
+      metricType: kpiMetricType,
+      archivedAt: null,
+      // Only include KPIs within their active date range
+      OR: [
+        { startDate: null, endDate: null },
+        {
+          startDate: { lte: new Date() },
+          OR: [{ endDate: null }, { endDate: { gte: new Date() } }],
+        },
+      ],
+    },
+    select: {
+      id: true,
+      currentValue: true,
+      programLinks: {
+        select: { programId: true },
+      },
+      // Check if KPI has dataSourceConfig matching this metric type
+      dataSourceConfig: true,
+    },
+  });
+
+  const applicableKpis: { id: string; currentValue: number }[] = [];
+
+  for (const kpi of kpis) {
+    // Check dataSourceConfig to see if this KPI should track this metric type
+    const config = kpi.dataSourceConfig as { metricType?: string } | null;
+    if (config?.metricType && config.metricType !== metricType) {
+      continue;
+    }
+
+    // If programId is provided, check if the KPI is linked to that program
+    if (programId && kpi.programLinks.length > 0) {
+      const isLinked = kpi.programLinks.some((link) => link.programId === programId);
+      if (!isLinked) {
+        // KPI has program links but not to this program - skip
+        continue;
+      }
+    }
+
+    applicableKpis.push({
+      id: kpi.id,
+      currentValue: kpi.currentValue,
+    });
+  }
+
+  return applicableKpis;
+}
+
+/**
+ * Map MetricType enum to KpiMetricType enum
+ */
+function mapMetricTypeToKpiMetricType(metricType: MetricType): KpiMetricType | null {
+  switch (metricType) {
+    case MetricType.CLIENTS_ENROLLED:
+    case MetricType.PROGRAM_COMPLETIONS:
+    case MetricType.SESSIONS_DELIVERED:
+    case MetricType.CLIENT_CONTACTS:
+    case MetricType.FORM_SUBMISSIONS:
+    case MetricType.CLIENTS_HOUSED:
+      return KpiMetricType.COUNT;
+    case MetricType.CUSTOM:
+      return null; // Custom metrics need specific handling
+    default:
+      return null;
+  }
 }
 
 /**

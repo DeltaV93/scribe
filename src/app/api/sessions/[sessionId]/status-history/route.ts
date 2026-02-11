@@ -22,7 +22,7 @@ export const GET = withAuth(async (request, context, user) => {
     include: {
       program: {
         select: {
-          organizationId: true,
+          orgId: true,
         },
       },
     },
@@ -36,7 +36,7 @@ export const GET = withAuth(async (request, context, user) => {
   }
 
   // Verify org access
-  if (session.program.organizationId !== user.orgId) {
+  if (session.program.orgId !== user.orgId) {
     return NextResponse.json(
       { error: { code: "FORBIDDEN", message: "Access denied" } },
       { status: 403 }

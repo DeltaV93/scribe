@@ -5,7 +5,7 @@
  */
 
 import { prisma } from "@/lib/db";
-import { ActivityType, UserRole } from "@prisma/client";
+import { ActivityType, UserRole, Prisma } from "@prisma/client";
 
 export interface CreateActivityParams {
   clientId: string;
@@ -13,7 +13,7 @@ export interface CreateActivityParams {
   actorRole: UserRole;
   activityType: ActivityType;
   summary: string;
-  rawData: Record<string, unknown>;
+  rawData: Prisma.InputJsonValue;
   sourceType: string;
   sourceId: string;
 }

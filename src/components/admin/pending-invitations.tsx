@@ -73,6 +73,7 @@ const ROLE_LABELS: Record<string, string> = {
   ADMIN: "Administrator",
   PROGRAM_MANAGER: "Program Manager",
   CASE_MANAGER: "Case Manager",
+  FACILITATOR: "Facilitator",
   VIEWER: "Viewer",
 };
 

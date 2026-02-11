@@ -50,7 +50,8 @@ export type AuditResource =
   | "EMAIL"
   | "IN_PERSON_RECORDING"
   | "GOAL"
-  | "KPI";
+  | "KPI"
+  | "SESSION";
 
 export interface AuditLogEntry {
   id: string;

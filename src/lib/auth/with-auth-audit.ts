@@ -158,6 +158,7 @@ function extractResourceIdFromParams(
     IN_PERSON_RECORDING: ["recordingId", "recording_id", "id"],
     GOAL: ["goalId", "goal_id", "id"],
     KPI: ["kpiId", "kpi_id", "id"],
+    SESSION: ["sessionId", "session_id", "id"],
   };
 
   const possibleParams = resourceParamMap[resource] || ["id"];

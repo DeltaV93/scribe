@@ -333,6 +333,7 @@ function formatRole(role: string): string {
     ADMIN: "Administrator",
     PROGRAM_MANAGER: "Program Manager",
     CASE_MANAGER: "Case Manager",
+    FACILITATOR: "Facilitator",
     VIEWER: "Viewer",
   };
   return roleNames[role] || role;

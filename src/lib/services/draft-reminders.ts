@@ -4,7 +4,7 @@
  */
 
 import { prisma } from "@/lib/db";
-import { NotificationType, SessionStatus } from "@prisma/client";
+import { NotificationType, SessionStatus, Prisma } from "@prisma/client";
 import { sendEmail, wrapEmailContent } from "@/lib/email/service";
 
 // Reminder thresholds in days before session date
@@ -55,7 +55,7 @@ export async function processDraftReminders(): Promise<DraftReminderResult> {
                 name: true,
               },
             },
-            creator: {
+            createdBy: {
               select: {
                 id: true,
                 email: true,
@@ -77,6 +77,9 @@ export async function processDraftReminders(): Promise<DraftReminderResult> {
 
     for (const session of draftSessions) {
       try {
+        // Skip sessions without a date (shouldn't happen due to query filter, but TypeScript needs assurance)
+        if (!session.date) continue;
+
         const daysUntilSession = Math.ceil(
           (session.date.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
         );
@@ -89,7 +92,7 @@ export async function processDraftReminders(): Promise<DraftReminderResult> {
         if (!matchingThreshold) continue;
 
         // Determine who to notify (facilitator first, then creator)
-        const recipient = session.program.facilitator || session.program.creator;
+        const recipient = session.program.facilitator || session.program.createdBy;
         if (!recipient) {
           result.errors.push(`Session ${session.id}: No recipient found`);
           continue;
@@ -207,7 +210,7 @@ export async function getUpcomingDraftSessions(userId: string) {
       program: {
         OR: [
           { facilitatorId: userId },
-          { creatorId: userId },
+          { createdById: userId },
         ],
       },
     },
@@ -234,7 +237,7 @@ export async function getUnreadDraftReminderCount(userId: string): Promise<numbe
       isRead: false,
       metadata: {
         path: ["sessionId"],
-        not: null,
+        not: Prisma.AnyNull,
       },
     },
   });

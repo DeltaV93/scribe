@@ -8,8 +8,9 @@ import {
   ConsentType,
   ConsentStatus,
   ConsentCollectionMethod,
+  Prisma,
 } from "@prisma/client";
-import { AuditLogger } from "@/lib/audit/service";
+import { createAuditLog } from "@/lib/audit/service";
 
 export interface ConsentGrantParams {
   clientId: string;
@@ -74,13 +75,14 @@ export async function grantConsent(params: ConsentGrantParams): Promise<void> {
   });
 
   if (client) {
-    await AuditLogger.log({
-      organizationId: client.orgId,
+    await createAuditLog({
+      orgId: client.orgId,
       userId: "system", // Consent granted via automated system
-      action: "CONSENT_GRANTED",
-      resourceType: "CLIENT",
+      action: "CREATE",
+      resource: "CLIENT",
       resourceId: clientId,
       details: {
+        type: "consent_granted",
         consentType,
         method,
         callId,
@@ -121,16 +123,17 @@ export async function revokeConsent(params: ConsentRevokeParams): Promise<void> 
   });
 
   if (client) {
-    await AuditLogger.log({
-      organizationId: client.orgId,
+    await createAuditLog({
+      orgId: client.orgId,
       userId: revokedById,
-      action: "CONSENT_REVOKED",
-      resourceType: "CLIENT",
+      action: "DELETE",
+      resource: "CLIENT",
       resourceId: clientId,
       details: {
+        type: "consent_revoked",
         consentType,
         reason,
-        retentionUntil,
+        retentionUntil: retentionUntil.toISOString(),
       },
     });
   }
@@ -255,7 +258,7 @@ export async function purgeExpiredRecordings(): Promise<{
     // await deleteS3Objects(record.client.calls.map(c => c.recordingUrl));
     recordingsDeleted += record.client.calls.length;
 
-    // Nullify recording URLs in call records
+    // Nullify recording URLs and transcripts in call records
     await prisma.call.updateMany({
       where: {
         clientId: record.clientId,
@@ -263,7 +266,8 @@ export async function purgeExpiredRecordings(): Promise<{
       },
       data: {
         recordingUrl: null,
-        transcriptText: null,
+        transcriptRaw: null,
+        transcriptJson: Prisma.JsonNull,
       },
     });
   }

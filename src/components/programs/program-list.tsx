@@ -24,7 +24,7 @@ import { ProgramStatusBadge } from "./program-status-badge";
 import { SessionStatusDropdown } from "./session-status-dropdown";
 import { SessionProgressBadge } from "./session-progress-badge";
 import { MaterialsQuickView, MaterialsIndicator } from "./materials-quick-view";
-import { ProgramStatus, ProgramLabelType, SessionStatus } from "@prisma/client";
+import { ProgramStatus, ProgramLabelType, SessionStatus as PrismaSessionStatus } from "@prisma/client";
 import {
   Loader2,
   Plus,
@@ -68,19 +68,19 @@ interface Session {
   topic: string | null;
   date: string | null;
   durationMinutes: number | null;
-  status: SessionStatus;
+  status: PrismaSessionStatus;
   _count?: {
     attendance: number;
     materials: number;
   };
 }
 
-type SessionStatus = "completed" | "scheduled" | "in-progress" | "draft";
+type DerivedSessionStatus = "completed" | "scheduled" | "in-progress" | "draft";
 
 /**
  * Derives session status from the session date
  */
-function getSessionStatus(date: string | null): SessionStatus {
+function getSessionStatus(date: string | null): DerivedSessionStatus {
   if (!date) return "draft";
   const sessionDate = new Date(date);
   if (isToday(sessionDate)) return "in-progress";
@@ -92,11 +92,11 @@ function getSessionStatus(date: string | null): SessionStatus {
 /**
  * Returns badge variant and label for session status
  */
-function getSessionStatusConfig(status: SessionStatus): {
+function getSessionStatusConfig(status: DerivedSessionStatus): {
   label: string;
   variant: "default" | "secondary" | "outline" | "success";
 } {
-  const configs: Record<SessionStatus, { label: string; variant: "default" | "secondary" | "outline" | "success" }> = {
+  const configs: Record<DerivedSessionStatus, { label: string; variant: "default" | "secondary" | "outline" | "success" }> = {
     completed: { label: "Completed", variant: "outline" },
     scheduled: { label: "Scheduled", variant: "default" },
     "in-progress": { label: "In Progress", variant: "success" },
@@ -325,7 +325,7 @@ export function ProgramList() {
                 const sessions = programSessions[program.id] || [];
                 const isLoadingSessions = loadingSessions.has(program.id);
                 const completedSessions = sessions.filter(
-                  (s) => s.status === SessionStatus.COMPLETED
+                  (s) => s.status === PrismaSessionStatus.COMPLETED
                 ).length;
 
                 return (

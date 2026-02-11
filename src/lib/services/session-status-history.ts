@@ -5,7 +5,7 @@
 
 import { prisma } from "@/lib/db";
 import { SessionStatus, Prisma } from "@prisma/client";
-import { AuditLogger } from "@/lib/audit/service";
+import { createAuditLog } from "@/lib/audit/service";
 
 export interface StatusChangeParams {
   sessionId: string;
@@ -67,13 +67,14 @@ export async function recordStatusChange(params: StatusChangeParams): Promise<vo
 
   if (session?.program.enrollments.length) {
     // Session has enrolled clients - log to audit trail
-    await AuditLogger.log({
-      organizationId: session.program.organization.id,
+    await createAuditLog({
+      orgId: session.program.organization.id,
       userId: changedById,
-      action: "SESSION_STATUS_CHANGED",
-      resourceType: "SESSION",
+      action: "UPDATE",
+      resource: "SESSION",
       resourceId: sessionId,
       details: {
+        type: "session_status_changed",
         programId: session.programId,
         oldStatus,
         newStatus,
@@ -186,13 +187,14 @@ export async function updateSessionStatus(params: {
   });
 
   if (sessionWithEnrollments?.program.enrollments.length) {
-    await AuditLogger.log({
-      organizationId: sessionWithEnrollments.program.organization.id,
+    await createAuditLog({
+      orgId: sessionWithEnrollments.program.organization.id,
       userId: changedById,
-      action: "SESSION_STATUS_CHANGED",
-      resourceType: "SESSION",
+      action: "UPDATE",
+      resource: "SESSION",
       resourceId: sessionId,
       details: {
+        type: "session_status_changed",
         programId: sessionWithEnrollments.programId,
         oldStatus,
         newStatus,

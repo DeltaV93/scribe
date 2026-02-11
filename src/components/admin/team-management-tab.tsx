@@ -117,6 +117,7 @@ const ROLE_LABELS: Record<string, string> = {
   ADMIN: "Administrator",
   PROGRAM_MANAGER: "Program Manager",
   CASE_MANAGER: "Case Manager",
+  FACILITATOR: "Facilitator",
   VIEWER: "Viewer",
 };
 
@@ -125,6 +126,7 @@ const ROLE_COLORS: Record<string, string> = {
   ADMIN: "bg-blue-100 text-blue-800",
   PROGRAM_MANAGER: "bg-green-100 text-green-800",
   CASE_MANAGER: "bg-amber-100 text-amber-800",
+  FACILITATOR: "bg-teal-100 text-teal-800",
   VIEWER: "bg-gray-100 text-gray-800",
 };
 

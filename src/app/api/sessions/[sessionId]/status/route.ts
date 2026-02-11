@@ -76,9 +76,9 @@ export const PATCH = withAuth(async (request, context, user) => {
     include: {
       program: {
         select: {
-          organizationId: true,
+          orgId: true,
           facilitatorId: true,
-          creatorId: true,
+          createdById: true,
         },
       },
     },
@@ -92,7 +92,7 @@ export const PATCH = withAuth(async (request, context, user) => {
   }
 
   // Verify org access
-  if (session.program.organizationId !== user.orgId) {
+  if (session.program.orgId !== user.orgId) {
     return NextResponse.json(
       { error: { code: "FORBIDDEN", message: "Access denied" } },
       { status: 403 }
@@ -105,7 +105,7 @@ export const PATCH = withAuth(async (request, context, user) => {
     user.role === UserRole.ADMIN ||
     user.role === UserRole.PROGRAM_MANAGER ||
     session.program.facilitatorId === user.id ||
-    session.program.creatorId === user.id;
+    session.program.createdById === user.id;
 
   if (!canUpdateStatus) {
     return NextResponse.json(

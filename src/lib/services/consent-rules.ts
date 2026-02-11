@@ -4,7 +4,7 @@
  */
 
 import { prisma } from "@/lib/db";
-import { StateConsentType } from "@prisma/client";
+import { StateConsentType, Prisma } from "@prisma/client";
 
 export interface ConsentRequirements {
   consentType: StateConsentType;
@@ -66,12 +66,13 @@ export async function getConsentRequirementsForCall(params: {
     return strictest;
   }, rules[0]!);
 
+  // strictestRule is guaranteed to be non-null since rules.length > 0
   return {
-    consentType: strictestRule.consentType,
-    requiresExplicitOptIn: strictestRule.requiresExplicitOptIn,
-    silenceImpliesConsent: strictestRule.silenceImpliesConsent,
-    stateCode: strictestRule.stateCode,
-    stateName: strictestRule.stateName,
+    consentType: strictestRule!.consentType,
+    requiresExplicitOptIn: strictestRule!.requiresExplicitOptIn,
+    silenceImpliesConsent: strictestRule!.silenceImpliesConsent,
+    stateCode: strictestRule!.stateCode,
+    stateName: strictestRule!.stateName,
   };
 }
 
@@ -103,7 +104,7 @@ export async function upsertStateRule(params: {
   requiresExplicitOptIn?: boolean;
   silenceImpliesConsent?: boolean;
   minorAgeThreshold?: number;
-  additionalRules?: Record<string, unknown>;
+  additionalRules?: Prisma.InputJsonValue;
   effectiveDate: Date;
   notes?: string;
 }) {

@@ -11,7 +11,7 @@ import {
   upsertStateRule,
   getConsentRequirementsForCall,
 } from "@/lib/services/consent-rules";
-import { StateConsentType, UserRole } from "@prisma/client";
+import { StateConsentType, UserRole, Prisma } from "@prisma/client";
 
 /**
  * GET /api/consent-rules
@@ -84,7 +84,7 @@ export const POST = withAuth(async (request, context, user) => {
     requiresExplicitOptIn?: boolean;
     silenceImpliesConsent?: boolean;
     minorAgeThreshold?: number;
-    additionalRules?: Record<string, unknown>;
+    additionalRules?: Prisma.InputJsonValue;
     effectiveDate?: string;
     notes?: string;
   };
