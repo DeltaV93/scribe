@@ -1108,15 +1108,11 @@ export default function BrandingPage() {
                 The Relationship System of Record
               </div>
               <div className="notes">
-                <strong>Cormorant Garamond 500-600</strong> - High-contrast
-                editorial serif with archival gravitas. Use for hero headlines,
-                section titles, and brand moments. At display sizes, the
-                hairline strokes create visual tension that demands attention.
+                <strong>Shippori Mincho B1 500-700</strong> - Japanese-inspired
+                serif with elegant, editorial gravitas. Use for hero headlines,
+                section titles, and brand moments. The refined strokes create
+                visual tension that demands attention.
                 Never use below 18px.
-                <br />
-                <br />
-                <strong>Production upgrade:</strong> Swap to Canela, Tiempos, or
-                Freight Text for licensed premium alternative.
               </div>
             </div>
 
@@ -1212,7 +1208,7 @@ export default function BrandingPage() {
                   <tbody>
                     <tr>
                       <td>Hero Headline</td>
-                      <td>Cormorant Garamond</td>
+                      <td>Shippori Mincho B1</td>
                       <td>600</td>
                       <td>48-64px</td>
                       <td>1.05</td>
@@ -1220,7 +1216,7 @@ export default function BrandingPage() {
                     </tr>
                     <tr>
                       <td>Section Title</td>
-                      <td>Cormorant Garamond</td>
+                      <td>Shippori Mincho B1</td>
                       <td>500</td>
                       <td>28-40px</td>
                       <td>1.1</td>
@@ -1228,7 +1224,7 @@ export default function BrandingPage() {
                     </tr>
                     <tr>
                       <td>Card Title</td>
-                      <td>Cormorant Garamond</td>
+                      <td>Shippori Mincho B1</td>
                       <td>500</td>
                       <td>20-24px</td>
                       <td>1.15</td>
@@ -1815,7 +1811,7 @@ export default function BrandingPage() {
               <div>
                 <div className="rule">
                   <strong>Marketing site:</strong> Editorial confidence. Lead
-                  with outcomes, follow with evidence. Use Cormorant Garamond
+                  with outcomes, follow with evidence. Use Shippori Mincho B1
                   headlines to set authority, Outfit body to keep it human.
                 </div>
                 <div className="rule">
