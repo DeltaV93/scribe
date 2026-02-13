@@ -22,6 +22,33 @@ interface Client {
   phone: string;
 }
 
+/**
+ * Format phone number to E.164 format for Twilio
+ * Assumes US numbers if no country code present
+ */
+function formatPhoneE164(phone: string): string {
+  // Remove all non-digit characters
+  const digits = phone.replace(/\D/g, "");
+
+  // If already has country code (11 digits starting with 1 for US)
+  if (digits.length === 11 && digits.startsWith("1")) {
+    return `+${digits}`;
+  }
+
+  // If 10 digits (US without country code), add +1
+  if (digits.length === 10) {
+    return `+1${digits}`;
+  }
+
+  // If already starts with +, return as-is
+  if (phone.startsWith("+")) {
+    return phone;
+  }
+
+  // Otherwise, assume it needs +1 prefix
+  return `+1${digits}`;
+}
+
 interface FormField {
   id: string;
   slug: string;
@@ -314,8 +341,9 @@ export function CallInterface({
 
       browserCallInitiated.current = true;
       try {
-        console.log("[CallInterface] Connecting browser audio to call...");
-        await makeCall(client.phone, { callId });
+        const formattedPhone = formatPhoneE164(client.phone);
+        console.log("[CallInterface] Connecting browser audio to call...", { originalPhone: client.phone, formattedPhone });
+        await makeCall(formattedPhone, { callId });
         setBrowserCallConnected(true);
         toast.success("Connected to call");
       } catch (error) {
