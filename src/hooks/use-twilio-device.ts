@@ -53,108 +53,33 @@ export function useTwilioDevice(options?: UseTwilioDeviceOptions): UseTwilioDevi
   const callRef = useRef<Call | null>(null);
   const tokenTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const durationIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const initializingRef = useRef(false);
+  const mountedRef = useRef(true);
 
-  // Fetch token from our API
-  const fetchToken = useCallback(async (): Promise<string> => {
-    const response = await fetch("/api/voice/token");
-    if (!response.ok) {
-      throw new Error("Failed to fetch voice token");
+  // Store options in ref to avoid dependency changes
+  const optionsRef = useRef(options);
+  optionsRef.current = options;
+
+  // Duration timer functions
+  const stopDurationTimer = useCallback(() => {
+    if (durationIntervalRef.current) {
+      clearInterval(durationIntervalRef.current);
+      durationIntervalRef.current = null;
     }
-    const data = await response.json();
-    return data.data.token;
   }, []);
 
-  // Initialize or update device with token
-  const initializeDevice = useCallback(async () => {
-    try {
-      console.log("[TwilioDevice] Fetching token...");
-      const token = await fetchToken();
-      console.log("[TwilioDevice] Token fetched successfully");
+  const startDurationTimer = useCallback(() => {
+    stopDurationTimer();
+    const startTime = Date.now();
+    durationIntervalRef.current = setInterval(() => {
+      setCallState((prev) => ({
+        ...prev,
+        duration: Math.floor((Date.now() - startTime) / 1000),
+      }));
+    }, 1000);
+  }, [stopDurationTimer]);
 
-      if (deviceRef.current) {
-        // Update existing device
-        console.log("[TwilioDevice] Updating existing device token");
-        deviceRef.current.updateToken(token);
-      } else {
-        // Create new device
-        console.log("[TwilioDevice] Creating new device...");
-        const device = new Device(token, {
-          codecPreferences: [Call.Codec.Opus, Call.Codec.PCMU],
-          allowIncomingWhileBusy: false,
-          logLevel: "warn",
-        });
-
-        // Device event handlers
-        device.on("registered", () => {
-          console.log("[TwilioDevice] Device registered - setting status to ready");
-          setDeviceStatus("ready");
-          setError(null);
-        });
-
-        device.on("unregistered", () => {
-          console.log("[TwilioDevice] Device unregistered");
-          setDeviceStatus("offline");
-        });
-
-        device.on("error", (deviceError) => {
-          console.error("[TwilioDevice] Device error:", deviceError);
-          setError(deviceError.message || "Device error");
-          setDeviceStatus("error");
-          options?.onError?.(deviceError);
-        });
-
-        device.on("incoming", (call) => {
-          console.log("[TwilioDevice] Incoming call");
-          callRef.current = call;
-          setCallState((prev) => ({
-            ...prev,
-            status: "ringing",
-            direction: "inbound",
-          }));
-          options?.onIncomingCall?.(call);
-          setupCallHandlers(call);
-        });
-
-        device.on("tokenWillExpire", async () => {
-          console.log("[TwilioDevice] Token expiring, refreshing...");
-          try {
-            const newToken = await fetchToken();
-            device.updateToken(newToken);
-            console.log("[TwilioDevice] Token refreshed");
-          } catch (err) {
-            console.error("[TwilioDevice] Failed to refresh token:", err);
-          }
-        });
-
-        console.log("[TwilioDevice] Registering device...");
-        await device.register();
-        console.log("[TwilioDevice] Device.register() completed");
-        deviceRef.current = device;
-      }
-
-      // Schedule token refresh (45 minutes before expiry)
-      if (tokenTimeoutRef.current) {
-        clearTimeout(tokenTimeoutRef.current);
-      }
-      tokenTimeoutRef.current = setTimeout(
-        async () => {
-          try {
-            const newToken = await fetchToken();
-            deviceRef.current?.updateToken(newToken);
-          } catch (err) {
-            console.error("Failed to refresh token:", err);
-          }
-        },
-        45 * 60 * 1000
-      ); // 45 minutes
-    } catch (err) {
-      console.error("[TwilioDevice] Failed to initialize:", err);
-      setError(err instanceof Error ? err.message : "Failed to initialize");
-      setDeviceStatus("error");
-    }
-  }, [fetchToken, options]);
-
-  // Setup call event handlers
+  // Setup call event handlers - using ref for options to keep stable
   const setupCallHandlers = useCallback(
     (call: Call) => {
       call.on("accept", () => {
@@ -174,7 +99,7 @@ export function useTwilioDevice(options?: UseTwilioDeviceOptions): UseTwilioDevi
         setDeviceStatus("ready");
         callRef.current = null;
         stopDurationTimer();
-        options?.onCallDisconnected?.();
+        optionsRef.current?.onCallDisconnected?.();
       });
 
       call.on("cancel", () => {
@@ -191,7 +116,7 @@ export function useTwilioDevice(options?: UseTwilioDeviceOptions): UseTwilioDevi
       });
 
       call.on("error", (callError) => {
-        console.error("Call error:", callError);
+        console.error("[TwilioDevice] Call error:", callError);
         setError(callError.message || "Call error");
       });
 
@@ -203,55 +128,192 @@ export function useTwilioDevice(options?: UseTwilioDeviceOptions): UseTwilioDevi
         setCallState((prev) => ({ ...prev, status: "ringing" }));
       });
     },
-    [options]
+    [startDurationTimer, stopDurationTimer]
   );
 
-  // Duration timer
-  const startDurationTimer = useCallback(() => {
-    stopDurationTimer();
-    const startTime = Date.now();
-    durationIntervalRef.current = setInterval(() => {
-      setCallState((prev) => ({
-        ...prev,
-        duration: Math.floor((Date.now() - startTime) / 1000),
-      }));
-    }, 1000);
-  }, []);
-
-  const stopDurationTimer = useCallback(() => {
-    if (durationIntervalRef.current) {
-      clearInterval(durationIntervalRef.current);
-      durationIntervalRef.current = null;
-    }
-  }, []);
-
-  // Initialize device on mount
+  // Initialize device on mount - empty dependency array for single initialization
   useEffect(() => {
+    mountedRef.current = true;
+
+    const initializeDevice = async () => {
+      // Prevent multiple simultaneous initializations
+      if (initializingRef.current) {
+        console.log("[TwilioDevice] Skipping init - already initializing");
+        return;
+      }
+
+      if (deviceRef.current) {
+        console.log("[TwilioDevice] Skipping init - device already exists");
+        return;
+      }
+
+      initializingRef.current = true;
+
+      try {
+        console.log("[TwilioDevice] Fetching token...");
+        const response = await fetch("/api/voice/token");
+        if (!response.ok) {
+          throw new Error("Failed to fetch voice token");
+        }
+        const data = await response.json();
+        const token = data.data.token;
+        console.log("[TwilioDevice] Token fetched successfully");
+
+        // Check if we should still proceed (component might have unmounted)
+        if (!mountedRef.current) {
+          console.log("[TwilioDevice] Component unmounted during token fetch, aborting");
+          initializingRef.current = false;
+          return;
+        }
+
+        // Check if device was created while we were fetching (race condition)
+        if (deviceRef.current !== null) {
+          console.log("[TwilioDevice] Device already exists, updating token instead");
+          (deviceRef.current as Device).updateToken(token);
+          initializingRef.current = false;
+          return;
+        }
+
+        console.log("[TwilioDevice] Creating new device...");
+        const device = new Device(token, {
+          codecPreferences: [Call.Codec.Opus, Call.Codec.PCMU],
+          allowIncomingWhileBusy: false,
+          logLevel: "warn",
+        });
+
+        // Store device reference BEFORE registering
+        deviceRef.current = device;
+
+        // Device event handlers
+        device.on("registered", () => {
+          console.log("[TwilioDevice] Device registered - setting status to ready");
+          if (mountedRef.current) {
+            setDeviceStatus("ready");
+            setError(null);
+          }
+        });
+
+        device.on("unregistered", () => {
+          console.log("[TwilioDevice] Device unregistered");
+          if (mountedRef.current) {
+            setDeviceStatus("offline");
+          }
+        });
+
+        device.on("error", (deviceError) => {
+          console.error("[TwilioDevice] Device error:", deviceError);
+          if (mountedRef.current) {
+            setError(deviceError.message || "Device error");
+            setDeviceStatus("error");
+            optionsRef.current?.onError?.(deviceError);
+          }
+        });
+
+        device.on("incoming", (call) => {
+          console.log("[TwilioDevice] Incoming call");
+          callRef.current = call;
+          if (mountedRef.current) {
+            setCallState((prev) => ({
+              ...prev,
+              status: "ringing",
+              direction: "inbound",
+            }));
+            optionsRef.current?.onIncomingCall?.(call);
+          }
+        });
+
+        device.on("tokenWillExpire", async () => {
+          console.log("[TwilioDevice] Token expiring, refreshing...");
+          try {
+            const response = await fetch("/api/voice/token");
+            if (response.ok) {
+              const data = await response.json();
+              device.updateToken(data.data.token);
+              console.log("[TwilioDevice] Token refreshed");
+            }
+          } catch (err) {
+            console.error("[TwilioDevice] Failed to refresh token:", err);
+          }
+        });
+
+        console.log("[TwilioDevice] Registering device...");
+        await device.register();
+        console.log("[TwilioDevice] Device.register() completed");
+
+        // Schedule token refresh (45 minutes before expiry)
+        if (tokenTimeoutRef.current) {
+          clearTimeout(tokenTimeoutRef.current);
+        }
+        tokenTimeoutRef.current = setTimeout(
+          async () => {
+            try {
+              const response = await fetch("/api/voice/token");
+              if (response.ok) {
+                const data = await response.json();
+                deviceRef.current?.updateToken(data.data.token);
+              }
+            } catch (err) {
+              console.error("[TwilioDevice] Failed to refresh token:", err);
+            }
+          },
+          45 * 60 * 1000
+        );
+      } catch (err) {
+        console.error("[TwilioDevice] Failed to initialize:", err);
+        if (mountedRef.current) {
+          setError(err instanceof Error ? err.message : "Failed to initialize");
+          setDeviceStatus("error");
+        }
+      } finally {
+        initializingRef.current = false;
+      }
+    };
+
     initializeDevice();
 
     return () => {
-      // Cleanup
+      console.log("[TwilioDevice] Cleanup running");
+      mountedRef.current = false;
+
       if (tokenTimeoutRef.current) {
         clearTimeout(tokenTimeoutRef.current);
+        tokenTimeoutRef.current = null;
       }
-      stopDurationTimer();
+
+      if (durationIntervalRef.current) {
+        clearInterval(durationIntervalRef.current);
+        durationIntervalRef.current = null;
+      }
+
       if (callRef.current) {
         callRef.current.disconnect();
+        callRef.current = null;
       }
+
       if (deviceRef.current) {
         deviceRef.current.destroy();
         deviceRef.current = null;
       }
+
+      initializingRef.current = false;
     };
-  }, [initializeDevice, stopDurationTimer]);
+  }, []); // Empty dependency array - only run on mount/unmount
 
   // Actions
   const makeCall = useCallback(
     async (phoneNumber: string, params?: Record<string, string>) => {
-      console.log("[TwilioDevice] makeCall called:", { phoneNumber, params, deviceStatus, hasDevice: !!deviceRef.current });
+      console.log("[TwilioDevice] makeCall called:", {
+        phoneNumber,
+        params,
+        deviceStatus,
+        hasDevice: !!deviceRef.current,
+      });
 
       if (!deviceRef.current || deviceStatus !== "ready") {
-        console.error("[TwilioDevice] makeCall failed - device not ready:", { deviceStatus, hasDevice: !!deviceRef.current });
+        console.error("[TwilioDevice] makeCall failed - device not ready:", {
+          deviceStatus,
+          hasDevice: !!deviceRef.current,
+        });
         throw new Error("Device not ready");
       }
 
@@ -297,13 +359,9 @@ export function useTwilioDevice(options?: UseTwilioDeviceOptions): UseTwilioDevi
   const hold = useCallback(async () => {
     if (!callRef.current) return;
 
-    // Hold is implemented by muting and optionally playing hold music
-    // For a proper hold, you'd transfer to a hold conference
-    // This is a simplified implementation
     const isOnHold = callState.isOnHold;
     setCallState((prev) => ({ ...prev, isOnHold: !isOnHold }));
 
-    // Mute when on hold
     if (!isOnHold) {
       callRef.current.mute(true);
     } else {
