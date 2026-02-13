@@ -36,34 +36,34 @@ export function CallControls({
       <Button
         variant={isMuted ? "destructive" : "secondary"}
         size="lg"
-        className="rounded-full h-14 w-14"
+        className="rounded-full h-14 w-14 flex items-center justify-center"
         onClick={onMuteToggle}
         disabled={disabled || !isConnected}
         title={isMuted ? "Unmute (M)" : "Mute (M)"}
       >
         {isMuted ? (
-          <MicOff className="h-6 w-6" />
+          <MicOff className="h-6 w-6 shrink-0" />
         ) : (
-          <Mic className="h-6 w-6" />
+          <Mic className="h-6 w-6 shrink-0" />
         )}
       </Button>
 
       {/* Hold Button */}
       <Button
-        variant={isOnHold ? "warning" : "secondary"}
+        variant="secondary"
         size="lg"
         className={cn(
-          "rounded-full h-14 w-14",
-          isOnHold && "bg-yellow-500 hover:bg-yellow-600"
+          "rounded-full h-14 w-14 flex items-center justify-center",
+          isOnHold && "bg-yellow-500 hover:bg-yellow-600 text-white"
         )}
         onClick={onHoldToggle}
         disabled={disabled || !isConnected}
         title={isOnHold ? "Resume" : "Hold"}
       >
         {isOnHold ? (
-          <Play className="h-6 w-6" />
+          <Play className="h-6 w-6 shrink-0" />
         ) : (
-          <Pause className="h-6 w-6" />
+          <Pause className="h-6 w-6 shrink-0" />
         )}
       </Button>
 
@@ -71,12 +71,12 @@ export function CallControls({
       <Button
         variant="destructive"
         size="lg"
-        className="rounded-full h-14 w-14"
+        className="rounded-full h-14 w-14 flex items-center justify-center"
         onClick={onEndCall}
         disabled={disabled}
         title="End Call (E)"
       >
-        <PhoneOff className="h-6 w-6" />
+        <PhoneOff className="h-6 w-6 shrink-0" />
       </Button>
     </div>
   );
