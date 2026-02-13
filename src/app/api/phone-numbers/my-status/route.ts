@@ -26,6 +26,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       data: {
+        hasPhoneNumber: !!twilioNumber,
         phoneNumber: twilioNumber?.phoneNumber || null,
         areaCode: twilioNumber?.areaCode || null,
         hasPendingRequest: !!pendingRequest,
