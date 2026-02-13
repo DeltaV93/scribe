@@ -287,34 +287,51 @@ export function CallInterface({
 
   // Connect browser audio when Twilio device is ready and call is active
   useEffect(() => {
+    // Log device status for debugging
+    console.log("[CallInterface] Device status check:", {
+      deviceStatus,
+      twilioReady,
+      browserCallConnected,
+      browserCallInitiated: browserCallInitiated.current,
+      callStatus: status,
+    });
+
     const connectBrowserCall = async () => {
-      if (
-        twilioReady &&
-        !browserCallConnected &&
-        !browserCallInitiated.current &&
-        (status === CallStatus.INITIATING || status === CallStatus.RINGING || status === CallStatus.IN_PROGRESS)
-      ) {
-        browserCallInitiated.current = true;
-        try {
-          console.log("[CallInterface] Connecting browser audio to call...");
-          await makeCall(client.phone, { callId });
-          setBrowserCallConnected(true);
-          toast.success("Connected to call");
-        } catch (error) {
-          console.error("[CallInterface] Failed to connect browser audio:", error);
-          browserCallInitiated.current = false;
-          if (error instanceof Error && error.message.includes("Permission")) {
-            setMicPermissionDenied(true);
-            toast.error("Microphone permission denied. Please allow microphone access.");
-          } else {
-            toast.error("Failed to connect to call");
-          }
+      // Only proceed if device is actually ready
+      if (!twilioReady) {
+        console.log("[CallInterface] Waiting for Twilio device to be ready...");
+        return;
+      }
+
+      if (browserCallConnected || browserCallInitiated.current) {
+        return;
+      }
+
+      const activeStatuses = [CallStatus.INITIATING, CallStatus.RINGING, CallStatus.IN_PROGRESS];
+      if (!activeStatuses.includes(status)) {
+        return;
+      }
+
+      browserCallInitiated.current = true;
+      try {
+        console.log("[CallInterface] Connecting browser audio to call...");
+        await makeCall(client.phone, { callId });
+        setBrowserCallConnected(true);
+        toast.success("Connected to call");
+      } catch (error) {
+        console.error("[CallInterface] Failed to connect browser audio:", error);
+        browserCallInitiated.current = false;
+        if (error instanceof Error && error.message.includes("Permission")) {
+          setMicPermissionDenied(true);
+          toast.error("Microphone permission denied. Please allow microphone access.");
+        } else {
+          toast.error("Failed to connect to call");
         }
       }
     };
 
     connectBrowserCall();
-  }, [twilioReady, browserCallConnected, status, client.phone, callId, makeCall]);
+  }, [deviceStatus, twilioReady, browserCallConnected, status, client.phone, callId, makeCall]);
 
   // Poll for status updates
   useEffect(() => {

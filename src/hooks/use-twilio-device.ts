@@ -67,13 +67,17 @@ export function useTwilioDevice(options?: UseTwilioDeviceOptions): UseTwilioDevi
   // Initialize or update device with token
   const initializeDevice = useCallback(async () => {
     try {
+      console.log("[TwilioDevice] Fetching token...");
       const token = await fetchToken();
+      console.log("[TwilioDevice] Token fetched successfully");
 
       if (deviceRef.current) {
         // Update existing device
+        console.log("[TwilioDevice] Updating existing device token");
         deviceRef.current.updateToken(token);
       } else {
         // Create new device
+        console.log("[TwilioDevice] Creating new device...");
         const device = new Device(token, {
           codecPreferences: [Call.Codec.Opus, Call.Codec.PCMU],
           allowIncomingWhileBusy: false,
@@ -82,22 +86,25 @@ export function useTwilioDevice(options?: UseTwilioDeviceOptions): UseTwilioDevi
 
         // Device event handlers
         device.on("registered", () => {
+          console.log("[TwilioDevice] Device registered - setting status to ready");
           setDeviceStatus("ready");
           setError(null);
         });
 
         device.on("unregistered", () => {
+          console.log("[TwilioDevice] Device unregistered");
           setDeviceStatus("offline");
         });
 
         device.on("error", (deviceError) => {
-          console.error("Twilio Device error:", deviceError);
+          console.error("[TwilioDevice] Device error:", deviceError);
           setError(deviceError.message || "Device error");
           setDeviceStatus("error");
           options?.onError?.(deviceError);
         });
 
         device.on("incoming", (call) => {
+          console.log("[TwilioDevice] Incoming call");
           callRef.current = call;
           setCallState((prev) => ({
             ...prev,
@@ -109,15 +116,19 @@ export function useTwilioDevice(options?: UseTwilioDeviceOptions): UseTwilioDevi
         });
 
         device.on("tokenWillExpire", async () => {
+          console.log("[TwilioDevice] Token expiring, refreshing...");
           try {
             const newToken = await fetchToken();
             device.updateToken(newToken);
+            console.log("[TwilioDevice] Token refreshed");
           } catch (err) {
-            console.error("Failed to refresh token:", err);
+            console.error("[TwilioDevice] Failed to refresh token:", err);
           }
         });
 
+        console.log("[TwilioDevice] Registering device...");
         await device.register();
+        console.log("[TwilioDevice] Device.register() completed");
         deviceRef.current = device;
       }
 
@@ -137,11 +148,11 @@ export function useTwilioDevice(options?: UseTwilioDeviceOptions): UseTwilioDevi
         45 * 60 * 1000
       ); // 45 minutes
     } catch (err) {
-      console.error("Failed to initialize Twilio device:", err);
+      console.error("[TwilioDevice] Failed to initialize:", err);
       setError(err instanceof Error ? err.message : "Failed to initialize");
       setDeviceStatus("error");
     }
-  }, [fetchToken, options]);
+  }, [fetchToken, options, setupCallHandlers]);
 
   // Setup call event handlers
   const setupCallHandlers = useCallback(
@@ -237,7 +248,10 @@ export function useTwilioDevice(options?: UseTwilioDeviceOptions): UseTwilioDevi
   // Actions
   const makeCall = useCallback(
     async (phoneNumber: string, params?: Record<string, string>) => {
+      console.log("[TwilioDevice] makeCall called:", { phoneNumber, params, deviceStatus, hasDevice: !!deviceRef.current });
+
       if (!deviceRef.current || deviceStatus !== "ready") {
+        console.error("[TwilioDevice] makeCall failed - device not ready:", { deviceStatus, hasDevice: !!deviceRef.current });
         throw new Error("Device not ready");
       }
 
@@ -248,15 +262,18 @@ export function useTwilioDevice(options?: UseTwilioDeviceOptions): UseTwilioDevi
       }));
 
       try {
+        console.log("[TwilioDevice] Connecting call to:", phoneNumber);
         const call = await deviceRef.current.connect({
           params: {
             To: phoneNumber,
             ...params,
           },
         });
+        console.log("[TwilioDevice] Call connected successfully");
         callRef.current = call;
         setupCallHandlers(call);
       } catch (err) {
+        console.error("[TwilioDevice] Call connection failed:", err);
         setCallState((prev) => ({ ...prev, status: "closed" }));
         throw err;
       }
