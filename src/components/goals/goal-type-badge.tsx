@@ -46,6 +46,16 @@ const typeConfig: Record<GoalType, { label: string; icon: typeof Target; classNa
 
 export function GoalTypeBadge({ type, className, showIcon = true }: GoalTypeBadgeProps) {
   const config = typeConfig[type];
+
+  // Fallback if type is not in config (defensive coding)
+  if (!config) {
+    return (
+      <Badge variant="secondary" className={cn("bg-gray-100 text-gray-700", className)}>
+        {type || "Unknown"}
+      </Badge>
+    );
+  }
+
   const Icon = config.icon;
 
   return (

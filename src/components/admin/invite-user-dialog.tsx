@@ -171,12 +171,16 @@ export function InviteUserDialog({
             {/* Team (Optional) */}
             <div className="space-y-2">
               <Label htmlFor="invite-team">Team (Optional)</Label>
-              <Select value={teamId} onValueChange={setTeamId} disabled={isSubmitting}>
+              <Select
+                value={teamId || "none"}
+                onValueChange={(value) => setTeamId(value === "none" ? "" : value)}
+                disabled={isSubmitting}
+              >
                 <SelectTrigger id="invite-team">
                   <SelectValue placeholder="No team" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">No team</SelectItem>
+                  <SelectItem value="none">No team</SelectItem>
                   {teams.map((team) => (
                     <SelectItem key={team.id} value={team.id}>
                       {team.name} ({team.memberCount} members)

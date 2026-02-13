@@ -1,0 +1,436 @@
+Unknown Speaker  0:01  
+Okay,
+
+me  0:13  
+so what we'll do is, what we'll do is, we'll do is we'll start by saying, like, our intros and like, just, like good mornings, like small talk, say, like, we're excited to be here. You were introduced yourself, Richard CEO, and like, you're the person with the domain knowledge behind the product. And then, like, I'll give my introduction. Oh, and you'll say you have, like, you've been in the nonprofit space since you were 13. You have all this domain knowledge and you're focused on helping organizations scale with impact, or whatever you want to say, like whatever your makes you excited about the platform and what you're doing in the conversation we're having. And then I'll do the same, taking on the technical role. Tech for 10 plus years focus on building secure and compliant applications that help organizations scale, focus on getting people to do more good. And then we say like we're excited to talk about scribe today, and we'll quickly give an overview of what Scribe is, so that he knows going into the call like, it's a it's a system. How do we say it on the website? Sorry, it's
+
+Speaker 1  1:54  
+an AI power documentation system for nonprofits to help manage or to help track interactions. Manage, documentation and manage documentation and create reports or compliance for grant for funding clients.
+
+me  2:16  
+Okay, so that's a mouthful. So when we do we want to have, like, a really quick pitch that we can tell people can get a really good idea of what the app can do with a few words. And like, I think a good way to frame it is that we're a org intelligent platform, or sorry, I'm looking at the new landing page and trying to figure out the best way to so we're a platform that turns Your conversations into work so your team can take one call, one meeting, one session with a client, and it can turn it into six different outputs, such as documentation, reports, knowledge base, follow ups, guides, insights, anything that makes your organization moves smoothly, so you can focus on the impact something to the effect of that, and then, and we can, again, polish that up From the recording so it's a little bit cleaner.
+
+Unknown Speaker  3:42  
+Um,
+
+Speaker 2  3:48  
+and then we want to looking at the pitch, executive, CEO, older, non technical. Oh, I
+
+me  4:06  
+and then I'm looking at the sales guide, and then it's like the opening hook about missing the important meeting. Nobody can get the information that they needed, or maybe you're on a call where you had bad reception and you couldn't hear what was being discussed, and just ask them, like, how did you catch up? From that,
+
+Speaker 1  4:36  
+would have you said to say, like, our software is our software enhances workflow and industry map in an industry,
+
+Speaker 1  4:56  
+what would be low be a term to describe internal like employee accountability,
+
+me  5:09  
+I would just say organizational efficiencies and account of i
+
+Unknown Speaker  5:25  
+It would be Like employee, not improvement plans, but it would be I to
+
+Unknown Speaker  5:46  
+develop the software for service provider and internal employment.
+
+me  5:56  
+I think, I think the core so if we stop thinking about the right words, the thing that we want to take, want people to know is that we make it easier for people to just do their job once, right? Versus repeat? The repeat. That's our big selling point. So we'll say, we make it easy for you to do the work that matters once and let our system take over. The need for manual documentation, no take over all the other outputs our platform becomes your organization, your orgs, intelligence system like platform. We'll make the documentation, we'll make the reports, we'll make the guides. We'll give you the insight through leveraging our platform, so that will cover everything that we're talking about, right? So deep, yeah, we'll have again, we'll have, let's just try to, like, brainstorm as much as we can, and then we'll have aI clean it up into, like, a more succinct thing. Okay, okay.
+
+Speaker 1  7:20  
+First thought, we're happy to be here today, I brought my team, scribe solutions LLC is managed and operated By me Richard Jones as the founder and
+
+me  7:41  
+visionary. I would just say, keep it as you're Richard, you are the founder, or you can say CEO of the organization. You bring years of industry knowledge and domain expertise of the nonprofit space
+
+Speaker 1  8:22  
+to lose, solution. Scribe solution LLC is a company that I founded in order to tackle the problems that we see in our industries, our service provider industry, right?
+
+me  8:37  
+I would say, keep it shorter and drop the LLC. Just say you're Richard. So the point of your intro is to show people that you're credible, you have the skills, you have the insight. You are someone to be listened to. So you are the founder of scribe,
+
+Speaker 1  9:01  
+health worker. I've been working with, I've been working within the service provider field for about 13 years now, working with at risk youth and nonprofits.
+
+me  9:15  
+So I would, I would simplify it more, so the key for you and your positioning is your you have, like industry knowledge, like domain expertise. So to show that, you say, I've been working in the nonprofit space for X amount of years.
+
+Speaker 1  9:38  
+Okay, so give me you're introducing yourself right now as your position in Scratch solutions. This is your intro, and then it's better for me, because then I can mimic what it what you would sound like,
+
+me  9:51  
+yeah, so I would say I'm the technical lead for scratch solutions. I've been working in tech for over 10 years, with a focus in building secure and compliant, compliant applications. My focus here is to bring my knowledge of the tech space, in my experience in the nonprofit space to make sure we're building software that gets people closer To the problems.
+
+me  10:38  
+So bullet points of your domain experience so nonprofit space, your your network, your ability to build partnerships, and then say why this is important to you, and then like, have it tie into the thing we're solving like getting people closer to solving problems,
+
+Speaker 1  11:07  
+okay, all right. The only thing that was, that was, the only thing that's thrown me off is how to approach the domain experience, because my work hasn't my work that created development is I was working within but that was very short lived.
+
+me  11:32  
+That doesn't matter. They don't need to know that. All they need to know is, like the high level, like you've been in working around are in the nonprofit space since for X amount of years. That's it doesn't matter if it was short lived, if it was long live, you have that experience. I am the founder of Scratch surprise.
+
+Unknown Speaker  12:16  
+That's what led me to try to find a solution. The repetitive, hello everyone.
+
+Speaker 1  12:24  
+My name is Richard Jones, and I'm the founder of Scratch solutions LLC. Hello everybody. My name is Richard Jones. I am the founder of Scratch solutions, and I built this software in order to tackle the issue that I've seen working in a nonprofit field for about five years now. Spark Solutions is a software developed in order to help industries manage their workflows and efficiently, effectively provide more time for service providers to provide the purposes that our communities need.
+
+Speaker 1  13:18  
+Hello, everyone. My name is Richard Jones. I am the founder of scribe solutions, and spark solutions was built. My
+
+Speaker 1  13:33  
+name is Richard Jones, and I am the founder of scribe solutions. I've been working within a nonprofit field for about five years, and I recognize the problems that we as organizations or within this industry are continuing to run into. I developed the software in order to eliminate that problem and provide more time for our service providers and different industries to tackle.
+
+me  14:08  
+I think that's good. I think that's really good. The only thing I would say is, when you say when you're focusing on the service providers, then you kind of, if you're not talking to people who work with service providers, you're telling them this isn't for them. So if you make it more broad and just say the nonprofit space, I think that'll be better.
+
+Speaker 1  14:38  
+Okay, what if I bridge it like the nonprofit space gave me, gave me the opportunity to see a need and to fulfill that need. And this, it just so happens that our, what we developed, is configurable to industries.
+
+me  14:56  
+No, no, just keep it simple. Just keep it simple, because you got to remember, this is just the intro. We'll have time to go over all of that. So you're Richard, you're the co founder, or you're the founder of scribe, a platform built from your experience working in the nonprofit space and seeing how documentation and capturing data takes people away from focusing on outcomes and impacts.
+
+Speaker 1  15:31  
+Okay, perfect. I like that. All right. My name is Richard Jones, and I'm the founder of Scratch Solutions, LLC. Ah, stop it. You. Richard. Hello everyone. My name is Richard Jones, and I'm the founder of scribe solutions. I've been working within a nonprofit field for about five years, where I ran into where I was able to identify a problem within the nonprofit field, which is the need for documentation in order to provide services. Now that need for documentation is creating a gap within the cert the services that are provided. So this, Nope,
+
+Unknown Speaker  16:13  
+you're going too far. Keep it keep it simple.
+
+Speaker 3  16:16  
+I'll try. So Okay, I'm sorry.
+
+me  16:19  
+Just like, keep it brief. Like, focus on impact. Be short, be succinct. Talk. Like, why people talk?
+
+Unknown Speaker  16:29  
+All you have to say was that my
+
+Speaker 1  16:32  
+name is Richard Jones, the founder of Scratch solutions LLC, and scratch solutions was built as a platform to help nonprofits create a bigger impact within their communities.
+
+me  16:44  
+That's good, but you didn't talk about your domain experience, experience?
+
+Speaker 3  16:50  
+Oh, well, I'm white, I'm walking in on the experience.
+
+me  16:54  
+That's well, yeah, but you're black, so you need to double down on it.
+
+Speaker 1  17:00  
+So talk like a white person recognizing that I'm black. All right, for sure. All right. Hello, everyone. I'm happy to be here today. I am Richard Jones, the founder of sky solutions, and I've been working within a nonprofit field for about five years, and software. This software was developed in order to help nonprofits, nonprofits create a bigger impact within the communities.
+
+me  17:27  
+Yes, yes, you got it. Okay, so we'll go through introductions, and then we'll say we're glad to talk to you here today. We're gonna open up with the hook, so I'm looking at the sales pitch. Lola, shut up. Shut up. Nothing's wrong with you. So we're gonna kick off with the sales pitch, right? So when we are preaching to people, we're telling a story, right? So we can start with the problem, right? So the problem that we'll talk about with, I'm so mad. My child looks like her father more than me.
+
+Speaker 1  18:26  
+Hey, you don't want to know what I noticed, too. You have a dimple, or you have dimples right here, like too small, or either on this side or on this side, right. Yeah, very small dimple. I do too. Yeah. You said what? I think our
+
+Unknown Speaker  18:41  
+mom had it?
+
+Speaker 1  18:42  
+Yeah, I never knew where it came from, but talking, it was like, the last time we were on video chat, I was paying attention. I was like, Oh, dang, yeah.
+
+me  18:51  
+I think our mom had it. I think our mom had a dimple in her chin, because I have that, and Zaina has that. Interesting.
+
+Speaker 1  19:03  
+Well, thanks, because I didn't that's something about being around family members that you are actually related to that
+
+Unknown Speaker  19:16  
+you don't get to experience a
+
+Unknown Speaker  19:17  
+lot. Yeah,
+
+Speaker 2  19:21  
+yeah. Let me see I meant to. I have a whole big box of photos from growing up, or at least when I was little.
+
+me  19:39  
+But look, here's Bobby as a baby.
+
+Unknown Speaker  19:45  
+Oh, wow, still looks sad,
+
+Speaker 2  19:48  
+yeah, but there's some pictures of our mom too.
+
+Speaker 1  19:56  
+Yeah, that's crazy, because that's the first time I've seen a picture in probably about cool and a picture that I haven't had, which is only one picture in about like six, seven years.
+
+me  20:08  
+Yeah, I'll take a picture of it and send it to you. But yeah, I have, I have this whole big thing, this like container of just photos that I need to go through. I would go through while I was on maternity, and scan them all and so everyone can see it. I think this is spaghetti. That's one, yeah, that's one person I don't remember. And there's not a lot of pictures of him like that that I've seen. Yeah, but I think that's spaghetti and Bobby, well, for sure, that's Bobby, but I think that's spaghetti.
+
+Unknown Speaker  20:52  
+That's what's up. Appreciate that.
+
+me  20:54  
+Yeah, I'll send you the photos. I'll keep this out so I don't forget. But, yeah,
+
+Speaker 1  21:04  
+next topic, is that hook, right or not? Next topic, but to wrap up, the first slide, is the hook, right? Yeah.
+
+me  21:13  
+So we'll go through, I think that's how that would be, how it makes the most sense. We'll say, okay, like, we're excited to be here. This is who we are. We would love to learn a little bit more about you. Hopefully, he'll, he'll give a short intro, and then we can jump into, okay, let's, let's talk about why we're here. Like, get to the the meat of this, and we can open with the hook. So do you want to open with the hook? Is that? Is that something you would be down to do? Or how do you want to break it up?
+
+Speaker 1  21:47  
+Yeah, so I'm a talker. I don't mind talking. It's just our am I going to get to that to the me? Yeah, we practice it, and you let me know I don't have any problem being that on call person to take it up. It's just, I'm coming with a whole bunch of passion, not a whole lot of
+
+me  22:12  
+structure. Yeah, so I think we need to keep everything short and and to the point for this one, if you're looking at this, the pitch slide document, or whatever it is, the call document, the script we're going with the older, non technical user, because that's what we built for the Salvation Army. Yeah. And again, we're going to pitch the no one gets left behind part of the app where we say that we can join your meetings and send updates and make sure that we're tracking information so that it can keep track of what's currently working, what's not working, and all that good stuff. So for this opening hook, I'll just read it out, and then we can iterate it to so that it makes the most sense. So the opening hook reads, let me ask you something. Have you ever had someone miss the important meeting and nobody can get them the information they needed before something went wrong, or they spent a lot of time trying to figure out what they needed to do next. Or maybe you were on a call with a bad reception and couldn't hear what was being discussed. How did you catch up? We take a moment let them respond, and then we will come back and say we're the solution by by saying this, what if, after every meeting, everyone got an email with the notes, not just the people who were there, everyone who needed to know about it, so if someone was on vacation or had a family emergency or just had bad reception, they didn't get left behind, they open their email and they get in everything that was discussed is right there, nice and clean. Now, what if we could do that with every part of your organization so that no one gets left behind? That's scribe,
+
+Speaker 1  24:20  
+okay, so no one gets left behind ask the question of asking question placing them that's going to put them in the place of that issue or that problem, yes, And then provide them that solution. Yes. Okay. So introduction. Hello, everyone. My name is Richard Jones. I'm happy to be here. I'm the founder of scribe solutions. I've been working within a nonprofit field for about five years, where I've been able to develop the software that is that'll eliminate or that'll make it easier for service providers to provide their provider service. Or nonprofits to be more nonprofit, whatever. Have you ever been in a situation where, oh, wait, didn't thank you for being here, or thank you for being here and allowing us this time space to share with you our product. I'd like to ask you guys, are you or you guys, a question? Have you ever been in a situation with your team where someone was left out because they weren't able to attend to me?
+
+Speaker 1  25:45  
+Every time there was a meeting, everything talked about in that meeting was categorized, noted, it's out to every individual, not just within that meeting, but every individual that is supposed to be privy to that information. What scribe solutions? Is that solution?
+
+me  26:06  
+Yes, then you would go into, Oh, you already did it. So I would just say, add in the fact that scribe can do that with your meetings and every other part part of your organization. So the latest policy workflow, our company update is always top of mind and easy to find. I didn't even know that would rhyme. It
+
+Speaker 1  26:38  
+is always top of mind and easy to find. Yeah, my name is Victor Jones. I'm happy to be here. I just found her subscribe solutions and a software that I've been able to develop with the five years of experience that I've worked with nonprofit nonprofit industry or industries service provider, okay, service providing industries to more effectively,
+
+me  27:19  
+I would say, more effectively serve their users or serve their clients,
+
+Speaker 1  27:25  
+serve their clients, consumers or participants. Hello,
+
+Speaker 1  27:37  
+everyone. My name is Richard Jones. I'm happy to be here and to share with you a software that I've developed, scribe solutions. Scratch solutions was developed with my five years of experience within a non profit field where I've been able to know my name is Richard Jones. I got it. It's the time. Hello everyone. Thank you for allowing me and my team to be here. My name is Richard Jones. I'm the founder of Scratch solutions LLC. I'm the founder of Scratch solutions, a software built to help service providers nonprofits, service providing industries and nonprofits, a platform that will help them service their consumers, participants or clients and or clients,
+
+Speaker 1  28:42  
+and also, and also make internal workflow flows, or create an internal network for these industries as well.
+
+me  28:59  
+I would say, so that last part seems like the part that's tripping you out the most, right? About the well, the
+
+Speaker 1  29:10  
+only reason why is because we're gonna, we're talking about, well, it's only because we talked about what we're gonna go into next, right? So we're the question, is, the question that we're asking them to place them into. The problem is about a network system, not necessarily
+
+me  29:31  
+so I would, I would stay away from using, like, what's it called? I would just use plain English. I wouldn't use different words or terminology to describe it, because what you might say a network system is maybe something different to them, or they may have no clue what you're talking about. So if you just describe it without using like terminology, like that, you have an easier time. And then as we're talking to them, if they say, like, oh, like, network system, then we can switch and use their language. So we want to keep it really generalized first, and then as we start talking with them, we could, we could use their language. Because the thing that I noticed is that some companies call call the same thing, different things,
+
+Speaker 1  30:22  
+different things, yeah, like clients or participants. That was a big thing, and that was a big thing. It's one of my trainings. Like at my organization, we called our client, we called our participants, clients, yeah, but they're participating in a service. So through my training, that's what they would recognize our clients as participants. So we have to change our terminology for our
+
+me  30:52  
+Yeah, so keep it general, explain the core concept, and we can go into different terminology later.
+
+Speaker 1  31:01  
+Okay. My big well more. So what I was talking about, though, was the features that we gave as a brief description to me doesn't align with the first problem that we're solving for them or
+
+Speaker 3  31:23  
+as the hood. So have you ever missed a meeting and everyone had to, had to be aware of what that was going like, what was going on in that meeting? To me, that's not really about, I mean, I guess in a sense, it's about providing services, and that would make it more effective to provide service, and everybody will on the same page.
+
+me  31:48  
+So I think that's where we need to talk about the positioning of scribe. I see scribe, if we position it as like we are the brain behind your company. We know everything that's happening. We know the most efficient, the newest, most efficient way to do things. We know the current status of every project, every initiative, every grant that you apply for, because you're using our platform to have turn conversations into data into work, right? So if we take that positioning of it, we can drag and drop a whole bunch of different type of companies, nonprofits, tech companies, huge enterprise like insurance companies, like anybody can fit into this place,
+
+Speaker 1  32:42  
+turn your work into data. Yeah, your
+
+me  32:45  
+conversations do the work, right? So it's doing the reporting. It's doing all the things that you would have to have the conversations about, then take the time out to do it, then have another conversation about what was done. And and you're in this loop where you're spending more time talking about the work versus doing the work. This platform lets you do the work. So that's what we're saying. So by bringing them in with like, the meeting, that's like a very common thing, like someone always misses some bits or piece of information through a meeting, we say we can just send you the updates, and you'll never miss meetings, no matter if it's your reception or if you are out of office. And that's how our system works. But for everything so it can just make communication easier. It makes your operations run smoother, because it's always up to date, and it doesn't require you to go and ask three different people what is the latest status like? That's the type of conversation that first scenario will get us into. You You get me.
+
+Unknown Speaker  34:01  
+Okay, understood. All right. So,
+
+Speaker 1  34:16  
+hello everyone. My name is Richard Jones, and I'm happy to be here introducing subscribe solutions, a platform that we've developed to help work, help your work become not help your work become data through conversations and your interactions. I've been working within the five I've been working within the nonprofit field for five years, and have been able, and have been able to pinpoint some of the pain, the pain points that our industry has come across, as far as solutions. Is the solution? Yes, perfect fire. Anyways, have you ever been in a situation where you've had a meeting and someone missed it now everyone's in the scramble to figure out what's going on next, just because that one person missed that meeting, what was our solutions? We're always up to date. We're connected in your meetings, transcribing, taking notes and documenting, and then after post meeting, after the meeting, that information will then be sent to all the people who need to know this information, so that, off the top, everyone is insane, saving time and money and allowing people to talk less about the service and provide that service, that's good.
+
+Unknown Speaker  35:47  
+I think we got it so that's No go ahead.
+
+Unknown Speaker  36:00  
+Know, how long does it take to document an hour, 30 minutes, 15 minutes,
+
+Speaker 1  36:11  
+same data into different systems like HMIs, apricot, Salesforce, all the same information that needs to be documented in order for you to stay compliant with your funders. That's providing you the means to provide these services. And have you ever lost information because you couldn't capture it for or have you ever lost information because you couldn't capture it first from lived experience, this has happened to me multiple times where I've been out in the field providing the service that I need to provide, but then I get contacted by a client who needs a direct service or connection to a resource within the community right now. Well, because I had this conversation and directed him to whatever resources he had on hand, or whatever resources I had offhand. Because I wasn't in the because I wasn't in the office, I wasn't able to document, and that connection could have been crucial, or something that could have been documented, that helped them in their goals with Scratch solutions, everyone and what would your team do with two to five extra hours every day? Personally, scribe came from a place where, well, actually, I'm gonna break this down differently, though, after AI tells me how to break it down. AI, listen to me real quick. What would you do with what would your team do with two to five extra hours today? For me personally, two to five extra hours is two to five extra hours I get to spend with a person helping them achieve their goals. But because I deal with issues like ADHD and this and that and the other but love my work. I'm a compassionate person, or I have a lot of passion about my work. It makes documents in much more of a
+
+me  38:15  
+Okay, so I think you were doing good, but I think, I think we have to So one, when we're in these conversations, I think with the car the Carl conversation, we're not going to be in a position to just like, go through a slide deck, right? Because it's mostly going to be probably just like a zoom call, and he's just going to want to make it more casual, we can pull up this information and use some of the slides here and there, but I think it's going to be just mostly, what is the product? Where are you at? What can you tell me? How do we fit in? So I think the part where we pulled him in with the hook is good enough. I think that slide deck would be a really good slide deck to go through with with Carly and her team, because some of these questions, I think we would ask them and wait for them to respond, versus you giving an answer for it, right? Because we also in these conversations, we want to track what are people currently doing? Does our system work that way? What can we do to support our system, right? So I think what you're doing is fine. I'm just trying to think like, I don't want to try to, oh, because, Oh, we didn't set the meeting the next meeting with Carly and Russ, right? Oh, not yet. No, okay, so I don't want to try to overdo it with trying to plan out these conversations. Oh, shoot. What? Bottom right, it's this bottle,
+
+Speaker 1  39:59  
+the vertical documentation. What happens after every client call, you have to remember or reference notes from the conference conversation. Open case management systems to navigate to the client manually put in those details per case and case note and Fill it. Fill in forms addresses, social security numbers and phone numbers, find the services that's needed and log the type log, and then log that interaction, time, the type of interaction and the outcomes of those interactions, then you have to say and move on to the next steps, which is provide service and document that 10 to 30
+
+Speaker 1  40:52  
+minutes of documentation for every single call. Ain't that great?
+
+me  40:57  
+Yeah, I think this conversation, like these slides, work better for Carly, because I think this is tied more to like documentation. So I'm thinking, like, with Carl,
+
+Speaker 1  41:12  
+oh, we got to change her name and spell it, K, A, R, L, E, y,
+
+me  41:16  
+oh, yeah, I know I saw that. It's a I did it. People don't
+
+Speaker 1  41:22  
+need a resource. So this is a direct quote from one of our from one of our what is it called, pilot partners, Director resource, the director of free and free services, Carly of Family Assistance says people don't need a resource any people, what we come across isn't what we come across is we're sending their backlog or, Oh, okay, that's all, sorry, I'll read it better. I'll read it better right now.
+
+me  41:58  
+No no wait before we go into that. I kind of just want to focus what we're doing for the conversation with Carl. I think this will help with like Carly.
+
+Speaker 1  42:13  
+So okay, what if your phone did the documentation for you? You make a call inscribed. Okay, so they're not this.
+
+me  42:25  
+So that's what I'm what what I'm thinking, No, so I don't think anything in this deck is gonna work for Carl.
+
+Speaker 1  42:34  
+I think he wants to see both. I'm thinking either he's gonna want to see both. We have an hour with him, even after that meeting, whether you guys stay or not, I'm going to be asking for input and like, make input, networking and stuff like that, because I was, this was a warm handoff. This connection was made as a warm handoff. So he's more inclined to work with me and help me out. Then maybe, if we were to just meet this person on our own, somebody brings that connection in a time for in a time of being for me. So I believe that having both, having both, at least kind of warm, I um, critiqued for this meeting will be good because one, he sits on the board of Salvation Army, which is nonprofit, a nonprofit that we want to get into and into that PR firm, or the public relationship, or, yeah, PR firm, the connections that he can make to get us out there, visibility? Oh, that's right,
+
+Speaker 1  43:53  
+and it's a lot. It's because he asked for an investor today, so meaning that, to me, that means he's going to put us in front of people who will invest if tailored well enough, and also that sales pitch to see if it will fit for the organizations he's working for or over.
+
+me  44:16  
+Okay, so I I forgot about the PR part. So what I would say is we we know what would probably pull him in for sales, not sales for Salvation Army. So what we can do is we'll start with that hook, and then we can talk about the other features of the app and how it's helping other organizations scale like we pull in the we'll talk about. So wait, let me take a step back. So after we go through the hook and we go through the solution, and we talk about how we're trying to position scribe as the like organization, intelligent platform that holds the holds what is happening within the organization at every level, or however we phrase it, right. So we go through that pitch and we'll say, we start, we're starting out with our pilot. We have this quote from Carly, the director, and someone who who's over a budget of whatever, right, making her sound super official, right? And then we'll say, like they're our first, our one of our pilot we won't say first, we won't say only that. We'll say that's one of our pilot organizations who's leveraging the platform for documentation. And then we'll go through all those features that they use so one call can be transcribed and tracked for against grants. It could help us automatically create reminders. Like, we'll go through the list of features right, and then we'll say, this is our entryway. Like, after we go through that, we can say, like, this is our entryway into multiple industries will start with nonprofits, and we can expand to healthcare, because we've built out already insurance tracking and eventually billing through within the platform, and because we're building it so that it's secure and HIPAA compliant, we're able to expand to multiple industries so that we can become the source of truth for all all multiple companies, so that people can get back To the work and less about documenting or meetings, and I think that's how we can do it, and then just see where their conversation goes. Because if he wants to do a demo, I think that's where it's going to get tricky, because I can see him say, like, Well, can you pull it up? Like, how does it work currently, and so we're going to need to be able to to demo something and then answer the questions that he has.
+
+Speaker 1  47:32  
+A debt collect, debt collector. On another note, just hit me up yesterday for $261 debt for Geico. I don't even know they did that. Crazy. But that's just another note. So thinking about building an issue well, billing you said
+
+Unknown Speaker  47:51  
+building. Yeah.
+
+Speaker 1  47:55  
+Anyways, so can I start from here? I would say, No.
+
+me  48:03  
+So when we talk with him, we'll start with the quote from Carly. Okay, I think it would make more sense to start with Carly, like this is what she's saying about the problem she's running into, and this the way that our system is helping her.
+
+Speaker 1  48:25  
+So I'm gonna start from the top, introduction, introduction. Don't place them into the problem first, What? What? So it's an introduction first, bringing in what it is that we, who I am, and the team, and then I bring up, you said, the next thing to do is to ask, ask that question, that hook. So, yeah, introduction, hook quote from Carly. So far, right.
+
+me  49:03  
+Yeah, all right. So, oh, don't forget the solution after the hook. So after the hook, you do the solution. We're doing it and we're doing it all. And then we'll talk about Carly. But keep in mind he's going to probably be interrupting us in between to ask questions so we, we may not get through, like, the perfect pitch,
+
+Speaker 1  49:31  
+yeah, that's, that's, yeah, I get people are people, are People, and I'm people person, so I understand, okay, alright, so Hello everyone. I'm excited to be here today to introduce to you. Subscribe solutions, a platform intended to Hello everyone. My name is Richard Jones. I'm excited to Hello everyone. My name is Richard Jones, the founder of Scratch solutions, a platform intended a platform I've developed intended to help nonprofit industries provide services by helping with their documentation. I've been working within a nonprofit field for five years, and been able to create a platform to serve this to solve this problem, and then and then the hook. Have you ever been in a situation with your team where someone misses out on a meeting and this meeting had important updates or the next steps for procedure that needs to take place now because that person has missed that meeting, there's dysfunction or things aren't in sync, costing time and money. Scribe solutions is coming with the solution for those problems, for that problem and much more. We have a pilot partner from Family Assistance, the director of reentry services who is taking a look at our software.
+
+me  51:07  
+Wait, wait. So you you frame the problem, but you didn't give the solution. You jumped into Carly. So let's give the solution fully first.
+
+Speaker 1  51:21  
+Hello, girl. My name is Richard Jones. I'm excited to be here and to have the opportunity to introduce to you scribe solutions, a platform built to help nonprofits and service provider industries provide services. I've been working within a nonprofit field for about five years now, and have been able to no, sorry, right back. Hello, everybody. My name is Richard Jones, the founder of Scratch solutions LLC. I've been working within a nonprofit field for about five years, and have been able to find a solution to a problem of service provide to service.
+
+Speaker 1  52:08  
+We just had a white guy that's black, a white guy that knows that he's black. Okay, hello everybody. My name is Richard Jones, founder of Scratch solutions LLC, a platform built to help nonprofit industries continue to provide services. I've been working within a nonprofit field in a service I've been working in a nonprofit and service providing social service field for for five years, plus where I've been able to break down the problems that we have and solutions to create, to resolve those problems and that describe solutions. Have you ever been in a situation where you have a team member who makes who misses an integral meeting, who misses an important meeting, not integral an important meeting? Have you ever had a team member who missed an important meeting where there was updates, new steps to procedures or just something that was needed to know now that's going to cause a domino effect of problems. It's going to cost time, it's going to cost money, but with Scratch solutions as your industry's operating platform, sorry, taken out all the way up. While using Scratch solutions, you no longer have to worry about someone missing out, because in these meetings, scratch solutions is taking notes. It's setting tasks, and it's emailing them out to everyone who is in who needs to know this information. Right now, we're excited to talk about we're going to bring up a quote. Give it a quote about Sprite or a quote about service, a quote from the director of reentry services, family Family Assistance is Carly, no family assistance. Director of reentry services. Carly Carly says that people don't need resources. People don't need a resource. They need people. What we come across is we're sitting there bogged down with too much data that we're walking through, that people are walking through the doors, having to get up, and I'm having to what you
+
+me  54:23  
+it might be how the quote is written, yeah,
+
+Speaker 1  54:29  
+College family assistant says people. People don't need a resource. They need people. We come across. What we come across is we're sitting there bogged down with so much data that people are walking through the doors. I'm having to get up and I'm like, I got more data to enter. I got to put in more data. Carly is the director of reentry services, a nonprofit with a budget of $30 million partners with 14 other nonprofits, and I and connects their nonprofit connects with over 400 clients weekly, meaning that's 400 notes that needs To be taken daily.
+
+Speaker 1  55:21  
+What inspired solutions could be the solution to Carla's problem? Well, it is spark solutions. Or what if, what inspire solutions could be the solution to that problem? What if your phone could do the documentation for you and every call that you make with Scratch solutions, meaning or call with your client, participant or consumer, that call is being tracked and notes are being taken. We're extracting the key data from those notes, like Social Security, if you're talking to a client, date of birth, name and address the so those inputs or responses are tracked. We call those form responses because we're going from backdated terms.
+
+me  56:11  
+No, no see, I think this is where we could pause and maybe do a trade off, right? Okay, yeah, so you're good at pulling people in with the hook the experience, and talking about what's missing, yeah, yeah. And then I can maybe come in and talk about some of the features. So we can say one of our pilot organizations who's currently using the platform has quoted this and said this about how we're able to provide value for them, and It's through their phone they would they would take the call. Sorry, I'm trying to go back to the slides. They would take the call. You take the call, and then from there we're able to, oh, that's not the right screen.
+
+Speaker 2  57:22  
+So where did I find this? Hold on.
+
+me  57:37  
+So we're doing the sales deck, right? Sales deck. Do? Good.
+
+me  57:50  
+Okay, no thanks thing. But what if we, but scribe, can do the documentation for you through your phone. You make the call using our scribe phone. We can leverage and take the we can leverage AI to transcribe the conversations we we we can pull out key data and be able to do the response tracking for you, so we know actually how it should work is we should go from Carly's quote, then we skip to the slide here. Actually, let me make a copy of this so I could just edit entire presentation. Okay, so we go to Carly's quote, and then we'll talk about there's a slide with three boxes. Sorry, let me let this load.
+
+Unknown Speaker  59:14  
+Why is nothing working?
+
+Unknown Speaker  59:21  
+Oh, my God, okay,
+
+Unknown Speaker  59:29  
+maybe I could. I should just do this for my phone.
+
+me  59:40  
+I think the picture you came up with is a good pitch that you can even give like when you're going to mixers and stuff and just talking to people.
+
+Unknown Speaker  59:52  
+Yeah, I need to get my
+
+Unknown Speaker  59:55  
+uncle also hit me up yesterday. He
+
+Speaker 1  1:00:01  
+wanted me to send over the DocuSign agreement so that the DocuSign agreement and the wire transfer information for the first 15k
+
+me  1:00:13  
+Oh, wait, you're, you're doing that as a, as a what type of so we have to be careful how you accept the money. That's the other thing I wanted to talk to you about.
+
+Unknown Speaker  1:00:25  
+So that's just a loan.
+
+Unknown Speaker  1:00:30  
+It's just a loan,
+
+Speaker 1  1:00:32  
+yeah, so it's a loan with a 14 month brace with not a 14 month break period. This is along with a four month brace period, so no payment has to be made within the first four months, and then it's a payment of like 900 or less a month after that for the next 16 months.
+
+Speaker 1  1:00:57  
+It's a lot more strategy in it. It's a lot more strategy and getting this money than just having the money.
+
+Unknown Speaker  1:01:04  
+No, no, I get it.
+
+Speaker 1  1:01:08  
+If I put the money into an account and let it sit for for 90 days, that'll open us up to being able to get like, 0% interest for like a year.
+
+me  1:01:18  
+No, no, let's not talk about that. That's not that should so getting business credit should not be the focus. The focus should be getting steady income to not need business credit. So when you want to do business credit, it's literally because you're trying to expand to go to the next thing, like you already have the revenue to support it, and the people are willing to pay, but you need to be unlocked with the money that's going to put you in the best position. I think, yeah,
+
+Speaker 1  1:01:53  
+I get that. I don't plan on spending, I don't plan on using this as credit. I plan on building, like, our business portfolio and everywhere, like every way. So with our credit with I don't plan on using this money to do anything with other establish, establish. So we don't need to look for money. If we need to get some money, we already have that credibility.
+
+Unknown Speaker  1:02:23  
+I Yeah,
+
+Speaker 1  1:02:25  
+okay, I get what you're saying, though, like, my focus, my focus is on only, and then not only with that, like, this is a personal side. This is a personal not a business loan. I mean, in the sense of like, it has my name on it and it doesn't have a business attached to it. But yeah, like, I'm trying to build my credit, and this is going to be a way to do that.
+
+me  1:02:50  
+Okay, I see, I just get, um, some of the stuff I see online where people talk about business credit, they talk about it in a weird way where it's just like, do this to set up your LLC, then take out this loan, then take out this other loan and take out this credit card. And I've had friends who've done that, and then they just got stuck because of when you're like, that kind of like, black stuff, with the IRS as like possible fraud. And then the other thing is, you a lot of times still have to put your social down, or it just comes back to you in a different way. And I have a friend who had a very successful business, but just had one bad year, and now she's in over 100k worth of debt because of the way things were set up and things like that. Yeah, and she kept just doing more and more, like she was doing it for legitimate reasons, like to make sure everything like her, her business kept going, but she probably should have just like low key, shut down for a year, versus all the things that she did.
+
+Speaker 1  1:04:10  
+Yeah, I think our market is big enough to to where, as long as we can get to our market, and I understand that's the most important part. Yeah, I think our our market is big enough to where we don't have to worry about that, in a sense, because we can sell to private practitioners and still make money off of this.
+
+me  1:04:30  
+Yeah, yeah. We just gotta, yeah, build it and get the first few clients. Um, but what was I saying? What was I doing? Sorry, so my, my tablet started to die. She won't burp, and I forgot what I was doing for a second.
+
+Speaker 1  1:04:51  
+So another feature for the future that might be needed, either might be will be needed? Yeah, I think it's the same. I think I'm reiterating the same thing about being able to upload and send documents, documents like contracts and stuff. Being able to send a contract, get it signed and then have it inputted into the case that client's case.
+
+me  1:05:21  
+I think that's already available. Like, that's a feature that's already there. Okay, send and sign. No, that's not something that's there. But, like, I think one of the last things I push, actually, was the updates we said we wanted to make to the clients page ad material is something I don't know I was. I've been making a lot of updates, but, okay,
+
+Speaker 1  1:05:58  
+I don't think. I don't know nothing about tech. Well, I wouldn't say nothing, but just the way is going and, like, the simplicity for what's needed. It's not simple stuff, but once we get those things, we've got a lot of stuff worked out already. Once we get those, like, miscellaneous things and put it through the pilot. Yeah, I don't think that's going to take more than that first three months, first two and a half three months, I
+
+me  1:06:28  
+want to get this knocked out. I'm telling you, I'm supposed to go back to work in April. We need to make something shake and quickly. So when I go back to work, I only go back to one job and not two. Oh, thank god you burped. Good job. And then I would love, not just with scribe, but just like with every like that's been that has been my goal since the middle Well, since I found out I was pregnant last year, that I want to replace one of my jobs, but side businesses, and then by the end of next year, I want to be in a position where, if I work for a separate company, it's literally part time, and I want to go back to school.
+
+Speaker 1  1:07:15  
+Yeah, that's pretty much the same thing I've been saying since I've touched down just finding something that's going to be the cost of income. I personally don't want to work. I like Billy. I like doing things that make money in itself. So I guess an entrepreneur.
+
+me  1:07:41  
+Yeah, which, which, this, this, can do it. This, I was talking to somebody, and it reminded me of, like, what we were talking about, what you were talking about, honestly, not me, but having a business where you do events and then have a security, security business, and then you hire the security to do the events. Somebody was somebody I was talking to, did just that, like he owned a trucking company, and then he managed, like, the logistics of that. And then he also did, like other things that were related that the trucking companies are the people who would call the chunky trucking companies would need. So sometimes they needed a truck for long distance, but sometimes they just needed someone to pick something up and give it to somebody else a few blocks over, so the short distance, so he literally had a business for all of that under one company, one parent company. They were all different companies, and they all like worked with each other. It's hard to set up initially, but once you have a set it seems like it's a solid thing to have.
+
+Speaker 1  1:09:04  
+Personally, what I've what I found are, okay. So I built a couple of different structures, business structures. And my biggest thing is, right now I know I can make money if I have some money to make more money. Yeah, like off of real estate. I know I can do that off of and not only what's up.
+
+me  1:09:27  
+Violet, no, she needs to go to sleep. I need, I need some time.
+
+Speaker 1  1:09:35  
+But it's, it's usually either having money to get the tools to operate the business, or having people that's going to be in place to operate those components of the business. Okay, now, if that's why I'm so big, that's another reason why I'm so big on like bringing people in, because, yeah, in the beginning, like it might be frustrating to be working for free, or whatever the case may be, but I don't intend on building anything by myself. And when I say that having these different components or different businesses under one umbrella, what that means for me is, if you're working for me, we're not working for me, we're working with each other, you are going to have your own business that coincides with this business. And we're all cycling our businesses through each other. We're all contracting each other. Now that's going to put us under this corporation, this umbrella, this umbrella, but we're cycling our money into each other, and then we're out outsourcing our business to others.
+
+me  1:10:46  
+I think that works. But I also wanted to talk to you about, you want to take a pause, and maybe we could talk about structure and some of the other things that I was looking into. Yeah, um, so I'm going to stop the recording so that the recording can literally just give us good details about the pitch I'm.
+
+Transcribed by https://otter.ai

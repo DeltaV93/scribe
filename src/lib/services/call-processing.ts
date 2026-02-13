@@ -22,6 +22,7 @@ import {
   isS3Configured,
 } from "@/lib/storage/s3";
 import { isDeepgramConfigured } from "@/lib/deepgram/client";
+import { getTwilioConfig } from "@/lib/twilio/client";
 import type { ExtractableField } from "@/lib/ai/types";
 
 const MAX_RETRIES = 3;
@@ -227,10 +228,41 @@ async function transcribeRecording(
     // S3 key - download and transcribe from buffer
     const buffer = await downloadRecording(source);
     return transcribeFromBuffer(buffer);
+  } else if (source.includes("api.twilio.com")) {
+    // Twilio URL - requires authentication to download
+    console.log(`[CallProcessing] Downloading Twilio recording with auth`);
+    const buffer = await downloadTwilioRecording(source);
+    return transcribeFromBuffer(buffer, "audio/mpeg");
   } else {
-    // Direct URL
+    // Direct URL (public)
     return transcribeFromUrl(source);
   }
+}
+
+/**
+ * Download a recording from Twilio with authentication
+ */
+async function downloadTwilioRecording(url: string): Promise<Buffer> {
+  const { accountSid, authToken } = getTwilioConfig();
+
+  if (!accountSid || !authToken) {
+    throw new Error("Twilio credentials not configured");
+  }
+
+  const authHeader = Buffer.from(`${accountSid}:${authToken}`).toString("base64");
+
+  const response = await fetch(url, {
+    headers: {
+      Authorization: `Basic ${authHeader}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to download Twilio recording: ${response.status} ${response.statusText}`);
+  }
+
+  const arrayBuffer = await response.arrayBuffer();
+  return Buffer.from(arrayBuffer);
 }
 
 /**

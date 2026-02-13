@@ -45,6 +45,15 @@ const statusConfig: Record<GoalStatus, { label: string; variant: "default" | "se
 export function GoalStatusBadge({ status, className }: GoalStatusBadgeProps) {
   const config = statusConfig[status];
 
+  // Fallback if status is not in config (defensive coding)
+  if (!config) {
+    return (
+      <Badge variant="secondary" className={cn("bg-gray-100 text-gray-700", className)}>
+        {status || "Unknown"}
+      </Badge>
+    );
+  }
+
   return (
     <Badge variant={config.variant} className={cn(config.className, className)}>
       {config.label}

@@ -133,7 +133,8 @@ export function SessionStatusDropdown({
     reason: "",
   });
 
-  const currentConfig = STATUS_CONFIG[currentStatus];
+  // Use DRAFT as fallback for unknown statuses
+  const currentConfig = STATUS_CONFIG[currentStatus] || STATUS_CONFIG.DRAFT;
   const StatusIcon = currentConfig.icon;
 
   const handleStatusSelect = async (newStatus: SessionStatus) => {

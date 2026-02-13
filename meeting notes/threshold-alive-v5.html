@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Enigma Syndicate</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Outfit:wght@200;300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  /* ═══ THE BEFORE — grey, cold, lifeless ═══ */
+  --void: #0A0A0C; --ash: #111114; --slate: #1A1A1E;
+  --iron: #252528; --lead: #2E2E32;
+  --ghost: #55555E; --fog: #77778A; --mist: #9999AA;
+  --chalk: #BBBBC8; --pale: #D8D8E2;
+  /* Indigo — barely there in the dark, structural thread throughout */
+  --indigo-deep: #2E2C64; --indigo: #3D3B8E;
+  --indigo-mid: #5856A8; --indigo-light: #7A78C2;
+  --indigo-pale: #B0AFDA; --indigo-wash: #D4D3EC;
+
+  /* ═══ THE AFTER — alive, verdant, breathing ═══ */
+  --forest-deep: #1A2E1F; --forest: #243828;
+  --moss: #3D5A45; --fern: #5A8F6E;
+  --sage: #7AB892; --mint: #A8D4B8;
+  --spring: #C4E5CE; --dew: #E2F0E6;
+  --meadow: #EDF5EF; --cloud: #F5F9F6;
+  --cream: #FAF9F5; --sun: #FFFEF8;
+  /* Warm accents for the alive side */
+  --gold: #C4A455; --gold-soft: #D4BC7A;
+  --bark: #8B7355;
+
+  --display: 'Cormorant Garamond', Georgia, serif;
+  --body: 'Outfit', system-ui, sans-serif;
+  --pw: min(1200px, 100% - clamp(48px, 10vw, 128px));
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--body);background:var(--void);color:var(--pale);-webkit-font-smoothing:antialiased;overflow-x:hidden;line-height:1.6}
+::selection{background:var(--fern);color:var(--sun)}
+.pw{width:var(--pw);margin:0 auto}
+
+#noiseCanvas{position:fixed;inset:0;z-index:9999;pointer-events:none;opacity:0.025;mix-blend-mode:overlay}
+
+/* ═══ REVEALS ═══ */
+.rv{opacity:0;transform:translateY(28px);transition:opacity 0.8s var(--ease),transform 0.8s var(--ease)}
+.rv.vis{opacity:1;transform:translateY(0)}
+.rv[data-d="1"]{transition-delay:0.1s}.rv[data-d="2"]{transition-delay:0.2s}
+.rv[data-d="3"]{transition-delay:0.3s}.rv[data-d="4"]{transition-delay:0.4s}
+.rv[data-d="5"]{transition-delay:0.5s}.rv[data-d="6"]{transition-delay:0.6s}
+
+/* ═══ NAV — adapts dark/light ═══ */
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:18px clamp(24px,5vw,64px);display:flex;justify-content:space-between;align-items:center;transition:all 0.5s}
+.nav.solid{background:rgba(10,10,12,0.94);backdrop-filter:blur(16px);box-shadow:0 1px 0 rgba(85,85,94,0.08)}
+.nav.light{background:rgba(250,249,245,0.92);backdrop-filter:blur(16px);box-shadow:0 1px 0 rgba(61,90,69,0.08)}
+.nav.light .nav-nm{color:var(--forest-deep)}
+.nav.light .nav-a{color:var(--moss)}
+.nav.light .nav-a:hover{color:var(--fern)}
+.nav.light .nav-logo path{fill:var(--forest-deep)}
+.nav-brand{display:flex;align-items:center;gap:10px;text-decoration:none;opacity:0;transition:opacity 0.3s;pointer-events:none}
+.nav.solid .nav-brand,.nav.light .nav-brand{opacity:1;pointer-events:auto}
+.nav-nm{font-family:var(--display);font-style:italic;font-size:17px;color:var(--pale);transition:color 0.5s}
+.nav-links{display:flex;gap:28px}
+.nav-a{font-size:0.78rem;font-weight:400;letter-spacing:0.1em;text-transform:uppercase;color:var(--ghost);text-decoration:none;transition:color 0.3s}
+.nav-a:hover{color:var(--indigo-light)}
+
+/* ══════════════════════════════════════════
+   THE BEFORE — Hero (cold, isolated, grey)
+   ══════════════════════════════════════════ */
+.hero{height:300vh;position:relative;background:var(--void);overflow:hidden}
+.portal-wrap{position:fixed;top:0;left:0;right:0;height:100vh;display:flex;align-items:flex-end;justify-content:center;z-index:2;pointer-events:none}
+.doorway{position:relative;width:clamp(180px,26vw,300px);height:clamp(320px,50vh,500px);will-change:transform;transform-origin:50% 100%}
+.doorway-frame{position:absolute;inset:0}
+.doorway-frame svg{width:100%;height:100%}
+.doorway-outer{stroke:rgba(85,85,94,0.20);stroke-width:1.5;fill:none}
+.doorway-inner{stroke:rgba(85,85,94,0.10);stroke-width:1;fill:none}
+/* Light through the door — starts cold, warms with scroll */
+.doorway-light{position:absolute;bottom:0;left:12%;right:12%;top:15%;
+  background:radial-gradient(ellipse 80% 50% at 50% 35%,rgba(90,143,110,0.10) 0%,rgba(122,120,194,0.04) 40%,transparent 70%);
+  clip-path:polygon(10% 0%,90% 0%,100% 100%,0% 100%);
+  animation:doorBreathe 6s ease-in-out infinite}
+@keyframes doorBreathe{0%,100%{opacity:0.4}50%{opacity:1}}
+.doorway-spill{position:absolute;bottom:-20px;left:50%;transform:translateX(-50%);width:160%;height:60px;
+  background:radial-gradient(ellipse 50% 100% at 50% 0%,rgba(90,143,110,0.05) 0%,transparent 70%);filter:blur(12px)}
+.doorway-sill{position:absolute;bottom:0;left:-15%;right:-15%;height:1px;
+  background:linear-gradient(90deg,transparent 10%,rgba(85,85,94,0.12) 30%,rgba(90,143,110,0.18) 50%,rgba(85,85,94,0.12) 70%,transparent 90%)}
+.doorway-keystone{position:absolute;top:0;left:50%;transform:translateX(-50%);width:50px;height:50px;border-radius:50%;
+  background:radial-gradient(circle,rgba(90,143,110,0.08) 0%,transparent 70%);animation:doorBreathe 6s ease-in-out infinite;animation-delay:-3s}
+.embers{position:absolute;inset:0;pointer-events:none}
+.ember-p{position:absolute;width:2px;height:2px;border-radius:50%;opacity:0;animation:float-ember var(--dur,6s) ease-in-out var(--delay,0s) infinite}
+.ember-p.grey-p{background:var(--fog)}
+.ember-p.hint-p{background:var(--sage)}
+@keyframes float-ember{0%{opacity:0;transform:translate(0,0) scale(0.5)}20%{opacity:var(--peak,0.3)}80%{opacity:var(--peak,0.3)}100%{opacity:0;transform:translate(var(--dx,20px),var(--dy,-80px)) scale(0)}}
+
+.hero-intro{position:fixed;top:0;left:0;right:0;height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:4;pointer-events:none;transition:opacity 0.6s var(--ease),transform 0.6s var(--ease)}
+.hero-intro.faded{opacity:0;transform:translateY(-20px)}
+.hero-intro-mark{margin-bottom:20px;opacity:0;animation:introIn 0.8s var(--ease) 0.2s both}
+/* Hero text is desaturated — ghostly */
+.hero-intro-name{font-family:var(--display);font-style:italic;font-size:clamp(1.6rem,3.5vw,2.4rem);font-weight:400;color:var(--chalk);letter-spacing:-0.5px;margin-bottom:12px;opacity:0;animation:introIn 0.8s var(--ease) 0.4s both}
+.hero-intro-line{font-size:0.82rem;font-weight:200;color:var(--ghost);letter-spacing:0.02em;max-width:320px;text-align:center;line-height:1.5;opacity:0;animation:introIn 0.8s var(--ease) 0.6s both}
+.hero-intro-label{font-size:0.55rem;font-weight:500;letter-spacing:0.35em;text-transform:uppercase;color:var(--fog);margin-top:28px;opacity:0;animation:introIn 0.8s var(--ease) 0.9s both}
+@keyframes introIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+.hero-text{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;z-index:3;pointer-events:none;width:90%;max-width:600px}
+.hero-title{font-family:var(--display);font-weight:400;font-size:clamp(2.6rem,6vw,4.5rem);line-height:1.06;color:var(--chalk);letter-spacing:-1px;opacity:0;transition:opacity 1s ease,transform 1s ease;transform:translateY(20px)}
+.hero-title.show{opacity:1;transform:translateY(0)}
+.hero-title em{font-style:italic;color:var(--fog)}
+.hero-sub{font-size:0.95rem;font-weight:200;color:var(--ghost);margin-top:18px;opacity:0;transition:opacity 1s ease 0.2s,transform 1s ease 0.2s;transform:translateY(16px)}
+.hero-sub.show{opacity:1;transform:translateY(0)}
+.hero-whisper{position:fixed;bottom:30%;left:50%;transform:translateX(-50%);font-family:var(--display);font-style:italic;font-size:clamp(0.85rem,1.5vw,1.1rem);color:rgba(90,143,110,0.20);letter-spacing:0.25em;z-index:3;pointer-events:none;transition:opacity 0.6s}
+.hero-whisper.hide{opacity:0}
+.scroll-cue{position:fixed;bottom:36px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:8px;z-index:5;animation:fadeIn 1s ease 1.5s both}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.scroll-cue span{font-size:9px;font-weight:500;letter-spacing:3px;text-transform:uppercase;color:var(--ghost)}
+.scroll-cue .tick{width:1px;height:32px;background:rgba(85,85,94,0.15);position:relative;overflow:hidden}
+.scroll-cue .tick::after{content:'';position:absolute;top:-100%;width:1px;height:100%;background:var(--sage);animation:tp 2.5s ease-in-out infinite}
+@keyframes tp{0%{top:-100%}100%{top:200%}}
+.scroll-cue.hide{opacity:0!important;transition:opacity 0.3s}
+
+/* ══════════════════════════════════════════
+   THE CROSSING — Manifesto (first breath)
+   ══════════════════════════════════════════ */
+.ante{padding:clamp(140px,20vh,240px) 0;position:relative;z-index:4;overflow:hidden;
+  background:linear-gradient(to bottom,var(--void) 0%,var(--ash) 15%,#111816 50%,#162420 80%,var(--forest-deep) 100%)}
+.ante::before{content:'';position:absolute;top:-2px;left:0;right:0;height:200px;background:linear-gradient(var(--void),transparent);pointer-events:none;z-index:2}
+/* Texture shifts from geometric crosshatch to organic */
+.ante-texture{position:absolute;inset:0;opacity:0.015;pointer-events:none;
+  background-image:url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 40 Q20 35 40 40 T80 40' fill='none' stroke='%23ffffff' stroke-width='0.4'/%3E%3Cpath d='M0 55 Q20 50 40 55 T80 55' fill='none' stroke='%23ffffff' stroke-width='0.3'/%3E%3Cpath d='M0 25 Q20 20 40 25 T80 25' fill='none' stroke='%23ffffff' stroke-width='0.3'/%3E%3C/svg%3E")}
+/* Light flooding down from doorway above */
+.ante-flood{position:absolute;top:0;left:50%;transform:translateX(-50%);width:min(600px,80vw);height:400px;pointer-events:none;z-index:1;
+  background:radial-gradient(ellipse 60% 80% at 50% 0%,rgba(90,143,110,0.08) 0%,rgba(90,143,110,0.03) 30%,transparent 60%)}
+.ante-inner{position:relative;z-index:3}
+.ante-text{font-family:var(--display);font-weight:400;font-size:clamp(1.4rem,2.8vw,2rem);line-height:1.65;color:var(--chalk);max-width:680px;margin:0 auto;text-align:center}
+.ante-word{display:inline;opacity:0;transform:translateY(8px);transition:opacity 0.5s ease,transform 0.5s ease,color 0.8s ease}
+.ante-word.vis{opacity:1;transform:translateY(0)}
+.ante-word.hl{color:var(--pale)}
+.ante-word.hl-green{color:var(--sage)}
+
+/* ═══ ADINKRA IRONWORK — cultural patterns for the alive side ═══ */
+/* Decorative section dividers */
+.adinkra-divider{display:flex;align-items:center;justify-content:center;gap:20px;padding:0;position:relative;z-index:5}
+.adinkra-divider svg{opacity:0.15;flex-shrink:0}
+.adinkra-divider-line{flex:1;max-width:120px;height:1px;background:linear-gradient(90deg,transparent,var(--fern),transparent)}
+/* Adinkra gate border — wrought iron fence between sections */
+.adinkra-gate{position:relative;z-index:5;overflow:hidden;height:40px;display:flex;align-items:center;justify-content:center}
+.adinkra-gate-pattern{position:absolute;inset:0;opacity:0.06;pointer-events:none}
+
+/* ══════════════════════════════════════════
+   THE AFTER — Mission (alive, breathing)
+   ══════════════════════════════════════════ */
+.hall{padding:clamp(100px,14vh,160px) 0;position:relative;z-index:4;overflow:hidden;
+  background:linear-gradient(to bottom,var(--forest-deep) 0%,var(--forest) 30%,#2B4A32 60%,var(--moss) 100%);
+  color:var(--sun)}
+.hall::before{content:'';position:absolute;top:-1px;left:0;right:0;height:100px;background:linear-gradient(var(--forest-deep),transparent);pointer-events:none;z-index:2}
+/* Dwannimmen (Ram's Horns) — strength through humility */
+.hall-adinkra{position:absolute;inset:0;opacity:0.025;pointer-events:none;
+  background-image:url("data:image/svg+xml,%3Csvg width='160' height='160' viewBox='0 0 160 160' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%23ffffff' stroke-width='0.6'%3E%3Cpath d='M80 60 Q60 60 55 45 Q50 30 65 25 Q75 22 80 35'/%3E%3Cpath d='M80 60 Q100 60 105 45 Q110 30 95 25 Q85 22 80 35'/%3E%3Cpath d='M80 100 Q60 100 55 115 Q50 130 65 135 Q75 138 80 125'/%3E%3Cpath d='M80 100 Q100 100 105 115 Q110 130 95 135 Q85 138 80 125'/%3E%3Ccircle cx='80' cy='80' r='3'/%3E%3C/g%3E%3C/svg%3E")}
+/* Breathing animation */
+.hall-breath{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse 60% 40% at 50% 50%,rgba(122,184,146,0.04) 0%,transparent 60%);animation:sectionBreathe 8s ease-in-out infinite}
+@keyframes sectionBreathe{0%,100%{opacity:0.3;transform:scale(1)}50%{opacity:1;transform:scale(1.02)}}
+.hall-grid{display:grid;grid-template-columns:1fr 1fr;gap:clamp(40px,8vw,100px);align-items:center;position:relative;z-index:2}
+.hall h2{font-family:var(--display);font-weight:400;font-size:clamp(2.4rem,5.5vw,4.2rem);line-height:1.06;letter-spacing:-1px;color:var(--sun)}
+.hall h2 em{font-style:italic;color:var(--spring)}
+.hall p{font-size:1.05rem;font-weight:300;line-height:1.8;color:var(--dew);margin-bottom:16px}
+.hall .em-line{color:var(--mint);font-weight:400}
+.btn{display:inline-flex;align-items:center;gap:12px;font-family:var(--body);font-size:0.82rem;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;color:var(--sun);background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:100px;padding:14px 32px;text-decoration:none;cursor:pointer;margin-top:12px;transition:all 0.4s var(--ease);position:relative;overflow:hidden}
+.btn:hover{background:var(--fern);color:var(--sun);border-color:var(--fern);box-shadow:0 4px 20px rgba(90,143,110,0.2)}
+.btn .arr{transition:transform 0.3s}
+.btn:hover .arr{transform:translateX(4px)}
+@media(max-width:768px){.hall-grid{grid-template-columns:1fr}}
+
+/* ══════════════════════════════════════════
+   THE AFTER — Portfolio (light, tangible)
+   ══════════════════════════════════════════ */
+.portfolio{background:var(--cream);color:var(--forest-deep);padding:clamp(100px,14vh,160px) 0;position:relative;z-index:4;overflow:hidden}
+.portfolio::before{content:'';position:absolute;top:-1px;left:0;right:0;height:120px;background:linear-gradient(var(--moss),var(--cream));pointer-events:none;z-index:2}
+.portfolio-breath{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse 50% 40% at 30% 60%,rgba(90,143,110,0.03) 0%,transparent 50%);animation:sectionBreathe 10s ease-in-out infinite;animation-delay:-3s}
+/* Eban (Fence) — love, safety, security of the collective */
+.portfolio-adinkra{position:absolute;inset:0;opacity:0.022;pointer-events:none;
+  background-image:url("data:image/svg+xml,%3Csvg width='120' height='120' viewBox='0 0 120 120' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%233D5A45' stroke-width='0.5'%3E%3Crect x='30' y='30' width='24' height='24' rx='3'/%3E%3Crect x='66' y='30' width='24' height='24' rx='3'/%3E%3Crect x='30' y='66' width='24' height='24' rx='3'/%3E%3Crect x='66' y='66' width='24' height='24' rx='3'/%3E%3Cline x1='54' y1='42' x2='66' y2='42'/%3E%3Cline x1='54' y1='78' x2='66' y2='78'/%3E%3Cline x1='42' y1='54' x2='42' y2='66'/%3E%3Cline x1='78' y1='54' x2='78' y2='66'/%3E%3C/g%3E%3C/svg%3E")}
+.portfolio-label{font-size:0.65rem;font-weight:600;letter-spacing:0.3em;text-transform:uppercase;color:var(--fern);margin-bottom:14px;position:relative;z-index:2}
+.portfolio h2{font-family:var(--display);font-weight:400;font-size:clamp(2rem,4.5vw,3.4rem);line-height:1.08;letter-spacing:-1px;margin-bottom:16px;color:var(--forest-deep);position:relative;z-index:2}
+.portfolio h2 em{font-style:italic;color:var(--fern)}
+.portfolio-intro{font-size:0.95rem;font-weight:300;color:var(--moss);line-height:1.7;max-width:560px;margin-bottom:56px;position:relative;z-index:2}
+
+.prod-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;position:relative;z-index:2}
+.prod{background:var(--sun);padding:clamp(28px,4vw,40px);position:relative;overflow:hidden;border-radius:12px;border:1px solid rgba(90,143,110,0.08);transition:all 0.4s var(--ease);box-shadow:0 1px 3px rgba(26,46,31,0.04)}
+.prod:hover{transform:translateY(-4px);box-shadow:0 12px 40px rgba(26,46,31,0.08);border-color:rgba(90,143,110,0.15)}
+.prod-glow{position:absolute;width:250px;height:250px;border-radius:50%;background:radial-gradient(circle,rgba(90,143,110,0.05) 0%,transparent 70%);pointer-events:none;opacity:0;transition:opacity 0.3s;transform:translate(-50%,-50%)}
+.prod:hover .prod-glow{opacity:1}
+.prod-status{display:inline-block;font-size:0.55rem;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;padding:4px 10px;border-radius:100px;border:1px solid rgba(90,143,110,0.15);color:var(--fern);background:rgba(90,143,110,0.04);margin-bottom:16px;position:relative;z-index:1}
+.prod h3{font-family:var(--display);font-size:clamp(1.3rem,2.5vw,1.6rem);font-weight:500;color:var(--forest-deep);margin-bottom:8px;position:relative;z-index:1}
+.prod-desc{font-size:0.85rem;font-weight:300;color:var(--moss);line-height:1.7;margin-bottom:16px;position:relative;z-index:1}
+.prod-tags{display:flex;flex-wrap:wrap;gap:6px;position:relative;z-index:1}
+.prod-tag{font-size:0.6rem;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:var(--fern);padding:3px 10px;border-radius:100px;background:var(--meadow);border:1px solid rgba(90,143,110,0.06)}
+.prod-more{font-size:0.72rem;font-weight:500;letter-spacing:0.12em;text-transform:uppercase;color:var(--moss);margin-top:48px;text-align:center;position:relative;z-index:2}
+@media(max-width:768px){.prod-grid{grid-template-columns:1fr}}
+
+/* ══════════════════════════════════════════
+   THE AFTER — How It Works (warm, grounded)
+   ══════════════════════════════════════════ */
+.chamber{background:var(--meadow);color:var(--forest-deep);padding:clamp(100px,14vh,160px) 0;position:relative;z-index:4;overflow:hidden}
+.chamber::before{content:'';position:absolute;top:-1px;left:0;right:0;height:80px;background:linear-gradient(var(--cream),var(--meadow));pointer-events:none;z-index:2}
+.chamber-breath{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse 40% 50% at 70% 40%,rgba(90,143,110,0.03) 0%,transparent 50%);animation:sectionBreathe 9s ease-in-out infinite;animation-delay:-5s}
+/* Nyame Dua (God's Tree) — divine presence, protection, growth */
+.chamber-topo{position:absolute;inset:0;opacity:0.020;pointer-events:none;
+  background-image:url("data:image/svg+xml,%3Csvg width='140' height='140' viewBox='0 0 140 140' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%23243828' stroke-width='0.5'%3E%3Cpath d='M70 30 Q70 50 70 55 M70 85 Q70 90 70 110 M30 70 Q50 70 55 70 M85 70 Q90 70 110 70'/%3E%3Ccircle cx='70' cy='30' r='8'/%3E%3Ccircle cx='70' cy='110' r='8'/%3E%3Ccircle cx='30' cy='70' r='8'/%3E%3Ccircle cx='110' cy='70' r='8'/%3E%3Ccircle cx='70' cy='70' r='5'/%3E%3Cpath d='M50 50 L55 55 M90 50 L85 55 M50 90 L55 85 M90 90 L85 85'/%3E%3C/g%3E%3C/svg%3E")}
+.chamber-label{font-size:0.65rem;font-weight:600;letter-spacing:0.3em;text-transform:uppercase;color:var(--fern);margin-bottom:14px;position:relative;z-index:2}
+.chamber h2{font-family:var(--display);font-weight:500;font-size:clamp(2rem,4.5vw,3.4rem);line-height:1.08;letter-spacing:-1px;margin-bottom:64px;color:var(--forest-deep);position:relative;z-index:2}
+.chamber h2 em{font-style:italic;color:var(--fern)}
+.steps{position:relative;max-width:600px;z-index:2}
+.steps-wire{position:absolute;left:11px;top:24px;bottom:24px;width:1px;background:var(--spring)}
+.steps-wire-fill{position:absolute;left:0;top:0;width:1px;height:0;background:var(--fern);transition:height 1.2s var(--ease)}
+.step{display:grid;grid-template-columns:24px 1fr;gap:24px;padding-bottom:48px;position:relative}
+.step:last-child{padding-bottom:0}
+.step-pip{width:24px;height:24px;border-radius:50%;border:1.5px solid var(--spring);background:var(--meadow);display:flex;align-items:center;justify-content:center;position:relative;z-index:2;transition:all 0.5s}
+.step-pip-dot{width:6px;height:6px;border-radius:50%;background:var(--spring);transition:all 0.5s}
+.step.lit .step-pip{border-color:var(--fern);box-shadow:0 0 16px rgba(90,143,110,0.2),0 0 4px rgba(90,143,110,0.3)}
+.step.lit .step-pip-dot{background:var(--fern);transform:scale(1.3)}
+.step h3{font-family:var(--display);font-size:1.25rem;font-weight:500;color:var(--forest-deep);margin-bottom:4px}
+.step p{font-size:0.9rem;font-weight:300;color:var(--moss);line-height:1.7}
+.ben-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:72px;position:relative;z-index:2}
+.ben{background:var(--cloud);padding:28px 24px;border-radius:10px;border:1px solid rgba(90,143,110,0.06);transition:all 0.4s var(--ease);position:relative;overflow:hidden}
+.ben:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(26,46,31,0.06);background:var(--sun)}
+.ben-glow{position:absolute;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(90,143,110,0.04) 0%,transparent 70%);pointer-events:none;opacity:0;transition:opacity 0.3s;transform:translate(-50%,-50%)}
+.ben:hover .ben-glow{opacity:1}
+.ben h4{font-family:var(--display);font-size:1.05rem;font-weight:500;color:var(--forest-deep);margin-bottom:6px;position:relative;z-index:1}
+.ben p{font-size:0.82rem;font-weight:300;color:var(--moss);line-height:1.7;position:relative;z-index:1}
+@media(max-width:768px){.ben-grid{grid-template-columns:1fr}}
+
+/* ══════════════════════════════════════════
+   THE AFTER — FAQ + Apply (warm cream)
+   ══════════════════════════════════════════ */
+.sanctum{background:var(--cream);color:var(--forest-deep);position:relative;z-index:4;overflow:hidden}
+.sanctum::before{content:'';position:absolute;top:-1px;left:0;right:0;height:80px;background:linear-gradient(var(--meadow),var(--cream));pointer-events:none;z-index:2}
+/* Sankofa (Return and get it) — learning from past, building forward */
+.sanctum-adinkra{position:absolute;inset:0;opacity:0.018;pointer-events:none;
+  background-image:url("data:image/svg+xml,%3Csvg width='180' height='180' viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%233D5A45' stroke-width='0.5'%3E%3Cpath d='M90 50 Q65 35 65 60 Q65 80 90 90 Q115 80 115 60 Q115 35 90 50Z'/%3E%3Cpath d='M90 90 Q90 110 85 120 Q80 130 75 125'/%3E%3Ccircle cx='90' cy='48' r='2.5'/%3E%3C/g%3E%3C/svg%3E")}
+/* Fireflies on the alive side */
+.fireflies{position:absolute;inset:0;pointer-events:none;z-index:0}
+.firefly{position:absolute;width:3px;height:3px;border-radius:50%;background:var(--sage);opacity:0;animation:firefly-drift var(--dur,8s) ease-in-out var(--delay,0s) infinite}
+@keyframes firefly-drift{0%{opacity:0;transform:translate(0,0)}15%{opacity:var(--peak,0.4)}50%{opacity:var(--peak,0.4);transform:translate(var(--dx,30px),var(--dy,-20px))}85%{opacity:var(--peak,0.4)}100%{opacity:0;transform:translate(var(--dx2,60px),var(--dy2,-40px))}}
+
+.sanctum-faq{padding:clamp(120px,16vh,180px) 0 clamp(80px,10vh,120px);position:relative;z-index:3}
+.faq-grid{display:grid;grid-template-columns:1fr 1.5fr;gap:clamp(40px,7vw,80px);align-items:start}
+.faq-title{font-family:var(--display);font-weight:400;font-size:clamp(1.8rem,4vw,2.6rem);line-height:1.1;position:sticky;top:120px;color:var(--forest-deep)}
+.faq-title em{font-style:italic;color:var(--fern)}
+.faq-item{border-bottom:1px solid rgba(90,143,110,0.10);position:relative}
+.faq-item::after{content:'';position:absolute;bottom:0;left:0;width:0;height:2px;background:linear-gradient(90deg,var(--fern),var(--indigo));transition:width 0.6s var(--ease)}
+.faq-item.open::after{width:100%}
+.faq-q{width:100%;display:flex;justify-content:space-between;align-items:center;padding:20px 0;background:none;border:none;cursor:pointer;font-family:var(--body);font-size:0.92rem;font-weight:400;color:var(--forest-deep);text-align:left;transition:color 0.2s}
+.faq-q:hover{color:var(--fern)}
+.faq-ico{width:14px;height:14px;position:relative;flex-shrink:0;margin-left:16px}
+.faq-ico::before,.faq-ico::after{content:'';position:absolute;background:var(--moss);transition:transform 0.4s var(--ease),background 0.3s}
+.faq-ico::before{width:12px;height:1px;top:50%;left:50%;transform:translate(-50%,-50%)}
+.faq-ico::after{width:1px;height:12px;top:50%;left:50%;transform:translate(-50%,-50%)}
+.faq-item.open .faq-ico::after{transform:translate(-50%,-50%) rotate(90deg)}
+.faq-item.open .faq-ico::before,.faq-item.open .faq-ico::after{background:var(--fern)}
+.faq-a{max-height:0;overflow:hidden;transition:max-height 0.6s var(--ease)}
+.faq-item.open .faq-a{max-height:200px}
+.faq-a p{padding-bottom:20px;font-size:0.85rem;font-weight:300;color:var(--moss);line-height:1.8}
+@media(max-width:768px){.faq-grid{grid-template-columns:1fr}.faq-title{position:static;margin-bottom:24px}}
+
+.sanctum-apply{padding:clamp(80px,10vh,120px) 0 clamp(120px,16vh,180px);border-top:1px solid rgba(90,143,110,0.08);position:relative;z-index:3}
+.apply-grid{display:grid;grid-template-columns:1fr 1.3fr;gap:clamp(40px,7vw,80px);align-items:start}
+.apply-label{font-size:0.65rem;font-weight:600;letter-spacing:0.3em;text-transform:uppercase;color:var(--fern);margin-bottom:14px}
+.apply-title{font-family:var(--display);font-weight:400;font-size:clamp(1.8rem,4vw,2.6rem);line-height:1.1;margin-bottom:16px;color:var(--forest-deep)}
+.apply-title em{font-style:italic;color:var(--fern)}
+.apply-intro{font-size:0.92rem;font-weight:300;color:var(--moss);line-height:1.7}
+.fg{margin-bottom:20px}
+.fg-lbl{display:block;font-size:0.65rem;font-weight:500;letter-spacing:0.15em;text-transform:uppercase;color:var(--moss);margin-bottom:7px}
+.fg-lbl .opt{font-weight:300;text-transform:none;letter-spacing:0;color:var(--sage)}
+.fg-wrap{position:relative}
+.fg-inp,.fg-ta{width:100%;font-family:var(--body);font-size:0.9rem;color:var(--forest-deep);background:var(--sun);border:1px solid rgba(90,143,110,0.12);border-radius:8px;padding:12px 14px;transition:border-color 0.3s,box-shadow 0.3s}
+.fg-inp::placeholder,.fg-ta::placeholder{color:var(--sage)}
+.fg-inp:focus,.fg-ta:focus{outline:none;border-color:var(--fern);box-shadow:0 0 0 3px rgba(90,143,110,0.08)}
+.fg-ta{resize:vertical;min-height:90px}
+.fg-line{position:absolute;bottom:-1px;left:0;width:0;height:2px;border-radius:2px;background:linear-gradient(90deg,var(--fern),var(--indigo));transition:width 0.4s var(--ease)}
+.fg-wrap:focus-within .fg-line{width:100%}
+.btn-sub{font-family:var(--body);font-size:0.82rem;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;color:var(--sun);background:var(--fern);border:1px solid var(--fern);border-radius:100px;padding:14px 40px;cursor:pointer;transition:all 0.4s var(--ease)}
+.btn-sub:hover{background:var(--forest);border-color:var(--forest);box-shadow:0 4px 20px rgba(26,46,31,0.15);transform:translateY(-1px)}
+.form-ok{display:none;padding:56px 0;text-align:center}
+.form-ok.show{display:block}
+.aform.hidden{display:none}
+.form-ok h3{font-family:var(--display);font-size:1.5rem;font-weight:400;margin-bottom:10px;color:var(--forest-deep)}
+.form-ok p{font-size:0.9rem;color:var(--moss)}
+@media(max-width:768px){.apply-grid{grid-template-columns:1fr}}
+
+/* ═══ Footer — verdant, grounded ═══ */
+/* Asase Ye Duru (Earth has Weight) — foundation, grounding */
+footer{background:var(--forest-deep);padding:48px clamp(24px,5vw,64px);position:relative;z-index:4}
+.footer-adinkra{position:absolute;inset:0;opacity:0.04;pointer-events:none;
+  background-image:url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%237AB892' stroke-width='0.4'%3E%3Cpath d='M50 25 Q35 25 35 40 Q35 50 50 55 Q65 50 65 40 Q65 25 50 25Z'/%3E%3Cline x1='50' y1='55' x2='50' y2='75'/%3E%3Cline x1='40' y1='70' x2='60' y2='70'/%3E%3C/g%3E%3C/svg%3E")}
+/* Adinkra ironwork gate — wrought iron fence between alive sections */
+.iron-gate{position:relative;z-index:5;height:48px;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.iron-gate::before{content:'';position:absolute;left:0;right:0;top:50%;height:1px;background:linear-gradient(90deg,transparent 5%,rgba(61,90,69,0.12) 20%,rgba(61,90,69,0.20) 50%,rgba(61,90,69,0.12) 80%,transparent 95%)}
+.iron-gate-repeat{display:flex;align-items:center;gap:32px;position:relative;z-index:1}
+.iron-gate-repeat svg{opacity:0.10}
+.ft{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px}
+.ft-brand{display:flex;align-items:center;gap:10px}
+.ft-name{font-family:var(--display);font-style:italic;font-size:0.9rem;color:var(--spring)}
+.ft-links{display:flex;gap:24px}
+.ft-a{font-size:0.75rem;color:var(--sage);text-decoration:none;transition:color 0.2s}
+.ft-a:hover{color:var(--sun)}
+.ft-copy{font-size:0.65rem;color:rgba(122,184,146,0.2)}
+@media(max-width:640px){.ft{flex-direction:column;text-align:center}.ft-links{flex-wrap:wrap;justify-content:center}}
+
+a:focus-visible,button:focus-visible{outline:2px solid var(--fern);outline-offset:3px}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:0.01ms!important;transition-duration:0.01ms!important}.rv{opacity:1;transform:none}.ante-word{opacity:1!important;transform:none!important}}
+</style>
+</head>
+<body>
+
+<canvas id="noiseCanvas" aria-hidden="true"></canvas>
+
+<nav class="nav" id="nav">
+  <a href="#" class="nav-brand">
+    <svg class="nav-logo" width="24" height="20" viewBox="0 0 538 451" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M515.5 0H22C9.84974 0 0 9.84974 0 22V203.5C0 215.65 9.84973 225.5 22 225.5H431.5C440.613 225.5 448 232.887 448 242C448 251.113 440.613 258.5 431.5 258.5H33C14.7746 258.5 0 273.275 0 291.5V429C0 441.15 9.84974 451 22 451H66C78.1503 451 88 441.15 88 429V378C88 359.775 102.775 345 121 345H150.5C168.725 345 183.5 359.775 183.5 378V429C183.5 441.15 193.35 451 205.5 451H327.5C339.65 451 349.5 441.15 349.5 429V378C349.5 359.775 364.275 345 382.5 345H415C433.225 345 448 359.775 448 378V429C448 441.15 457.85 451 470 451H515.5C527.65 451 537.5 441.15 537.5 429V148.5C537.5 136.35 527.65 126.5 515.5 126.5H103.75C95.0515 126.5 88 119.448 88 110.75C88 102.052 95.0515 95 103.75 95H515.5C527.65 95 537.5 85.1503 537.5 73V22C537.5 9.84974 527.65 0 515.5 0Z" fill="#55555E"/></svg>
+    <span class="nav-nm">Enigma Syndicate</span>
+  </a>
+  <div class="nav-links">
+    <a href="#about" class="nav-a">About</a>
+    <a href="#portfolio" class="nav-a">Portfolio</a>
+    <a href="#how" class="nav-a">How It Works</a>
+    <a href="#apply" class="nav-a">Apply</a>
+  </div>
+</nav>
+
+<!-- ══════════════════════════════════════
+     THE BEFORE — cold, isolated, grey
+     ══════════════════════════════════════ -->
+<section class="hero" id="hero">
+  <div class="hero-intro" id="heroIntro">
+    <div class="hero-intro-mark"><svg width="48" height="40" viewBox="0 0 538 451" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M515.5 0H22C9.84974 0 0 9.84974 0 22V203.5C0 215.65 9.84973 225.5 22 225.5H431.5C440.613 225.5 448 232.887 448 242C448 251.113 440.613 258.5 431.5 258.5H33C14.7746 258.5 0 273.275 0 291.5V429C0 441.15 9.84974 451 22 451H66C78.1503 451 88 441.15 88 429V378C88 359.775 102.775 345 121 345H150.5C168.725 345 183.5 359.775 183.5 378V429C183.5 441.15 193.35 451 205.5 451H327.5C339.65 451 349.5 441.15 349.5 429V378C349.5 359.775 364.275 345 382.5 345H415C433.225 345 448 359.775 448 378V429C448 441.15 457.85 451 470 451H515.5C527.65 451 537.5 441.15 537.5 429V148.5C537.5 136.35 527.65 126.5 515.5 126.5H103.75C95.0515 126.5 88 119.448 88 110.75C88 102.052 95.0515 95 103.75 95H515.5C527.65 95 537.5 85.1503 537.5 73V22C537.5 9.84974 527.65 0 515.5 0Z" fill="#55555E"/></svg></div>
+    <p class="hero-intro-name">Enigma Syndicate</p>
+    <p class="hero-intro-line">A builder collective. Shared tools, shared risk, shared upside.</p>
+    <p class="hero-intro-label">By invitation only</p>
+  </div>
+  <div class="portal-wrap" id="portalWrap">
+    <div class="doorway" id="doorway">
+      <div class="doorway-frame">
+        <svg viewBox="0 0 200 340" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMax meet">
+          <path d="M20,340 L20,110 Q20,20 100,20 Q180,20 180,110 L180,340" class="doorway-outer"/>
+          <path d="M32,340 L32,115 Q32,35 100,35 Q168,35 168,115 L168,340" class="doorway-inner"/>
+          <line x1="100" y1="18" x2="100" y2="8" stroke="rgba(90,143,110,0.25)" stroke-width="1"/>
+          <line x1="10" y1="340" x2="190" y2="340" stroke="rgba(85,85,94,0.12)" stroke-width="1"/>
+        </svg>
+      </div>
+      <div class="doorway-light"></div>
+      <div class="doorway-keystone"></div>
+      <div class="doorway-sill"></div>
+      <div class="doorway-spill"></div>
+      <div class="embers" id="embers" aria-hidden="true"></div>
+    </div>
+  </div>
+  <div class="hero-text" id="heroText">
+    <h1 class="hero-title" id="heroTitle">We became <em>the house.</em></h1>
+    <p class="hero-sub" id="heroSub">Three products live. More in the forge. Pull up a chair.</p>
+  </div>
+  <p class="hero-whisper" id="whisper">enter</p>
+  <div class="scroll-cue" id="scrollCue" aria-hidden="true"><span>Scroll</span><div class="tick"></div></div>
+</section>
+
+<!-- ══════════════════════════════════════
+     THE CROSSING — first breath of color
+     ══════════════════════════════════════ -->
+<section class="ante" id="about">
+  <div class="ante-texture" aria-hidden="true"></div>
+  <div class="ante-flood" aria-hidden="true"></div>
+  <div class="pw ante-inner">
+    <p class="ante-text" id="anteText">
+      <span class="ante-word hl">The</span>
+      <span class="ante-word hl">odds</span>
+      <span class="ante-word hl">are</span>
+      <span class="ante-word hl">stacked</span>
+      <span class="ante-word hl">against</span>
+      <span class="ante-word hl-green">solo</span>
+      <span class="ante-word hl-green">builders.</span>
+      <span class="ante-word">Side</span>
+      <span class="ante-word">projects</span>
+      <span class="ante-word">die</span>
+      <span class="ante-word">in</span>
+      <span class="ante-word">silence.</span>
+      <span class="ante-word">Infrastructure</span>
+      <span class="ante-word">eats</span>
+      <span class="ante-word">momentum.</span>
+      <span class="ante-word">So</span>
+      <span class="ante-word">we</span>
+      <span class="ante-word">pooled</span>
+      <span class="ante-word">our</span>
+      <span class="ante-word">tools,</span>
+      <span class="ante-word">our</span>
+      <span class="ante-word">risk,</span>
+      <span class="ante-word">and</span>
+      <span class="ante-word">our</span>
+      <span class="ante-word">upside</span>
+      <span class="ante-word">—</span>
+      <span class="ante-word">and</span>
+      <span class="ante-word hl">started</span>
+      <span class="ante-word hl-green">shipping</span>
+      <span class="ante-word hl-green">together.</span>
+    </p>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════
+     THE AFTER — alive, breathing, verdant
+     ══════════════════════════════════════ -->
+<section class="hall" id="mission">
+  <div class="hall-adinkra" aria-hidden="true"></div>
+  <div class="hall-breath" aria-hidden="true"></div>
+  <div class="pw">
+    <div class="hall-grid">
+      <h2 class="rv">Join the<br><em>Syndicate.</em></h2>
+      <div>
+        <p class="rv" data-d="1">Enigma Syndicate is a collective of builders who share infrastructure, share risk, and share the upside. Shared Stripe. Shared legal. Shared ops. You focus on the product — we handle the scaffolding.</p>
+        <p class="rv em-line" data-d="2">When one of us wins, we all win.</p>
+        <p class="rv" data-d="3">Products that gain traction spin out into their own entities. Builders keep majority equity. The syndicate holds a stake. Success compounds across the portfolio.</p>
+        <a href="#apply" class="btn rv" data-d="4" id="ctaBtn">Request an Invite <span class="arr">→</span></a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Adinkra ironwork gate — Eban (fence) = entering the garden -->
+<div class="iron-gate" aria-hidden="true" style="background:linear-gradient(var(--moss),var(--cream))">
+  <div class="iron-gate-repeat">
+    <!-- Eban (fence) symbols — love, safety, security -->
+    <svg width="16" height="16" viewBox="0 0 40 40" fill="none"><rect x="10" y="10" width="8" height="8" rx="1.5" stroke="#3D5A45" stroke-width="0.8" fill="none"/><rect x="22" y="10" width="8" height="8" rx="1.5" stroke="#3D5A45" stroke-width="0.8" fill="none"/><rect x="10" y="22" width="8" height="8" rx="1.5" stroke="#3D5A45" stroke-width="0.8" fill="none"/><rect x="22" y="22" width="8" height="8" rx="1.5" stroke="#3D5A45" stroke-width="0.8" fill="none"/><line x1="18" y1="14" x2="22" y2="14" stroke="#3D5A45" stroke-width="0.5"/><line x1="18" y1="26" x2="22" y2="26" stroke="#3D5A45" stroke-width="0.5"/><line x1="14" y1="18" x2="14" y2="22" stroke="#3D5A45" stroke-width="0.5"/><line x1="26" y1="18" x2="26" y2="22" stroke="#3D5A45" stroke-width="0.5"/></svg>
+    <svg width="16" height="16" viewBox="0 0 40 40" fill="none"><rect x="10" y="10" width="8" height="8" rx="1.5" stroke="#3D5A45" stroke-width="0.8" fill="none"/><rect x="22" y="10" width="8" height="8" rx="1.5" stroke="#3D5A45" stroke-width="0.8" fill="none"/><rect x="10" y="22" width="8" height="8" rx="1.5" stroke="#3D5A45" stroke-width="0.8" fill="none"/><rect x="22" y="22" width="8" height="8" rx="1.5" stroke="#3D5A45" stroke-width="0.8" fill="none"/><line x1="18" y1="14" x2="22" y2="14" stroke="#3D5A45" stroke-width="0.5"/><line x1="18" y1="26" x2="22" y2="26" stroke="#3D5A45" stroke-width="0.5"/><line x1="14" y1="18" x2="14" y2="22" stroke="#3D5A45" stroke-width="0.5"/><line x1="26" y1="18" x2="26" y2="22" stroke="#3D5A45" stroke-width="0.5"/></svg>
+    <!-- Center: ES mark (Life's Journey) — the constant thread -->
+    <svg width="28" height="23" viewBox="0 0 538 451" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M515.5 0H22C9.84974 0 0 9.84974 0 22V203.5C0 215.65 9.84973 225.5 22 225.5H431.5C440.613 225.5 448 232.887 448 242C448 251.113 440.613 258.5 431.5 258.5H33C14.7746 258.5 0 273.275 0 291.5V429C0 441.15 9.84974 451 22 451H66C78.1503 451 88 441.15 88 429V378C88 359.775 102.775 345 121 345H150.5C168.725 345 183.5 359.775 183.5 378V429C183.5 441.15 193.35 451 205.5 451H327.5C339.65 451 349.5 441.15 349.5 429V378C349.5 359.775 364.275 345 382.5 345H415C433.225 345 448 359.775 448 378V429C448 441.15 457.85 451 470 451H515.5C527.65 451 537.5 441.15 537.5 429V148.5C537.5 136.35 527.65 126.5 515.5 126.5H103.75C95.0515 126.5 88 119.448 88 110.75C88 102.052 95.0515 95 103.75 95H515.5C527.65 95 537.5 85.1503 537.5 73V22C537.5 9.84974 527.65 0 515.5 0Z" fill="#3D5A45"/></svg>
+    <svg width="16" height="16" viewBox="0 0 40 40" fill="none"><rect x="10" y="10" width="8" height="8" rx="1.5" stroke="#3D5A45" stroke-width="0.8" fill="none"/><rect x="22" y="10" width="8" height="8" rx="1.5" stroke="#3D5A45" stroke-width="0.8" fill="none"/><rect x="10" y="22" width="8" height="8" rx="1.5" stroke="#3D5A45" stroke-width="0.8" fill="none"/><rect x="22" y="22" width="8" height="8" rx="1.5" stroke="#3D5A45" stroke-width="0.8" fill="none"/><line x1="18" y1="14" x2="22" y2="14" stroke="#3D5A45" stroke-width="0.5"/><line x1="18" y1="26" x2="22" y2="26" stroke="#3D5A45" stroke-width="0.5"/><line x1="14" y1="18" x2="14" y2="22" stroke="#3D5A45" stroke-width="0.5"/><line x1="26" y1="18" x2="26" y2="22" stroke="#3D5A45" stroke-width="0.5"/></svg>
+    <svg width="16" height="16" viewBox="0 0 40 40" fill="none"><rect x="10" y="10" width="8" height="8" rx="1.5" stroke="#3D5A45" stroke-width="0.8" fill="none"/><rect x="22" y="10" width="8" height="8" rx="1.5" stroke="#3D5A45" stroke-width="0.8" fill="none"/><rect x="10" y="22" width="8" height="8" rx="1.5" stroke="#3D5A45" stroke-width="0.8" fill="none"/><rect x="22" y="22" width="8" height="8" rx="1.5" stroke="#3D5A45" stroke-width="0.8" fill="none"/><line x1="18" y1="14" x2="22" y2="14" stroke="#3D5A45" stroke-width="0.5"/><line x1="18" y1="26" x2="22" y2="26" stroke="#3D5A45" stroke-width="0.5"/><line x1="14" y1="18" x2="14" y2="22" stroke="#3D5A45" stroke-width="0.5"/><line x1="26" y1="18" x2="26" y2="22" stroke="#3D5A45" stroke-width="0.5"/></svg>
+  </div>
+</div>
+
+<section class="portfolio" id="portfolio">
+  <div class="portfolio-adinkra" aria-hidden="true"></div>
+  <div class="portfolio-breath" aria-hidden="true"></div>
+  <div class="pw">
+    <p class="portfolio-label rv">The Portfolio</p>
+    <h2 class="rv" data-d="1">Already in <em>the forge.</em></h2>
+    <p class="portfolio-intro rv" data-d="2">These are live products built by syndicate members. Real users, real revenue targets, real infrastructure underneath.</p>
+    <div class="prod-grid" id="prodGrid">
+      <div class="prod rv" data-d="3">
+        <div class="prod-glow"></div>
+        <span class="prod-status">In Development</span>
+        <h3>Scrybe</h3>
+        <p class="prod-desc">AI-powered VoIP case management for nonprofits. Case managers make calls in-browser — AI transcribes, extracts key data, and auto-populates intake forms. Replaces hours of manual documentation with one-click review.</p>
+        <div class="prod-tags"><span class="prod-tag">AI Transcription</span><span class="prod-tag">Nonprofits</span><span class="prod-tag">HIPAA</span><span class="prod-tag">VoIP</span></div>
+      </div>
+      <div class="prod rv" data-d="4">
+        <div class="prod-glow"></div>
+        <span class="prod-status">In Development</span>
+        <h3>Solo Social</h3>
+        <p class="prod-desc">AI content engine for personal brands and businesses. Analyzes your voice, generates platform-native posts, and distributes across every channel. One hour of input, a week of content.</p>
+        <div class="prod-tags"><span class="prod-tag">AI Content</span><span class="prod-tag">Social Media</span><span class="prod-tag">SaaS</span></div>
+      </div>
+      <div class="prod rv" data-d="5">
+        <div class="prod-glow"></div>
+        <span class="prod-status">Concept</span>
+        <h3>CounterCart</h3>
+        <p class="prod-desc">Automatic charitable giving through purchase round-ups. Link your bank, choose your causes, and your everyday spending offsets into micro-donations. No guilt, no friction — just balance.</p>
+        <div class="prod-tags"><span class="prod-tag">Fintech</span><span class="prod-tag">Plaid</span><span class="prod-tag">Social Impact</span></div>
+      </div>
+    </div>
+    <p class="prod-more rv" data-d="6">More products in the pipeline. This is a portfolio, not a one-shot bet.</p>
+  </div>
+</section>
+
+<!-- Adinkra ironwork gate — Dwannimmen between sections -->
+<div class="iron-gate" aria-hidden="true" style="background:var(--cream)">
+  <div class="iron-gate-repeat">
+    <svg width="20" height="20" viewBox="0 0 40 40" fill="none"><path d="M20 14 Q14 14 12 8 Q10 2 16 1 Q19 0 20 7" stroke="#3D5A45" stroke-width="0.8" fill="none"/><path d="M20 14 Q26 14 28 8 Q30 2 24 1 Q21 0 20 7" stroke="#3D5A45" stroke-width="0.8" fill="none"/><path d="M20 26 Q14 26 12 32 Q10 38 16 39 Q19 40 20 33" stroke="#3D5A45" stroke-width="0.8" fill="none"/><path d="M20 26 Q26 26 28 32 Q30 38 24 39 Q21 40 20 33" stroke="#3D5A45" stroke-width="0.8" fill="none"/><circle cx="20" cy="20" r="1.5" stroke="#3D5A45" stroke-width="0.6" fill="none"/></svg>
+    <svg width="20" height="20" viewBox="0 0 40 40" fill="none"><path d="M20 14 Q14 14 12 8 Q10 2 16 1 Q19 0 20 7" stroke="#3D5A45" stroke-width="0.8" fill="none"/><path d="M20 14 Q26 14 28 8 Q30 2 24 1 Q21 0 20 7" stroke="#3D5A45" stroke-width="0.8" fill="none"/><path d="M20 26 Q14 26 12 32 Q10 38 16 39 Q19 40 20 33" stroke="#3D5A45" stroke-width="0.8" fill="none"/><path d="M20 26 Q26 26 28 32 Q30 38 24 39 Q21 40 20 33" stroke="#3D5A45" stroke-width="0.8" fill="none"/><circle cx="20" cy="20" r="1.5" stroke="#3D5A45" stroke-width="0.6" fill="none"/></svg>
+    <svg width="28" height="28" viewBox="0 0 40 40" fill="none"><path d="M20 14 Q14 14 12 8 Q10 2 16 1 Q19 0 20 7" stroke="#3D5A45" stroke-width="0.8" fill="none"/><path d="M20 14 Q26 14 28 8 Q30 2 24 1 Q21 0 20 7" stroke="#3D5A45" stroke-width="0.8" fill="none"/><path d="M20 26 Q14 26 12 32 Q10 38 16 39 Q19 40 20 33" stroke="#3D5A45" stroke-width="0.8" fill="none"/><path d="M20 26 Q26 26 28 32 Q30 38 24 39 Q21 40 20 33" stroke="#3D5A45" stroke-width="0.8" fill="none"/><circle cx="20" cy="20" r="1.5" stroke="#3D5A45" stroke-width="0.6" fill="none"/></svg>
+    <svg width="20" height="20" viewBox="0 0 40 40" fill="none"><path d="M20 14 Q14 14 12 8 Q10 2 16 1 Q19 0 20 7" stroke="#3D5A45" stroke-width="0.8" fill="none"/><path d="M20 14 Q26 14 28 8 Q30 2 24 1 Q21 0 20 7" stroke="#3D5A45" stroke-width="0.8" fill="none"/><path d="M20 26 Q14 26 12 32 Q10 38 16 39 Q19 40 20 33" stroke="#3D5A45" stroke-width="0.8" fill="none"/><path d="M20 26 Q26 26 28 32 Q30 38 24 39 Q21 40 20 33" stroke="#3D5A45" stroke-width="0.8" fill="none"/><circle cx="20" cy="20" r="1.5" stroke="#3D5A45" stroke-width="0.6" fill="none"/></svg>
+    <svg width="20" height="20" viewBox="0 0 40 40" fill="none"><path d="M20 14 Q14 14 12 8 Q10 2 16 1 Q19 0 20 7" stroke="#3D5A45" stroke-width="0.8" fill="none"/><path d="M20 14 Q26 14 28 8 Q30 2 24 1 Q21 0 20 7" stroke="#3D5A45" stroke-width="0.8" fill="none"/><path d="M20 26 Q14 26 12 32 Q10 38 16 39 Q19 40 20 33" stroke="#3D5A45" stroke-width="0.8" fill="none"/><path d="M20 26 Q26 26 28 32 Q30 38 24 39 Q21 40 20 33" stroke="#3D5A45" stroke-width="0.8" fill="none"/><circle cx="20" cy="20" r="1.5" stroke="#3D5A45" stroke-width="0.6" fill="none"/></svg>
+  </div>
+</div>
+
+<section class="chamber" id="how">
+  <div class="chamber-topo" aria-hidden="true"></div>
+  <div class="chamber-breath" aria-hidden="true"></div>
+  <div class="pw">
+    <p class="chamber-label rv">The Model</p>
+    <h2 class="rv" data-d="1">Apply. Build. Ship. <em>Compound.</em></h2>
+    <div class="steps" id="steps">
+      <div class="steps-wire" aria-hidden="true"><div class="steps-wire-fill" id="wireFill"></div></div>
+      <div class="step rv" data-d="1"><div class="step-pip"><div class="step-pip-dot"></div></div><div><h3>Apply</h3><p>Membership is curated. We look for builders who ship — not talkers who plan. Show us what you've made or what you're making.</p></div></div>
+      <div class="step rv" data-d="2"><div class="step-pip"><div class="step-pip-dot"></div></div><div><h3>Build</h3><p>Access shared Stripe, legal entities, development tools, and a tight network of people who actually give real feedback. No more building alone.</p></div></div>
+      <div class="step rv" data-d="3"><div class="step-pip"><div class="step-pip-dot"></div></div><div><h3>Ship</h3><p>Launch under the Syndicate umbrella. Payments, compliance, and operations are already wired up. You build the product — we built the rails.</p></div></div>
+      <div class="step rv" data-d="4"><div class="step-pip"><div class="step-pip-dot"></div></div><div><h3>Compound</h3><p>Products that hit traction spin out. You keep majority equity. The syndicate retains a stake. Every win adds to the portfolio — and every member's upside grows.</p></div></div>
+    </div>
+    <div class="ben-grid" id="benGrid">
+      <div class="ben rv" data-d="1"><div class="ben-glow"></div><h4>Infrastructure</h4><p>Shared Stripe, legal entities, and dev tooling. No overhead of doing it yourself. Start building on day one.</p></div>
+      <div class="ben rv" data-d="2"><div class="ben-glow"></div><h4>Flexibility</h4><p>Pursue your own venture on your own schedule. Full-time, part-time, nights and weekends — you decide.</p></div>
+      <div class="ben rv" data-d="3"><div class="ben-glow"></div><h4>Ownership</h4><p>Clear path to spin out when the time is right. Majority equity stays with the builder. Always.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- Adinkra ironwork gate — Sankofa between sections -->
+<div class="iron-gate" aria-hidden="true" style="background:var(--meadow)">
+  <div class="iron-gate-repeat">
+    <svg width="18" height="18" viewBox="0 0 40 40" fill="none"><path d="M20 12 Q12 6 12 16 Q12 22 20 26 Q28 22 28 16 Q28 6 20 12Z" stroke="#3D5A45" stroke-width="0.8" fill="none"/><path d="M20 26 Q20 32 18 36" stroke="#3D5A45" stroke-width="0.7" fill="none"/><circle cx="20" cy="11" r="1.2" stroke="#3D5A45" stroke-width="0.6" fill="none"/></svg>
+    <svg width="18" height="18" viewBox="0 0 40 40" fill="none"><path d="M20 12 Q12 6 12 16 Q12 22 20 26 Q28 22 28 16 Q28 6 20 12Z" stroke="#3D5A45" stroke-width="0.8" fill="none"/><path d="M20 26 Q20 32 18 36" stroke="#3D5A45" stroke-width="0.7" fill="none"/><circle cx="20" cy="11" r="1.2" stroke="#3D5A45" stroke-width="0.6" fill="none"/></svg>
+    <svg width="24" height="24" viewBox="0 0 40 40" fill="none"><path d="M20 12 Q12 6 12 16 Q12 22 20 26 Q28 22 28 16 Q28 6 20 12Z" stroke="#3D5A45" stroke-width="0.8" fill="none"/><path d="M20 26 Q20 32 18 36" stroke="#3D5A45" stroke-width="0.7" fill="none"/><circle cx="20" cy="11" r="1.2" stroke="#3D5A45" stroke-width="0.6" fill="none"/></svg>
+    <svg width="18" height="18" viewBox="0 0 40 40" fill="none"><path d="M20 12 Q12 6 12 16 Q12 22 20 26 Q28 22 28 16 Q28 6 20 12Z" stroke="#3D5A45" stroke-width="0.8" fill="none"/><path d="M20 26 Q20 32 18 36" stroke="#3D5A45" stroke-width="0.7" fill="none"/><circle cx="20" cy="11" r="1.2" stroke="#3D5A45" stroke-width="0.6" fill="none"/></svg>
+    <svg width="18" height="18" viewBox="0 0 40 40" fill="none"><path d="M20 12 Q12 6 12 16 Q12 22 20 26 Q28 22 28 16 Q28 6 20 12Z" stroke="#3D5A45" stroke-width="0.8" fill="none"/><path d="M20 26 Q20 32 18 36" stroke="#3D5A45" stroke-width="0.7" fill="none"/><circle cx="20" cy="11" r="1.2" stroke="#3D5A45" stroke-width="0.6" fill="none"/></svg>
+  </div>
+</div>
+
+<section class="sanctum">
+  <div class="sanctum-adinkra" aria-hidden="true"></div>
+  <div class="fireflies" id="fireflies" aria-hidden="true"></div>
+  <div class="sanctum-faq" id="faq">
+    <div class="pw">
+      <div class="faq-grid">
+        <h2 class="faq-title rv">Common <em>Questions</em></h2>
+        <div class="faq-list">
+          <div class="faq-item rv"><button class="faq-q" aria-expanded="false"><span>Who is this for?</span><span class="faq-ico"></span></button><div class="faq-a"><p>Engineers, designers, and product builders in tech who want to ship their own products but don't want to do it alone. You need to be actively building something — or ready to start.</p></div></div>
+          <div class="faq-item rv" data-d="1"><button class="faq-q" aria-expanded="false"><span>What does membership cost?</span><span class="faq-ico"></span></button><div class="faq-a"><p>The syndicate takes an admin percentage on revenue from products built under the collective. No upfront fees. Details are shared with accepted members — incentives are aligned from day one.</p></div></div>
+          <div class="faq-item rv" data-d="2"><button class="faq-q" aria-expanded="false"><span>How does the equity model work?</span><span class="faq-ico"></span></button><div class="faq-a"><p>Products incubate under the syndicate. When they hit traction thresholds, they spin out into their own LLCs. Builders keep majority equity. The syndicate retains a minority stake. Success compounds across the portfolio.</p></div></div>
+          <div class="faq-item rv" data-d="3"><button class="faq-q" aria-expanded="false"><span>How selective is it?</span><span class="faq-ico"></span></button><div class="faq-a"><p>Very. This is a small, high-trust group by design. We'd rather have five builders who ship than fifty who spectate.</p></div></div>
+          <div class="faq-item rv" data-d="4"><button class="faq-q" aria-expanded="false"><span>Do I need to work on this full-time?</span><span class="faq-ico"></span></button><div class="faq-a"><p>No. Many members build nights and weekends alongside day jobs. What matters is consistent output, not hours logged. Ship on your schedule.</p></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sanctum-apply" id="apply">
+    <div class="pw">
+      <div class="apply-grid">
+        <div>
+          <p class="apply-label rv">Join Us</p>
+          <h2 class="apply-title rv" data-d="1">Request an <em>Invite</em></h2>
+          <p class="apply-intro rv" data-d="2">The forge is warm and the work is real. If you're building something — or ready to — we want to hear from you.</p>
+        </div>
+        <div>
+          <form class="aform" id="aform">
+            <p style="display:none"><input name="bot-field"></p>
+            <div class="fg rv" data-d="1"><label class="fg-lbl" for="name">Full Name</label><div class="fg-wrap"><input class="fg-inp" type="text" id="name" required placeholder="Your name"><div class="fg-line"></div></div></div>
+            <div class="fg rv" data-d="2"><label class="fg-lbl" for="email">Email</label><div class="fg-wrap"><input class="fg-inp" type="email" id="email" required placeholder="you@example.com"><div class="fg-line"></div></div></div>
+            <div class="fg rv" data-d="3"><label class="fg-lbl" for="project">What are you building?</label><div class="fg-wrap"><textarea class="fg-ta" id="project" required placeholder="Tell us about your current project or what you want to build..."></textarea><div class="fg-line"></div></div></div>
+            <div class="fg rv" data-d="4"><label class="fg-lbl" for="links">Links <span class="opt">(optional)</span></label><div class="fg-wrap"><input class="fg-inp" type="text" id="links" placeholder="Portfolio, GitHub, live products, etc."><div class="fg-line"></div></div></div>
+            <div class="fg rv" data-d="5"><label class="fg-lbl" for="why">Why the Syndicate?</label><div class="fg-wrap"><textarea class="fg-ta" id="why" required placeholder="What draws you to the collective model?"></textarea><div class="fg-line"></div></div></div>
+            <button type="submit" class="btn-sub rv" data-d="6">Submit Application</button>
+          </form>
+          <div class="form-ok" id="formOk"><h3>Application Received</h3><p>We'll review your submission and be in touch if there's a fit.</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-adinkra" aria-hidden="true"></div>
+  <div class="pw">
+    <div class="ft">
+      <div class="ft-brand">
+        <svg width="22" height="18" viewBox="0 0 538 451" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M515.5 0H22C9.84974 0 0 9.84974 0 22V203.5C0 215.65 9.84973 225.5 22 225.5H431.5C440.613 225.5 448 232.887 448 242C448 251.113 440.613 258.5 431.5 258.5H33C14.7746 258.5 0 273.275 0 291.5V429C0 441.15 9.84974 451 22 451H66C78.1503 451 88 441.15 88 429V378C88 359.775 102.775 345 121 345H150.5C168.725 345 183.5 359.775 183.5 378V429C183.5 441.15 193.35 451 205.5 451H327.5C339.65 451 349.5 441.15 349.5 429V378C349.5 359.775 364.275 345 382.5 345H415C433.225 345 448 359.775 448 378V429C448 441.15 457.85 451 470 451H515.5C527.65 451 537.5 441.15 537.5 429V148.5C537.5 136.35 527.65 126.5 515.5 126.5H103.75C95.0515 126.5 88 119.448 88 110.75C88 102.052 95.0515 95 103.75 95H515.5C527.65 95 537.5 85.1503 537.5 73V22C537.5 9.84974 527.65 0 515.5 0Z" fill="#7AB892"/></svg>
+        <span class="ft-name">Enigma Syndicate</span>
+      </div>
+      <div class="ft-links"><a href="#about" class="ft-a">About</a><a href="#portfolio" class="ft-a">Portfolio</a><a href="#how" class="ft-a">How It Works</a><a href="#apply" class="ft-a">Apply</a></div>
+      <span class="ft-copy">Patterns inspired by Adinkra · ES mark: Life's Journey · © 2026</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+(function() {
+  'use strict';
+  const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // Canvas noise — fades out on the light side
+  const nc = document.getElementById('noiseCanvas');
+  if (nc && !prefersReduced) {
+    const ctx = nc.getContext('2d');
+    const resize = () => { nc.width = window.innerWidth / 2; nc.height = window.innerHeight / 2; };
+    resize(); window.addEventListener('resize', resize);
+    let frame = 0;
+    const drawNoise = () => {
+      if (frame++ % 3 !== 0) { requestAnimationFrame(drawNoise); return; }
+      const w = nc.width, h = nc.height, img = ctx.createImageData(w, h), d = img.data;
+      for (let i = 0; i < d.length; i += 4) { const v = Math.random() * 255; d[i]=d[i+1]=d[i+2]=v; d[i+3]=255; }
+      ctx.putImageData(img, 0, 0); requestAnimationFrame(drawNoise);
+    };
+    drawNoise();
+  }
+
+  // Hero embers — mostly grey (lifeless), a few green hints (the promise)
+  function spawnEmbers(el, n) {
+    if (!el) return;
+    for (let i = 0; i < n; i++) {
+      const e = document.createElement('div');
+      const isHint = Math.random() < 0.25;
+      e.className = 'ember-p ' + (isHint ? 'hint-p' : 'grey-p');
+      e.style.cssText = `left:${30+Math.random()*40}%;top:${50+Math.random()*40}%;--dur:${4+Math.random()*5}s;--delay:${Math.random()*6}s;--dx:${(Math.random()-0.5)*40}px;--dy:${-50-Math.random()*100}px;--peak:${0.12+Math.random()*0.25};width:${1+Math.random()*2}px;height:${1+Math.random()*2}px;`;
+      el.appendChild(e);
+    }
+  }
+  spawnEmbers(document.getElementById('embers'), 14);
+
+  // Fireflies — alive side, gentle wandering
+  function spawnFireflies(el, n) {
+    if (!el || prefersReduced) return;
+    for (let i = 0; i < n; i++) {
+      const f = document.createElement('div');
+      f.className = 'firefly';
+      const size = 2 + Math.random() * 2;
+      f.style.cssText = `left:${10+Math.random()*80}%;top:${10+Math.random()*80}%;--dur:${6+Math.random()*8}s;--delay:${Math.random()*10}s;--dx:${(Math.random()-0.5)*80}px;--dy:${(Math.random()-0.5)*60}px;--dx2:${(Math.random()-0.5)*120}px;--dy2:${(Math.random()-0.5)*80}px;--peak:${0.15+Math.random()*0.25};width:${size}px;height:${size}px;box-shadow:0 0 ${size*3}px rgba(122,184,146,0.3);`;
+      el.appendChild(f);
+    }
+  }
+  spawnFireflies(document.getElementById('fireflies'), 16);
+
+  // Doorway scroll
+  const hero = document.querySelector('.hero');
+  const doorway = document.getElementById('doorway');
+  const heroTitle = document.getElementById('heroTitle');
+  const heroSub = document.getElementById('heroSub');
+  const whisper = document.getElementById('whisper');
+  const scrollCue = document.getElementById('scrollCue');
+  const portalWrap = document.getElementById('portalWrap');
+  const heroText = document.getElementById('heroText');
+  const heroIntro = document.getElementById('heroIntro');
+  const doorLight = doorway ? doorway.querySelector('.doorway-light') : null;
+
+  const updatePortal = () => {
+    const scrollY = window.pageYOffset, heroH = hero.offsetHeight, vh = window.innerHeight;
+    const raw = Math.min(scrollY / (heroH - vh), 1);
+    const p = 1 - Math.pow(1 - Math.min(raw * 1.2, 1), 2.5);
+    if (doorway) {
+      const s = 1 + p * 2.2;
+      doorway.style.transform = `scale(${s})`;
+      doorway.style.opacity = Math.max(0, 1 - p * 0.85);
+      // Light intensifies and warms as you approach
+      if (doorLight) {
+        const warmth = Math.min(p * 1.5, 1);
+        doorLight.style.opacity = 0.4 + p * 0.8;
+        doorLight.style.background = `radial-gradient(ellipse 80% 50% at 50% 35%,rgba(90,143,110,${0.05 + warmth*0.15}) 0%,rgba(122,184,146,${warmth*0.08}) 30%,transparent 70%)`;
+      }
+    }
+    if (raw > 0.35) { heroTitle.classList.add('show'); heroSub.classList.add('show'); } else { heroTitle.classList.remove('show'); heroSub.classList.remove('show'); }
+    if (heroIntro) heroIntro.classList.toggle('faded', raw > 0.02);
+    if (whisper) whisper.classList.toggle('hide', raw > 0.1);
+    if (scrollCue) scrollCue.classList.toggle('hide', raw > 0.06);
+    const past = scrollY > heroH - vh;
+    if (portalWrap) portalWrap.style.opacity = past ? '0' : '';
+    if (heroText) heroText.style.opacity = past ? '0' : '';
+  };
+  window.addEventListener('scroll', () => requestAnimationFrame(updatePortal), { passive: true });
+  updatePortal();
+
+  // Nav: dark → light transition based on which section is in view
+  const nav = document.getElementById('nav');
+  const lightSections = document.querySelectorAll('.portfolio, .chamber, .sanctum');
+  const navObserver = new IntersectionObserver(entries => {
+    // Check if any light section is at the top of the viewport
+    let isLight = false;
+    entries.forEach(e => { if (e.isIntersecting && e.boundingClientRect.top < 100) isLight = true; });
+    // Fallback: check scroll position
+    lightSections.forEach(s => {
+      const r = s.getBoundingClientRect();
+      if (r.top < 80 && r.bottom > 80) isLight = true;
+    });
+    nav.classList.toggle('light', isLight);
+    nav.classList.toggle('solid', !isLight && window.pageYOffset > 100);
+  }, { rootMargin: '-80px 0px 0px 0px', threshold: 0 });
+  lightSections.forEach(s => navObserver.observe(s));
+  // Also handle basic scroll for dark nav
+  window.addEventListener('scroll', () => {
+    let isLight = false;
+    lightSections.forEach(s => {
+      const r = s.getBoundingClientRect();
+      if (r.top < 80 && r.bottom > 80) isLight = true;
+    });
+    nav.classList.toggle('light', isLight);
+    if (!isLight) nav.classList.toggle('solid', window.pageYOffset > 100);
+    else nav.classList.remove('solid');
+    // Fade noise canvas on light sections
+    if (nc) nc.style.opacity = isLight ? '0.008' : '0.025';
+  }, { passive: true });
+
+  // Intersection reveals
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('vis'); obs.unobserve(e.target); } });
+  }, { rootMargin: '0px 0px -60px 0px', threshold: 0.1 });
+  document.querySelectorAll('.rv').forEach(el => obs.observe(el));
+
+  // Word-by-word manifesto
+  const words = document.querySelectorAll('.ante-word');
+  if (words.length) {
+    const wObs = new IntersectionObserver(entries => {
+      entries.forEach(e => { if (e.isIntersecting) { e.target.parentElement.querySelectorAll('.ante-word').forEach((w,i) => setTimeout(() => w.classList.add('vis'), i*40)); wObs.unobserve(e.target); } });
+    }, { rootMargin: '0px 0px -100px 0px', threshold: 0.2 });
+    wObs.observe(document.getElementById('anteText'));
+  }
+
+  // Steps wire
+  const stepsC = document.getElementById('steps'), fill = document.getElementById('wireFill');
+  if (stepsC && fill) {
+    const items = stepsC.querySelectorAll('.step');
+    const sObs = new IntersectionObserver(entries => {
+      entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('lit'); const last = Array.from(items).filter(i => i.classList.contains('lit')).pop(); if (last) fill.style.height = (last.getBoundingClientRect().top - stepsC.getBoundingClientRect().top + 12) + 'px'; } });
+    }, { rootMargin: '0px 0px -80px 0px', threshold: 0.3 });
+    items.forEach(i => sObs.observe(i));
+  }
+
+  // Mouse-tracking glow
+  document.querySelectorAll('.ben, .prod').forEach(el => {
+    const glow = el.querySelector('.ben-glow, .prod-glow');
+    if (!glow) return;
+    el.addEventListener('mousemove', e => { const r = el.getBoundingClientRect(); glow.style.left = (e.clientX-r.left)+'px'; glow.style.top = (e.clientY-r.top)+'px'; });
+  });
+
+  // FAQ
+  document.querySelectorAll('.faq-item').forEach(item => {
+    item.querySelector('.faq-q').addEventListener('click', () => {
+      const was = item.classList.contains('open');
+      document.querySelectorAll('.faq-item').forEach(i => { i.classList.remove('open'); i.querySelector('.faq-q').setAttribute('aria-expanded','false'); });
+      if (!was) { item.classList.add('open'); item.querySelector('.faq-q').setAttribute('aria-expanded','true'); }
+    });
+  });
+
+  // Smooth scroll
+  document.querySelectorAll('a[href^="#"]').forEach(a => {
+    a.addEventListener('click', function(e) { const h = this.getAttribute('href'); if (h==='#') return; e.preventDefault(); const t = document.querySelector(h); if (t) window.scrollTo({ top: t.offsetTop-80, behavior: 'smooth' }); });
+  });
+
+  // Form
+  const form = document.getElementById('aform'), ok = document.getElementById('formOk');
+  if (form) { form.addEventListener('submit', e => { e.preventDefault(); form.style.opacity='0'; form.style.transition='opacity 0.3s'; setTimeout(() => { form.classList.add('hidden'); ok.classList.add('show'); ok.scrollIntoView({ behavior:'smooth', block:'center' }); }, 300); }); }
+})();
+</script>
+</body>
+</html>

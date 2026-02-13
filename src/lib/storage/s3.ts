@@ -239,8 +239,21 @@ export async function transferRecordingToS3(
   orgId: string,
   callId: string
 ): Promise<string> {
+  // Check if this is a Twilio URL that requires authentication
+  const headers: Record<string, string> = {};
+
+  if (sourceUrl.includes("api.twilio.com")) {
+    const accountSid = process.env.TWILIO_ACCOUNT_SID;
+    const authToken = process.env.TWILIO_AUTH_TOKEN;
+
+    if (accountSid && authToken) {
+      const authHeader = Buffer.from(`${accountSid}:${authToken}`).toString("base64");
+      headers["Authorization"] = `Basic ${authHeader}`;
+    }
+  }
+
   // Download from source URL
-  const response = await fetch(sourceUrl);
+  const response = await fetch(sourceUrl, { headers });
   if (!response.ok) {
     throw new Error(`Failed to download recording: ${response.statusText}`);
   }

@@ -1,0 +1,4 @@
+email,name,role,team,maxCaseload
+john@example.com,John Doe,CASE_MANAGER,Team A,25
+jane@example.com,Jane Smith,PROGRAM_MANAGER,,
+bob@example.com,Bob Wilson,VIEWER,,

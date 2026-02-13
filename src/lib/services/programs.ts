@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/db";
-import { ProgramStatus, ProgramLabelType, Prisma } from "@prisma/client";
+import { ProgramStatus, ProgramLabelType, SessionStatus, Prisma } from "@prisma/client";
 
 // ============================================
 // TYPES
@@ -126,6 +126,7 @@ export interface SessionWithRelations {
   date: Date | null;
   durationMinutes: number | null;
   notes: string | null;
+  status: SessionStatus;
   createdAt: Date;
   updatedAt: Date;
   _count?: {
@@ -656,6 +657,7 @@ function transformSession(session: any): SessionWithRelations {
     date: session.date,
     durationMinutes: session.durationMinutes,
     notes: session.notes,
+    status: session.status || SessionStatus.DRAFT,
     createdAt: session.createdAt,
     updatedAt: session.updatedAt,
     _count: session._count,
