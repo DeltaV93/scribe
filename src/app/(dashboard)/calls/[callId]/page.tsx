@@ -35,10 +35,10 @@ interface Form {
   fields: Array<{
     id: string;
     slug: string;
-    label: string;
+    name: string;        // API returns 'name' not 'label'
     type: string;
-    required: boolean;
-    description?: string;
+    isRequired: boolean; // API returns 'isRequired' not 'required'
+    helpText?: string;   // API returns 'helpText' not 'description'
   }>;
 }
 
@@ -129,16 +129,17 @@ export default function CallPage() {
   }
 
   // Transform forms into sections for the conversation guide
+  // Map API field names to UI expected names
   const formSections = forms.map((form) => ({
     formId: form.id,
     formName: form.name,
     fields: form.fields.map((field) => ({
       id: field.id,
       slug: field.slug,
-      label: field.label,
+      label: field.name,            // API returns 'name', UI expects 'label'
       type: field.type,
-      required: field.required,
-      description: field.description,
+      required: field.isRequired,   // API returns 'isRequired', UI expects 'required'
+      description: field.helpText,  // API returns 'helpText', UI expects 'description'
     })),
   }));
 

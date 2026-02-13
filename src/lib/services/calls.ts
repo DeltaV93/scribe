@@ -1,5 +1,9 @@
 import { prisma } from "@/lib/db";
 import { CallStatus, ProcessingStatus } from "@prisma/client";
+import {
+  initiateOutboundCall,
+  NoPhoneNumberAssignedError,
+} from "@/lib/twilio/call-manager";
 
 interface InitiateCallParams {
   clientId: string;
@@ -80,6 +84,37 @@ export async function initiateCall(params: InitiateCallParams) {
       },
     },
   });
+
+  // Initiate the actual Twilio call
+  try {
+    const twilioResult = await initiateOutboundCall({
+      userId: caseManagerId,
+      toNumber: client.phone,
+      callId: call.id,
+      orgId,
+    });
+
+    // Update call with Twilio SID
+    await prisma.call.update({
+      where: { id: call.id },
+      data: { twilioCallSid: twilioResult.callSid },
+    });
+  } catch (error) {
+    // Update call status to FAILED if Twilio call fails
+    const errorMessage =
+      error instanceof NoPhoneNumberAssignedError
+        ? "No phone number assigned to user"
+        : error instanceof Error
+          ? error.message
+          : "Failed to initiate call";
+
+    await prisma.call.update({
+      where: { id: call.id },
+      data: { status: CallStatus.FAILED },
+    });
+
+    throw new Error(errorMessage);
+  }
 
   return call;
 }
