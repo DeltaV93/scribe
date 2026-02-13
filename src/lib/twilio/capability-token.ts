@@ -24,6 +24,13 @@ export function generateVoiceToken(params: GenerateTokenParams): string {
     throw new Error("Twilio configuration incomplete");
   }
 
+  // Log config for debugging (only first few chars of secrets)
+  console.log(`[VoiceToken] Generating token with:`);
+  console.log(`  accountSid: ${accountSid.substring(0, 10)}...`);
+  console.log(`  apiKey: ${apiKey.substring(0, 10)}...`);
+  console.log(`  apiSecret: ${apiSecret.substring(0, 5)}... (length: ${apiSecret.length})`);
+  console.log(`  twimlAppSid: ${twimlAppSid.substring(0, 10)}...`);
+
   // Create access token
   const accessToken = new AccessToken(accountSid, apiKey, apiSecret, {
     identity,
