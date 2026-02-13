@@ -45,52 +45,141 @@ interface Pagination {
 
 /**
  * Initiate a new call
+ * Uses a serializable transaction to prevent race conditions with duplicate calls
  */
 export async function initiateCall(params: InitiateCallParams) {
   const { clientId, caseManagerId, formIds, orgId } = params;
 
-  // Verify client exists and belongs to org
-  const client = await prisma.client.findFirst({
-    where: { id: clientId, orgId },
+  // Use interactive transaction with serializable isolation to prevent race conditions
+  const result = await prisma.$transaction(async (tx) => {
+    // Check for active call within transaction
+    const activeStatuses = [
+      CallStatus.INITIATING,
+      CallStatus.RINGING,
+      CallStatus.IN_PROGRESS,
+    ];
+
+    const existingActiveCall = await tx.call.findFirst({
+      where: {
+        caseManagerId,
+        status: { in: activeStatuses },
+        client: { orgId },
+      },
+      include: {
+        client: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            phone: true,
+          },
+        },
+        caseManager: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+      },
+    });
+
+    if (existingActiveCall) {
+      console.log(`[Calls] Transaction: Found existing active call ${existingActiveCall.id}`);
+      return { call: existingActiveCall, isExisting: true };
+    }
+
+    // Check for recent call to same client (within 30 seconds)
+    const recentCall = await tx.call.findFirst({
+      where: {
+        clientId,
+        caseManagerId,
+        createdAt: {
+          gte: new Date(Date.now() - 30000), // 30 seconds
+        },
+      },
+      include: {
+        client: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            phone: true,
+          },
+        },
+        caseManager: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    if (recentCall) {
+      console.log(`[Calls] Transaction: Found recent call ${recentCall.id}`);
+      return { call: recentCall, isExisting: true };
+    }
+
+    // Verify client exists and belongs to org
+    const client = await tx.client.findFirst({
+      where: { id: clientId, orgId },
+    });
+
+    if (!client) {
+      throw new Error("Client not found");
+    }
+
+    // Create the call record
+    const call = await tx.call.create({
+      data: {
+        clientId,
+        caseManagerId,
+        formIds,
+        status: CallStatus.INITIATING,
+        startedAt: new Date(),
+      },
+      include: {
+        client: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            phone: true,
+          },
+        },
+        caseManager: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+      },
+    });
+
+    console.log(`[Calls] Transaction: Created new call ${call.id}`);
+    return { call, isExisting: false, clientPhone: client.phone };
+  }, {
+    isolationLevel: 'Serializable',
+    timeout: 10000,
   });
 
-  if (!client) {
-    throw new Error("Client not found");
+  // If we got an existing call, return it without initiating Twilio
+  if (result.isExisting) {
+    return result.call;
   }
 
-  // Create the call record
-  const call = await prisma.call.create({
-    data: {
-      clientId,
-      caseManagerId,
-      formIds,
-      status: CallStatus.INITIATING,
-      startedAt: new Date(),
-    },
-    include: {
-      client: {
-        select: {
-          id: true,
-          firstName: true,
-          lastName: true,
-          phone: true,
-        },
-      },
-      caseManager: {
-        select: {
-          id: true,
-          name: true,
-          email: true,
-        },
-      },
-    },
-  });
+  // Initiate the actual Twilio call outside the transaction
+  const call = result.call;
+  const clientPhone = result.clientPhone!;
 
-  // Initiate the actual Twilio call
   try {
     const twilioResult = await initiateOutboundCall({
       userId: caseManagerId,
-      toNumber: client.phone,
+      toNumber: clientPhone,
       callId: call.id,
       orgId,
     });

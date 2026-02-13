@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth";
-import { initiateCall, listCalls, getCaseManagerCalls, getActiveCaseManagerCall } from "@/lib/services/calls";
+import { initiateCall, listCalls, getCaseManagerCalls } from "@/lib/services/calls";
 import { UserRole } from "@/types";
 import { CallStatus } from "@prisma/client";
-import { prisma } from "@/lib/db";
 
 /**
  * GET /api/calls - List calls
@@ -69,38 +68,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if user already has an active call (prevents double-dial)
-    const activeCall = await getActiveCaseManagerCall(user.id, user.orgId);
-    if (activeCall) {
-      console.log(`[Calls] Preventing duplicate call - user ${user.id} already has active call ${activeCall.id}`);
-      return NextResponse.json({
-        success: true,
-        data: activeCall,
-        message: "Using existing active call",
-      });
-    }
-
-    // Additional check: prevent rapid duplicate calls for same client
-    const recentCall = await prisma.call.findFirst({
-      where: {
-        clientId,
-        caseManagerId: user.id,
-        createdAt: {
-          gte: new Date(Date.now() - 10000), // Within last 10 seconds
-        },
-      },
-      orderBy: { createdAt: "desc" },
-    });
-
-    if (recentCall) {
-      console.log(`[Calls] Preventing rapid duplicate call - recent call ${recentCall.id} exists`);
-      return NextResponse.json({
-        success: true,
-        data: recentCall,
-        message: "Using recently created call",
-      });
-    }
-
+    // initiateCall uses a serializable transaction to prevent race conditions
+    // It will return an existing active call if one exists
     const call = await initiateCall({
       clientId,
       caseManagerId: user.id,
