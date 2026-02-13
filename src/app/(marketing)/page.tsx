@@ -51,7 +51,7 @@ export default function MarketingPage() {
           --white: #F8F6F2;
           --success: #3D8B6E;
           --error: #B85450;
-          --serif: 'Cormorant Garamond', Georgia, serif;
+          --serif: var(--font-serif), 'Shippori Mincho B1', Georgia, serif;
           --sans: 'Outfit', system-ui, sans-serif;
           --mono: 'IBM Plex Mono', monospace;
         }
