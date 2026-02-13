@@ -3,6 +3,7 @@ import { CallStatus, ProcessingStatus } from "@prisma/client";
 import {
   initiateOutboundCall,
   NoPhoneNumberAssignedError,
+  endTwilioCall,
 } from "@/lib/twilio/call-manager";
 
 interface InitiateCallParams {
@@ -216,6 +217,16 @@ export async function endCall(callId: string) {
 
   if (!call) {
     throw new Error("Call not found");
+  }
+
+  // End the actual Twilio call if we have a SID
+  if (call.twilioCallSid) {
+    try {
+      await endTwilioCall(call.twilioCallSid);
+    } catch (error) {
+      // Log but don't fail - the call might have already ended
+      console.warn(`Failed to end Twilio call ${call.twilioCallSid}:`, error);
+    }
   }
 
   const endedAt = new Date();

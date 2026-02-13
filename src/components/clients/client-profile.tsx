@@ -285,7 +285,12 @@ export function ClientProfile({ clientId }: ClientProfileProps) {
   };
 
   const handleInitiateCall = async (formIds: string[]) => {
+    // Prevent double-click
+    if (isInitiatingCall) return;
+
     setIsInitiatingCall(true);
+    setShowCallModal(false); // Close modal immediately to prevent re-clicks
+
     try {
       const response = await fetch("/api/calls", {
         method: "POST",
@@ -297,13 +302,15 @@ export function ClientProfile({ clientId }: ClientProfileProps) {
         const data = await response.json();
         router.push(`/calls/${data.data.id}`);
       } else {
-        console.error("Failed to initiate call");
+        const error = await response.json();
+        console.error("Failed to initiate call:", error);
+        toast.error(error.error?.message || "Failed to start call");
       }
     } catch (error) {
       console.error("Error initiating call:", error);
+      toast.error("Failed to start call");
     } finally {
       setIsInitiatingCall(false);
-      setShowCallModal(false);
     }
   };
 
