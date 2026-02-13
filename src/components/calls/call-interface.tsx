@@ -307,7 +307,7 @@ export function CallInterface({
         return;
       }
 
-      const activeStatuses = [CallStatus.INITIATING, CallStatus.RINGING, CallStatus.IN_PROGRESS];
+      const activeStatuses: CallStatus[] = [CallStatus.INITIATING, CallStatus.RINGING, CallStatus.IN_PROGRESS];
       if (!activeStatuses.includes(status)) {
         return;
       }

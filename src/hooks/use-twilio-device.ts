@@ -152,7 +152,7 @@ export function useTwilioDevice(options?: UseTwilioDeviceOptions): UseTwilioDevi
       setError(err instanceof Error ? err.message : "Failed to initialize");
       setDeviceStatus("error");
     }
-  }, [fetchToken, options, setupCallHandlers]);
+  }, [fetchToken, options]);
 
   // Setup call event handlers
   const setupCallHandlers = useCallback(
