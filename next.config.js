@@ -34,7 +34,7 @@ const nextConfig = {
           },
           {
             key: 'Permissions-Policy',
-            value: 'camera=(), microphone=(self), geolocation=(self)',
+            value: 'camera=(), microphone=(self "https://*.twilio.com"), geolocation=(self)',
           },
           // HIPAA-compliant security headers
           {
@@ -43,7 +43,7 @@ const nextConfig = {
           },
           {
             key: 'Content-Security-Policy',
-            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://*.sentry.io; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' https://*.supabase.co https://api.stripe.com wss://*.deepgram.com https://*.sentry.io https://*.ingest.sentry.io; frame-src https://js.stripe.com;",
+            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://*.sentry.io; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' https://*.supabase.co https://api.stripe.com wss://*.deepgram.com https://*.sentry.io https://*.ingest.sentry.io https://*.twilio.com wss://*.twilio.com https://sdk.twilio.com; frame-src https://js.stripe.com; media-src 'self' https://sdk.twilio.com https://*.twilio.com;",
           },
           {
             key: 'X-XSS-Protection',
