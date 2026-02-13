@@ -73,6 +73,7 @@ export function FormSelectionModal({
   };
 
   const handleConfirm = () => {
+    if (isLoading) return; // Prevent double-click
     onConfirm(Array.from(selectedForms));
   };
 
@@ -136,12 +137,12 @@ export function FormSelectionModal({
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>
             Cancel
           </Button>
-          <Button onClick={handleConfirm} disabled={isLoading}>
+          <Button onClick={handleConfirm} disabled={isLoading || isFetching}>
             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Start Call {selectedForms.size > 0 && `(${selectedForms.size} forms)`}
+            {isLoading ? "Starting Call..." : `Start Call${selectedForms.size > 0 ? ` (${selectedForms.size} forms)` : ""}`}
           </Button>
         </DialogFooter>
       </DialogContent>

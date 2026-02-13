@@ -96,6 +96,18 @@ export async function transcribeFromBuffer(
  * Parse Deepgram response into our transcript format
  */
 function parseDeepgramResponse(result: unknown): TranscriptionResult {
+  // Handle null or undefined result
+  if (!result) {
+    console.warn("Deepgram returned null/undefined result");
+    return {
+      raw: "",
+      segments: [],
+      duration: 0,
+      wordCount: 0,
+      speakerCount: 0,
+    };
+  }
+
   const data = result as {
     results?: {
       channels?: Array<{
@@ -110,6 +122,18 @@ function parseDeepgramResponse(result: unknown): TranscriptionResult {
       duration?: number;
     };
   };
+
+  // Handle missing results
+  if (!data.results) {
+    console.warn("Deepgram response missing results:", JSON.stringify(data).slice(0, 500));
+    return {
+      raw: "",
+      segments: [],
+      duration: data.metadata?.duration || 0,
+      wordCount: 0,
+      speakerCount: 0,
+    };
+  }
 
   const channel = data.results?.channels?.[0];
   const alternative = channel?.alternatives?.[0];
