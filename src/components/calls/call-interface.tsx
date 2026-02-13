@@ -10,9 +10,10 @@ import { ConversationGuide } from "./conversation-guide";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Loader2, Phone, User, Lock, AlertTriangle } from "lucide-react";
+import { Loader2, Phone, User, Lock, AlertTriangle, Mic } from "lucide-react";
 import { CallStatus } from "@prisma/client";
 import { toast } from "sonner";
+import { useTwilioDevice } from "@/hooks/use-twilio-device";
 
 interface Client {
   id: string;
@@ -62,8 +63,6 @@ export function CallInterface({
 }: CallInterfaceProps) {
   const router = useRouter();
   const [status, setStatus] = useState<CallStatus>(initialStatus);
-  const [isMuted, setIsMuted] = useState(false);
-  const [isOnHold, setIsOnHold] = useState(false);
   const [currentNote, setCurrentNote] = useState("");
   const [completedFields, setCompletedFields] = useState<Set<string>>(new Set());
   const [startTime, setStartTime] = useState<Date | null>(null);
@@ -71,8 +70,36 @@ export function CallInterface({
   const [isSavingNote, setIsSavingNote] = useState(false);
   const [hasClientLock, setHasClientLock] = useState(false);
   const [lockError, setLockError] = useState<string | null>(null);
+  const [browserCallConnected, setBrowserCallConnected] = useState(false);
+  const [micPermissionDenied, setMicPermissionDenied] = useState(false);
   const heartbeatRef = useRef<NodeJS.Timeout | null>(null);
   const hasLockRef = useRef(false);
+  const browserCallInitiated = useRef(false);
+
+  // Twilio Device for browser audio
+  const {
+    deviceStatus,
+    callState,
+    error: twilioError,
+    isReady: twilioReady,
+    makeCall,
+    hangup: twilioHangup,
+    mute,
+  } = useTwilioDevice({
+    onCallDisconnected: () => {
+      setBrowserCallConnected(false);
+    },
+    onError: (error) => {
+      console.error("Twilio error:", error);
+      if (error.message?.includes("Permission") || error.message?.includes("microphone")) {
+        setMicPermissionDenied(true);
+      }
+    },
+  });
+
+  // Derive mute/hold state from Twilio
+  const isMuted = callState.isMuted;
+  const isOnHold = callState.isOnHold;
 
   // Keep ref in sync with state
   useEffect(() => {
@@ -258,6 +285,37 @@ export function CallInterface({
     }
   }, [status, startTime]);
 
+  // Connect browser audio when Twilio device is ready and call is active
+  useEffect(() => {
+    const connectBrowserCall = async () => {
+      if (
+        twilioReady &&
+        !browserCallConnected &&
+        !browserCallInitiated.current &&
+        (status === CallStatus.INITIATING || status === CallStatus.RINGING || status === CallStatus.IN_PROGRESS)
+      ) {
+        browserCallInitiated.current = true;
+        try {
+          console.log("[CallInterface] Connecting browser audio to call...");
+          await makeCall(client.phone, { callId });
+          setBrowserCallConnected(true);
+          toast.success("Connected to call");
+        } catch (error) {
+          console.error("[CallInterface] Failed to connect browser audio:", error);
+          browserCallInitiated.current = false;
+          if (error instanceof Error && error.message.includes("Permission")) {
+            setMicPermissionDenied(true);
+            toast.error("Microphone permission denied. Please allow microphone access.");
+          } else {
+            toast.error("Failed to connect to call");
+          }
+        }
+      }
+    };
+
+    connectBrowserCall();
+  }, [twilioReady, browserCallConnected, status, client.phone, callId, makeCall]);
+
   // Poll for status updates
   useEffect(() => {
     if (
@@ -286,16 +344,15 @@ export function CallInterface({
   }, [callId, status]);
 
   const handleMuteToggle = useCallback(() => {
-    setIsMuted((prev) => !prev);
-    // TODO: Integrate with Twilio SDK to actually mute
+    mute(!isMuted);
     toast.info(isMuted ? "Microphone unmuted" : "Microphone muted");
-  }, [isMuted]);
+  }, [isMuted, mute]);
 
   const handleHoldToggle = useCallback(() => {
-    setIsOnHold((prev) => !prev);
-    // TODO: Integrate with Twilio SDK to actually hold
+    // Hold is implemented as mute in the current Twilio setup
+    mute(!isOnHold);
     toast.info(isOnHold ? "Call resumed" : "Call on hold");
-  }, [isOnHold]);
+  }, [isOnHold, mute]);
 
   const handleEndCall = async () => {
     if (isEndingCall) return;
@@ -307,7 +364,13 @@ export function CallInterface({
         await saveNote();
       }
 
-      // End the call
+      // Disconnect browser audio first
+      if (browserCallConnected) {
+        twilioHangup();
+        setBrowserCallConnected(false);
+      }
+
+      // End the call on server
       const response = await fetch(`/api/calls/${callId}/end`, {
         method: "POST",
       });
@@ -382,6 +445,27 @@ export function CallInterface({
 
   return (
     <div className="h-full flex flex-col">
+      {/* Microphone Permission Banner */}
+      {micPermissionDenied && (
+        <Alert variant="destructive" className="m-4 mb-0">
+          <Mic className="h-4 w-4" />
+          <AlertTitle>Microphone Access Required</AlertTitle>
+          <AlertDescription>
+            Please allow microphone access in your browser to participate in the call.
+            Click the microphone icon in your browser&apos;s address bar and refresh the page.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {/* Twilio Connection Status */}
+      {twilioError && !micPermissionDenied && (
+        <Alert variant="destructive" className="m-4 mb-0">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>Connection Error</AlertTitle>
+          <AlertDescription>{twilioError}</AlertDescription>
+        </Alert>
+      )}
+
       {/* Lock Error Banner */}
       {lockError && (
         <Alert variant="destructive" className="m-4 mb-0">

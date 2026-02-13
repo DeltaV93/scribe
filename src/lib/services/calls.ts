@@ -1,10 +1,6 @@
 import { prisma } from "@/lib/db";
 import { CallStatus, ProcessingStatus } from "@prisma/client";
-import {
-  initiateOutboundCall,
-  NoPhoneNumberAssignedError,
-  endTwilioCall,
-} from "@/lib/twilio/call-manager";
+import { endTwilioCall } from "@/lib/twilio/call-manager";
 
 interface InitiateCallParams {
   clientId: string;
@@ -167,46 +163,14 @@ export async function initiateCall(params: InitiateCallParams) {
     timeout: 10000,
   });
 
-  // If we got an existing call, return it without initiating Twilio
+  // If we got an existing call, return it without creating a new one
   if (result.isExisting) {
     return result.call;
   }
 
-  // Initiate the actual Twilio call outside the transaction
-  const call = result.call;
-  const clientPhone = result.clientPhone!;
-
-  try {
-    const twilioResult = await initiateOutboundCall({
-      userId: caseManagerId,
-      toNumber: clientPhone,
-      callId: call.id,
-      orgId,
-    });
-
-    // Update call with Twilio SID
-    await prisma.call.update({
-      where: { id: call.id },
-      data: { twilioCallSid: twilioResult.callSid },
-    });
-  } catch (error) {
-    // Update call status to FAILED if Twilio call fails
-    const errorMessage =
-      error instanceof NoPhoneNumberAssignedError
-        ? "No phone number assigned to user"
-        : error instanceof Error
-          ? error.message
-          : "Failed to initiate call";
-
-    await prisma.call.update({
-      where: { id: call.id },
-      data: { status: CallStatus.FAILED },
-    });
-
-    throw new Error(errorMessage);
-  }
-
-  return call;
+  // Return the call record - browser will initiate the actual call via Twilio Device SDK
+  // The Twilio call SID will be set when the voice webhook is triggered
+  return result.call;
 }
 
 /**
