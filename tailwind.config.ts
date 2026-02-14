@@ -17,11 +17,9 @@ const config: Config = {
     },
     extend: {
       fontFamily: {
-        sans: ["var(--font-inter)", "system-ui", "sans-serif"],
-        serif: ["var(--font-serif)", "Georgia", "serif"],
-        heading: ["var(--font-serif)", "Georgia", "serif"],
-        "sans-brand": ["var(--font-sans-brand)", "system-ui", "sans-serif"],
-        mono: ["var(--font-mono)", "monospace"],
+        // Inter-only typography for enterprise signal
+        sans: ["var(--font-inter)", "system-ui", "-apple-system", "Segoe UI", "Roboto", "Helvetica", "Arial", "sans-serif"],
+        mono: ["ui-monospace", "SFMono-Regular", "Menlo", "Monaco", "Consolas", "Liberation Mono", "monospace"],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -65,19 +63,56 @@ const config: Config = {
           DEFAULT: "hsl(var(--warning))",
           foreground: "hsl(var(--warning-foreground))",
         },
-        // Obsidian Signal brand colors
-        copper: {
-          DEFAULT: "hsl(var(--copper))",
-          text: "hsl(var(--copper-text))",
+        // SCRYBE Calm Infrastructure Palette
+        ink: {
+          DEFAULT: "var(--ink)",
+          90: "var(--ink-90)",
+          80: "var(--ink-80)",
+          70: "var(--ink-70)",
+          60: "var(--ink-60)",
+          50: "var(--ink-50)",
+          20: "var(--ink-20)",
+          12: "var(--ink-12)",
+          "08": "var(--ink-08)",
         },
-        obsidian: "hsl(var(--obsidian))",
-        bone: "hsl(var(--bone))",
-        steel: "hsl(var(--steel))",
+        paper: "var(--paper)",
+        stone: "var(--stone)",
+        moss: "var(--moss)",
+        gold: "var(--gold)",
       },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+        // SCRYBE radii
+        r8: "8px",
+        r10: "10px",
+        r12: "12px",
+        r14: "14px",
+        r18: "18px",
+      },
+      boxShadow: {
+        // SCRYBE shadows
+        "scrybe-sm": "0 8px 20px rgba(17,17,17,.06)",
+        "scrybe-md": "0 12px 40px rgba(17,17,17,.08)",
+      },
+      spacing: {
+        // SCRYBE spacing scale (8pt base + 4pt micro)
+        s2: "2px",
+        s4: "4px",
+        s8: "8px",
+        s12: "12px",
+        s16: "16px",
+        s20: "20px",
+        s24: "24px",
+        s32: "32px",
+        s40: "40px",
+        s48: "48px",
+        s64: "64px",
+        s96: "96px",
+      },
+      maxWidth: {
+        scrybe: "1120px",
       },
       keyframes: {
         "accordion-down": {
