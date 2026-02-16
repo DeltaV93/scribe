@@ -185,6 +185,15 @@ export function getDefaultPermissions(role: UserRole): UserPermissions {
         canDeleteForms: false,
         canPublishForms: false,
       };
+    case UserRole.FACILITATOR:
+      // PX-729: Facilitators focus on program/session management, not forms
+      return {
+        canCreateForms: false,
+        canReadForms: true, // Can view forms for reference
+        canUpdateForms: false,
+        canDeleteForms: false,
+        canPublishForms: false,
+      };
     case UserRole.VIEWER:
       return {
         canCreateForms: false,

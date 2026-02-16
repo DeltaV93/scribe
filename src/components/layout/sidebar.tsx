@@ -31,6 +31,7 @@ import {
 import { signOutAction } from "@/lib/auth/actions";
 import { useState, useEffect } from "react";
 import type { SessionUser } from "@/types";
+import { UserRole } from "@/types";
 import { Badge } from "@/components/ui/badge";
 import { NotificationBell } from "@/components/notifications";
 
@@ -38,61 +39,104 @@ interface SidebarProps {
   user: SessionUser;
 }
 
-const navItems = [
+// PX-729: Role-based navigation access
+// Define which roles can access each nav item
+// If allowedRoles is undefined, all roles can access
+interface NavItem {
+  title: string;
+  href: string;
+  icon: React.ComponentType<{ className?: string }>;
+  allowedRoles?: UserRole[];
+  excludedRoles?: UserRole[];
+}
+
+const navItems: NavItem[] = [
   {
     title: "Dashboard",
     href: "/dashboard",
     icon: LayoutDashboard,
+    // All roles can access dashboard
   },
   {
     title: "Forms",
     href: "/forms",
     icon: FileText,
+    // Facilitators don't create/manage forms, they focus on programs
+    excludedRoles: [UserRole.FACILITATOR],
   },
   {
     title: "Clients",
     href: "/clients",
     icon: Users,
+    // Facilitators can only see program enrollees, not full client list
+    excludedRoles: [UserRole.FACILITATOR],
   },
   {
     title: "Programs",
     href: "/programs",
     icon: GraduationCap,
+    // All roles can access programs (facilitators see only their assigned)
   },
   {
     title: "Calls",
     href: "/calls",
     icon: Phone,
+    // Facilitators don't have VoIP access
+    excludedRoles: [UserRole.FACILITATOR, UserRole.VIEWER],
   },
   {
     title: "Action Items",
     href: "/action-items",
     icon: ListChecks,
+    // All roles can access action items
   },
   {
     title: "Goals",
     href: "/goals",
     icon: Target,
+    // Facilitators focus on program delivery, not org-wide goals
+    excludedRoles: [UserRole.FACILITATOR, UserRole.VIEWER],
   },
   {
     title: "Reminders",
     href: "/reminders",
     icon: Bell,
+    // All roles can access reminders
   },
 ];
 
-const bottomNavItems = [
+const bottomNavItems: NavItem[] = [
   {
     title: "Settings",
     href: "/settings",
     icon: Settings,
+    // All roles can access their settings
   },
   {
     title: "Billing",
     href: "/billing",
     icon: CreditCard,
+    // Only admins can access billing
+    allowedRoles: [UserRole.SUPER_ADMIN, UserRole.ADMIN],
   },
 ];
+
+/**
+ * Filter nav items based on user role (PX-729)
+ */
+function filterNavItems(items: NavItem[], userRole: UserRole): NavItem[] {
+  return items.filter((item) => {
+    // If allowedRoles is defined, user must be in the list
+    if (item.allowedRoles && !item.allowedRoles.includes(userRole)) {
+      return false;
+    }
+    // If excludedRoles is defined, user must NOT be in the list
+    if (item.excludedRoles && item.excludedRoles.includes(userRole)) {
+      return false;
+    }
+    return true;
+  });
+}
 
 export function Sidebar({ user }: SidebarProps) {
   const pathname = usePathname();
@@ -100,6 +144,10 @@ export function Sidebar({ user }: SidebarProps) {
   const [pendingRequestCount, setPendingRequestCount] = useState(0);
 
   const isAdmin = user.role === "ADMIN" || user.role === "SUPER_ADMIN";
+
+  // PX-729: Filter navigation items based on user role
+  const filteredNavItems = filterNavItems(navItems, user.role as UserRole);
+  const filteredBottomNavItems = filterNavItems(bottomNavItems, user.role as UserRole);
 
   // Fetch pending phone request count for admin badge
   useEffect(() => {
@@ -160,7 +208,7 @@ export function Sidebar({ user }: SidebarProps) {
         {/* Navigation */}
         <ScrollArea className="flex-1 py-4">
           <nav className="flex flex-col gap-1 px-2">
-            {navItems.map((item) => {
+            {filteredNavItems.map((item) => {
               const isActive =
                 pathname === item.href ||
                 pathname.startsWith(`${item.href}/`);
@@ -265,7 +313,7 @@ export function Sidebar({ user }: SidebarProps) {
         {/* Bottom Navigation */}
         <div className="border-t py-4">
           <nav className="flex flex-col gap-1 px-2">
-            {bottomNavItems.map((item) => {
+            {filteredBottomNavItems.map((item) => {
               const isActive = pathname === item.href;
 
               return collapsed ? (

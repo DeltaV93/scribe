@@ -109,6 +109,14 @@ const ROLE_ACCESS_CONFIG: Record<UserRole, RoleAccessConfig> = {
     canViewFullAddress: true,
     requiresAssignment: true, // Only sees full info for assigned clients
   },
+  [UserRole.FACILITATOR]: {
+    // PX-729: Facilitators have limited client data access
+    // They see enrolled client names but not full contact details
+    canViewFullPhone: false,
+    canViewFullEmail: false,
+    canViewFullAddress: false,
+    requiresAssignment: false, // Always restricted to protect client privacy
+  },
   [UserRole.VIEWER]: {
     canViewFullPhone: false,
     canViewFullEmail: false,

@@ -88,6 +88,7 @@ export enum UserRole {
   ADMIN = "ADMIN",
   PROGRAM_MANAGER = "PROGRAM_MANAGER",
   CASE_MANAGER = "CASE_MANAGER",
+  FACILITATOR = "FACILITATOR", // PX-729: Class/program facilitators
   VIEWER = "VIEWER",
 }
 
