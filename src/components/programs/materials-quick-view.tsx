@@ -4,10 +4,12 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { MaterialType } from "@prisma/client";
 import {
   FileText,
@@ -21,6 +23,8 @@ import {
   Paperclip,
   Loader2,
   FolderOpen,
+  Image as ImageIcon,
+  X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -90,8 +94,17 @@ function formatFileSize(bytes: number): string {
 }
 
 /**
- * MaterialsQuickView - A popover component for quick-viewing materials
+ * Check if a file is previewable as an image
+ */
+function isImageFile(mimeType: string): boolean {
+  return mimeType.startsWith("image/");
+}
+
+/**
+ * MaterialsQuickView - A modal dialog for quick-viewing materials
  * attached to a program or session without navigating away.
+ *
+ * PX-722: Updated from popover to modal for better UX
  */
 export function MaterialsQuickView({
   programId,
@@ -104,8 +117,9 @@ export function MaterialsQuickView({
   const [isLoading, setIsLoading] = useState(false);
   const [hasLoaded, setHasLoaded] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
-  // Fetch materials when popover opens
+  // Fetch materials when modal opens
   useEffect(() => {
     if (isOpen && !hasLoaded && materialCount > 0) {
       fetchMaterials();
@@ -132,8 +146,18 @@ export function MaterialsQuickView({
     }
   };
 
-  const handleDownload = (material: Material) => {
+  const handleDownload = (material: Material, e?: React.MouseEvent) => {
+    e?.stopPropagation();
     window.open(material.fileUrl, "_blank");
+  };
+
+  const handlePreview = (material: Material) => {
+    if (isImageFile(material.mimeType)) {
+      setPreviewUrl(material.fileUrl);
+    } else {
+      // For non-images, open in new tab
+      window.open(material.fileUrl, "_blank");
+    }
   };
 
   // Don't render if no materials
@@ -142,104 +166,133 @@ export function MaterialsQuickView({
   }
 
   return (
-    <Popover open={isOpen} onOpenChange={setIsOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="ghost"
-          size="sm"
-          className={cn(
-            "h-auto px-2 py-1 gap-1.5 text-muted-foreground hover:text-foreground",
-            className
-          )}
-          title={`${materialCount} material${materialCount !== 1 ? "s" : ""} attached`}
+    <>
+      <Button
+        variant="ghost"
+        size="sm"
+        className={cn(
+          "h-auto px-2 py-1 gap-1.5 text-muted-foreground hover:text-foreground",
+          className
+        )}
+        title={`${materialCount} material${materialCount !== 1 ? "s" : ""} attached`}
+        onClick={(e) => {
+          e.stopPropagation();
+          setIsOpen(true);
+        }}
+      >
+        <Paperclip className="h-3.5 w-3.5" />
+        <span className="text-xs font-medium">{materialCount}</span>
+        {label && <span className="text-xs">{label}</span>}
+      </Button>
+
+      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <DialogContent
+          className="sm:max-w-[480px] max-h-[80vh] flex flex-col"
+          onClick={(e) => e.stopPropagation()}
         >
-          <Paperclip className="h-3.5 w-3.5" />
-          <span className="text-xs font-medium">{materialCount}</span>
-          {label && <span className="text-xs">{label}</span>}
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-80 p-0" align="start">
-        <div className="p-3 border-b">
-          <h4 className="font-medium text-sm">
-            {sessionId ? "Session Materials" : "Program Materials"}
-          </h4>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            {materialCount} material{materialCount !== 1 ? "s" : ""} attached
-          </p>
-        </div>
+          <DialogHeader>
+            <DialogTitle>
+              {sessionId ? "Session Materials" : "Program Materials"}
+            </DialogTitle>
+            <DialogDescription>
+              {materialCount} material{materialCount !== 1 ? "s" : ""} attached
+            </DialogDescription>
+          </DialogHeader>
 
-        <div className="max-h-64 overflow-y-auto">
-          {isLoading ? (
-            <div className="flex items-center justify-center py-6">
-              <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-            </div>
-          ) : materials.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-6 text-muted-foreground">
-              <FolderOpen className="h-8 w-8 mb-2 opacity-50" />
-              <p className="text-sm">No materials found</p>
-            </div>
-          ) : (
-            <ul className="divide-y">
-              {materials.map((material) => {
-                const TypeIcon = getMaterialTypeIcon(material.materialType);
-                return (
-                  <li
-                    key={material.id}
-                    className="flex items-start gap-3 p-3 hover:bg-muted/50 transition-colors"
-                  >
-                    <div className="flex-shrink-0 mt-0.5">
-                      <TypeIcon className="h-5 w-5 text-muted-foreground" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p
-                        className="text-sm font-medium truncate"
-                        title={material.filename}
-                      >
-                        {material.filename}
-                      </p>
-                      <div className="flex items-center gap-2 mt-0.5">
-                        <Badge variant="outline" className="text-[10px] px-1.5 py-0">
-                          {getMaterialTypeLabel(material.materialType)}
-                        </Badge>
-                        <span className="text-[10px] text-muted-foreground">
-                          {formatFileSize(material.sizeBytes)}
-                        </span>
-                      </div>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-7 w-7 flex-shrink-0"
-                      onClick={() => handleDownload(material)}
-                      title="Download / Open"
+          <div className="flex-1 overflow-y-auto min-h-0 -mx-6 px-6">
+            {isLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+              </div>
+            ) : materials.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+                <FolderOpen className="h-10 w-10 mb-3 opacity-50" />
+                <p className="text-sm">No materials found</p>
+              </div>
+            ) : (
+              <ul className="divide-y">
+                {materials.map((material) => {
+                  const TypeIcon = getMaterialTypeIcon(material.materialType);
+                  const canPreview = isImageFile(material.mimeType);
+                  return (
+                    <li
+                      key={material.id}
+                      className={cn(
+                        "flex items-start gap-3 py-3 transition-colors",
+                        canPreview && "cursor-pointer hover:bg-muted/50 -mx-3 px-3 rounded-md"
+                      )}
+                      onClick={() => canPreview && handlePreview(material)}
                     >
-                      <Download className="h-3.5 w-3.5" />
-                    </Button>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-        </div>
+                      <div className="flex-shrink-0 mt-0.5">
+                        {canPreview ? (
+                          <ImageIcon className="h-5 w-5 text-blue-500" />
+                        ) : (
+                          <TypeIcon className="h-5 w-5 text-muted-foreground" />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p
+                          className="text-sm font-medium truncate"
+                          title={material.filename}
+                        >
+                          {material.filename}
+                        </p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <Badge variant="outline" className="text-[10px] px-1.5 py-0">
+                            {getMaterialTypeLabel(material.materialType)}
+                          </Badge>
+                          <span className="text-[10px] text-muted-foreground">
+                            {formatFileSize(material.sizeBytes)}
+                          </span>
+                          {canPreview && (
+                            <span className="text-[10px] text-blue-500">
+                              Click to preview
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 flex-shrink-0"
+                        onClick={(e) => handleDownload(material, e)}
+                        title="Open in new tab"
+                      >
+                        <ExternalLink className="h-4 w-4" />
+                      </Button>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
 
-        {materials.length > 0 && (
-          <div className="p-2 border-t bg-muted/30">
+      {/* Image preview modal */}
+      <Dialog open={!!previewUrl} onOpenChange={() => setPreviewUrl(null)}>
+        <DialogContent className="sm:max-w-[90vw] sm:max-h-[90vh] p-0 overflow-hidden">
+          <div className="relative">
             <Button
               variant="ghost"
-              size="sm"
-              className="w-full text-xs h-7"
-              onClick={() => {
-                // Close popover and user can navigate to materials tab
-                setIsOpen(false);
-              }}
+              size="icon"
+              className="absolute top-2 right-2 z-10 bg-black/50 hover:bg-black/70 text-white"
+              onClick={() => setPreviewUrl(null)}
             >
-              <ExternalLink className="h-3 w-3 mr-1.5" />
-              View all in Materials tab
+              <X className="h-4 w-4" />
             </Button>
+            {previewUrl && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={previewUrl}
+                alt="Material preview"
+                className="max-w-full max-h-[85vh] object-contain mx-auto"
+              />
+            )}
           </div>
-        )}
-      </PopoverContent>
-    </Popover>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
 
