@@ -1,6 +1,27 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import {
+  FileText,
+  BarChart3,
+  Brain,
+  CheckCircle2,
+  Target,
+  TrendingUp,
+  Video,
+  Clapperboard,
+  Smartphone,
+  Zap,
+  Building2,
+  Microscope,
+  Users,
+  Rocket,
+  Headphones,
+  Mic2,
+  ClipboardList,
+  Eye,
+  Camera,
+} from "lucide-react";
 
 export default function HomePage() {
   const [activeStory, setActiveStory] = useState("sales");
@@ -1047,37 +1068,37 @@ export default function HomePage() {
             <div className="outcome-grid">
               <div className="outcome">
                 <div className="outcome__arrow">CONVERSATION →</div>
-                <div className="outcome__icon">📝</div>
+                <div className="outcome__icon"><FileText size={28} /></div>
                 <div className="outcome__title">Documentation</div>
                 <div className="outcome__desc">Notes, case files, SOAP records, intake forms, PRDs — generated, not typed</div>
               </div>
               <div className="outcome">
                 <div className="outcome__arrow">CONVERSATION →</div>
-                <div className="outcome__icon">📊</div>
+                <div className="outcome__icon"><BarChart3 size={28} /></div>
                 <div className="outcome__title">Reports</div>
                 <div className="outcome__desc">Grant compliance, KPIs, pipeline reviews, promo packets — auto-compiled from real data</div>
               </div>
               <div className="outcome">
                 <div className="outcome__arrow">CONVERSATION →</div>
-                <div className="outcome__icon">🧠</div>
+                <div className="outcome__icon"><Brain size={28} /></div>
                 <div className="outcome__title">Knowledge Base</div>
                 <div className="outcome__desc">Policies, workflows, SOPs captured and searchable. Updates push org-wide instantly</div>
               </div>
               <div className="outcome">
                 <div className="outcome__arrow">CONVERSATION →</div>
-                <div className="outcome__icon">✅</div>
+                <div className="outcome__icon"><CheckCircle2 size={28} /></div>
                 <div className="outcome__title">Tasks & Follow-ups</div>
                 <div className="outcome__desc">Calendar invites, action items, reminders — created the moment the call ends</div>
               </div>
               <div className="outcome">
                 <div className="outcome__arrow">CONVERSATION →</div>
-                <div className="outcome__icon">🎯</div>
+                <div className="outcome__icon"><Target size={28} /></div>
                 <div className="outcome__title">Context & Guides</div>
                 <div className="outcome__desc">Relationship history, prompts, and personal details — surfaced before hello</div>
               </div>
               <div className="outcome">
                 <div className="outcome__arrow">CONVERSATION →</div>
-                <div className="outcome__icon">📈</div>
+                <div className="outcome__icon"><TrendingUp size={28} /></div>
                 <div className="outcome__title">Insights</div>
                 <div className="outcome__desc">Training recs, efficiency patterns, goal alerts — organizational intelligence</div>
               </div>
@@ -1108,7 +1129,7 @@ export default function HomePage() {
               <div className="proof__context">$30M nonprofit · 400 clients/week · 14 partner organizations · Been looking for this solution for over a year</div>
             </div>
             <div className="mp" style={{ minHeight: "300px" }}>
-              <div className="mp__icon">🎥</div>
+              <div className="mp__icon"><Video size={28} /></div>
               <div className="mp__label">Testimonial Video or Photo</div>
               <div className="mp__desc">Video clip of Carly: from bogged down with data to letting people work with people. &quot;I am so relieved right now.&quot;</div>
               <div className="mp__dims">1:1 or 4:3 · 800×800 · MP4 (30-60 sec) or JPG</div>
@@ -1143,7 +1164,7 @@ export default function HomePage() {
             </div>
           </div>
           <div className="mp reveal" style={{ minHeight: "200px", maxWidth: "800px", margin: "0 auto" }}>
-            <div className="mp__icon">🎬</div>
+            <div className="mp__icon"><Clapperboard size={28} /></div>
             <div className="mp__label">&quot;Conversations In, Everything Else Out&quot; Visual</div>
             <div className="mp__desc">Animated diagram: a single conversation icon in the center radiates outward into 6 outputs — Documentation, Reports, Knowledge Base, Tasks, Context, and Insights. Shows the single-input architecture.</div>
             <div className="mp__dims">16:9 · 1200×675 · Animated SVG or MP4 loop</div>
@@ -1164,7 +1185,7 @@ export default function HomePage() {
               <h3>Your team has conversations</h3>
               <p>Phone calls, Zoom meetings, standups, support tickets. No internet? Print an attendance sheet, snap a photo. Context and conversation guides surface in real-time.</p>
               <div className="mp" style={{ minHeight: "160px" }}>
-                <div className="mp__icon">📱</div>
+                <div className="mp__icon"><Smartphone size={28} /></div>
                 <div className="mp__label">Screenshot</div>
                 <div className="mp__desc">Incoming call with context card — relationship history, key reminders, conversation guide.</div>
                 <div className="mp__dims">375×300 · PNG</div>
@@ -1175,7 +1196,7 @@ export default function HomePage() {
               <h3>Scrybe handles the rest</h3>
               <p>Documentation writes itself. Reports compile from real data. Tasks and follow-ups create automatically. Calendar invites schedule themselves.</p>
               <div className="mp" style={{ minHeight: "160px" }}>
-                <div className="mp__icon">⚡</div>
+                <div className="mp__icon"><Zap size={28} /></div>
                 <div className="mp__label">Screenshot</div>
                 <div className="mp__desc">Post-call output: auto-generated notes, form data filled, follow-up tasks, calendar invite sent, report updated.</div>
                 <div className="mp__dims">375×300 · PNG</div>
@@ -1186,7 +1207,7 @@ export default function HomePage() {
               <h3>Your org gets smarter</h3>
               <p>Every interaction builds the knowledge base. Best practices surface. Goal tracking alerts you when targets are hit. The org&apos;s memory never walks out the door.</p>
               <div className="mp" style={{ minHeight: "160px" }}>
-                <div className="mp__icon">🧠</div>
+                <div className="mp__icon"><Brain size={28} /></div>
                 <div className="mp__label">Screenshot</div>
                 <div className="mp__desc">Knowledge base, goal tracker at 82%, training recommendation, organizational intelligence dashboard.</div>
                 <div className="mp__dims">375×300 · PNG</div>
@@ -1225,7 +1246,7 @@ export default function HomePage() {
               </div>
             </div>
             <div className="mp" style={{ minHeight: "340px" }}>
-              <div className="mp__icon">📱</div>
+              <div className="mp__icon"><Smartphone size={28} /></div>
               <div className="mp__label">Sales Story Screenshot</div>
               <div className="mp__desc">Incoming call from &quot;David Chen, VP Eng @ Acme&quot; with context card: last call topics, personal note &quot;daughter Maya — Little League playoffs next week.&quot;</div>
               <div className="mp__dims">4:3 · 900×675 · PNG</div>
@@ -1243,7 +1264,7 @@ export default function HomePage() {
               </div>
             </div>
             <div className="mp" style={{ minHeight: "340px" }}>
-              <div className="mp__icon">📱</div>
+              <div className="mp__icon"><Smartphone size={28} /></div>
               <div className="mp__label">Nonprofit Story Screenshot</div>
               <div className="mp__desc">Client &quot;James Walker&quot; with reentry milestones, program completion (Step 3/5), grant compliance dashboard at 72%.</div>
               <div className="mp__dims">4:3 · 900×675 · PNG</div>
@@ -1261,7 +1282,7 @@ export default function HomePage() {
               </div>
             </div>
             <div className="mp" style={{ minHeight: "340px" }}>
-              <div className="mp__icon">🏥</div>
+              <div className="mp__icon"><Building2 size={28} /></div>
               <div className="mp__label">Healthcare Screenshot</div>
               <div className="mp__desc">Patient &quot;Sarah M.&quot; — session 4/6, auto-SOAP note, billing codes ready, mobility progress chart.</div>
               <div className="mp__dims">4:3 · 900×675 · PNG</div>
@@ -1279,7 +1300,7 @@ export default function HomePage() {
               </div>
             </div>
             <div className="mp" style={{ minHeight: "340px" }}>
-              <div className="mp__icon">🔬</div>
+              <div className="mp__icon"><Microscope size={28} /></div>
               <div className="mp__label">Research Screenshot</div>
               <div className="mp__desc">Participant &quot;User #7&quot; with discussion guide, live transcription, auto-tagged insights, cross-interview patterns.</div>
               <div className="mp__dims">4:3 · 900×675 · PNG</div>
@@ -1297,7 +1318,7 @@ export default function HomePage() {
               </div>
             </div>
             <div className="mp" style={{ minHeight: "340px" }}>
-              <div className="mp__icon">👥</div>
+              <div className="mp__icon"><Users size={28} /></div>
               <div className="mp__label">Manager Screenshot</div>
               <div className="mp__desc">&quot;Aisha Patel, Senior Engineer&quot; — 12 documented 1:1s, growth goals, &quot;Generate Promo Packet&quot; button.</div>
               <div className="mp__dims">4:3 · 900×675 · PNG</div>
@@ -1315,7 +1336,7 @@ export default function HomePage() {
               </div>
             </div>
             <div className="mp" style={{ minHeight: "340px" }}>
-              <div className="mp__icon">🚀</div>
+              <div className="mp__icon"><Rocket size={28} /></div>
               <div className="mp__label">Product Team Screenshot</div>
               <div className="mp__desc">Auto-generated PRD with linked standup notes, auto-detected timeline change, stakeholder notification sent.</div>
               <div className="mp__dims">4:3 · 900×675 · PNG</div>
@@ -1333,7 +1354,7 @@ export default function HomePage() {
               </div>
             </div>
             <div className="mp" style={{ minHeight: "340px" }}>
-              <div className="mp__icon">🎧</div>
+              <div className="mp__icon"><Headphones size={28} /></div>
               <div className="mp__label">Support Screenshot</div>
               <div className="mp__desc">Active support call with updated refund policy flagged, suggested responses, auto-generated ticket summary.</div>
               <div className="mp__dims">4:3 · 900×675 · PNG</div>
@@ -1351,7 +1372,7 @@ export default function HomePage() {
               </div>
             </div>
             <div className="mp" style={{ minHeight: "340px" }}>
-              <div className="mp__icon">📊</div>
+              <div className="mp__icon"><BarChart3 size={28} /></div>
               <div className="mp__label">Operations Screenshot</div>
               <div className="mp__desc">Multi-location dashboard: 12 pins, performance table, &quot;Location 7 — 40% faster. View playbook →&quot;</div>
               <div className="mp__dims">4:3 · 900×675 · PNG</div>
@@ -1369,42 +1390,42 @@ export default function HomePage() {
           </div>
           <div className="feat-grid reveal">
             <div className="feat">
-              <div className="feat__icon">🎙️</div>
+              <div className="feat__icon"><Mic2 size={22} /></div>
               <h4>Conversation Capture</h4>
               <p>Phone calls, Zoom meetings, standups, support tickets — plus paper-based sessions via photo upload.</p>
             </div>
             <div className="feat">
-              <div className="feat__icon">📝</div>
+              <div className="feat__icon"><FileText size={22} /></div>
               <h4>Auto-Documentation</h4>
               <p>Notes, case files, SOAP records, intake forms, PRDs, tech specs — generated, not typed.</p>
             </div>
             <div className="feat">
-              <div className="feat__icon">🎯</div>
+              <div className="feat__icon"><Target size={22} /></div>
               <h4>Conversation Guides</h4>
               <p>Real-time prompts, reminders, and key details — surfaced during live calls.</p>
             </div>
             <div className="feat">
-              <div className="feat__icon">📊</div>
+              <div className="feat__icon"><BarChart3 size={22} /></div>
               <h4>Reports & Goal Tracking</h4>
               <p>Grant reports, KPI dashboards, pipeline reviews. Alerts when you hit targets — even early.</p>
             </div>
             <div className="feat">
-              <div className="feat__icon">📋</div>
+              <div className="feat__icon"><ClipboardList size={22} /></div>
               <h4>Program & Session Tracking</h4>
               <p>Multi-session treatments, training programs, client journeys. Completion tracking for compliance.</p>
             </div>
             <div className="feat">
-              <div className="feat__icon">🧠</div>
+              <div className="feat__icon"><Brain size={22} /></div>
               <h4>Knowledge System</h4>
               <p>Policies, workflows, and SOPs captured from practice. Updates push org-wide instantly.</p>
             </div>
             <div className="feat">
-              <div className="feat__icon">👁️</div>
+              <div className="feat__icon"><Eye size={22} /></div>
               <h4>Workforce Intelligence</h4>
               <p>Team performance visibility without asking. Training recs from efficiency data.</p>
             </div>
             <div className="feat">
-              <div className="feat__icon">📷</div>
+              <div className="feat__icon"><Camera size={22} /></div>
               <h4>IRL-to-Digital Capture</h4>
               <p>No internet? Print attendance sheets, snap a photo. AI logs attendance and generates notes.</p>
             </div>
