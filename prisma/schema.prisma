@@ -111,6 +111,27 @@ enum CallStatus {
   FAILED
 }
 
+// PX-735: Direction for calls/interactions
+enum CallDirection {
+  INBOUND
+  OUTBOUND
+}
+
+// PX-735: Types of interactions (for unrecorded calls)
+enum InteractionType {
+  VOIP_CALL
+  IN_PERSON
+  VIDEO_CALL
+}
+
+// PX-735: Reasons why a call was not recorded
+enum UnrecordedReason {
+  CLIENT_OPT_OUT // Client pressed 2 during consent prompt
+  PRIOR_OPT_OUT // Client had previously revoked consent
+  SYSTEM_ERROR // Recording failed due to technical issue
+  CONSENT_ABANDONED // Client hung up during consent prompt
+}
+
 enum ProcessingStatus {
   PENDING
   PROCESSING
@@ -466,6 +487,9 @@ model Organization {
   // In-Person Recording Relations (PX-703)
   inPersonRecordings InPersonRecording[]
 
+  // Consent Framework Relations (PX-735)
+  interactionMetadata InteractionMetadata[]
+
   @@index([slug])
   @@index([stripeCustomerId])
 }
@@ -639,7 +663,8 @@ model User {
   clientGoalProgressRecords ClientGoalProgress[] @relation("ClientGoalProgressRecorder")
 
   // Consent Relations (PX-735)
-  revokedConsents ConsentRecord[] @relation("ConsentRevoker")
+  revokedConsents     ConsentRecord[]       @relation("ConsentRevoker")
+  interactionMetadata InteractionMetadata[] @relation("InteractionCaseManager")
 
   // Activity Feed Relations (PX-728)
   clientActivities ClientActivity[] @relation("ActivityActor")
@@ -1182,7 +1207,8 @@ model Client {
   clientGoals ClientGoal[]
 
   // Recording Consent (PX-735)
-  consentRecords ConsentRecord[]
+  consentRecords      ConsentRecord[]
+  interactionMetadata InteractionMetadata[]
 
   // Activity Feed (PX-728)
   activities ClientActivity[]
@@ -1245,6 +1271,11 @@ model Call {
   twilioCallSid      String?   @unique
   recordingUrl       String? // S3 URL
   recordingRetention DateTime? // When to delete based on org policy
+
+  // Consent tracking (PX-735)
+  isRecorded       Boolean                  @default(true)
+  consentGrantedAt DateTime?
+  consentMethod    ConsentCollectionMethod?
 
   // Transcript
   transcriptRaw  String? @db.Text
@@ -4169,6 +4200,39 @@ model StateConsentRule {
   updatedAt             DateTime         @updatedAt
 
   @@index([stateCode])
+}
+
+// PX-735: Interaction metadata for unrecorded calls
+// Logs call metadata (date, time, duration, participants) without content
+model InteractionMetadata {
+  id              String           @id @default(cuid())
+  clientId        String
+  caseManagerId   String
+  orgId           String
+
+  interactionType InteractionType  @default(VOIP_CALL)
+  direction       CallDirection    @default(OUTBOUND)
+
+  startedAt       DateTime
+  endedAt         DateTime?
+  durationSeconds Int?
+
+  // Why was it unrecorded?
+  reason          UnrecordedReason
+
+  // Optional reference to call if it started as a Call record
+  callId          String?
+
+  createdAt       DateTime         @default(now())
+
+  // Relations
+  client          Client           @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  caseManager     User             @relation("InteractionCaseManager", fields: [caseManagerId], references: [id])
+  organization    Organization     @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@index([clientId])
+  @@index([caseManagerId])
+  @@index([orgId, startedAt])
 }
 
 // PX-728: Unified Client Activity Feed

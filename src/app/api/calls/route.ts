@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth";
 import { initiateCall, listCalls, getCaseManagerCalls } from "@/lib/services/calls";
+import { getConsentStatus } from "@/lib/services/consent";
 import { UserRole } from "@/types";
-import { CallStatus } from "@prisma/client";
+import { CallStatus, ConsentType, ConsentStatus } from "@prisma/client";
+import { prisma } from "@/lib/db";
 
 /**
  * GET /api/calls - List calls
@@ -53,6 +55,10 @@ export async function GET(request: NextRequest) {
 
 /**
  * POST /api/calls - Initiate a new call
+ *
+ * Returns consent status along with call data:
+ * - consentStatus: GRANTED | REVOKED | PENDING
+ * - warning: Present if consent is REVOKED (client previously opted out)
  */
 export async function POST(request: NextRequest) {
   try {
@@ -68,6 +74,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Check consent status before initiating call (PX-735)
+    const consentResult = await getConsentStatus(clientId, ConsentType.RECORDING);
+
+    // Get client name for warning message
+    let clientName = "this client";
+    if (consentResult.status === ConsentStatus.REVOKED) {
+      const client = await prisma.client.findUnique({
+        where: { id: clientId },
+        select: { firstName: true, lastName: true },
+      });
+      if (client) {
+        clientName = `${client.firstName} ${client.lastName}`;
+      }
+    }
+
     // initiateCall uses a serializable transaction to prevent race conditions
     // It will return an existing active call if one exists
     const call = await initiateCall({
@@ -77,10 +98,35 @@ export async function POST(request: NextRequest) {
       orgId: user.orgId,
     });
 
-    return NextResponse.json({
+    // Build response with consent info
+    const response: {
+      success: boolean;
+      data: typeof call;
+      consentStatus: ConsentStatus;
+      needsConsentPrompt: boolean;
+      warning?: {
+        type: string;
+        message: string;
+        clientName: string;
+        revokedAt?: string;
+      };
+    } = {
       success: true,
       data: call,
-    });
+      consentStatus: consentResult.status,
+      needsConsentPrompt: consentResult.status === ConsentStatus.PENDING,
+    };
+
+    // Add warning if consent was revoked
+    if (consentResult.status === ConsentStatus.REVOKED) {
+      response.warning = {
+        type: "CONSENT_REVOKED",
+        message: `${clientName} has opted out of recording. This call will not be recorded.`,
+        clientName,
+      };
+    }
+
+    return NextResponse.json(response);
   } catch (error) {
     console.error("Error initiating call:", error);
 
