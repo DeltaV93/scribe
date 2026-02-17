@@ -3,6 +3,7 @@ import { requireAuth } from "@/lib/auth";
 import { createForm, listForms } from "@/lib/services/forms";
 import { FormType, FormStatus } from "@/types";
 import { z } from "zod";
+import { checkApiPermission } from "@/lib/rbac";
 
 // Validation schema for creating a form
 const createFormSchema = z.object({
@@ -28,11 +29,10 @@ export async function GET(request: NextRequest) {
   try {
     const user = await requireAuth();
 
-    if (!user.permissions.canReadForms) {
-      return NextResponse.json(
-        { error: { code: "FORBIDDEN", message: "You do not have permission to view forms" } },
-        { status: 403 }
-      );
+    // RBAC: Check read permission
+    const permissionCheck = await checkApiPermission(user, "forms", "read");
+    if (!permissionCheck.allowed) {
+      return permissionCheck.response;
     }
 
     // Parse query parameters
@@ -72,11 +72,10 @@ export async function POST(request: NextRequest) {
   try {
     const user = await requireAuth();
 
-    if (!user.permissions.canCreateForms) {
-      return NextResponse.json(
-        { error: { code: "FORBIDDEN", message: "You do not have permission to create forms" } },
-        { status: 403 }
-      );
+    // RBAC: Check create permission
+    const permissionCheck = await checkApiPermission(user, "forms", "create");
+    if (!permissionCheck.allowed) {
+      return permissionCheck.response;
     }
 
     const body = await request.json();

@@ -34,18 +34,29 @@ import type { SessionUser } from "@/types";
 import { UserRole } from "@/types";
 import { Badge } from "@/components/ui/badge";
 import { NotificationBell } from "@/components/notifications";
+import {
+  Resource,
+  Action,
+  hasPermission,
+  isAdminRole,
+} from "@/lib/rbac/permissions";
 
 interface SidebarProps {
   user: SessionUser;
 }
 
-// PX-729: Role-based navigation access
-// Define which roles can access each nav item
-// If allowedRoles is undefined, all roles can access
+// RBAC-based navigation access
+// Uses permission-based filtering instead of role lists
 interface NavItem {
   title: string;
   href: string;
   icon: React.ComponentType<{ className?: string }>;
+  // Permission-based access (preferred)
+  requiredPermission?: {
+    resource: Resource;
+    action: Action;
+  };
+  // Legacy: role-based access (kept for backwards compatibility)
   allowedRoles?: UserRole[];
   excludedRoles?: UserRole[];
 }
@@ -55,53 +66,49 @@ const navItems: NavItem[] = [
     title: "Dashboard",
     href: "/dashboard",
     icon: LayoutDashboard,
-    // All roles can access dashboard
+    // All authenticated users can access dashboard
   },
   {
     title: "Forms",
     href: "/forms",
     icon: FileText,
-    // Facilitators don't create/manage forms, they focus on programs
-    excludedRoles: [UserRole.FACILITATOR],
+    requiredPermission: { resource: "forms", action: "read" },
   },
   {
     title: "Clients",
     href: "/clients",
     icon: Users,
-    // Facilitators can only see program enrollees, not full client list
-    excludedRoles: [UserRole.FACILITATOR],
+    requiredPermission: { resource: "clients", action: "read" },
   },
   {
     title: "Programs",
     href: "/programs",
     icon: GraduationCap,
-    // All roles can access programs (facilitators see only their assigned)
+    requiredPermission: { resource: "programs", action: "read" },
   },
   {
     title: "Calls",
     href: "/calls",
     icon: Phone,
-    // Facilitators don't have VoIP access
-    excludedRoles: [UserRole.FACILITATOR, UserRole.VIEWER],
+    requiredPermission: { resource: "calls", action: "read" },
   },
   {
     title: "Action Items",
     href: "/action-items",
     icon: ListChecks,
-    // All roles can access action items
+    // All roles can access action items (no permission required)
   },
   {
     title: "Goals",
     href: "/goals",
     icon: Target,
-    // Facilitators focus on program delivery, not org-wide goals
-    excludedRoles: [UserRole.FACILITATOR, UserRole.VIEWER],
+    requiredPermission: { resource: "goals", action: "read" },
   },
   {
     title: "Reminders",
     href: "/reminders",
     icon: Bell,
-    // All roles can access reminders
+    // All roles can access reminders (no permission required)
   },
 ];
 
@@ -110,22 +117,32 @@ const bottomNavItems: NavItem[] = [
     title: "Settings",
     href: "/settings",
     icon: Settings,
-    // All roles can access their settings
+    // All roles can access their own settings
   },
   {
     title: "Billing",
     href: "/billing",
     icon: CreditCard,
-    // Only admins can access billing
-    allowedRoles: [UserRole.SUPER_ADMIN, UserRole.ADMIN],
+    requiredPermission: { resource: "billing", action: "read" },
   },
 ];
 
 /**
- * Filter nav items based on user role (PX-729)
+ * Filter nav items based on user permissions (RBAC)
+ * Falls back to role-based filtering for legacy items
  */
 function filterNavItems(items: NavItem[], userRole: UserRole): NavItem[] {
   return items.filter((item) => {
+    // Permission-based check (preferred)
+    if (item.requiredPermission) {
+      return hasPermission(
+        userRole,
+        item.requiredPermission.resource,
+        item.requiredPermission.action
+      );
+    }
+
+    // Legacy: role-based access
     // If allowedRoles is defined, user must be in the list
     if (item.allowedRoles && !item.allowedRoles.includes(userRole)) {
       return false;
@@ -143,7 +160,8 @@ export function Sidebar({ user }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
   const [pendingRequestCount, setPendingRequestCount] = useState(0);
 
-  const isAdmin = user.role === "ADMIN" || user.role === "SUPER_ADMIN";
+  // Use RBAC to check admin status
+  const isAdmin = isAdminRole(user.role as UserRole);
 
   // PX-729: Filter navigation items based on user role
   const filteredNavItems = filterNavItems(navItems, user.role as UserRole);

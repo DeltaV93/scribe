@@ -90,6 +90,14 @@ enum UserRole {
   VIEWER
 }
 
+// RBAC: Role within a specific program (PX-XXX: RBAC Implementation)
+enum ProgramMemberRole {
+  MANAGER // Full program management
+  FACILITATOR // Session facilitation
+  CASE_MANAGER // Client-focused work
+  VIEWER // Read-only access
+}
+
 // ============================================
 // CLIENT & CALL ENUMS (Spec-2)
 // ============================================
@@ -490,6 +498,9 @@ model Organization {
   // Consent Framework Relations (PX-735)
   interactionMetadata InteractionMetadata[]
 
+  // RBAC Relations
+  settingsDelegations SettingsDelegation[]
+
   @@index([slug])
   @@index([stripeCustomerId])
 }
@@ -682,6 +693,13 @@ model User {
 
   // Case Manager Profile relation
   caseManagerProfile CaseManagerProfile?
+
+  // RBAC Relations
+  programMemberships       ProgramMember[]        @relation("ProgramMembership")
+  assignedProgramMembers   ProgramMember[]        @relation("ProgramMemberAssigner")
+  delegatedSettings        SettingsDelegation[]   @relation("DelegatedSettings")
+  settingsDelegatedByMe    SettingsDelegation[]   @relation("SettingsDelegator")
+  permissionDenials        PermissionDenialLog[]  @relation("PermissionDenials")
 
   @@index([orgId])
   @@index([email])
@@ -1597,6 +1615,9 @@ model Program {
   goalLinks   GoalProgramLink[]
   kpiLinks    KpiProgramLink[]
   clientGoals ClientGoal[]
+
+  // RBAC Relations
+  members ProgramMember[]
 
   @@index([orgId, status])
   @@index([facilitatorId])
@@ -4269,4 +4290,80 @@ model ClientActivity {
   @@index([actorId])
   @@index([sourceType, sourceId])
   @@index([activityType])
+}
+
+// ============================================
+// ROLE-BASED ACCESS CONTROL (RBAC)
+// ============================================
+
+// Multi-user program assignment with program-specific roles
+model ProgramMember {
+  id                 String            @id @default(uuid())
+  programId          String
+  userId             String
+  role               ProgramMemberRole @default(CASE_MANAGER)
+  canEditEnrollments Boolean           @default(false)
+  canEditAttendance  Boolean           @default(true)
+  canViewAllClients  Boolean           @default(false) // vs only session attendees
+  assignedAt         DateTime          @default(now())
+  assignedBy         String?
+  notes              String?
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+
+  // Relations
+  program  Program @relation(fields: [programId], references: [id], onDelete: Cascade)
+  user     User    @relation("ProgramMembership", fields: [userId], references: [id], onDelete: Cascade)
+  assigner User?   @relation("ProgramMemberAssigner", fields: [assignedBy], references: [id])
+
+  @@unique([programId, userId])
+  @@index([programId])
+  @@index([userId])
+  @@index([role])
+}
+
+// Admin can delegate specific settings access to non-admin users
+model SettingsDelegation {
+  id                    String    @id @default(uuid())
+  orgId                 String
+  userId                String
+  canManageBilling      Boolean   @default(false)
+  canManageTeam         Boolean   @default(false)
+  canManageIntegrations Boolean   @default(false)
+  canManageBranding     Boolean   @default(false)
+  delegatedBy           String
+  delegatedAt           DateTime  @default(now())
+  expiresAt             DateTime? // Optional expiration
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  // Relations
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  user         User         @relation("DelegatedSettings", fields: [userId], references: [id], onDelete: Cascade)
+  delegator    User         @relation("SettingsDelegator", fields: [delegatedBy], references: [id])
+
+  @@unique([orgId, userId])
+  @@index([orgId])
+  @@index([userId])
+}
+
+// Log repeated permission denials for security monitoring
+model PermissionDenialLog {
+  id         String   @id @default(uuid())
+  orgId      String
+  userId     String
+  resource   String // e.g., "clients", "forms", "admin"
+  action     String // e.g., "create", "read", "update", "delete"
+  resourceId String? // Specific resource ID if applicable
+  reason     String // Why access was denied
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+
+  // Relations
+  user User @relation("PermissionDenials", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([orgId, userId])
+  @@index([orgId, resource, action])
+  @@index([createdAt])
 }

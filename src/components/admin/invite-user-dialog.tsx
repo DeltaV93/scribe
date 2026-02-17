@@ -36,10 +36,11 @@ interface InviteUserDialogProps {
 }
 
 const ROLES = [
-  { value: "CASE_MANAGER", label: "Case Manager", description: "Can work with clients and use forms" },
-  { value: "PROGRAM_MANAGER", label: "Program Manager", description: "Can create and manage forms" },
+  { value: "VIEWER", label: "Viewer", description: "Read-only access (most restrictive)" },
+  { value: "CASE_MANAGER", label: "Case Manager", description: "Can work with assigned clients and use forms" },
+  { value: "FACILITATOR", label: "Facilitator", description: "Session facilitation and attendance" },
+  { value: "PROGRAM_MANAGER", label: "Program Manager", description: "Can manage programs and forms" },
   { value: "ADMIN", label: "Administrator", description: "Full organization access" },
-  { value: "VIEWER", label: "Viewer", description: "Read-only access" },
 ];
 
 export function InviteUserDialog({
@@ -51,14 +52,14 @@ export function InviteUserDialog({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
-  const [role, setRole] = useState("CASE_MANAGER");
+  const [role, setRole] = useState("VIEWER");
   const [teamId, setTeamId] = useState<string>("");
   const [maxCaseload, setMaxCaseload] = useState<string>("");
 
   const resetForm = () => {
     setEmail("");
     setName("");
-    setRole("CASE_MANAGER");
+    setRole("VIEWER");
     setTeamId("");
     setMaxCaseload("");
   };

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getCurrentUser, isAdmin } from "@/lib/auth";
+import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { requireAdminRole } from "@/lib/rbac";
 
 /**
  * GET /api/admin/settings
@@ -14,8 +15,10 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    if (!isAdmin(user)) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    // RBAC: Require admin role
+    const adminCheck = await requireAdminRole(user);
+    if (!adminCheck.allowed) {
+      return adminCheck.response;
     }
 
     const org = await prisma.organization.findUnique({
@@ -58,8 +61,10 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    if (!isAdmin(user)) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    // RBAC: Require admin role
+    const adminCheck = await requireAdminRole(user);
+    if (!adminCheck.allowed) {
+      return adminCheck.response;
     }
 
     const body = await request.json();

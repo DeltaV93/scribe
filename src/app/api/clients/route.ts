@@ -5,6 +5,7 @@ import { ClientStatus } from "@prisma/client";
 import { UserRole } from "@/types";
 import { z } from "zod";
 import { filterClientsForUser } from "@/lib/services/response-filter";
+import { checkApiPermission, checkScopedPermission } from "@/lib/rbac";
 
 // Validation schema for creating a client
 const createClientSchema = z.object({
@@ -48,6 +49,12 @@ const createClientSchema = z.object({
 export async function GET(request: NextRequest) {
   try {
     const user = await requireAuth();
+
+    // RBAC: Check read permission
+    const permissionCheck = await checkApiPermission(user, "clients", "read");
+    if (!permissionCheck.allowed) {
+      return permissionCheck.response;
+    }
 
     // Parse query parameters
     const { searchParams } = new URL(request.url);
@@ -108,12 +115,10 @@ export async function POST(request: NextRequest) {
   try {
     const user = await requireAuth();
 
-    // Only case managers, program managers, and admins can create clients
-    if (user.role === UserRole.VIEWER) {
-      return NextResponse.json(
-        { error: { code: "FORBIDDEN", message: "You do not have permission to create clients" } },
-        { status: 403 }
-      );
+    // RBAC: Check create permission
+    const permissionCheck = await checkApiPermission(user, "clients", "create");
+    if (!permissionCheck.allowed) {
+      return permissionCheck.response;
     }
 
     const body = await request.json();

@@ -9,6 +9,7 @@ import { ProgramStatsCard } from "@/components/programs/program-stats-card";
 import { SessionsTab } from "@/components/programs/sessions-tab";
 import { EnrollmentsTab } from "@/components/programs/enrollments-tab";
 import { MaterialsTab } from "@/components/programs/materials-tab";
+import { ProgramMembersTab } from "@/components/programs/program-members-tab";
 import { ProgramAttendanceDashboard } from "@/components/attendance/reports/program-attendance-dashboard";
 import { ProgramLabelType, ProgramStatus } from "@prisma/client";
 import {
@@ -192,6 +193,9 @@ export default function ProgramDetailPage() {
           <TabsTrigger value="materials">
             Materials ({program._count?.materials || 0})
           </TabsTrigger>
+          <TabsTrigger value="team">
+            Team
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="sessions">
@@ -208,6 +212,10 @@ export default function ProgramDetailPage() {
 
         <TabsContent value="materials">
           <MaterialsTab programId={programId} programName={program.name} />
+        </TabsContent>
+
+        <TabsContent value="team">
+          <ProgramMembersTab programId={programId} />
         </TabsContent>
       </Tabs>
     </div>

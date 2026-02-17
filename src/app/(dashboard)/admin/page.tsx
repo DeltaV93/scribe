@@ -7,6 +7,7 @@ import { PhoneNumbersTab } from "@/components/admin/phone-numbers-tab";
 import { UsersTab } from "@/components/admin/users-tab";
 import { TeamManagementTab } from "@/components/admin/team-management-tab";
 import { SettingsTab } from "@/components/admin/settings-tab";
+import { SettingsDelegationTab } from "@/components/admin/settings-delegation-tab";
 import { PhoneCostCard } from "@/components/admin/phone-cost-card";
 import { NoteApprovalsTab } from "@/components/admin/note-approvals-tab";
 import { Button } from "@/components/ui/button";
@@ -163,6 +164,7 @@ export default function AdminPage() {
             )}
           </TabsTrigger>
           <TabsTrigger value="settings">Settings</TabsTrigger>
+          <TabsTrigger value="delegation">Delegation</TabsTrigger>
         </TabsList>
 
         <TabsContent value="team">
@@ -190,6 +192,10 @@ export default function AdminPage() {
 
         <TabsContent value="settings">
           <SettingsTab />
+        </TabsContent>
+
+        <TabsContent value="delegation">
+          <SettingsDelegationTab />
         </TabsContent>
       </Tabs>
     </div>

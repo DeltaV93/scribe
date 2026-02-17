@@ -6,6 +6,7 @@ import { checkAccess, canEditClient } from "@/lib/services/client-sharing";
 import { ClientStatus } from "@prisma/client";
 import { UserRole } from "@/types";
 import { z } from "zod";
+import { checkScopedPermission } from "@/lib/rbac";
 
 // Validation schema for updating a client
 const updateClientSchema = z.object({
@@ -110,6 +111,14 @@ export async function PATCH(request: NextRequest, context: ClientRouteContext) {
     const user = await requireAuth();
     const { clientId } = await context.params;
 
+    // RBAC: Check update permission with client scope
+    const permissionCheck = await checkScopedPermission(user, "clients", "update", {
+      clientId,
+    });
+    if (!permissionCheck.allowed) {
+      return permissionCheck.response;
+    }
+
     // Check client exists and user has access
     const existingClient = await getClientById(clientId, user.orgId);
 
@@ -120,15 +129,7 @@ export async function PATCH(request: NextRequest, context: ClientRouteContext) {
       );
     }
 
-    // Viewers cannot update
-    if (user.role === UserRole.VIEWER) {
-      return NextResponse.json(
-        { error: { code: "FORBIDDEN", message: "You do not have permission to update clients" } },
-        { status: 403 }
-      );
-    }
-
-    // Case managers: check if owner or has EDIT/FULL share permission
+    // Case managers: additional check for EDIT/FULL share permission
     if (user.role === UserRole.CASE_MANAGER) {
       const canEdit = await canEditClient(clientId, user.id, user.orgId);
       if (!canEdit) {
@@ -190,12 +191,12 @@ export async function DELETE(request: NextRequest, context: ClientRouteContext) 
     const user = await requireAuth();
     const { clientId } = await context.params;
 
-    // Only admins can delete clients
-    if (user.role !== UserRole.SUPER_ADMIN && user.role !== UserRole.ADMIN) {
-      return NextResponse.json(
-        { error: { code: "FORBIDDEN", message: "Only administrators can delete clients" } },
-        { status: 403 }
-      );
+    // RBAC: Check delete permission
+    const permissionCheck = await checkScopedPermission(user, "clients", "delete", {
+      clientId,
+    });
+    if (!permissionCheck.allowed) {
+      return permissionCheck.response;
     }
 
     const existingClient = await getClientById(clientId, user.orgId);
