@@ -198,18 +198,6 @@ async function verifyUserRoles() {
     console.log(`  ${roleGroup.role}: ${roleGroup._count.id} users`);
   }
 
-  // Check for any users without a role
-  const usersWithoutRole = await prisma.user.count({
-    where: {
-      isActive: true,
-      role: null as unknown as undefined, // Type workaround for null check
-    },
-  });
-
-  if (usersWithoutRole > 0) {
-    console.log(`\n  WARNING: ${usersWithoutRole} active users have no role assigned!`);
-  }
-
   console.log("");
   return usersByRole;
 }
