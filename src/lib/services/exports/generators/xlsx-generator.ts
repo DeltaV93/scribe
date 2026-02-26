@@ -41,7 +41,7 @@ export class XLSXExportGenerator extends BaseExportGenerator {
     const workbook = new ExcelJS.Workbook();
 
     // Set workbook properties
-    workbook.creator = "Scrybe";
+    workbook.creator = "Inkra";
     workbook.created = new Date();
     workbook.modified = new Date();
 
@@ -178,7 +178,7 @@ export class CalGrantsGenerator extends XLSXExportGenerator {
     const ExcelJS = await getExcelJS();
     const workbook = new ExcelJS.Workbook();
 
-    workbook.creator = "Scrybe - CalGrants Export";
+    workbook.creator = "Inkra - CalGrants Export";
     workbook.created = new Date();
 
     // Main data worksheet

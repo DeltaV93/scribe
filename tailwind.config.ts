@@ -19,7 +19,7 @@ const config: Config = {
       fontFamily: {
         // Inter-only typography for enterprise signal
         sans: ["var(--font-inter)", "system-ui", "-apple-system", "Segoe UI", "Roboto", "Helvetica", "Arial", "sans-serif"],
-        mono: ["ui-monospace", "SFMono-Regular", "Menlo", "Monaco", "Consolas", "Liberation Mono", "monospace"],
+        mono: ["SF Mono", "Fira Code", "Consolas", "ui-monospace", "SFMono-Regular", "Menlo", "Monaco", "Liberation Mono", "monospace"],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -63,9 +63,12 @@ const config: Config = {
           DEFAULT: "hsl(var(--warning))",
           foreground: "hsl(var(--warning-foreground))",
         },
-        // SCRYBE Calm Infrastructure Palette
+        // INKRA Design System - 4-Color Pen
         ink: {
           DEFAULT: "var(--ink)",
+          soft: "var(--ink-soft)",
+          muted: "var(--ink-muted)",
+          faint: "var(--ink-faint)",
           90: "var(--ink-90)",
           80: "var(--ink-80)",
           70: "var(--ink-70)",
@@ -75,44 +78,77 @@ const config: Config = {
           12: "var(--ink-12)",
           "08": "var(--ink-08)",
         },
-        paper: "var(--paper)",
-        stone: "var(--stone)",
-        moss: "var(--moss)",
-        gold: "var(--gold)",
+        paper: {
+          DEFAULT: "var(--paper)",
+          warm: "var(--paper-warm)",
+          dim: "var(--paper-dim)",
+        },
+        "ink-blue": {
+          DEFAULT: "var(--ink-blue)",
+          mid: "var(--ink-blue-mid)",
+          light: "var(--ink-blue-light)",
+          wash: "var(--ink-blue-wash)",
+          ghost: "var(--ink-blue-ghost)",
+        },
+        "ink-red": {
+          DEFAULT: "var(--ink-red)",
+          wash: "var(--ink-red-wash)",
+        },
+        "ink-green": {
+          DEFAULT: "var(--ink-green)",
+          wash: "var(--ink-green-wash)",
+        },
+        "ink-amber": {
+          DEFAULT: "var(--ink-amber)",
+          wash: "var(--ink-amber-wash)",
+        },
       },
       borderRadius: {
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
-        // SCRYBE radii
-        r8: "8px",
+        lg: "var(--radius-lg)",
+        md: "var(--radius-md)",
+        sm: "var(--radius-sm)",
+        // INKRA radii
+        r6: "6px",
         r10: "10px",
-        r12: "12px",
         r14: "14px",
-        r18: "18px",
       },
       boxShadow: {
-        // SCRYBE shadows
-        "scrybe-sm": "0 8px 20px rgba(17,17,17,.06)",
-        "scrybe-md": "0 12px 40px rgba(17,17,17,.08)",
+        // INKRA shadows
+        "inkra-sm": "var(--shadow-sm)",
+        "inkra-md": "var(--shadow-md)",
+        "inkra-lg": "var(--shadow-lg)",
       },
       spacing: {
-        // SCRYBE spacing scale (8pt base + 4pt micro)
+        // INKRA spacing scale (8pt base + 4pt micro)
         s2: "2px",
         s4: "4px",
+        s6: "6px",
         s8: "8px",
+        s10: "10px",
         s12: "12px",
+        s14: "14px",
         s16: "16px",
+        s18: "18px",
         s20: "20px",
         s24: "24px",
         s32: "32px",
         s40: "40px",
         s48: "48px",
         s64: "64px",
+        s80: "80px",
         s96: "96px",
       },
       maxWidth: {
-        scrybe: "1120px",
+        inkra: "1120px",
+      },
+      transitionTimingFunction: {
+        "ease-out": "var(--ease-out)",
+        "ease-soft": "var(--ease-soft)",
+      },
+      transitionDuration: {
+        fast: "var(--duration-fast)",
+        normal: "var(--duration-normal)",
+        slow: "var(--duration-slow)",
       },
       keyframes: {
         "accordion-down": {
@@ -131,12 +167,17 @@ const config: Config = {
           "0%, 100%": { opacity: "1" },
           "50%": { opacity: "0.7" },
         },
+        "recording-pulse": {
+          "0%, 100%": { boxShadow: "0 0 0 2px var(--ink-red), 0 0 0 6px rgba(179,71,71,0.15)" },
+          "50%": { boxShadow: "0 0 0 2px var(--ink-red), 0 0 0 14px rgba(179,71,71,0.08)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         "spin-slow": "spin-slow 2s linear infinite",
         "pulse-subtle": "pulse-subtle 2s ease-in-out infinite",
+        "recording-pulse": "recording-pulse 2s ease-in-out infinite",
       },
     },
   },

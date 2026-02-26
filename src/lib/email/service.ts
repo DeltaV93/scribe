@@ -144,7 +144,7 @@ export async function sendBulkEmail(
  * Generate a basic email wrapper
  */
 export function wrapEmailContent(content: string, options?: { title?: string }): string {
-  const title = options?.title || "Scrybe Notification";
+  const title = options?.title || "Inkra Notification";
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://app.scribe.app";
 
   return `
@@ -163,7 +163,7 @@ export function wrapEmailContent(content: string, options?: { title?: string }):
           <!-- Header -->
           <tr>
             <td style="background-color: #1a1a2e; padding: 24px 32px;">
-              <img src="${appUrl}/logo-white.png" alt="Scrybe" style="height: 32px;" />
+              <img src="${appUrl}/logo-white.png" alt="Inkra" style="height: 32px;" />
             </td>
           </tr>
 
@@ -178,7 +178,7 @@ export function wrapEmailContent(content: string, options?: { title?: string }):
           <tr>
             <td style="padding: 24px 32px; background-color: #f9fafb; border-top: 1px solid #e5e7eb;">
               <p style="margin: 0; font-size: 14px; color: #666;">
-                This is an automated notification from Scrybe.
+                This is an automated notification from Inkra.
               </p>
             </td>
           </tr>

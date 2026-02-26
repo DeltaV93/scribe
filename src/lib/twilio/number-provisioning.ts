@@ -108,7 +108,7 @@ export async function provisionNumberForUser(
   const purchasedNumber = await client.incomingPhoneNumbers.create({
     phoneNumber: numberToPurchase,
     voiceApplicationSid: twimlAppSid,
-    friendlyName: `Scrybe - User ${userId}`,
+    friendlyName: `Inkra - User ${userId}`,
   });
 
   // Save to database

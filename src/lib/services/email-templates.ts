@@ -90,7 +90,7 @@ const BASE_STYLES = `
     overflow: hidden;
   }
   .header {
-    background-color: #4F46E5;
+    background-color: #1B2A4A;
     padding: 24px;
     text-align: center;
   }
@@ -118,7 +118,7 @@ const BASE_STYLES = `
   }
   .message-box {
     background-color: #f9fafb;
-    border-left: 4px solid #4F46E5;
+    border-left: 4px solid #1B2A4A;
     padding: 16px;
     margin: 24px 0;
     border-radius: 0 4px 4px 0;
@@ -129,7 +129,7 @@ const BASE_STYLES = `
   }
   .button {
     display: inline-block;
-    background-color: #4F46E5;
+    background-color: #1B2A4A;
     color: #ffffff !important;
     text-decoration: none;
     padding: 12px 24px;
@@ -138,7 +138,7 @@ const BASE_STYLES = `
     margin: 16px 0;
   }
   .button:hover {
-    background-color: #4338CA;
+    background-color: #2F3A59;
   }
   .details {
     background-color: #f9fafb;
@@ -179,7 +179,7 @@ const BASE_STYLES = `
     margin: 0 0 8px 0;
   }
   .footer a {
-    color: #4F46E5;
+    color: #1B2A4A;
     text-decoration: none;
   }
   .signature {
@@ -201,7 +201,7 @@ function wrapTemplate(content: string, logoUrl?: string, orgName?: string): stri
     ? `<img src="${logoUrl}" alt="${orgName || 'Organization'} Logo" />`
     : orgName
       ? `<h1>${orgName}</h1>`
-      : `<h1>Scrybe</h1>`;
+      : `<h1>Inkra</h1>`;
 
   return `
 <!DOCTYPE html>
@@ -221,8 +221,8 @@ function wrapTemplate(content: string, logoUrl?: string, orgName?: string): stri
         ${content}
       </div>
       <div class="footer">
-        <p>This email was sent by ${orgName || "Scrybe"}</p>
-        <p>Powered by <a href="https://scrybe.app">Scrybe</a></p>
+        <p>This email was sent by ${orgName || "Inkra"}</p>
+        <p>Powered by <a href="https://inkra.io">Inkra</a></p>
       </div>
     </div>
   </div>

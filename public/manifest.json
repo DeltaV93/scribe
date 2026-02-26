@@ -1,13 +1,13 @@
 {
-  "name": "Scrybe",
-  "short_name": "Scrybe",
-  "description": "AI-powered platform for social services, nonprofits, and grant-funded organizations",
+  "name": "Inkra",
+  "short_name": "Inkra",
+  "description": "Conversation-to-Work Platform. Turn conversations into structured work automatically.",
   "start_url": "/dashboard",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait-primary",
-  "background_color": "#ffffff",
-  "theme_color": "#0f172a",
+  "background_color": "#FAFAF8",
+  "theme_color": "#1B2A4A",
   "categories": ["productivity", "business", "utilities"],
   "icons": [
     {

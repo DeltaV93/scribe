@@ -203,10 +203,10 @@ export function Sidebar({ user }: SidebarProps) {
             <Link href="/dashboard" className="flex items-center gap-2">
               <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
                 <span className="text-primary-foreground font-bold text-lg">
-                  S
+                  I
                 </span>
               </div>
-              <span className="font-semibold text-xl">Scrybe</span>
+              <span className="font-semibold text-xl">Inkra</span>
             </Link>
           )}
           <Button

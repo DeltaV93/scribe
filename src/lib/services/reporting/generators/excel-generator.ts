@@ -38,7 +38,7 @@ export async function generateReportExcel(
 ): Promise<Buffer> {
   const workbook = new ExcelJS.Workbook();
 
-  workbook.creator = "Scrybe";
+  workbook.creator = "Inkra";
   workbook.created = new Date();
   workbook.modified = new Date();
   workbook.title = data.reportName;

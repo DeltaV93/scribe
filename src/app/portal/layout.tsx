@@ -3,13 +3,13 @@ import { Suspense } from "react";
 import { FathomProvider } from "@/components/portal/fathom-provider";
 
 export const metadata: Metadata = {
-  title: "Client Portal | Scrybe",
+  title: "Client Portal | Inkra",
   description: "Secure client portal for messages and program tracking",
   manifest: "/portal-manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Scrybe Portal",
+    title: "Inkra Portal",
   },
 };
 

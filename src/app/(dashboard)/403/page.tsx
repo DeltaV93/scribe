@@ -3,7 +3,7 @@ import { requireAuth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 
 export const metadata = {
-  title: "Access Denied | Scrybe",
+  title: "Access Denied | Inkra",
 };
 
 interface Props {

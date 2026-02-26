@@ -1,11 +1,11 @@
 {
-  "name": "Scrybe Client Portal",
+  "name": "Inkra Client Portal",
   "short_name": "Portal",
   "description": "Secure client portal for messages and program tracking",
   "start_url": "/portal",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#0ea5e9",
+  "background_color": "#FAFAF8",
+  "theme_color": "#1B2A4A",
   "orientation": "portrait-primary",
   "icons": [
     {

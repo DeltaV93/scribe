@@ -61,12 +61,20 @@ export default function HomePage() {
     <>
       <style jsx global>{`
         :root {
-          /* SCRYBE Calm Infrastructure Palette */
+          /* INKRA Design System — 4-Color Pen */
           --ink: #111111;
+          --ink-soft: #3A3A3A;
+          --ink-muted: #6B6B6B;
           --paper: #FAFAF8;
-          --stone: #E7E5E0;
-          --moss: #2F5D50;
-          --gold: #C2A86B;
+          --paper-warm: #F5F4F0;
+          --paper-dim: #EEEDEA;
+          --border: #DADAD7;
+          --border-light: #E8E8E5;
+
+          /* Ink Blue - Primary Accent */
+          --ink-blue: #1B2A4A;
+          --ink-blue-mid: #2F3A59;
+          --ink-blue-wash: rgba(27, 42, 74, 0.08);
 
           /* Ink opacity variants */
           --ink-80: rgba(17,17,17,.80);
@@ -75,24 +83,32 @@ export default function HomePage() {
           --ink-12: rgba(17,17,17,.12);
           --ink-08: rgba(17,17,17,.08);
 
-          /* Semantic colors */
-          --success: #3D7A63;
-          --error: #A94A4A;
-          --warning: #B0893B;
-          --info: #4A6FA9;
+          /* 4-Color Pen Semantic */
+          --ink-green: #3F6F5A;
+          --ink-red: #B34747;
+          --ink-amber: #B26A00;
+          --success: #3F6F5A;
+          --error: #B34747;
+          --warning: #B26A00;
 
           /* Typography - Inter only */
           --font: "Inter", var(--font-inter), system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
-          --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+          --mono: 'SF Mono', 'Fira Code', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 
           /* Radii */
+          --r6: 6px;
           --r10: 10px;
           --r14: 14px;
-          --r18: 18px;
 
           /* Shadows */
-          --shadow-sm: 0 8px 20px rgba(17,17,17,.06);
-          --shadow-md: 0 12px 40px rgba(17,17,17,.08);
+          --shadow-sm: 0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02);
+          --shadow-md: 0 4px 12px rgba(0,0,0,0.06);
+          --shadow-lg: 0 12px 40px rgba(0,0,0,0.08);
+
+          /* Motion */
+          --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+          --duration-fast: 120ms;
+          --duration-normal: 240ms;
         }
 
         *, *::before, *::after {
@@ -131,12 +147,12 @@ export default function HomePage() {
           font-weight: 500;
           letter-spacing: 0.12em;
           text-transform: uppercase;
-          color: var(--moss);
+          color: var(--ink-blue);
         }
 
         @keyframes pulse {
-          0%, 100% { box-shadow: 0 0 6px rgba(61, 122, 99, 0.4); }
-          50% { box-shadow: 0 0 14px rgba(61, 122, 99, 0.6); }
+          0%, 100% { box-shadow: 0 0 6px rgba(63, 111, 90, 0.4); }
+          50% { box-shadow: 0 0 14px rgba(63, 111, 90, 0.6); }
         }
 
         /* NAV */
@@ -189,7 +205,7 @@ export default function HomePage() {
         }
 
         .nav__dot::after {
-          content: 'S';
+          content: 'I';
         }
 
         .nav__cta {
@@ -265,7 +281,7 @@ export default function HomePage() {
           font-weight: 600;
           letter-spacing: 0.1em;
           text-transform: uppercase;
-          color: var(--moss);
+          color: var(--ink-blue);
           margin-bottom: 5px;
         }
 
@@ -311,7 +327,7 @@ export default function HomePage() {
 
         .hero-out h1 em {
           font-style: italic;
-          color: var(--moss);
+          color: var(--ink-blue);
         }
 
         .hero-out__sub {
@@ -367,7 +383,7 @@ export default function HomePage() {
         }
 
         .outcome:hover {
-          border-color: var(--moss);
+          border-color: var(--ink-blue);
           transform: translateY(-2px);
           box-shadow: var(--shadow-md);
         }
@@ -375,7 +391,7 @@ export default function HomePage() {
         .outcome__arrow {
           font-family: var(--mono);
           font-size: 10px;
-          color: var(--moss);
+          color: var(--ink-blue);
           margin-bottom: 6px;
           letter-spacing: 0.08em;
         }
@@ -419,7 +435,7 @@ export default function HomePage() {
         .trust__badge {
           font-size: 12px;
           font-weight: 600;
-          color: var(--moss);
+          color: var(--ink-blue);
           display: flex;
           align-items: center;
           gap: 5px;
@@ -436,7 +452,7 @@ export default function HomePage() {
           border-radius: 4px;
           background: rgba(47,93,80,.08);
           font-size: 9px;
-          color: var(--moss);
+          color: var(--ink-blue);
         }
 
         /* SOCIAL PROOF */
@@ -466,7 +482,7 @@ export default function HomePage() {
         .proof__attr {
           font-family: var(--mono);
           font-size: 11px;
-          color: var(--moss);
+          color: var(--ink-blue);
           margin-top: 14px;
         }
 
@@ -500,7 +516,7 @@ export default function HomePage() {
 
         .pain__header h2 em {
           font-style: italic;
-          color: var(--moss);
+          color: var(--ink-blue);
         }
 
         .pain-row {
@@ -573,7 +589,7 @@ export default function HomePage() {
           font-family: var(--mono);
           font-size: 11px;
           font-weight: 600;
-          color: var(--moss);
+          color: var(--ink-blue);
           letter-spacing: 0.08em;
           margin-bottom: 12px;
         }
@@ -597,7 +613,7 @@ export default function HomePage() {
         /* STORIES */
         .stories {
           padding: 100px 0;
-          background: var(--stone);
+          background: var(--border);
         }
 
         .stories__header {
@@ -639,7 +655,7 @@ export default function HomePage() {
         .story-tab:hover,
         .story-tab.active {
           color: var(--ink);
-          border-color: var(--moss);
+          border-color: var(--ink-blue);
           background: rgba(47,93,80,.06);
         }
 
@@ -681,7 +697,7 @@ export default function HomePage() {
           color: var(--ink);
         }
 
-        .story__with-scrybe {
+        .story__with-inkra {
           padding: 16px;
           border-radius: var(--r10);
           background: rgba(61,122,99,.06);
@@ -799,8 +815,8 @@ export default function HomePage() {
         }
 
         .ind-chip:hover {
-          border-color: var(--moss);
-          color: var(--moss);
+          border-color: var(--ink-blue);
+          color: var(--ink-blue);
         }
 
         /* CTA */
@@ -827,7 +843,7 @@ export default function HomePage() {
 
         .cta__inner h2 em {
           font-style: italic;
-          color: var(--moss);
+          color: var(--ink-blue);
         }
 
         .cta__sub {
@@ -846,7 +862,7 @@ export default function HomePage() {
           border: 1px solid rgba(47,93,80,.12);
           font-family: var(--mono);
           font-size: 11px;
-          color: var(--moss);
+          color: var(--ink-blue);
           margin-bottom: 24px;
         }
 
@@ -882,7 +898,7 @@ export default function HomePage() {
 
         .wl input:focus,
         .wl select:focus {
-          border-color: var(--moss);
+          border-color: var(--ink-blue);
           box-shadow: 0 0 0 3px rgba(47,93,80,.15);
         }
 
@@ -950,7 +966,7 @@ export default function HomePage() {
         }
 
         .footer__brand span {
-          color: var(--moss);
+          color: var(--ink-blue);
         }
 
         .footer__links {
@@ -964,7 +980,7 @@ export default function HomePage() {
         }
 
         .footer__link:hover {
-          color: var(--moss);
+          color: var(--ink-blue);
         }
 
         .footer__copy {
@@ -1046,7 +1062,7 @@ export default function HomePage() {
       <nav className="nav">
         <div className="nav__inner">
           <a href="#" className="nav__brand">
-            <span className="nav__dot"></span> Scrybe
+            <span className="nav__dot"></span> Inkra
           </a>
           <a href="#cta" className="nav__cta">Join the Pilot</a>
         </div>
@@ -1193,7 +1209,7 @@ export default function HomePage() {
             </div>
             <div className="step">
               <div className="step__num">02 · GENERATE</div>
-              <h3>Scrybe handles the rest</h3>
+              <h3>Inkra handles the rest</h3>
               <p>Documentation writes itself. Reports compile from real data. Tasks and follow-ups create automatically. Calendar invites schedule themselves.</p>
               <div className="mp" style={{ minHeight: "160px" }}>
                 <div className="mp__icon"><Zap size={28} /></div>
@@ -1240,8 +1256,8 @@ export default function HomePage() {
             <div className="story__copy">
               <h3>Your top rep closes because they remember the little things.</h3>
               <p className="story__scenario">Jordan remembers that his prospect&apos;s kid just started Little League. He brings it up on the call — the prospect lights up. That&apos;s not CRM data. That&apos;s <strong>relationship intelligence.</strong> But when Jordan gets promoted, <strong>$2M in pipeline goes cold overnight.</strong></p>
-              <div className="story__with-scrybe">
-                <div className="story__with-label">✓ With Scrybe</div>
+              <div className="story__with-inkra">
+                <div className="story__with-label">✓ With Inkra</div>
                 <div className="story__with-text">Every call auto-captures the Little League detail, org chart intel, and budget timing. Conversation guides remind reps what to bring up. When reps move up, the next person inherits a living relationship — not an empty record.</div>
               </div>
             </div>
@@ -1258,8 +1274,8 @@ export default function HomePage() {
             <div className="story__copy">
               <h3>Your case managers chose this work to help people. Not fill out forms.</h3>
               <p className="story__scenario">Maria serves 400 clients weekly across 14 partner organizations. Every call generates paperwork — the same data, <strong>3–5 times.</strong> Every quarterly report: 20+ hours. And when staff leaves, years of client trust vanish.</p>
-              <div className="story__with-scrybe">
-                <div className="story__with-label">✓ With Scrybe</div>
+              <div className="story__with-inkra">
+                <div className="story__with-label">✓ With Inkra</div>
                 <div className="story__with-text">Calls auto-document. Grant reports auto-generate with narratives, not just numbers. For group sessions where devices aren&apos;t allowed, snap a photo of an attendance sheet — AI logs all 400 clients and generates session notes.</div>
               </div>
             </div>
@@ -1276,8 +1292,8 @@ export default function HomePage() {
             <div className="story__copy">
               <h3>Your patients come back for session 4. Do you remember sessions 1–3?</h3>
               <p className="story__scenario">Dr. Okafor sees 25 patients daily. Each has a multi-visit treatment plan. She spends <strong>90 minutes after clinic</strong> writing SOAP notes. Her biller waits. The front desk has <strong>no context when patients call between visits.</strong></p>
-              <div className="story__with-scrybe">
-                <div className="story__with-label">✓ With Scrybe</div>
+              <div className="story__with-inkra">
+                <div className="story__with-label">✓ With Inkra</div>
                 <div className="story__with-text">SOAP notes auto-generate. Treatment tracks across sessions 1–6. Billing docs ready before checkout. For group sessions in restricted facilities, photo-upload attendance handles it all.</div>
               </div>
             </div>
@@ -1294,8 +1310,8 @@ export default function HomePage() {
             <div className="story__copy">
               <h3>Your best insights come when you stop taking notes and start listening.</h3>
               <p className="story__scenario">Priya runs 45-minute interviews. The best moments come off-script. But she can&apos;t take notes AND be present. After each call: <strong>90 minutes reconstructing what was said.</strong></p>
-              <div className="story__with-scrybe">
-                <div className="story__with-label">✓ With Scrybe</div>
+              <div className="story__with-inkra">
+                <div className="story__with-label">✓ With Inkra</div>
                 <div className="story__with-text">Full interviews captured. Notes auto-generate in her template. Cross-interview patterns surface: &quot;5/8 mentioned onboarding friction.&quot; PRD input forms auto-populate from findings.</div>
               </div>
             </div>
@@ -1312,9 +1328,9 @@ export default function HomePage() {
             <div className="story__copy">
               <h3>Your engineer mentioned wanting to learn Rust three months ago. Do you remember?</h3>
               <p className="story__scenario">Marcus has 8 direct reports. Promo packet time arrives and his notes are... sparse. <strong>12 hours to write a packet that still feels thin.</strong> His director wants a team health report — he has nothing but vibes.</p>
-              <div className="story__with-scrybe">
-                <div className="story__with-label">✓ With Scrybe</div>
-                <div className="story__with-text">Every 1:1 auto-documented. Promo packets write themselves from 6 months of documented growth. Reports show one team member is 30% slower — Scrybe suggests training.</div>
+              <div className="story__with-inkra">
+                <div className="story__with-label">✓ With Inkra</div>
+                <div className="story__with-text">Every 1:1 auto-documented. Promo packets write themselves from 6 months of documented growth. Reports show one team member is 30% slower — Inkra suggests training.</div>
               </div>
             </div>
             <div className="mp" style={{ minHeight: "340px" }}>
@@ -1330,9 +1346,9 @@ export default function HomePage() {
             <div className="story__copy">
               <h3>Your standup just pushed back the timeline. Does the VP know yet?</h3>
               <p className="story__scenario">A blocker surfaces in Tuesday&apos;s standup that pushes the launch by two weeks. <strong>The VP finds out on Friday.</strong> Ravi spends 4 hours a week writing status updates that are outdated by the time he sends them.</p>
-              <div className="story__with-scrybe">
-                <div className="story__with-label">✓ With Scrybe</div>
-                <div className="story__with-text">Scrybe auto-joins standups. PRDs generate from product conversations. Timeline changes auto-push to stakeholders — the VP knows Tuesday, not Friday.</div>
+              <div className="story__with-inkra">
+                <div className="story__with-label">✓ With Inkra</div>
+                <div className="story__with-text">Inkra auto-joins standups. PRDs generate from product conversations. Timeline changes auto-push to stakeholders — the VP knows Tuesday, not Friday.</div>
               </div>
             </div>
             <div className="mp" style={{ minHeight: "340px" }}>
@@ -1348,8 +1364,8 @@ export default function HomePage() {
             <div className="story__copy">
               <h3>Your support team follows a workflow that changed last week. Do they know?</h3>
               <p className="story__scenario">The refund policy changed Tuesday. Three reps gave the old policy Wednesday. <strong>Training takes weeks to propagate.</strong> The best rep&apos;s shortcuts live in her head — when she&apos;s out, resolution times spike 40%.</p>
-              <div className="story__with-scrybe">
-                <div className="story__with-label">✓ With Scrybe</div>
+              <div className="story__with-inkra">
+                <div className="story__with-label">✓ With Inkra</div>
                 <div className="story__with-text">Knowledge system updates the moment a policy changes. Conversation guides surface the right process during calls. Best practices auto-capture from top performers and become team playbooks.</div>
               </div>
             </div>
@@ -1366,9 +1382,9 @@ export default function HomePage() {
             <div className="story__copy">
               <h3>Location 7 figured out intake. The other 11 don&apos;t know yet.</h3>
               <p className="story__scenario">Regional director overseeing 12 locations. Best practices trapped in one manager&apos;s head. <strong>Three weeks just getting everyone to submit data in the same format.</strong></p>
-              <div className="story__with-scrybe">
-                <div className="story__with-label">✓ With Scrybe</div>
-                <div className="story__with-text">Scrybe captures how every location operates. Surfaces what works: &quot;Location 7&apos;s intake is 40% faster.&quot; Codifies best practices into playbooks. Reports auto-generate across all locations.</div>
+              <div className="story__with-inkra">
+                <div className="story__with-label">✓ With Inkra</div>
+                <div className="story__with-text">Inkra captures how every location operates. Surfaces what works: &quot;Location 7&apos;s intake is 40% faster.&quot; Codifies best practices into playbooks. Reports auto-generate across all locations.</div>
               </div>
             </div>
             <div className="mp" style={{ minHeight: "340px" }}>
@@ -1438,7 +1454,7 @@ export default function HomePage() {
         <div className="container">
           <div className="ind__header reveal">
             <div className="kicker">Who it&apos;s for</div>
-            <h2>If your team runs on conversations, Scrybe runs for you.</h2>
+            <h2>If your team runs on conversations, Inkra runs for you.</h2>
           </div>
           <div className="ind-wrap reveal">
             <div className="ind-chip">Sales & Account Management</div>
@@ -1520,14 +1536,14 @@ export default function HomePage() {
       <footer className="footer">
         <div className="container">
           <div className="footer__inner">
-            <div className="footer__brand">Scrybe<span>.</span></div>
+            <div className="footer__brand">Inkra<span>.</span></div>
             <div className="footer__links">
               <a href="#" className="footer__link">Privacy</a>
               <a href="#" className="footer__link">Terms</a>
               <a href="#" className="footer__link">Security</a>
-              <a href="mailto:hello@scrybe.app" className="footer__link">Contact</a>
+              <a href="mailto:hello@inkra.io" className="footer__link">Contact</a>
             </div>
-            <div className="footer__copy">© 2026 Scrybe · Phoenixing LLC</div>
+            <div className="footer__copy">© 2026 Inkra · Phoenixing LLC</div>
           </div>
         </div>
       </footer>

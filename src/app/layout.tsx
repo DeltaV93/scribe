@@ -5,7 +5,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 
 // Inter-only typography for enterprise signal
-// "If it's not clear, it's not premium. If it's not consistent, it's not trustworthy."
+// INKRA: "If it's not clear, it's not premium. If it's not consistent, it's not trustworthy."
 const inter = Inter({
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700", "800"],
@@ -24,26 +24,27 @@ function getMetadataBaseUrl(): URL {
 
 export const metadata: Metadata = {
   title: {
-    default: "Scrybe",
-    template: "%s | Scrybe",
+    default: "Inkra",
+    template: "%s | Inkra",
   },
   description:
-    "AI-powered case management and form automation for social services",
+    "Conversation-to-Work Platform. Turn conversations into structured work automatically.",
   keywords: [
-    "case management",
-    "social services",
+    "conversation intelligence",
+    "documentation automation",
+    "organizational memory",
+    "meeting intelligence",
+    "AI documentation",
     "form automation",
-    "AI",
-    "transcription",
   ],
-  authors: [{ name: "Scrybe Solutions" }],
-  creator: "Scrybe Solutions",
+  authors: [{ name: "Inkra" }],
+  creator: "Inkra",
   metadataBase: getMetadataBaseUrl(),
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Scrybe",
+    title: "Inkra",
   },
   formatDetection: {
     telephone: false,
@@ -51,16 +52,16 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
-    siteName: "Scrybe",
-    title: "Scrybe - AI-Powered Case Management",
+    siteName: "Inkra",
+    title: "Inkra - Conversation-to-Work Platform",
     description:
-      "AI-powered case management and form automation for social services",
+      "Turn conversations into structured work automatically. Less documenting. More doing.",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Scrybe - AI-Powered Case Management",
+    title: "Inkra - Conversation-to-Work Platform",
     description:
-      "AI-powered case management and form automation for social services",
+      "Turn conversations into structured work automatically. Less documenting. More doing.",
   },
   robots: {
     index: true,

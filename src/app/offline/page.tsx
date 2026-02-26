@@ -47,7 +47,7 @@ export default function OfflinePage() {
         </div>
 
         <p className="text-xs text-muted-foreground">
-          Scrybe will automatically reconnect when your connection is restored.
+          Inkra will automatically reconnect when your connection is restored.
         </p>
       </div>
     </div>

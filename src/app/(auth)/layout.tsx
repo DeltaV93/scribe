@@ -12,9 +12,9 @@ export default function AuthLayout({
         <div className="container flex h-16 items-center">
           <Link href="/" className="flex items-center gap-2">
             <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-lg">S</span>
+              <span className="text-primary-foreground font-bold text-lg">I</span>
             </div>
-            <span className="font-semibold text-xl">Scrybe</span>
+            <span className="font-semibold text-xl">Inkra</span>
           </Link>
         </div>
       </header>
@@ -27,7 +27,7 @@ export default function AuthLayout({
       {/* Footer */}
       <footer className="border-t py-6">
         <div className="container flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-muted-foreground">
-          <p>© {new Date().getFullYear()} Scrybe Solutions. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} Inkra. All rights reserved.</p>
           <nav className="flex gap-6">
             <Link href="/privacy" className="hover:text-foreground">
               Privacy

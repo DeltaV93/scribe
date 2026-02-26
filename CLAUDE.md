@@ -4,7 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Scrybe is a full-stack SaaS platform for social services, nonprofits, and grant-funded organizations. It streamlines intake forms, automates data collection from calls using AI, and ensures compliance with audit requirements.
+Inkra is a Conversation-to-Work Platform. It turns conversations into structured work automatically — capturing what matters from VoIP calls, standups, user research sessions, patient visits, and client intake — and routing it into forms, tasks, reports, and compliance records without manual effort.
+
+Previously known as Scrybe. Built for social services, nonprofits, healthcare, legal, sales, UX research, and any industry where conversations drive outcomes.
 
 ## Common Commands
 
@@ -133,7 +135,7 @@ Form fields support conditional show/hide via `FormField.conditionalLogic` JSON 
 
 ## HIPAA/SOC2 Compliance Guidelines
 
-Scrybe handles PHI (Protected Health Information) and must maintain HIPAA and SOC2 compliance. Consider these requirements when building features.
+Inkra handles PHI (Protected Health Information) and must maintain HIPAA and SOC2 compliance. Consider these requirements when building features.
 
 ### What is PHI?
 

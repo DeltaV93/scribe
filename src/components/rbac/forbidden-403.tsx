@@ -99,7 +99,7 @@ export function Forbidden403({
     `Access Request - ${resource || "Feature"}`
   );
   const mailtoBody = encodeURIComponent(
-    `Hi,\n\nI need access to ${resource || "a feature"} in Scrybe.\n\nMy current role: ${roleName}\nAction needed: ${action || "access"}\n\nThank you!`
+    `Hi,\n\nI need access to ${resource || "a feature"} in Inkra.\n\nMy current role: ${roleName}\nAction needed: ${action || "access"}\n\nThank you!`
   );
 
   return (

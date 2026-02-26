@@ -3,33 +3,50 @@
 @tailwind utilities;
 
 /*
- * SCRYBE Design System — Calm Infrastructure Palette
+ * INKRA Design System — 4-Color Pen System
  * "If it's not clear, it's not premium. If it's not consistent, it's not trustworthy."
  *
  * Core Palette:
- * - Ink (#111111): Archive Black - Primary actions, text, logo
- * - Paper (#FAFAF8): Paper Warm - Background, calm surfaces
- * - Stone (#E7E5E0): Soft Stone - Borders, dividers, panels
- * - Moss (#2F5D50): Deep Moss - Links, focus, subtle highlights
- * - Gold (#C2A86B): Muted Gold - Rare premium moments
+ * - Paper (#FAFAF8, #F5F4F0, #EEEDEA): Backgrounds, surfaces
+ * - Ink (#111111, #3A3A3A, #6B6B6B, #A1A1A1): Text hierarchy
+ * - Border (#DADAD7, #E8E8E5): Dividers, panels
  *
- * Semantic Colors:
- * - Success (#3D7A63)
- * - Warning (#B0893B)
- * - Error (#A94A4A)
- * - Info (#4A6FA9)
+ * 4-Color Pen (semantic):
+ * - Ink Blue (#1B2A4A): Primary accent, actions, links, focus
+ * - Ink Green (#3F6F5A): Success, complete
+ * - Ink Red (#B34747): Errors, alerts
+ * - Ink Amber (#B26A00): Warnings, review
  *
  * Typography: Inter-only for enterprise signal
  */
 
 @layer base {
   :root {
-    /* SCRYBE Core Palette */
-    --ink: #111111;
+    /* INKRA Core Palette */
     --paper: #FAFAF8;
-    --stone: #E7E5E0;
-    --moss: #2F5D50;
-    --gold: #C2A86B;
+    --paper-warm: #F5F4F0;
+    --paper-dim: #EEEDEA;
+    --ink: #111111;
+    --ink-soft: #3A3A3A;
+    --ink-muted: #6B6B6B;
+    --ink-faint: #A1A1A1;
+    --border: #DADAD7;
+    --border-light: #E8E8E5;
+
+    /* Ink Blue - Primary Accent */
+    --ink-blue: #1B2A4A;
+    --ink-blue-mid: #2F3A59;
+    --ink-blue-light: #4A5A7A;
+    --ink-blue-wash: rgba(27, 42, 74, 0.08);
+    --ink-blue-ghost: rgba(27, 42, 74, 0.04);
+
+    /* Functional Inks (4-Color Pen) */
+    --ink-red: #B34747;
+    --ink-red-wash: rgba(179, 71, 71, 0.08);
+    --ink-green: #3F6F5A;
+    --ink-green-wash: rgba(63, 111, 90, 0.08);
+    --ink-amber: #B26A00;
+    --ink-amber-wash: rgba(178, 106, 0, 0.08);
 
     /* Ink opacity variants */
     --ink-90: rgba(17, 17, 17, 0.90);
@@ -41,109 +58,143 @@
     --ink-12: rgba(17, 17, 17, 0.12);
     --ink-08: rgba(17, 17, 17, 0.08);
 
-    /* Semantic colors */
-    --success-raw: #3D7A63;
-    --warning-raw: #B0893B;
-    --error-raw: #A94A4A;
-    --info-raw: #4A6FA9;
+    /* Motion */
+    --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-soft: cubic-bezier(0.2, 0.8, 0.2, 1);
+    --duration-fast: 120ms;
+    --duration-normal: 240ms;
+    --duration-slow: 600ms;
 
     /* shadcn/ui compatible tokens - Light mode */
     --background: 48 20% 98%; /* Paper #FAFAF8 */
     --foreground: 0 0% 7%; /* Ink #111111 */
 
-    --card: 48 20% 98%;
+    --card: 40 20% 96%; /* Paper Warm #F5F4F0 */
     --card-foreground: 0 0% 7%;
 
-    --popover: 48 20% 98%;
+    --popover: 40 20% 96%;
     --popover-foreground: 0 0% 7%;
 
     /* Primary = Ink (black buttons) */
     --primary: 0 0% 7%;
     --primary-foreground: 48 20% 98%;
 
-    /* Secondary = Stone */
-    --secondary: 40 12% 90%;
+    /* Secondary = Border area */
+    --secondary: 40 8% 91%; /* Border #DADAD7 */
     --secondary-foreground: 0 0% 7%;
 
-    /* Muted = Stone lighter */
-    --muted: 40 12% 93%;
-    --muted-foreground: 0 0% 40%;
+    /* Muted = Paper Dim */
+    --muted: 40 10% 93%; /* #EEEDEA */
+    --muted-foreground: 0 0% 42%; /* Ink Muted #6B6B6B */
 
-    /* Accent = Moss */
-    --accent: 161 33% 28%;
+    /* Accent = Ink Blue */
+    --accent: 220 47% 20%; /* #1B2A4A */
     --accent-foreground: 48 20% 98%;
 
-    /* Destructive = Error */
-    --destructive: 0 38% 48%;
+    /* Destructive = Ink Red */
+    --destructive: 0 43% 49%; /* #B34747 */
     --destructive-foreground: 48 20% 98%;
 
-    /* Success */
-    --success: 153 33% 36%;
+    /* Success = Ink Green */
+    --success: 154 28% 34%; /* #3F6F5A */
     --success-foreground: 48 20% 98%;
 
-    /* Warning */
-    --warning: 38 51% 46%;
+    /* Warning = Ink Amber */
+    --warning: 38 100% 35%; /* #B26A00 */
     --warning-foreground: 0 0% 7%;
 
-    /* Info */
-    --info: 216 38% 48%;
+    /* Info = Ink Blue Light */
+    --info: 220 26% 38%; /* #4A5A7A */
     --info-foreground: 48 20% 98%;
 
-    --border: 40 12% 90%;
-    --input: 40 12% 90%;
-    --ring: 161 33% 28%; /* Moss for focus */
+    --border: 40 8% 85%; /* #DADAD7 */
+    --input: 40 8% 91%;
+    --ring: 220 47% 20%; /* Ink Blue for focus */
+
+    /* Radius */
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 14px;
     --radius: 10px;
 
     /* Shadows */
-    --shadow-sm: 0 8px 20px rgba(17, 17, 17, 0.06);
-    --shadow-md: 0 12px 40px rgba(17, 17, 17, 0.08);
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.06);
+    --shadow-lg: 0 12px 40px rgba(0,0,0,0.08);
 
     /* Focus */
-    --focus: 0 0 0 3px rgba(47, 93, 80, 0.20);
+    --focus: 0 0 0 3px var(--ink-blue-wash);
   }
 
   .dark {
-    /* Dark mode - Ink-based surfaces */
-    --background: 0 0% 7%;
-    --foreground: 48 20% 98%;
+    /* Dark mode - Inkra dark palette */
+    --paper: #0F1014;
+    --paper-warm: #151619;
+    --paper-dim: #1C1D22;
+    --ink: #E8E8E5;
+    --ink-soft: #C4C4C0;
+    --ink-muted: #8A8A86;
+    --ink-faint: #5A5A57;
+    --border: #2A2B30;
+    --border-light: #222328;
 
-    --card: 0 0% 12%;
-    --card-foreground: 48 20% 98%;
+    --ink-blue: #8A9EC8;
+    --ink-blue-mid: #6B82B4;
+    --ink-blue-light: #A8B8D8;
+    --ink-blue-wash: rgba(138, 158, 200, 0.10);
+    --ink-blue-ghost: rgba(138, 158, 200, 0.05);
 
-    --popover: 0 0% 12%;
-    --popover-foreground: 48 20% 98%;
+    --ink-red: #E07070;
+    --ink-red-wash: rgba(224, 112, 112, 0.10);
+    --ink-green: #6BAA90;
+    --ink-green-wash: rgba(107, 170, 144, 0.10);
+    --ink-amber: #D4A24C;
+    --ink-amber-wash: rgba(212, 162, 76, 0.10);
+
+    --background: 240 7% 5%; /* #0F1014 */
+    --foreground: 40 10% 91%; /* #E8E8E5 */
+
+    --card: 240 6% 8%; /* #151619 */
+    --card-foreground: 40 10% 91%;
+
+    --popover: 240 6% 8%;
+    --popover-foreground: 40 10% 91%;
 
     /* Primary = Paper (light buttons on dark) */
-    --primary: 48 20% 98%;
-    --primary-foreground: 0 0% 7%;
+    --primary: 40 10% 91%;
+    --primary-foreground: 240 7% 5%;
 
     /* Secondary */
-    --secondary: 0 0% 15%;
-    --secondary-foreground: 48 20% 98%;
+    --secondary: 240 5% 11%; /* #1C1D22 */
+    --secondary-foreground: 40 10% 91%;
 
     /* Muted */
-    --muted: 0 0% 18%;
-    --muted-foreground: 0 0% 60%;
+    --muted: 240 4% 14%;
+    --muted-foreground: 40 2% 54%; /* #8A8A86 */
 
-    /* Accent = Moss */
-    --accent: 161 33% 35%;
-    --accent-foreground: 48 20% 98%;
+    /* Accent = Ink Blue (dark mode) */
+    --accent: 220 35% 66%; /* #8A9EC8 */
+    --accent-foreground: 240 7% 5%;
 
-    --destructive: 0 45% 45%;
-    --destructive-foreground: 48 20% 98%;
+    --destructive: 0 63% 66%; /* #E07070 */
+    --destructive-foreground: 240 7% 5%;
 
-    --success: 153 40% 40%;
-    --success-foreground: 0 0% 7%;
+    --success: 154 31% 55%; /* #6BAA90 */
+    --success-foreground: 240 7% 5%;
 
-    --warning: 38 55% 50%;
-    --warning-foreground: 0 0% 7%;
+    --warning: 38 60% 56%; /* #D4A24C */
+    --warning-foreground: 240 7% 5%;
 
-    --info: 216 45% 55%;
-    --info-foreground: 48 20% 98%;
+    --info: 220 35% 76%; /* #A8B8D8 */
+    --info-foreground: 240 7% 5%;
 
-    --border: 0 0% 20%;
-    --input: 0 0% 20%;
-    --ring: 161 33% 35%;
+    --border: 240 6% 17%; /* #2A2B30 */
+    --input: 240 6% 17%;
+    --ring: 220 35% 66%;
+
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.20);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.30);
+    --shadow-lg: 0 12px 40px rgba(0,0,0,0.40);
   }
 }
 
@@ -154,7 +205,7 @@
   body {
     @apply bg-background text-foreground;
     font-family: var(--font-inter), "Inter", system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    line-height: 1.55;
+    line-height: 1.6;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
@@ -163,20 +214,20 @@
   h1 {
     font-weight: 800;
     letter-spacing: -0.03em;
-    line-height: 1.05;
-  }
-  h2 {
-    font-weight: 800;
-    letter-spacing: -0.02em;
     line-height: 1.1;
   }
+  h2 {
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    line-height: 1.2;
+  }
   h3 {
-    font-weight: 800;
+    font-weight: 700;
     letter-spacing: -0.015em;
-    line-height: 1.18;
+    line-height: 1.3;
   }
   h4 {
-    font-weight: 700;
+    font-weight: 600;
     letter-spacing: -0.01em;
     line-height: 1.25;
   }
@@ -187,7 +238,7 @@
 
   /* Use system monospace for code elements */
   code, pre, kbd, samp {
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+    font-family: 'SF Mono', 'Fira Code', Consolas, ui-monospace, SFMono-Regular, Menlo, Monaco, "Liberation Mono", monospace;
   }
 }
 
@@ -224,10 +275,20 @@
   @apply absolute -top-10 left-0 bg-primary text-primary-foreground px-4 py-2 z-50 transition-all focus:top-0;
 }
 
-/* SCRYBE Brand utility classes */
+/* INKRA Brand utility classes */
 @layer utilities {
+  /* Ink text variants */
   .text-ink {
     color: var(--ink);
+  }
+  .text-ink-soft {
+    color: var(--ink-soft);
+  }
+  .text-ink-muted {
+    color: var(--ink-muted);
+  }
+  .text-ink-faint {
+    color: var(--ink-faint);
   }
   .text-ink-70 {
     color: var(--ink-70);
@@ -235,29 +296,82 @@
   .text-ink-60 {
     color: var(--ink-60);
   }
+
+  /* Ink backgrounds */
   .bg-ink {
     background-color: var(--ink);
   }
+
+  /* Paper variants */
   .bg-paper {
     background-color: var(--paper);
   }
-  .bg-stone {
-    background-color: var(--stone);
+  .bg-paper-warm {
+    background-color: var(--paper-warm);
   }
-  .text-moss {
-    color: var(--moss);
+  .bg-paper-dim {
+    background-color: var(--paper-dim);
   }
-  .bg-moss {
-    background-color: var(--moss);
+
+  /* Ink Blue (primary accent) */
+  .text-ink-blue {
+    color: var(--ink-blue);
   }
-  .text-gold {
-    color: var(--gold);
+  .bg-ink-blue {
+    background-color: var(--ink-blue);
   }
+  .bg-ink-blue-wash {
+    background-color: var(--ink-blue-wash);
+  }
+  .bg-ink-blue-ghost {
+    background-color: var(--ink-blue-ghost);
+  }
+  .border-ink-blue {
+    border-color: var(--ink-blue);
+  }
+
+  /* Ink Green (success) */
+  .text-ink-green {
+    color: var(--ink-green);
+  }
+  .bg-ink-green {
+    background-color: var(--ink-green);
+  }
+  .bg-ink-green-wash {
+    background-color: var(--ink-green-wash);
+  }
+
+  /* Ink Red (error) */
+  .text-ink-red {
+    color: var(--ink-red);
+  }
+  .bg-ink-red {
+    background-color: var(--ink-red);
+  }
+  .bg-ink-red-wash {
+    background-color: var(--ink-red-wash);
+  }
+
+  /* Ink Amber (warning) */
+  .text-ink-amber {
+    color: var(--ink-amber);
+  }
+  .bg-ink-amber {
+    background-color: var(--ink-amber);
+  }
+  .bg-ink-amber-wash {
+    background-color: var(--ink-amber-wash);
+  }
+
+  /* Border utilities */
   .border-ink-12 {
     border-color: var(--ink-12);
   }
   .border-ink-08 {
     border-color: var(--ink-08);
+  }
+  .border-border-light {
+    border-color: var(--border-light);
   }
 }
 
@@ -290,7 +404,7 @@
   }
 
   .ProseMirror a {
-    color: var(--moss);
+    color: var(--ink-blue);
     text-decoration: none;
   }
   .ProseMirror a:hover {

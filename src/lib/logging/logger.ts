@@ -59,7 +59,7 @@ const pinoOptions: LoggerOptions = {
   level: IS_TEST ? 'silent' : LOG_LEVEL,
   timestamp: pino.stdTimeFunctions.isoTime,
   base: {
-    service: 'scrybe',
+    service: 'inkra',
     environment: process.env.NODE_ENV || 'development',
     version: process.env.npm_package_version || '0.0.0',
   },
