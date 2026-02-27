@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { getCurrentUser } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import {
@@ -11,6 +12,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
+import { CalendarIntegrationSection } from "./integrations/components";
 
 export default async function SettingsPage() {
   const user = await getCurrentUser();
@@ -117,6 +120,38 @@ export default async function SettingsPage() {
           <Button>Update Password</Button>
         </CardContent>
       </Card>
+
+      {/* Calendar Integration */}
+      <section>
+        <h2 className="text-xl font-semibold mb-4">Calendar</h2>
+        <p className="text-sm text-muted-foreground mb-4">
+          Connect your calendar to automatically schedule follow-ups from calls.
+        </p>
+        <Suspense fallback={<CalendarSkeleton />}>
+          <CalendarIntegrationSection />
+        </Suspense>
+      </section>
     </div>
+  );
+}
+
+function CalendarSkeleton() {
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex items-center gap-3">
+          <Skeleton className="h-10 w-10 rounded-lg" />
+          <div className="space-y-2">
+            <Skeleton className="h-5 w-40" />
+            <Skeleton className="h-4 w-64" />
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <Skeleton className="h-12 w-full" />
+        <Skeleton className="h-12 w-full" />
+        <Skeleton className="h-12 w-full" />
+      </CardContent>
+    </Card>
   );
 }
