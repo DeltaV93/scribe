@@ -791,7 +791,7 @@ export default function HomePage() {
             hassle. Let the people work with people.&quot;
           </div>
           <div className="testimonial-attr">
-            Carly, Director of Reentry Services · Operation New Hope
+            Karley, Director of Reentry Services · Family Assistant
           </div>
           <div className="testimonial-context">
             $30M nonprofit · 400 clients/week · 14 partner organizations
