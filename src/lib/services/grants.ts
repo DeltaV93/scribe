@@ -548,6 +548,8 @@ export async function incrementDeliverable(
   delta: number,
   source: ProgressSource
 ): Promise<void> {
+  let grantId: string | null = null;
+
   await prisma.$transaction(async (tx) => {
     // Get current deliverable
     const deliverable = await tx.grantDeliverable.findUnique({
@@ -557,6 +559,8 @@ export async function incrementDeliverable(
     if (!deliverable) {
       throw new Error(`Deliverable ${deliverableId} not found`);
     }
+
+    grantId = deliverable.grantId; // Capture for after transaction
 
     const previousValue = deliverable.currentValue;
     const newValue = Math.max(0, previousValue + delta);
@@ -587,6 +591,12 @@ export async function incrementDeliverable(
       },
     });
   });
+
+  // After transaction: trigger goal recalculation with source notes
+  if (grantId) {
+    const { onGrantProgressUpdated } = await import("./goal-progress");
+    await onGrantProgressUpdated(grantId, source.notes);
+  }
 }
 
 /**

@@ -329,7 +329,10 @@ async function checkAndTriggerNotifications(
 /**
  * Trigger progress recalculation for all goals linked to a grant
  */
-export async function onGrantProgressUpdated(grantId: string): Promise<void> {
+export async function onGrantProgressUpdated(
+  grantId: string,
+  sourceNotes?: string
+): Promise<void> {
   const links = await prisma.goalGrant.findMany({
     where: { grantId },
     select: { goalId: true },
@@ -340,6 +343,7 @@ export async function onGrantProgressUpdated(grantId: string): Promise<void> {
       recalculateGoalProgress(link.goalId, {
         triggerType: "child_update",
         triggerSource: `grant:${grantId}`,
+        notes: sourceNotes,
       })
     )
   );
@@ -440,6 +444,8 @@ export async function getGoalProgressBreakdown(
     previousValue: number;
     newValue: number;
     triggerType: string;
+    triggerSource: string | null;
+    notes: string | null;
     recordedAt: Date;
   }>;
 }> {
@@ -462,6 +468,8 @@ export async function getGoalProgressBreakdown(
       previousValue: true,
       newValue: true,
       triggerType: true,
+      triggerSource: true,
+      notes: true,
       recordedAt: true,
     },
   });

@@ -142,7 +142,6 @@ export async function createGoal(
       grantLinks: {
         include: {
           grant: {
-            select: { id: true, name: true, status: true },
             include: { deliverables: true },
           },
         },
@@ -187,7 +186,6 @@ export async function getGoalById(
       grantLinks: {
         include: {
           grant: {
-            select: { id: true, name: true, status: true },
             include: { deliverables: true },
           },
         },
@@ -234,7 +232,6 @@ export async function updateGoal(
       grantLinks: {
         include: {
           grant: {
-            select: { id: true, name: true, status: true },
             include: { deliverables: true },
           },
         },
@@ -309,7 +306,6 @@ export async function listGoals(
         grantLinks: {
           include: {
             grant: {
-              select: { id: true, name: true, status: true },
               include: { deliverables: true },
             },
           },

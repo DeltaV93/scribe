@@ -71,12 +71,32 @@ interface Goal {
   }>;
 }
 
+interface ProgressHistoryItem {
+  previousValue: number;
+  newValue: number;
+  triggerType: string;
+  triggerSource?: string;
+  notes?: string;
+  recordedAt: string;
+}
+
+interface HistoryEntry {
+  id: string;
+  type: "progress" | "update";
+  content: string;
+  progressChange?: { from: number; to: number };
+  triggerSource?: string;
+  author?: string;
+  timestamp: string;
+}
+
 export default function GoalDetailPage() {
   const router = useRouter();
   const params = useParams();
   const goalId = params.goalId as string;
 
   const [goal, setGoal] = useState<Goal | null>(null);
+  const [historyEntries, setHistoryEntries] = useState<HistoryEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -97,8 +117,62 @@ export default function GoalDetailPage() {
     }
   };
 
+  const fetchProgressHistory = async () => {
+    try {
+      const response = await fetch(`/api/goals/${goalId}/progress`);
+      if (response.ok) {
+        const data = await response.json();
+        const progressHistory: ProgressHistoryItem[] = data.data?.history || [];
+
+        // Convert progress history to history entries
+        const entries: HistoryEntry[] = progressHistory.map((item, index) => {
+          // Parse trigger source for human-readable text
+          let sourceLabel = "System";
+          if (item.triggerSource) {
+            const [type, id] = item.triggerSource.split(":");
+            if (type === "grant") {
+              sourceLabel = `Grant progress updated`;
+            } else if (type === "objective") {
+              sourceLabel = `Objective progress updated`;
+            } else if (type === "kpi") {
+              sourceLabel = `KPI progress updated`;
+            }
+          }
+
+          let content = "";
+          if (item.triggerType === "child_update") {
+            content = sourceLabel;
+          } else if (item.triggerType === "manual") {
+            content = "Manual progress recalculation";
+          } else {
+            content = "Automatic progress recalculation";
+          }
+
+          if (item.notes) {
+            content += `: ${item.notes}`;
+          }
+
+          return {
+            id: `progress-${index}`,
+            type: "progress" as const,
+            content,
+            progressChange: { from: item.previousValue, to: item.newValue },
+            triggerSource: item.triggerSource,
+            timestamp: item.recordedAt,
+          };
+        });
+
+        setHistoryEntries(entries);
+      }
+    } catch (error) {
+      console.error("Error fetching progress history:", error);
+    }
+  };
+
   useEffect(() => {
     fetchGoal();
+    fetchProgressHistory();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [goalId]);
 
   const handleDelete = async () => {
@@ -320,42 +394,82 @@ export default function GoalDetailPage() {
         </TabsContent>
 
         <TabsContent value="history">
-          {goal.updates && goal.updates.length > 0 ? (
-            <div className="space-y-4">
-              {goal.updates.map((update) => (
-                <Card key={update.id}>
-                  <CardContent className="p-4">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <p className="text-sm">{update.content}</p>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {update.createdBy.name || "Unknown"} -{" "}
-                          {formatDistanceToNow(new Date(update.createdAt), {
-                            addSuffix: true,
-                          })}
-                        </p>
-                      </div>
-                      {update.progressSnapshot !== null && (
-                        <span className="text-sm font-medium">
-                          {update.progressSnapshot}%
-                        </span>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          ) : (
-            <Card>
-              <CardContent className="py-8 text-center">
-                <History className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
-                <h3 className="font-medium mb-2">No updates yet</h3>
-                <p className="text-sm text-muted-foreground">
-                  Progress updates and check-ins will appear here.
-                </p>
-              </CardContent>
-            </Card>
-          )}
+          {(() => {
+            // Combine manual updates and automatic progress changes
+            const allHistory: HistoryEntry[] = [
+              ...historyEntries,
+              ...(goal.updates || []).map((update) => ({
+                id: `update-${update.id}`,
+                type: "update" as const,
+                content: update.content,
+                progressChange: update.progressSnapshot !== null
+                  ? { from: update.progressSnapshot, to: update.progressSnapshot }
+                  : undefined,
+                author: update.createdBy.name || "Unknown",
+                timestamp: update.createdAt,
+              })),
+            ].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+
+            if (allHistory.length > 0) {
+              return (
+                <div className="space-y-4">
+                  {allHistory.map((entry) => (
+                    <Card key={entry.id}>
+                      <CardContent className="p-4">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              {entry.type === "progress" ? (
+                                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                                  Auto
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                                  Check-in
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-sm">{entry.content}</p>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              {entry.author ? `${entry.author} - ` : ""}
+                              {formatDistanceToNow(new Date(entry.timestamp), {
+                                addSuffix: true,
+                              })}
+                            </p>
+                          </div>
+                          {entry.progressChange && (
+                            <div className="text-right">
+                              {entry.type === "progress" && entry.progressChange.from !== entry.progressChange.to ? (
+                                <span className="text-sm font-medium">
+                                  {entry.progressChange.from}% → {entry.progressChange.to}%
+                                </span>
+                              ) : (
+                                <span className="text-sm font-medium">
+                                  {entry.progressChange.to}%
+                                </span>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              );
+            }
+
+            return (
+              <Card>
+                <CardContent className="py-8 text-center">
+                  <History className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
+                  <h3 className="font-medium mb-2">No updates yet</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Progress updates and check-ins will appear here.
+                  </p>
+                </CardContent>
+              </Card>
+            );
+          })()}
         </TabsContent>
       </Tabs>
 

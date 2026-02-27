@@ -302,6 +302,7 @@ export async function endCall(callId: string) {
           firstName: true,
           lastName: true,
           phone: true,
+          orgId: true,
         },
       },
       caseManager: {
@@ -313,6 +314,22 @@ export async function endCall(callId: string) {
       },
     },
   });
+
+  // Track grant metrics when call completes (no AI dependency)
+  if (updatedCall.status === CallStatus.COMPLETED && updatedCall.clientId) {
+    try {
+      const { onCallCompleted } = await import('./grant-metrics');
+      await onCallCompleted({
+        id: callId,
+        clientId: updatedCall.clientId,
+        orgId: updatedCall.client.orgId,
+        clientName: `${updatedCall.client.firstName} ${updatedCall.client.lastName}`,
+      });
+    } catch (error) {
+      // Log but don't fail - grant metrics are non-critical
+      console.error(`[endCall] Failed to track grant metrics for call ${callId}:`, error);
+    }
+  }
 
   return updatedCall;
 }

@@ -15,6 +15,7 @@ export interface MetricEvent {
   sourceType: string;
   sourceId: string;
   delta?: number; // Default: 1
+  contextLabel?: string; // Human-readable context (e.g., client name)
 }
 
 // ============================================
@@ -42,10 +43,13 @@ export async function trackMetricEvent(event: MetricEvent): Promise<void> {
     event.programId
   );
 
-  // Update deliverables
+  // Update deliverables with context-rich notes
   const source: ProgressSource = {
     sourceType: event.sourceType,
     sourceId: event.sourceId,
+    notes: event.contextLabel
+      ? `${event.contextLabel} - call completed`
+      : `Auto-tracked from ${event.sourceType.replace("_", " ")}`,
   };
 
   const deliverableUpdates = deliverables.map((d) =>
@@ -133,6 +137,7 @@ export async function onCallCompleted(call: {
   id: string;
   clientId: string;
   orgId: string;
+  clientName?: string;
 }): Promise<void> {
   await trackMetricEvent({
     orgId: call.orgId,
@@ -140,6 +145,7 @@ export async function onCallCompleted(call: {
     clientId: call.clientId,
     sourceType: "call",
     sourceId: call.id,
+    contextLabel: call.clientName,
   });
 }
 
