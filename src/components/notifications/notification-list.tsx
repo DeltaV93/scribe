@@ -12,6 +12,8 @@ import {
   AlertCircle,
   Loader2,
   CheckCheck,
+  Calendar,
+  AlertTriangle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -50,6 +52,12 @@ function getNotificationIcon(type: string) {
       return <CheckCircle className="h-5 w-5 text-green-500" />;
     case "REMINDER":
       return <AlertCircle className="h-5 w-5 text-orange-500" />;
+    case "CALENDAR_EVENT_CREATED":
+      return <Calendar className="h-5 w-5 text-green-500" />;
+    case "CALENDAR_PENDING_REVIEW":
+      return <Calendar className="h-5 w-5 text-amber-500" />;
+    case "INTEGRATION_ERROR":
+      return <AlertTriangle className="h-5 w-5 text-red-500" />;
     case "SYSTEM":
     default:
       return <Bell className="h-5 w-5 text-muted-foreground" />;

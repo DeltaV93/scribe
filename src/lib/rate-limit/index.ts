@@ -78,3 +78,11 @@ export {
   formatViolationForAudit,
   type ViolationSeverity,
 } from './audit'
+
+// External API rate-limited client
+export {
+  RateLimitedClient,
+  createRateLimitedClient,
+  type RateLimitedClientOptions,
+  type RateLimitedResponse,
+} from './external-client'

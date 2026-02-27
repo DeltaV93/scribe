@@ -32,6 +32,7 @@ import {
 import { format } from "date-fns";
 import { toast } from "sonner";
 import Link from "next/link";
+import { ScheduledEventsSection } from "./components/ScheduledEventsSection";
 
 interface CallData {
   id: string;
@@ -337,6 +338,9 @@ export default function CallReviewPage() {
               </CardContent>
             </Card>
           )}
+
+          {/* Scheduled Events Section - Calendar events from this call */}
+          <ScheduledEventsSection callId={callId} />
         </TabsContent>
 
         {/* Extracted Fields Tab */}

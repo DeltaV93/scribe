@@ -646,4 +646,58 @@ export const AuditLogger = {
       userAgent,
     });
   },
+
+  // Calendar Event Audit Methods (PX-825)
+  async calendarEventCreated(
+    orgId: string,
+    userId: string,
+    eventId: string,
+    eventTitle: string,
+    callId?: string,
+    clientId?: string,
+    provider?: string,
+    tier?: "TIER_1_AUTO" | "TIER_2_APPROVED"
+  ) {
+    return createAuditLog({
+      orgId,
+      userId,
+      action: "CREATE",
+      resource: "CALENDAR_EVENT",
+      resourceId: eventId,
+      resourceName: eventTitle,
+      details: { callId, clientId, provider, tier },
+    });
+  },
+
+  async calendarEventUpdated(
+    orgId: string,
+    userId: string,
+    eventId: string,
+    changes: Record<string, unknown>
+  ) {
+    return createAuditLog({
+      orgId,
+      userId,
+      action: "UPDATE",
+      resource: "CALENDAR_EVENT",
+      resourceId: eventId,
+      details: { changes },
+    });
+  },
+
+  async calendarEventDeleted(
+    orgId: string,
+    userId: string,
+    eventId: string,
+    eventTitle?: string
+  ) {
+    return createAuditLog({
+      orgId,
+      userId,
+      action: "DELETE",
+      resource: "CALENDAR_EVENT",
+      resourceId: eventId,
+      resourceName: eventTitle,
+    });
+  },
 };

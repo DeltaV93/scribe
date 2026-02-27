@@ -33,6 +33,7 @@ export type EndpointCategory =
   | 'webhook'
   | 'public'
   | 'health'
+  | 'external_api'
 
 /**
  * Rate limit configurations by endpoint category
@@ -89,6 +90,14 @@ export const RATE_LIMIT_CONFIGS: Record<EndpointCategory, RateLimitConfig> = {
     trackByUser: false,
     trackByIp: true,
   },
+  external_api: {
+    limit: 50,
+    windowSeconds: 60, // 1 minute
+    name: 'External API',
+    trackByUser: true,
+    trackByIp: false,
+    message: 'External API rate limit exceeded. Please wait before making more requests.',
+  },
 }
 
 /**
@@ -130,6 +139,10 @@ export const ROUTE_PATTERNS: RoutePattern[] = [
   // Public endpoints (unauthenticated) - moderate limits
   { pattern: '/api/portal/*', category: 'public' },
   { pattern: '/api/attendance/codes*', category: 'public' },
+
+  // External API calls (calendar, AI, etc.) - per-user limits
+  { pattern: '/api/integrations/calendar/*', category: 'external_api' },
+  { pattern: '/api/scheduling/*', category: 'external_api' },
 
   // All other API endpoints - standard authenticated limits
   { pattern: '/api/*', category: 'api' },

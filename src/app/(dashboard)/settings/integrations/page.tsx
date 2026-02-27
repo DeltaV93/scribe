@@ -1,14 +1,16 @@
 /**
- * Meeting Integrations Settings Page
+ * Integrations Settings Page
  *
- * Allows users to connect/disconnect meeting platforms (Teams, Zoom, Google Meet)
- * and manage integration settings.
+ * Allows users to connect/disconnect:
+ * - Meeting platforms (Teams, Zoom, Google Meet)
+ * - Calendar providers (Google, Outlook, Apple)
  */
 
 import { Suspense } from "react";
 import { requireAuth, isAdmin } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { IntegrationsContent } from "./integrations-content";
+import { CalendarIntegrationSection } from "./components";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default async function IntegrationsPage() {
@@ -20,19 +22,49 @@ export default async function IntegrationsPage() {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-6 space-y-8">
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Integrations</h1>
         <p className="text-muted-foreground">
-          Connect meeting platforms to automatically capture and process recordings.
+          Connect external services to enhance your workflow.
         </p>
       </div>
 
-      {/* Integrations Content */}
-      <Suspense fallback={<IntegrationsSkeleton />}>
-        <IntegrationsContent />
-      </Suspense>
+      {/* Calendar Integration Section */}
+      <section>
+        <h2 className="text-xl font-semibold mb-4">Calendar</h2>
+        <Suspense fallback={<CalendarSkeleton />}>
+          <CalendarIntegrationSection />
+        </Suspense>
+      </section>
+
+      {/* Meeting Integrations Section */}
+      <section>
+        <h2 className="text-xl font-semibold mb-4">Meeting Platforms</h2>
+        <Suspense fallback={<IntegrationsSkeleton />}>
+          <IntegrationsContent />
+        </Suspense>
+      </section>
+    </div>
+  );
+}
+
+function CalendarSkeleton() {
+  return (
+    <div className="border rounded-lg p-6 space-y-4">
+      <div className="flex items-center gap-3">
+        <Skeleton className="h-10 w-10 rounded-lg" />
+        <div className="space-y-2">
+          <Skeleton className="h-5 w-40" />
+          <Skeleton className="h-4 w-64" />
+        </div>
+      </div>
+      <div className="space-y-3 pt-2">
+        <Skeleton className="h-12 w-full" />
+        <Skeleton className="h-12 w-full" />
+        <Skeleton className="h-12 w-full" />
+      </div>
     </div>
   );
 }

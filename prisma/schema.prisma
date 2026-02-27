@@ -173,6 +173,10 @@ enum NotificationType {
   GOAL_COMPLETED // Goal completed
   KPI_THRESHOLD_REACHED // KPI hit target or warning level
   CLIENT_GOAL_UPDATE // Client updated their goal
+  // Integration notification types (PX-831)
+  INTEGRATION_ERROR // OAuth token refresh failed, needs reconnect
+  CALENDAR_EVENT_CREATED // Tier 1 event auto-created
+  CALENDAR_PENDING_REVIEW // Tier 2 item needs review
 }
 
 enum ConsentMode {
@@ -501,6 +505,11 @@ model Organization {
   // RBAC Relations
   settingsDelegations SettingsDelegation[]
 
+  // Calendar Integration (PX-822)
+  calendarIntegrations      CalendarIntegration[]
+  calendarEvents            CalendarEvent[]
+  pendingSchedulingItems    PendingSchedulingItem[]
+
   @@index([slug])
   @@index([stripeCustomerId])
 }
@@ -700,6 +709,11 @@ model User {
   delegatedSettings        SettingsDelegation[]   @relation("DelegatedSettings")
   settingsDelegatedByMe    SettingsDelegation[]   @relation("SettingsDelegator")
   permissionDenials        PermissionDenialLog[]  @relation("PermissionDenials")
+
+  // Calendar Integration (PX-822)
+  calendarIntegration    CalendarIntegration?
+  calendarEvents         CalendarEvent[]
+  pendingSchedulingItems PendingSchedulingItem[]
 
   @@index([orgId])
   @@index([email])
@@ -1231,6 +1245,10 @@ model Client {
   // Activity Feed (PX-728)
   activities ClientActivity[]
 
+  // Calendar Integration (PX-822)
+  calendarEvents         CalendarEvent[]
+  pendingSchedulingItems PendingSchedulingItem[]
+
   @@index([orgId, status])
   @@index([orgId, phone])
   @@index([assignedTo])
@@ -1321,6 +1339,10 @@ model Call {
 
   // Action Items Relations (PX-689)
   actionItems CallActionItem[]
+
+  // Calendar Integration (PX-822)
+  calendarEvents         CalendarEvent[]
+  pendingSchedulingItems PendingSchedulingItem[]
 
   @@index([clientId])
   @@index([caseManagerId])
@@ -2960,11 +2982,214 @@ model MeetingIntegration {
   updatedAt     DateTime @updatedAt
 
   // Relations
-  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  organization     Organization      @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  integrationToken IntegrationToken?
 
   @@unique([orgId, platform])
   @@index([orgId, status])
   @@index([platform])
+}
+
+// ============================================
+// CALENDAR INTEGRATION (PX-822)
+// ============================================
+
+enum CalendarProvider {
+  GOOGLE
+  OUTLOOK
+  APPLE
+}
+
+enum CalendarIntegrationStatus {
+  PENDING // OAuth flow initiated
+  ACTIVE // Successfully connected
+  ERROR // Token refresh failed or other error
+  DISCONNECTED // User disconnected
+}
+
+model CalendarIntegration {
+  id       String                    @id @default(uuid())
+  userId   String                    @unique // One calendar per user
+  orgId    String
+  provider CalendarProvider
+
+  // External account info
+  externalEmail String? // Email of the connected calendar account
+
+  // Connection status
+  status    CalendarIntegrationStatus @default(PENDING)
+  lastError String?
+
+  // Settings
+  clientAutoInvite Boolean @default(true) // Auto-invite client if email on file
+
+  // Audit
+  connectedAt DateTime?
+  lastSyncAt  DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Relations
+  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization     Organization      @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  integrationToken IntegrationToken?
+  calendarEvents   CalendarEvent[]
+
+  @@index([orgId])
+  @@index([userId, status])
+}
+
+enum CalendarEventStatus {
+  CREATED // Event created on external calendar
+  UPDATED // Event was updated
+  DELETED // Event was deleted
+  FAILED // Failed to sync to calendar
+}
+
+model CalendarEvent {
+  id     String               @id @default(uuid())
+  userId String
+  orgId  String
+
+  // External calendar reference
+  externalEventId String // The event ID from the calendar provider
+  provider        CalendarProvider
+
+  // Event details
+  title     String
+  startTime DateTime
+  endTime   DateTime
+
+  // Recurrence
+  isRecurring Boolean @default(false)
+  rrule       String? // iCal RRULE format
+
+  // Linked entities
+  callId                 String? // Call that generated this event
+  clientId               String? // Client this event is about
+  calendarIntegrationId  String?
+  pendingSchedulingItemId String? @unique
+  actionItemId           String?
+
+  // Invite tracking
+  clientInvited Boolean @default(false)
+
+  // Status
+  status CalendarEventStatus @default(CREATED)
+
+  // Audit
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  user                 User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization         Organization           @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  calendarIntegration  CalendarIntegration?   @relation(fields: [calendarIntegrationId], references: [id])
+  call                 Call?                  @relation(fields: [callId], references: [id])
+  client               Client?                @relation(fields: [clientId], references: [id])
+  pendingSchedulingItem PendingSchedulingItem? @relation(fields: [pendingSchedulingItemId], references: [id])
+
+  @@index([userId])
+  @@index([orgId])
+  @@index([externalEventId, provider])
+  @@index([callId])
+}
+
+// ============================================
+// PENDING SCHEDULING ITEMS
+// ============================================
+
+enum PendingSchedulingTier {
+  TIER_1_CONFLICT // Explicit date+time but has conflict
+  TIER_2_VAGUE // Vague scheduling reference
+}
+
+enum PendingSchedulingStatus {
+  PENDING // Awaiting user action
+  APPROVED // User approved, event created
+  DISMISSED // User dismissed
+}
+
+model PendingSchedulingItem {
+  id     String @id @default(uuid())
+  callId String
+  userId String
+  orgId  String
+
+  // Client context
+  clientId   String?
+  clientName String // Denormalized for quick display
+
+  // Extracted scheduling info
+  extractedContext  String // The scheduling context from transcript
+  extractedDateHint String? // Partial date info if available
+  hasRecurrence     Boolean @default(false)
+  recurrencePattern String? // e.g., "weekly", "every Monday"
+
+  // Classification
+  tier            PendingSchedulingTier
+  conflictDetails Json? // For TIER_1_CONFLICT: { eventTitle, eventTime }
+
+  // Status
+  status     PendingSchedulingStatus @default(PENDING)
+  resolvedAt DateTime?
+
+  // Audit
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  call          Call          @relation(fields: [callId], references: [id], onDelete: Cascade)
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization  Organization  @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  client        Client?       @relation(fields: [clientId], references: [id])
+  calendarEvent CalendarEvent?
+
+  @@index([userId, status])
+  @@index([callId])
+  @@index([orgId])
+}
+
+// ============================================
+// UNIFIED INTEGRATION TOKEN MANAGEMENT
+// ============================================
+
+enum IntegrationTokenType {
+  // Meeting platforms
+  ZOOM
+  TEAMS
+  GOOGLE_MEET
+  // Calendar providers
+  GOOGLE_CALENDAR
+  OUTLOOK_CALENDAR
+  APPLE_CALENDAR
+}
+
+model IntegrationToken {
+  id   String               @id @default(uuid())
+  type IntegrationTokenType
+
+  // Encrypted OAuth credentials
+  accessToken  String  // Encrypted at rest via AES-256-GCM
+  refreshToken String? // Encrypted at rest, may be null for some providers
+
+  // Token lifecycle
+  expiresAt DateTime? // When the access token expires
+  issuedAt  DateTime  @default(now())
+
+  // Optional relations - only one should be set
+  meetingIntegrationId  String?              @unique
+  meetingIntegration    MeetingIntegration?  @relation(fields: [meetingIntegrationId], references: [id], onDelete: Cascade)
+  calendarIntegrationId String?              @unique
+  calendarIntegration   CalendarIntegration? @relation(fields: [calendarIntegrationId], references: [id], onDelete: Cascade)
+
+  // Audit
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([type])
+  @@index([expiresAt])
+  @@index([type, expiresAt])
 }
 
 // ============================================

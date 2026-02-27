@@ -159,6 +159,7 @@ function extractResourceIdFromParams(
     GOAL: ["goalId", "goal_id", "id"],
     KPI: ["kpiId", "kpi_id", "id"],
     SESSION: ["sessionId", "session_id", "id"],
+    CALENDAR_EVENT: ["eventId", "calendarEventId", "id"],
   };
 
   const possibleParams = resourceParamMap[resource] || ["id"];
