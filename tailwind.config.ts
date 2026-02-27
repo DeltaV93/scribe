@@ -90,6 +90,7 @@ const config: Config = {
         },
         "ink-blue": {
           DEFAULT: "var(--ink-blue)",
+          accent: "var(--ink-blue-accent)",
           mid: "var(--ink-blue-mid)",
           light: "var(--ink-blue-light)",
           wash: "var(--ink-blue-wash)",

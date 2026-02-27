@@ -103,12 +103,15 @@ strong, b, .font-medium {
     --border: #DADAD7;
     --border-light: #E8E8E5;
 
-    /* Ink Blue - Primary Accent */
+    /* Ink Blue - Two-Register System for A11y */
+    /* --ink-blue: Surfaces (nav bg, CTA sections, large fills) */
+    /* --ink-blue-accent: Text & buttons (headlines, links, labels, btn fills) - lighter for a11y */
     --ink-blue: #1B2A4A;
-    --ink-blue-mid: #2F3A59;
+    --ink-blue-accent: #2B4C8C;
+    --ink-blue-mid: #244280;
     --ink-blue-light: #4A5A7A;
-    --ink-blue-wash: rgba(27, 42, 74, 0.08);
-    --ink-blue-ghost: rgba(27, 42, 74, 0.04);
+    --ink-blue-wash: rgba(43, 76, 140, 0.08);
+    --ink-blue-ghost: rgba(43, 76, 140, 0.04);
 
     /* Functional Inks (4-Color Pen) */
     --ink-red: #B34747;
@@ -197,19 +200,21 @@ strong, b, .font-medium {
   }
 
   .dark {
-    /* Dark mode - Inkra dark palette */
+    /* Dark mode - Inkra dark palette (from brand system v6) */
     --paper: #0F1014;
     --paper-warm: #151619;
     --paper-dim: #1C1D22;
     --ink: #E8E8E5;
     --ink-soft: #C4C4C0;
     --ink-muted: #8A8A86;
-    --ink-faint: #5A5A57;
-    --border: #2A2B30;
-    --border-light: #222328;
+    --ink-faint: #6E6E6B;
+    --border: #3A3B42;
+    --border-light: #2F3034;
 
-    --ink-blue: #8A9EC8;
-    --ink-blue-mid: #6B82B4;
+    /* Ink Blue - Two-Register System (Dark Mode) */
+    --ink-blue: #3D5A94;
+    --ink-blue-accent: #A8B8D8;
+    --ink-blue-mid: #344F88;
     --ink-blue-light: #A8B8D8;
     --ink-blue-wash: rgba(138, 158, 200, 0.10);
     --ink-blue-ghost: rgba(138, 158, 200, 0.05);
@@ -242,8 +247,8 @@ strong, b, .font-medium {
     --muted: 240 4% 14%;
     --muted-foreground: 40 2% 54%; /* #8A8A86 */
 
-    /* Accent = Ink Blue (dark mode) */
-    --accent: 220 35% 66%; /* #8A9EC8 */
+    /* Accent = Ink Blue Accent (dark mode) */
+    --accent: 220 40% 75%; /* #A8B8D8 */
     --accent-foreground: 240 7% 5%;
 
     --destructive: 0 63% 66%; /* #E07070 */
@@ -258,9 +263,9 @@ strong, b, .font-medium {
     --info: 220 35% 76%; /* #A8B8D8 */
     --info-foreground: 240 7% 5%;
 
-    --border: 240 6% 17%; /* #2A2B30 */
-    --input: 240 6% 17%;
-    --ring: 220 35% 66%;
+    --border: 240 5% 24%; /* #3A3B42 */
+    --input: 240 5% 24%;
+    --ring: 220 40% 75%;
 
     --shadow-sm: 0 1px 3px rgba(0,0,0,0.20);
     --shadow-md: 0 4px 12px rgba(0,0,0,0.30);
@@ -383,12 +388,20 @@ strong, b, .font-medium {
     background-color: var(--paper-dim);
   }
 
-  /* Ink Blue (primary accent) */
+  /* Ink Blue - Two Register System */
+  /* --ink-blue: surfaces (nav bg, CTA sections) */
+  /* --ink-blue-accent: text & buttons (a11y compliant) */
   .text-ink-blue {
     color: var(--ink-blue);
   }
+  .text-ink-blue-accent {
+    color: var(--ink-blue-accent);
+  }
   .bg-ink-blue {
     background-color: var(--ink-blue);
+  }
+  .bg-ink-blue-accent {
+    background-color: var(--ink-blue-accent);
   }
   .bg-ink-blue-wash {
     background-color: var(--ink-blue-wash);
@@ -398,6 +411,15 @@ strong, b, .font-medium {
   }
   .border-ink-blue {
     border-color: var(--ink-blue);
+  }
+  .border-ink-blue-accent {
+    border-color: var(--ink-blue-accent);
+  }
+  .hover\:text-ink-blue-accent:hover {
+    color: var(--ink-blue-accent);
+  }
+  .hover\:bg-ink-blue-ghost:hover {
+    background-color: var(--ink-blue-ghost);
   }
 
   /* Ink Green (success) */

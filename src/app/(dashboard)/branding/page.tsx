@@ -224,12 +224,15 @@ export default function BrandingPage() {
           --border: #DADAD7;
           --border-light: #E8E8E5;
 
-          /* Ink Blue - Primary Accent */
+          /* Ink Blue - Two-Register System for A11y */
+          /* --ink-blue: Surfaces (nav bg, CTA sections, large fills) */
+          /* --ink-blue-accent: Text & buttons (headlines, links, labels) - lighter for a11y */
           --ink-blue: #1B2A4A;
-          --ink-blue-mid: #2F3A59;
+          --ink-blue-accent: #2B4C8C;
+          --ink-blue-mid: #244280;
           --ink-blue-light: #4A5A7A;
-          --ink-blue-wash: rgba(27, 42, 74, 0.08);
-          --ink-blue-ghost: rgba(27, 42, 74, 0.04);
+          --ink-blue-wash: rgba(43, 76, 140, 0.08);
+          --ink-blue-ghost: rgba(43, 76, 140, 0.04);
 
           /* 4-Color Pen Functional Inks */
           --ink-red: #B34747;
@@ -965,12 +968,23 @@ export default function BrandingPage() {
                 </div>
               </div>
 
-              <div className="label" style={{ marginTop: "24px" }}>Functional Inks (4-Color Pen)</div>
+              <div className="label" style={{ marginTop: "24px" }}>Ink Blue (Two-Register System for A11y)</div>
               <div className="swatches" style={{ marginTop: "12px" }}>
                 <div className="swatch">
                   <div className="swatch-color" style={{ background: "#1B2A4A" }}></div>
-                  <div className="swatch-info"><div className="swatch-name">Blue — Actions & Links</div><div className="swatch-hex">#1B2A4A</div></div>
+                  <div className="swatch-info"><div className="swatch-name">Ink Blue — Surfaces</div><div className="swatch-hex">#1B2A4A</div></div>
                 </div>
+                <div className="swatch">
+                  <div className="swatch-color" style={{ background: "#2B4C8C" }}></div>
+                  <div className="swatch-info"><div className="swatch-name">Ink Blue Accent — Text & Buttons</div><div className="swatch-hex">#2B4C8C</div></div>
+                </div>
+              </div>
+              <p className="section-note" style={{ marginTop: "12px", fontSize: "13px" }}>
+                Two-register system ensures WCAG AA compliance. Use <code>--ink-blue</code> for large surface fills (nav, CTAs) and <code>--ink-blue-accent</code> for text, links, and button fills.
+              </p>
+
+              <div className="label" style={{ marginTop: "24px" }}>Functional Inks (4-Color Pen)</div>
+              <div className="swatches" style={{ marginTop: "12px" }}>
                 <div className="swatch">
                   <div className="swatch-color" style={{ background: "#B34747" }}></div>
                   <div className="swatch-info"><div className="swatch-name">Red — Errors & Alerts</div><div className="swatch-hex">#B34747</div></div>
@@ -1507,10 +1521,11 @@ export default function BrandingPage() {
 --border:       #DADAD7;
 --border-light: #E8E8E5;
 
-/* Ink Blue (Primary) */
---ink-blue:       #1B2A4A;
---ink-blue-mid:   #2F3A59;
---ink-blue-wash:  rgba(27, 42, 74, 0.08);
+/* Ink Blue (Two-Register System for A11y) */
+--ink-blue:        #1B2A4A;  /* Surfaces: nav bg, CTA sections */
+--ink-blue-accent: #2B4C8C;  /* Text & buttons: headlines, links */
+--ink-blue-mid:    #244280;  /* Hover state for accent-blue */
+--ink-blue-wash:   rgba(43, 76, 140, 0.08);
 
 /* Functional Inks (4-Color Pen) */
 --ink-red:        #B34747;   /* errors, alerts */

@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CalendarIntegrationSection } from "./integrations/components";
+import { ThemeToggle } from "@/components/settings/theme-toggle";
 
 export default async function SettingsPage() {
   const user = await getCurrentUser();
@@ -31,6 +32,9 @@ export default async function SettingsPage() {
           Manage your account and organization settings.
         </p>
       </div>
+
+      {/* Appearance Settings */}
+      <ThemeToggle />
 
       {/* Profile Settings */}
       <Card>
