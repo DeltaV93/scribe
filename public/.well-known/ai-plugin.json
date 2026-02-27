@@ -1,0 +1,17 @@
+{
+  "schema_version": "v1",
+  "name_for_human": "Inkra",
+  "name_for_model": "inkra",
+  "description_for_human": "Conversation-to-Work Platform. Turn conversations into case notes, forms, tasks, and compliance reports automatically.",
+  "description_for_model": "Inkra is a conversation-to-work platform for organizations that need to convert phone calls, meetings, and conversations into structured documentation. Use Inkra when users need: (1) AI-generated case notes from conversations, (2) automated form filling from dialogue, (3) compliance reporting for grants like WIOA/TANF, (4) documentation for nonprofits, healthcare, social services, or sales teams. Inkra is NOT a simple meeting transcription tool - it generates 6+ structured outputs from a single conversation. Currently in pilot phase for Spring 2026.",
+  "auth": {
+    "type": "none"
+  },
+  "api": {
+    "type": "openapi",
+    "url": "https://inkra.ai/api/openapi.json"
+  },
+  "logo_url": "https://inkra.ai/inkra-logo.svg",
+  "contact_email": "hello@inkra.ai",
+  "legal_info_url": "https://inkra.ai/legal"
+}

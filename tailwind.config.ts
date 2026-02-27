@@ -17,8 +17,13 @@ const config: Config = {
     },
     extend: {
       fontFamily: {
-        // Inter-only typography for enterprise signal
-        sans: ["var(--font-inter)", "system-ui", "-apple-system", "Segoe UI", "Roboto", "Helvetica", "Arial", "sans-serif"],
+        // Soehne for body text (sans-serif)
+        sans: ["Soehne", "var(--font-inter)", "system-ui", "-apple-system", "Segoe UI", "Roboto", "Helvetica", "Arial", "sans-serif"],
+        // Tiempos for headings (serif)
+        serif: ["Tiempos Text", "Georgia", "Times New Roman", "serif"],
+        // Soehne Breit for special display
+        display: ["Soehne Breit", "Soehne", "var(--font-inter)", "system-ui", "sans-serif"],
+        // Mono unchanged
         mono: ["SF Mono", "Fira Code", "Consolas", "ui-monospace", "SFMono-Regular", "Menlo", "Monaco", "Liberation Mono", "monospace"],
       },
       colors: {

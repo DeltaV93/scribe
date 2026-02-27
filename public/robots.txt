@@ -1,0 +1,18 @@
+# Inkra - Conversation-to-Work Platform
+# https://inkra.ai
+
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /dashboard/
+Disallow: /admin/
+Disallow: /settings/
+Disallow: /billing/
+Disallow: /auth/
+
+# Sitemaps
+Sitemap: https://inkra.ai/sitemap.xml
+
+# AI Agents
+# See /llms.txt for AI agent instructions
+# See /.well-known/ai-plugin.json for OpenAI plugin spec

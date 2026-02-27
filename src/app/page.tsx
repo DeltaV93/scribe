@@ -1,33 +1,20 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef } from "react";
+import Image from "next/image";
 import {
-  FileText,
-  BarChart3,
-  Brain,
-  CheckCircle2,
-  Target,
-  TrendingUp,
-  Video,
-  Clapperboard,
-  Smartphone,
-  Zap,
-  Building2,
-  Microscope,
-  Users,
-  Rocket,
-  Headphones,
-  Mic2,
-  ClipboardList,
-  Eye,
-  Camera,
-} from "lucide-react";
+  OrganizationJsonLd,
+  SoftwareApplicationJsonLd,
+  FAQJsonLd,
+  HowToJsonLd,
+  inkraFAQs,
+} from "@/components/seo/json-ld";
 
 export default function HomePage() {
-  const [activeStory, setActiveStory] = useState("sales");
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
-    // Reveal animation on scroll
+    // Scroll reveal animation
     const revealElements = document.querySelectorAll(".reveal");
     const observer = new IntersectionObserver(
       (entries) => {
@@ -37,1514 +24,1422 @@ export default function HomePage() {
           }
         });
       },
-      { threshold: 0.1, rootMargin: "0px 0px -40px 0px" }
+      { threshold: 0.15 }
     );
     revealElements.forEach((el) => observer.observe(el));
-    return () => observer.disconnect();
+
+    // Blob animation
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const np = 12;
+    const radius = 55;
+    const maxR = 30;
+    const color = "#1B2A4A";
+    const div = (Math.PI * 2) / np;
+
+    class Point {
+      azimuth: number;
+      cx: number;
+      cy: number;
+      radius: number;
+      _c: { x: number; y: number };
+      acceleration: number;
+      speed: number;
+      radialEffect: number;
+      elasticity: number;
+      friction: number;
+
+      constructor(az: number, cx: number, cy: number, r: number) {
+        this.azimuth = Math.PI - az;
+        this.cx = cx;
+        this.cy = cy;
+        this.radius = r;
+        this._c = { x: Math.cos(this.azimuth), y: Math.sin(this.azimuth) };
+        this.acceleration = -0.3 + Math.random() * 0.6;
+        this.speed = 0.002 + Math.random() * 0.002;
+        this.radialEffect = 0;
+        this.elasticity = 0.001;
+        this.friction = 0.0085;
+      }
+
+      solveWith(l: Point, r: Point) {
+        this.acceleration =
+          (-0.3 * this.radialEffect +
+            (l.radialEffect - this.radialEffect) +
+            (r.radialEffect - this.radialEffect)) *
+            this.elasticity -
+          this.speed * this.friction;
+      }
+
+      get position() {
+        return {
+          x: this.cx + this._c.x * (this.radius + this.radialEffect),
+          y: this.cy + this._c.y * (this.radius + this.radialEffect),
+        };
+      }
+    }
+
+    const cx = canvas.width / 2;
+    const cy = canvas.height / 2;
+    const points: Point[] = [];
+    for (let i = 0; i < np; i++) {
+      points.push(new Point(div * (i + 1), cx, cy, radius));
+    }
+
+    let target = 0.5;
+    let cur = 0.5;
+
+    // Simulate speech
+    const pulse = () => {
+      target =
+        Math.random() > 0.3
+          ? 0.4 + Math.random() * 0.6
+          : 0.05 + Math.random() * 0.1;
+      setTimeout(pulse, 150 + Math.random() * 500);
+    };
+    pulse();
+
+    const drawHalf = (flip: boolean) => {
+      points.forEach((p) => {
+        p.cx = cx;
+        p.cy = cy;
+      });
+      points[0].solveWith(points[np - 1], points[1]);
+      let p0 = points[np - 1].position;
+      let p1 = points[0].position;
+      if (flip) {
+        p0 = { x: 2 * cx - p0.x, y: p0.y };
+        p1 = { x: 2 * cx - p1.x, y: p1.y };
+      }
+      ctx.beginPath();
+      ctx.moveTo((p0.x + p1.x) / 2, (p0.y + p1.y) / 2);
+      for (let i = 1; i < np; i++) {
+        points[i].solveWith(points[i - 1], points[i + 1] || points[0]);
+        let p2 = points[i].position;
+        if (flip) p2 = { x: 2 * cx - p2.x, y: p2.y };
+        ctx.quadraticCurveTo(p1.x, p1.y, (p1.x + p2.x) / 2, (p1.y + p2.y) / 2);
+        p1 = p2;
+      }
+      let pf = points[0].position;
+      if (flip) pf = { x: 2 * cx - pf.x, y: pf.y };
+      ctx.quadraticCurveTo(p1.x, p1.y, (p1.x + pf.x) / 2, (p1.y + pf.y) / 2);
+      ctx.closePath();
+      ctx.fill();
+    };
+
+    let animationId: number;
+    const frame = () => {
+      cur += (target - cur) * 0.06;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      for (let i = 0; i < np; i++) {
+        const p = points[i];
+        p.elasticity = 0.001 + cur * 0.003;
+        p.friction = 0.0085 + (1 - cur) * 0.005;
+        const drive =
+          Math.sin(Date.now() * 0.003 * (i + 1) * 0.3) * cur * maxR;
+        p.radialEffect += (drive - p.radialEffect) * 0.03;
+        p.speed += p.acceleration;
+        p.radialEffect += p.speed;
+      }
+      ctx.fillStyle = color;
+      ctx.globalAlpha = 0.6 + cur * 0.25;
+      drawHalf(false);
+      ctx.globalAlpha = 0.45 + cur * 0.25;
+      drawHalf(true);
+      // Shadow layer
+      ctx.globalAlpha = 0.06 + cur * 0.04;
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.scale(1.2, 1.2);
+      ctx.translate(-cx, -cy);
+      drawHalf(false);
+      drawHalf(true);
+      ctx.restore();
+      ctx.globalAlpha = 1;
+      animationId = requestAnimationFrame(frame);
+    };
+    frame();
+
+    return () => {
+      observer.disconnect();
+      cancelAnimationFrame(animationId);
+    };
   }, []);
+
+  const scrollTo = (id: string) => {
+    document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+  };
 
   const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const btn = e.currentTarget.querySelector(".wl__btn") as HTMLButtonElement;
+    const btn = e.currentTarget.querySelector(".wl-btn") as HTMLButtonElement;
     if (btn) {
       btn.textContent = "You're on the list ✓";
-      btn.style.background = "var(--success)";
       btn.disabled = true;
     }
   };
 
-  const showStory = (id: string) => {
-    setActiveStory(id);
-  };
-
   return (
     <>
+      {/* SEO: Structured Data for Search Engines and AI Agents */}
+      <OrganizationJsonLd />
+      <SoftwareApplicationJsonLd />
+      <FAQJsonLd questions={inkraFAQs} />
+      <HowToJsonLd
+        name="How to automate documentation with Inkra"
+        description="Get structured case notes, forms, and compliance reports from conversations automatically"
+        steps={[
+          { name: "Apply for pilot", text: "Submit your application at inkra.ai to join the Spring 2026 pilot program" },
+          { name: "Connect your channels", text: "Link your VoIP phone, Zoom, Google Meet, or Teams accounts" },
+          { name: "Have conversations", text: "Talk to clients, patients, or customers as you normally would" },
+          { name: "Review outputs", text: "Inkra automatically generates case notes, forms, tasks, and reports for review" },
+        ]}
+      />
+
       <style jsx global>{`
         :root {
-          /* INKRA Design System — 4-Color Pen */
-          --ink: #111111;
-          --ink-soft: #3A3A3A;
-          --ink-muted: #6B6B6B;
           --paper: #FAFAF8;
           --paper-warm: #F5F4F0;
           --paper-dim: #EEEDEA;
+          --ink: #111111;
+          --ink-soft: #3A3A3A;
+          --ink-muted: #6B6B6B;
+          --ink-faint: #A1A1A1;
           --border: #DADAD7;
           --border-light: #E8E8E5;
-
-          /* Ink Blue - Primary Accent */
           --ink-blue: #1B2A4A;
           --ink-blue-mid: #2F3A59;
-          --ink-blue-wash: rgba(27, 42, 74, 0.08);
-
-          /* Ink opacity variants */
-          --ink-80: rgba(17,17,17,.80);
-          --ink-70: rgba(17,17,17,.70);
-          --ink-60: rgba(17,17,17,.60);
-          --ink-12: rgba(17,17,17,.12);
-          --ink-08: rgba(17,17,17,.08);
-
-          /* 4-Color Pen Semantic */
-          --ink-green: #3F6F5A;
+          --ink-blue-wash: rgba(27,42,74,0.08);
           --ink-red: #B34747;
+          --ink-green: #3F6F5A;
           --ink-amber: #B26A00;
-          --success: #3F6F5A;
-          --error: #B34747;
-          --warning: #B26A00;
-
-          /* Typography - Inter only */
-          --font: "Inter", var(--font-inter), system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
-          --mono: 'SF Mono', 'Fira Code', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-
-          /* Radii */
-          --r6: 6px;
-          --r10: 10px;
-          --r14: 14px;
-
-          /* Shadows */
-          --shadow-sm: 0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02);
-          --shadow-md: 0 4px 12px rgba(0,0,0,0.06);
-          --shadow-lg: 0 12px 40px rgba(0,0,0,0.08);
-
-          /* Motion */
-          --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
-          --duration-fast: 120ms;
-          --duration-normal: 240ms;
+          --sans: 'Soehne', var(--font-inter), -apple-system, system-ui, sans-serif;
+          --serif: 'Tiempos Text', Georgia, serif;
+          --display: 'Soehne Breit', 'Soehne', var(--font-inter), sans-serif;
+          --ease: cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        *, *::before, *::after {
-          box-sizing: border-box;
-          margin: 0;
-          padding: 0;
-        }
-
-        html {
-          scroll-behavior: smooth;
-        }
-
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
         body {
-          font-family: var(--font);
-          color: var(--ink);
+          font-family: var(--sans);
+          font-weight: 300;
           background: var(--paper);
-          line-height: 1.55;
+          color: var(--ink);
           -webkit-font-smoothing: antialiased;
           overflow-x: hidden;
         }
 
-        a {
-          color: inherit;
-          text-decoration: none;
-        }
-
-        .container {
-          max-width: 1120px;
-          margin: 0 auto;
-          padding: 0 32px;
-        }
-
-        .kicker {
-          font-family: var(--mono);
-          font-size: 11px;
-          font-weight: 500;
-          letter-spacing: 0.12em;
-          text-transform: uppercase;
-          color: var(--ink-blue);
-        }
-
-        @keyframes pulse {
-          0%, 100% { box-shadow: 0 0 6px rgba(63, 111, 90, 0.4); }
-          50% { box-shadow: 0 0 14px rgba(63, 111, 90, 0.6); }
-        }
-
         /* NAV */
         .nav {
-          position: fixed;
-          top: 0;
-          left: 0;
-          right: 0;
-          z-index: 1000;
-          height: 56px;
-          display: flex;
-          align-items: center;
-          background: rgba(250,250,248,.85);
-          backdrop-filter: blur(10px);
-          border-bottom: 1px solid var(--ink-08);
+          position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+          padding: 16px 32px;
+          display: flex; align-items: center; justify-content: space-between;
+          background: color-mix(in srgb, var(--paper) 80%, transparent);
+          backdrop-filter: blur(16px);
+          border-bottom: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
         }
-
-        .nav__inner {
-          max-width: 1120px;
-          margin: 0 auto;
-          width: 100%;
-          padding: 0 32px;
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
+        .nav-left { display: flex; align-items: center; gap: 12px; }
+        .nav-mark { display: flex; align-items: center; }
+        .nav-mark svg { display: block; }
+        .nav-name { font-size: 18px; font-weight: 800; letter-spacing: -0.04em; }
+        .nav-cta {
+          font-family: var(--sans); font-size: 14px; font-weight: 600;
+          padding: 10px 20px; background: var(--ink-blue); color: #fff;
+          border: none; border-radius: 8px; cursor: pointer;
+          transition: all 0.2s var(--ease);
         }
-
-        .nav__brand {
-          font-family: var(--font);
-          font-size: 18px;
-          font-weight: 700;
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          color: var(--ink);
-          letter-spacing: -0.01em;
-        }
-
-        .nav__dot {
-          width: 32px;
-          height: 32px;
-          border-radius: 8px;
-          background: var(--ink);
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          color: var(--paper);
-          font-weight: 700;
-          font-size: 14px;
-        }
-
-        .nav__dot::after {
-          content: 'I';
-        }
-
-        .nav__cta {
-          font-size: 14px;
-          font-weight: 600;
-          color: var(--paper);
-          background: var(--ink);
-          padding: 12px 20px;
-          border-radius: var(--r10);
-          transition: all 0.15s;
-        }
-
-        .nav__cta:hover {
-          background: var(--ink-80);
-        }
-
-        /* BUTTONS */
-        .btn {
-          display: inline-flex;
-          align-items: center;
-          padding: 14px 28px;
-          background: var(--ink);
-          color: var(--paper);
-          font-family: var(--font);
-          font-size: 14px;
-          font-weight: 600;
-          border-radius: var(--r10);
-          border: none;
-          cursor: pointer;
-          transition: all 0.15s;
-        }
-
-        .btn:hover {
-          background: var(--ink-80);
-          transform: translateY(-1px);
-          box-shadow: var(--shadow-md);
-        }
-
-        .btn--outline {
-          background: transparent;
-          color: var(--ink);
-          border: 1.5px solid var(--ink-12);
-        }
-
-        .btn--outline:hover {
-          background: rgba(231,229,224,.55);
-          border-color: rgba(17,17,17,.24);
-          box-shadow: none;
-        }
-
-        /* MEDIA PLACEHOLDER */
-        .mp {
-          background: rgba(17,17,17,.02);
-          border: 2px dashed var(--ink-12);
-          border-radius: var(--r14);
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          text-align: center;
-          padding: 32px 20px;
-        }
-
-        .mp__icon {
-          font-size: 28px;
-          margin-bottom: 8px;
-          opacity: 0.6;
-        }
-
-        .mp__label {
-          font-family: var(--mono);
-          font-size: 10px;
-          font-weight: 600;
-          letter-spacing: 0.1em;
-          text-transform: uppercase;
-          color: var(--ink-blue);
-          margin-bottom: 5px;
-        }
-
-        .mp__desc {
-          font-size: 12px;
-          color: var(--ink-60);
-          line-height: 1.5;
-          max-width: 440px;
-        }
-
-        .mp__dims {
-          font-family: var(--mono);
-          font-size: 9px;
-          color: var(--ink-60);
-          opacity: 0.5;
-          margin-top: 6px;
-        }
+        .nav-cta:hover { background: var(--ink-blue-mid); transform: translateY(-1px); box-shadow: 0 4px 16px rgba(27,42,74,0.2); }
 
         /* HERO */
-        .hero-out {
+        .hero {
           min-height: 100vh;
-          display: flex;
-          align-items: center;
-          padding: 100px 0 60px;
-          background: var(--paper);
+          display: flex; flex-direction: column;
+          align-items: center; justify-content: center;
           text-align: center;
+          padding: 120px 32px 80px;
+          position: relative;
+          overflow: hidden;
         }
-
-        .hero-out__inner {
-          max-width: 760px;
-          margin: 0 auto;
+        .hero::before {
+          content: ''; position: absolute; inset: 0;
+          background-image: radial-gradient(circle, var(--ink-blue) 1px, transparent 1px);
+          background-size: 24px 24px;
+          opacity: 0.03; pointer-events: none;
         }
-
-        .hero-out h1 {
-          font-family: var(--font);
-          font-weight: 800;
-          font-size: clamp(36px, 4.2vw, 56px);
-          line-height: 1.05;
-          letter-spacing: -0.03em;
-          margin: 14px 0 14px;
-          color: var(--ink);
+        .hero-badge {
+          display: inline-flex; align-items: center; gap: 8px;
+          font-size: 13px; font-weight: 500; color: var(--ink-blue);
+          background: var(--ink-blue-wash); padding: 8px 16px;
+          border-radius: 999px; margin-bottom: 32px;
+          animation: fadeUp 0.8s var(--ease) both;
         }
-
-        .hero-out h1 em {
-          font-style: italic;
-          color: var(--ink-blue);
+        .hero-badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--ink-blue); }
+        .hero h1 {
+          font-family: var(--serif); font-weight: 400;
+          font-size: clamp(42px, 6vw, 72px);
+          line-height: 1.1; letter-spacing: -0.02em;
+          max-width: 780px; margin-bottom: 24px;
+          animation: fadeUp 0.8s 0.1s var(--ease) both;
         }
-
-        .hero-out__sub {
-          font-size: 16px;
-          color: var(--ink-70);
-          line-height: 1.6;
-          max-width: 52ch;
-          margin: 0 auto 32px;
+        .hero h1 em { font-style: italic; color: var(--ink-blue); }
+        .hero-sub {
+          font-size: 18px; line-height: 1.6; color: var(--ink-muted);
+          max-width: 520px; margin-bottom: 40px;
+          animation: fadeUp 0.8s 0.2s var(--ease) both;
         }
+        .hero-cta-row {
+          display: flex; align-items: center; gap: 16px; flex-wrap: wrap; justify-content: center;
+          animation: fadeUp 0.8s 0.3s var(--ease) both;
+        }
+        .btn-primary {
+          font-family: var(--sans); font-size: 15px; font-weight: 600;
+          padding: 14px 28px; background: var(--ink-blue); color: #fff;
+          border: none; border-radius: 10px; cursor: pointer;
+          transition: all 0.2s var(--ease);
+          box-shadow: 0 1px 3px rgba(27,42,74,0.15);
+        }
+        .btn-primary:hover { background: var(--ink-blue-mid); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(27,42,74,0.2); }
+        .btn-ghost {
+          font-family: var(--sans); font-size: 15px; font-weight: 500;
+          padding: 14px 24px; background: none; color: var(--ink-muted);
+          border: 1px solid var(--border); border-radius: 10px; cursor: pointer;
+          transition: all 0.2s var(--ease);
+        }
+        .btn-ghost:hover { border-color: var(--ink-blue); color: var(--ink-blue); }
+        .hero-note { font-size: 12px; color: var(--ink-faint); margin-top: 12px; }
+        .hero-blob {
+          margin-top: 64px; width: 100%; max-width: 480px; height: 140px;
+          animation: fadeUp 0.8s 0.5s var(--ease) both;
+        }
+        .hero-blob canvas { display: block; width: 100%; height: 100%; }
 
-        .hero-out__cta-row {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 16px;
-          margin-bottom: 48px;
+        /* TRUST BAR */
+        .trust-bar {
+          display: flex; align-items: center; justify-content: center;
+          gap: 32px; padding: 24px 32px;
+          border-top: 1px solid var(--border-light);
+          border-bottom: 1px solid var(--border-light);
           flex-wrap: wrap;
         }
-
-        .hero-out__proof {
-          font-family: var(--mono);
-          font-size: 11px;
-          color: var(--ink-60);
-          display: flex;
-          align-items: center;
-          gap: 6px;
+        .trust-item {
+          font-size: 12px; font-weight: 600; color: var(--ink-muted);
+          letter-spacing: 0.04em; text-transform: uppercase;
+          display: flex; align-items: center; gap: 6px;
         }
+        .trust-item::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--ink-green); }
 
-        .hero-out__proof-dot {
-          width: 5px;
-          height: 5px;
-          border-radius: 50%;
-          background: var(--success);
-          animation: pulse 2.5s ease-in-out infinite;
+        /* SECTIONS */
+        .section { padding: 100px 32px; }
+        .section-inner { max-width: 1080px; margin: 0 auto; }
+        .section-label {
+          font-size: 11px; font-weight: 600; letter-spacing: 0.1em;
+          text-transform: uppercase; color: var(--ink-muted); margin-bottom: 16px;
         }
-
-        .outcome-grid {
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 12px;
-          max-width: 900px;
-          margin: 0 auto;
+        .section-title {
+          font-family: var(--serif); font-weight: 400;
+          font-size: clamp(32px, 4vw, 48px);
+          line-height: 1.15; letter-spacing: -0.015em;
+          margin-bottom: 20px;
         }
+        .section-title em { font-style: italic; color: var(--ink-blue); }
 
-        .outcome {
-          padding: 28px 20px;
-          border-radius: var(--r14);
-          background: var(--paper);
-          border: 1px solid var(--ink-08);
-          text-align: center;
-          transition: all 0.25s;
-          box-shadow: var(--shadow-sm);
+        /* STATS GRID */
+        .stats-grid {
+          display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px;
+          background: var(--border-light); border: 1px solid var(--border-light);
+          border-radius: 16px; overflow: hidden; margin-top: 48px;
         }
-
-        .outcome:hover {
-          border-color: var(--ink-blue);
-          transform: translateY(-2px);
-          box-shadow: var(--shadow-md);
-        }
-
-        .outcome__arrow {
-          font-family: var(--mono);
-          font-size: 10px;
-          color: var(--ink-blue);
-          margin-bottom: 6px;
-          letter-spacing: 0.08em;
-        }
-
-        .outcome__icon {
-          font-size: 28px;
-          margin-bottom: 10px;
-        }
-
-        .outcome__title {
-          font-family: var(--font);
-          font-size: 18px;
-          font-weight: 700;
-          color: var(--ink);
-          margin-bottom: 4px;
-          letter-spacing: -0.01em;
-        }
-
-        .outcome__desc {
-          font-size: 13px;
-          color: var(--ink-70);
-          line-height: 1.5;
-        }
-
-        /* TRUST */
-        .trust {
-          padding: 28px 0;
-          border-top: 1px solid var(--ink-08);
-          border-bottom: 1px solid var(--ink-08);
-          background: var(--paper);
-        }
-
-        .trust__inner {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 28px;
-          flex-wrap: wrap;
-        }
-
-        .trust__badge {
-          font-size: 12px;
-          font-weight: 600;
-          color: var(--ink-blue);
-          display: flex;
-          align-items: center;
-          gap: 5px;
-          white-space: nowrap;
-        }
-
-        .trust__badge::before {
-          content: '✓';
-          width: 16px;
-          height: 16px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          border-radius: 4px;
-          background: rgba(47,93,80,.08);
-          font-size: 9px;
-          color: var(--ink-blue);
-        }
-
-        /* SOCIAL PROOF */
-        .proof {
-          padding: 80px 0;
-          background: var(--paper);
-          border-top: 1px solid var(--ink-08);
-          border-bottom: 1px solid var(--ink-08);
-        }
-
-        .proof__grid {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 40px;
-          align-items: center;
-        }
-
-        .proof__text {
-          font-family: var(--font);
-          font-size: clamp(20px, 2.4vw, 28px);
-          font-style: italic;
-          font-weight: 500;
-          line-height: 1.35;
-          color: var(--ink);
-        }
-
-        .proof__attr {
-          font-family: var(--mono);
-          font-size: 11px;
-          color: var(--ink-blue);
-          margin-top: 14px;
-        }
-
-        .proof__context {
-          font-size: 13px;
-          color: var(--ink-60);
-          margin-top: 8px;
-          line-height: 1.5;
-        }
-
-        /* PAIN */
-        .pain {
-          padding: 80px 0;
-          background: var(--paper);
-        }
-
-        .pain__header {
-          text-align: center;
-          max-width: 600px;
-          margin: 0 auto 40px;
-        }
-
-        .pain__header h2 {
-          font-family: var(--font);
-          font-size: clamp(28px, 3vw, 40px);
-          font-weight: 800;
-          line-height: 1.08;
-          letter-spacing: -0.02em;
-          margin: 12px 0 0;
-        }
-
-        .pain__header h2 em {
-          font-style: italic;
-          color: var(--ink-blue);
-        }
-
-        .pain-row {
-          display: grid;
-          grid-template-columns: repeat(4, 1fr);
-          gap: 12px;
-          margin-bottom: 40px;
-        }
-
-        .pain-card {
-          padding: 24px 20px;
-          border-radius: var(--r14);
-          background: rgba(169,74,74,.03);
-          border: 1px solid rgba(169,74,74,.08);
+        .stat {
+          background: var(--paper); padding: 40px 28px;
           text-align: center;
         }
-
-        .pain-card__stat {
-          font-family: var(--font);
-          font-size: 34px;
-          font-weight: 800;
-          color: var(--error);
-          line-height: 1;
-          letter-spacing: -0.02em;
+        .stat-num {
+          font-family: var(--serif); font-size: 48px; font-weight: 400;
+          color: var(--ink-blue); line-height: 1; margin-bottom: 8px;
         }
+        .stat-label { font-size: 14px; color: var(--ink-muted); line-height: 1.4; }
 
-        .pain-card__label {
-          font-size: 13px;
-          color: var(--ink);
-          margin-top: 4px;
-          line-height: 1.4;
+        /* TESTIMONIAL */
+        .testimonial-section {
+          padding: 80px 32px;
+          background: var(--ink-blue);
+          color: #fff;
+          position: relative; overflow: hidden;
         }
-
-        /* HOW */
-        .how {
-          padding: 100px 0;
-          background: var(--paper);
+        .testimonial-section::before {
+          content: ''; position: absolute; inset: 0;
+          background-image: repeating-linear-gradient(45deg, rgba(255,255,255,0.03) 0 1px, transparent 1px 16px);
+          pointer-events: none;
         }
-
-        .how__header {
-          text-align: center;
-          max-width: 500px;
-          margin: 0 auto 48px;
+        .testimonial-inner { max-width: 720px; margin: 0 auto; position: relative; text-align: center; }
+        .testimonial-quote {
+          font-family: var(--serif); font-style: italic;
+          font-size: clamp(20px, 2.5vw, 28px);
+          line-height: 1.5; margin-bottom: 32px; opacity: 0.95;
         }
+        .testimonial-attr { font-size: 14px; opacity: 0.6; }
+        .testimonial-context { font-size: 13px; opacity: 0.4; margin-top: 8px; }
 
-        .how__header h2 {
-          font-family: var(--font);
-          font-size: clamp(28px, 3vw, 40px);
-          font-weight: 800;
-          line-height: 1.1;
-          letter-spacing: -0.02em;
-          margin: 12px 0 0;
-        }
-
-        .steps {
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 16px;
-        }
-
+        /* HOW IT WORKS */
+        .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; margin-top: 48px; }
         .step {
-          padding: 28px 24px;
-          border-radius: var(--r14);
-          background: var(--paper);
-          border: 1px solid var(--ink-08);
-          box-shadow: var(--shadow-sm);
-        }
-
-        .step__num {
-          font-family: var(--mono);
-          font-size: 11px;
-          font-weight: 600;
-          color: var(--ink-blue);
-          letter-spacing: 0.08em;
-          margin-bottom: 12px;
-        }
-
-        .step h3 {
-          font-family: var(--font);
-          font-size: 20px;
-          font-weight: 700;
-          margin-bottom: 6px;
-          line-height: 1.2;
-          letter-spacing: -0.01em;
-        }
-
-        .step p {
-          font-size: 14px;
-          color: var(--ink-70);
-          line-height: 1.6;
-          margin-bottom: 12px;
-        }
-
-        /* STORIES */
-        .stories {
-          padding: 100px 0;
-          background: var(--border);
-        }
-
-        .stories__header {
-          text-align: center;
-          max-width: 560px;
-          margin: 0 auto 48px;
-        }
-
-        .stories__header h2 {
-          font-family: var(--font);
-          font-size: clamp(28px, 3vw, 40px);
-          font-weight: 800;
-          line-height: 1.08;
-          letter-spacing: -0.02em;
-          margin: 12px 0 0;
-          color: var(--ink);
-        }
-
-        .story-tabs {
-          display: flex;
-          justify-content: center;
-          gap: 6px;
-          margin-bottom: 36px;
-          flex-wrap: wrap;
-        }
-
-        .story-tab {
-          padding: 8px 16px;
-          border-radius: 20px;
-          font-size: 13px;
-          font-weight: 500;
-          color: var(--ink-70);
-          background: var(--paper);
-          border: 1px solid var(--ink-08);
-          cursor: pointer;
-          transition: all 0.2s;
-        }
-
-        .story-tab:hover,
-        .story-tab.active {
-          color: var(--ink);
-          border-color: var(--ink-blue);
-          background: rgba(47,93,80,.06);
-        }
-
-        .story {
-          display: none;
-          animation: fadeIn 0.3s ease;
-        }
-
-        .story.active {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 40px;
-          align-items: start;
-        }
-
-        @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(8px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-
-        .story__copy h3 {
-          font-family: var(--font);
-          font-size: 24px;
-          font-weight: 700;
-          line-height: 1.15;
-          letter-spacing: -0.01em;
-          margin-bottom: 12px;
-          color: var(--ink);
-        }
-
-        .story__scenario {
-          font-size: 15px;
-          color: var(--ink-70);
-          line-height: 1.7;
-          margin-bottom: 16px;
-        }
-
-        .story__scenario strong {
-          color: var(--ink);
-        }
-
-        .story__with-inkra {
-          padding: 16px;
-          border-radius: var(--r10);
-          background: rgba(61,122,99,.06);
-          border: 1px solid rgba(61,122,99,.12);
-        }
-
-        .story__with-label {
-          font-family: var(--mono);
-          font-size: 10px;
-          font-weight: 600;
-          letter-spacing: 0.08em;
-          text-transform: uppercase;
-          color: var(--success);
-          margin-bottom: 6px;
-        }
-
-        .story__with-text {
-          font-size: 14px;
-          color: var(--ink-70);
-          line-height: 1.6;
-        }
-
-        /* FEATURES */
-        .features {
-          padding: 100px 0;
-          background: var(--paper);
-        }
-
-        .features__header {
-          text-align: center;
-          max-width: 500px;
-          margin: 0 auto 48px;
-        }
-
-        .features__header h2 {
-          font-family: var(--font);
-          font-size: clamp(28px, 3vw, 40px);
-          font-weight: 800;
-          line-height: 1.1;
-          letter-spacing: -0.02em;
-          margin: 12px 0 0;
-          color: var(--ink);
-        }
-
-        .feat-grid {
-          display: grid;
-          grid-template-columns: repeat(4, 1fr);
-          gap: 12px;
-        }
-
-        .feat {
-          padding: 24px 20px;
-          border-radius: var(--r14);
-          background: var(--paper);
-          border: 1px solid var(--ink-08);
-          box-shadow: var(--shadow-sm);
-        }
-
-        .feat__icon {
-          font-size: 22px;
-          margin-bottom: 10px;
-        }
-
-        .feat h4 {
-          font-family: var(--font);
-          font-size: 17px;
-          font-weight: 700;
-          margin-bottom: 4px;
-          color: var(--ink);
-          letter-spacing: -0.01em;
-        }
-
-        .feat p {
-          font-size: 13px;
-          color: var(--ink-70);
-          line-height: 1.5;
-        }
-
-        /* INDUSTRIES */
-        .ind {
-          padding: 80px 0;
-          background: var(--paper);
-        }
-
-        .ind__header {
-          text-align: center;
-          margin-bottom: 36px;
-        }
-
-        .ind__header h2 {
-          font-family: var(--font);
-          font-size: clamp(24px, 2.5vw, 32px);
-          font-weight: 800;
-          color: var(--ink);
-          margin: 8px 0 0;
-          letter-spacing: -0.02em;
-        }
-
-        .ind-wrap {
-          display: flex;
-          justify-content: center;
-          gap: 8px;
-          flex-wrap: wrap;
-        }
-
-        .ind-chip {
-          padding: 10px 18px;
-          border-radius: 20px;
-          font-size: 13px;
-          font-weight: 500;
-          color: var(--ink);
-          background: var(--paper);
-          border: 1px solid var(--ink-08);
-          transition: all 0.2s;
-        }
-
-        .ind-chip:hover {
-          border-color: var(--ink-blue);
-          color: var(--ink-blue);
-        }
-
-        /* CTA */
-        .cta {
-          padding: 120px 0 100px;
-          background: var(--paper);
+          padding: 40px 32px;
+          border: 1px solid var(--border-light);
           position: relative;
         }
-
-        .cta__inner {
-          max-width: 560px;
-          margin: 0 auto;
-          text-align: center;
+        .step:first-child { border-radius: 16px 0 0 16px; }
+        .step:last-child { border-radius: 0 16px 16px 0; }
+        .step-num {
+          font-size: 11px; font-weight: 600; letter-spacing: 0.08em;
+          color: var(--ink-blue); margin-bottom: 20px;
+        }
+        .step h3 {
+          font-family: var(--serif); font-size: 22px; font-weight: 400;
+          margin-bottom: 12px;
+        }
+        .step p { font-size: 14px; color: var(--ink-muted); line-height: 1.6; }
+        .step:not(:last-child)::after {
+          content: '→'; position: absolute; right: -12px; top: 50%;
+          transform: translateY(-50%);
+          width: 24px; height: 24px; border-radius: 50%;
+          background: var(--paper); border: 1px solid var(--border);
+          display: grid; place-items: center;
+          font-size: 14px; color: var(--ink-blue); z-index: 2;
         }
 
-        .cta__inner h2 {
-          font-family: var(--font);
-          font-size: clamp(30px, 3.5vw, 44px);
-          font-weight: 800;
-          line-height: 1.06;
-          letter-spacing: -0.03em;
-          margin: 12px 0 8px;
+        /* INDUSTRY STORIES */
+        .story {
+          display: grid; grid-template-columns: 1fr 1fr; gap: 0;
+          border: 1px solid var(--border-light); border-radius: 16px;
+          overflow: hidden; margin-top: 24px;
         }
-
-        .cta__inner h2 em {
-          font-style: italic;
-          color: var(--ink-blue);
+        .story:nth-child(even) .story-content { order: 2; }
+        .story:nth-child(even) .story-visual { order: 1; }
+        .story-content { padding: 48px 40px; display: flex; flex-direction: column; justify-content: center; }
+        .story-tag {
+          font-size: 11px; font-weight: 600; letter-spacing: 0.08em;
+          text-transform: uppercase; color: var(--ink-blue); margin-bottom: 16px;
         }
-
-        .cta__sub {
-          font-size: 16px;
-          color: var(--ink-70);
+        .story-content h3 {
+          font-family: var(--serif); font-size: 24px; font-weight: 400;
+          line-height: 1.3; margin-bottom: 16px;
+        }
+        .story-content p { font-size: 14px; color: var(--ink-muted); line-height: 1.65; margin-bottom: 16px; }
+        .story-with {
+          font-size: 13px; font-weight: 600; color: var(--ink-green);
           margin-bottom: 8px;
         }
-
-        .cta__urgency {
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-          padding: 6px 14px;
-          border-radius: 16px;
-          background: rgba(47,93,80,.06);
-          border: 1px solid rgba(47,93,80,.12);
-          font-family: var(--mono);
-          font-size: 11px;
-          color: var(--ink-blue);
-          margin-bottom: 24px;
+        .story-benefit { font-size: 14px; color: var(--ink-soft); line-height: 1.6; }
+        .story-visual {
+          background: var(--paper-dim); display: flex;
+          align-items: center; justify-content: center;
+          padding: 40px; min-height: 320px;
+          position: relative; overflow: hidden;
         }
+        .story:nth-child(odd) .story-visual::before {
+          content: ''; position: absolute; inset: 0;
+          background-image: radial-gradient(circle, var(--ink-blue) 1px, transparent 1px);
+          background-size: 18px 18px; opacity: 0.05; pointer-events: none;
+        }
+        .story:nth-child(even) .story-visual::before {
+          content: ''; position: absolute; inset: 0;
+          background-image: repeating-linear-gradient(45deg, var(--ink-blue) 0 1px, transparent 1px 12px);
+          opacity: 0.04; pointer-events: none;
+        }
+        .story-mockup {
+          background: var(--paper); border: 1px solid var(--border);
+          border-radius: 12px; padding: 20px; width: 100%; max-width: 340px;
+          box-shadow: 0 8px 32px rgba(0,0,0,0.06);
+          position: relative; z-index: 1;
+        }
+        .mockup-header { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+        .mockup-avatar {
+          width: 36px; height: 36px; border-radius: 50%;
+          background: var(--ink-blue-wash); color: var(--ink-blue);
+          display: grid; place-items: center; font-size: 12px; font-weight: 700;
+        }
+        .mockup-name { font-size: 14px; font-weight: 600; }
+        .mockup-meta { font-size: 12px; color: var(--ink-muted); }
+        .mockup-row {
+          display: flex; align-items: center; justify-content: space-between;
+          padding: 8px 0; border-top: 1px solid var(--border-light);
+          font-size: 13px;
+        }
+        .mockup-label { color: var(--ink-muted); }
+        .mockup-value { font-weight: 500; }
+        .mockup-chip {
+          display: inline-flex; align-items: center; gap: 5px;
+          font-size: 11px; font-weight: 600; padding: 3px 8px;
+          border-radius: 999px;
+        }
+        .mockup-chip.green { background: rgba(63,111,90,0.1); color: var(--ink-green); }
+        .mockup-chip.blue { background: var(--ink-blue-wash); color: var(--ink-blue); }
+        .mockup-chip.amber { background: rgba(178,106,0,0.1); color: var(--ink-amber); }
 
-        .wl {
+        /* ENGINES GRID */
+        .engines {
+          display: grid; grid-template-columns: repeat(4, 1fr);
+          gap: 1px; background: var(--border-light);
+          border: 1px solid var(--border-light);
+          border-radius: 16px; overflow: hidden; margin-top: 48px;
+        }
+        .engine { background: var(--paper); padding: 32px 24px; }
+        .engine-icon {
+          width: 40px; height: 40px; border-radius: 10px;
+          background: var(--ink-blue-wash); display: grid; place-items: center;
+          font-size: 18px; margin-bottom: 16px;
+        }
+        .engine h4 { font-size: 15px; font-weight: 700; margin-bottom: 8px; }
+        .engine p { font-size: 13px; color: var(--ink-muted); line-height: 1.5; }
+
+        /* INDUSTRIES BAR */
+        .industries {
+          display: flex; flex-wrap: wrap; gap: 8px;
+          justify-content: center; margin-top: 32px;
+        }
+        .ind-chip {
+          font-size: 13px; font-weight: 500; color: var(--ink-muted);
+          padding: 8px 16px; border: 1px solid var(--border);
+          border-radius: 999px; transition: all 0.2s var(--ease);
+        }
+        .ind-chip:hover { border-color: var(--ink-blue); color: var(--ink-blue); background: var(--ink-blue-wash); }
+
+        /* CTA SECTION */
+        .cta-section {
+          padding: 100px 32px;
+          background: var(--ink-blue);
+          color: #fff;
+          text-align: center;
+          position: relative; overflow: hidden;
+        }
+        .cta-section::before {
+          content: ''; position: absolute; inset: 0;
+          background-image: radial-gradient(circle, rgba(255,255,255,0.04) 1px, transparent 1px);
+          background-size: 20px 20px; pointer-events: none;
+        }
+        .cta-inner { max-width: 560px; margin: 0 auto; position: relative; }
+        .cta-section h2 {
+          font-family: var(--serif); font-size: clamp(32px, 4vw, 44px);
+          font-weight: 400; line-height: 1.2; margin-bottom: 16px;
+        }
+        .cta-section h2 em { font-style: italic; }
+        .cta-section p { font-size: 16px; opacity: 0.7; margin-bottom: 32px; line-height: 1.6; }
+        .btn-white {
+          font-family: var(--sans); font-size: 15px; font-weight: 600;
+          padding: 14px 32px; background: #fff; color: var(--ink-blue);
+          border: none; border-radius: 10px; cursor: pointer;
+          transition: all 0.2s var(--ease);
+        }
+        .btn-white:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.2); }
+        .cta-note { font-size: 12px; opacity: 0.4; margin-top: 12px; }
+
+        /* WAITLIST FORM */
+        .wl-form {
           display: grid;
           grid-template-columns: 1fr 1fr;
-          gap: 9px;
+          gap: 12px;
           text-align: left;
-          margin-bottom: 10px;
+          margin-bottom: 12px;
         }
-
-        .wl .full {
-          grid-column: 1 / -1;
-        }
-
-        .wl input,
-        .wl select {
-          padding: 13px 14px;
-          border-radius: var(--r10);
-          border: 1px solid var(--ink-12);
-          background: var(--paper);
-          color: var(--ink);
-          font-family: var(--font);
+        .wl-form .full { grid-column: 1 / -1; }
+        .wl-form input,
+        .wl-form select {
+          padding: 14px 16px;
+          border-radius: 10px;
+          border: 1px solid rgba(255,255,255,0.2);
+          background: rgba(255,255,255,0.1);
+          color: #fff;
+          font-family: var(--sans);
           font-size: 14px;
           outline: none;
-          transition: all 0.2s;
+          transition: all 0.2s var(--ease);
           width: 100%;
         }
-
-        .wl input::placeholder {
-          color: var(--ink-60);
+        .wl-form input::placeholder { color: rgba(255,255,255,0.5); }
+        .wl-form input:focus,
+        .wl-form select:focus {
+          border-color: rgba(255,255,255,0.5);
+          background: rgba(255,255,255,0.15);
         }
-
-        .wl input:focus,
-        .wl select:focus {
-          border-color: var(--ink-blue);
-          box-shadow: 0 0 0 3px rgba(47,93,80,.15);
-        }
-
-        .wl select {
+        .wl-form select {
           appearance: none;
           cursor: pointer;
-          color: var(--ink-60);
+          color: rgba(255,255,255,0.5);
+          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+          background-repeat: no-repeat;
+          background-position: right 16px center;
         }
-
-        .wl select:valid {
-          color: var(--ink);
-        }
-
-        .wl select option {
-          background: var(--paper);
-        }
-
-        .wl__btn {
+        .wl-form select:valid { color: #fff; }
+        .wl-form select option { background: var(--ink-blue); color: #fff; }
+        .wl-btn {
           grid-column: 1 / -1;
-          padding: 15px;
-          border-radius: var(--r10);
-          background: var(--ink);
-          color: var(--paper);
-          font-family: var(--font);
-          font-size: 14px;
+          padding: 16px;
+          border-radius: 10px;
+          background: #fff;
+          color: var(--ink-blue);
+          font-family: var(--sans);
+          font-size: 15px;
           font-weight: 600;
           border: none;
           cursor: pointer;
-          transition: all 0.15s;
+          transition: all 0.2s var(--ease);
         }
-
-        .wl__btn:hover {
-          background: var(--ink-80);
-          transform: translateY(-1px);
+        .wl-btn:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 8px 24px rgba(0,0,0,0.2);
         }
-
-        .wl__note {
-          font-family: var(--mono);
-          font-size: 11px;
-          color: var(--ink-60);
-          margin-top: 12px;
+        .wl-btn:disabled {
+          background: var(--ink-green);
+          color: #fff;
+          cursor: default;
+          transform: none;
+        }
+        @media (max-width: 600px) {
+          .wl-form { grid-template-columns: 1fr; }
+          .wl-form .full { grid-column: 1; }
         }
 
         /* FOOTER */
-        .footer {
-          padding: 32px 0;
-          background: var(--paper);
-          border-top: 1px solid var(--ink-08);
+        footer {
+          padding: 40px 32px; border-top: 1px solid var(--border-light);
+          display: flex; align-items: center; justify-content: space-between;
+          flex-wrap: wrap; gap: 16px;
         }
+        footer .foot-left { display: flex; align-items: center; gap: 12px; }
+        footer .foot-name { font-weight: 800; font-size: 16px; letter-spacing: -0.03em; }
+        footer .foot-links { display: flex; gap: 20px; }
+        footer a { font-size: 13px; color: var(--ink-muted); text-decoration: none; }
+        footer a:hover { color: var(--ink-blue); }
+        footer .foot-copy { font-size: 12px; color: var(--ink-faint); }
 
-        .footer__inner {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          flex-wrap: wrap;
-          gap: 12px;
+        /* ANIMATIONS */
+        @keyframes fadeUp {
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
         }
-
-        .footer__brand {
-          font-family: var(--font);
-          font-size: 17px;
-          font-weight: 700;
-          color: var(--ink);
-          letter-spacing: -0.01em;
-        }
-
-        .footer__brand span {
-          color: var(--ink-blue);
-        }
-
-        .footer__links {
-          display: flex;
-          gap: 20px;
-        }
-
-        .footer__link {
-          font-size: 12px;
-          color: var(--ink-60);
-        }
-
-        .footer__link:hover {
-          color: var(--ink-blue);
-        }
-
-        .footer__copy {
-          width: 100%;
-          text-align: center;
-          font-family: var(--mono);
-          font-size: 11px;
-          color: var(--ink-60);
-          margin-top: 10px;
-        }
-
-        /* REVEAL ANIMATION */
         .reveal {
-          opacity: 0;
-          transform: translateY(16px);
-          transition: opacity 0.5s ease, transform 0.5s ease;
+          opacity: 0; transform: translateY(24px);
+          transition: opacity 0.6s var(--ease), transform 0.6s var(--ease);
         }
-
-        .reveal.visible {
-          opacity: 1;
-          transform: translateY(0);
-        }
+        .reveal.visible { opacity: 1; transform: translateY(0); }
 
         /* RESPONSIVE */
         @media (max-width: 900px) {
-          .story.active,
-          .steps,
-          .proof__grid {
-            grid-template-columns: 1fr;
-          }
-
-          .pain-row {
-            grid-template-columns: 1fr 1fr;
-          }
-
-          .feat-grid {
-            grid-template-columns: 1fr 1fr;
-          }
-
-          .wl {
-            grid-template-columns: 1fr;
-          }
-
-          .outcome-grid {
-            grid-template-columns: 1fr 1fr;
-          }
+          .stats-grid { grid-template-columns: 1fr 1fr; }
+          .steps { grid-template-columns: 1fr; }
+          .step { border-radius: 0 !important; }
+          .step:first-child { border-radius: 16px 16px 0 0 !important; }
+          .step:last-child { border-radius: 0 0 16px 16px !important; }
+          .step:not(:last-child)::after { display: none; }
+          .story { grid-template-columns: 1fr; }
+          .story-visual { min-height: 240px; }
+          .story:nth-child(even) .story-content { order: 1; }
+          .story:nth-child(even) .story-visual { order: 2; }
+          .engines { grid-template-columns: 1fr 1fr; }
         }
-
-        @media (max-width: 600px) {
-          .container {
-            padding: 0 20px;
-          }
-
-          .nav__inner {
-            padding: 0 20px;
-          }
-
-          .pain-row,
-          .feat-grid {
-            grid-template-columns: 1fr;
-          }
-
-          .story-tabs {
-            gap: 4px;
-          }
-
-          .story-tab {
-            padding: 6px 12px;
-            font-size: 12px;
-          }
-
-          .outcome-grid {
-            grid-template-columns: 1fr;
-          }
+        @media (max-width: 520px) {
+          .engines { grid-template-columns: 1fr; }
+          .stats-grid { grid-template-columns: 1fr; }
         }
       `}</style>
 
       {/* NAV */}
       <nav className="nav">
-        <div className="nav__inner">
-          <a href="#" className="nav__brand">
-            <span className="nav__dot"></span> Inkra
-          </a>
-          <a href="#cta" className="nav__cta">Join the Pilot</a>
+        <div className="nav-left">
+          <div className="nav-mark">
+            <Image
+              src="/inkra-logo.svg"
+              alt="Inkra"
+              width={48}
+              height={14}
+              priority
+            />
+          </div>
+          <span className="nav-name">Inkra</span>
         </div>
+        <button className="nav-cta" onClick={() => scrollTo("cta")}>
+          Join the Pilot
+        </button>
       </nav>
 
       {/* HERO */}
-      <section className="hero-out">
-        <div className="container">
-          <div className="hero-out__inner">
-            <div className="kicker">The Organizational Intelligence Platform</div>
-            <h1>Your conversations <em>do the work.</em></h1>
-            <p className="hero-out__sub">One input — your team&apos;s calls, meetings, and sessions. Six outputs — all automatic.</p>
-            <div className="hero-out__cta-row">
-              <a href="#cta" className="btn">Join the Spring 2026 Pilot →</a>
-              <div className="hero-out__proof">
-                <span className="hero-out__proof-dot"></span> 20 spots · reviewed weekly
+      <section className="hero">
+        <div className="hero-badge">Conversation-to-Work Platform</div>
+        <h1>
+          Your conversations
+          <br />
+          <em>do the work.</em>
+        </h1>
+        <p className="hero-sub">
+          One input: your team&apos;s calls, meetings, and sessions. Six
+          outputs: documentation, reports, tasks, knowledge, context, and
+          insights. All automatic.
+        </p>
+        <div className="hero-cta-row">
+          <button className="btn-primary" onClick={() => scrollTo("cta")}>
+            Join the Spring 2026 Pilot →
+          </button>
+          <button className="btn-ghost" onClick={() => scrollTo("how")}>
+            See how it works
+          </button>
+        </div>
+        <p className="hero-note">20 spots · reviewed weekly</p>
+        <div className="hero-blob">
+          <canvas ref={canvasRef} width={960} height={280} />
+        </div>
+      </section>
+
+      {/* TRUST BAR */}
+      <div className="trust-bar">
+        <span className="trust-item">HIPAA Compliant</span>
+        <span className="trust-item">End-to-End Encrypted</span>
+        <span className="trust-item">Your Data Never Trains Models</span>
+        <span className="trust-item">Full Audit Trail</span>
+      </div>
+
+      {/* PROBLEM */}
+      <section className="section">
+        <div className="section-inner reveal">
+          <div className="section-label">The problem nobody solves</div>
+          <div className="section-title">
+            Your team does the work twice.
+            <br />
+            <em>Once</em> with people. Once with <em>systems.</em>
+          </div>
+          <div className="stats-grid">
+            <div className="stat">
+              <div className="stat-num">16 hrs</div>
+              <div className="stat-label">
+                per week on documentation
+                <br />
+                that could be automatic
               </div>
             </div>
-            <div className="outcome-grid">
-              <div className="outcome">
-                <div className="outcome__arrow">CONVERSATION →</div>
-                <div className="outcome__icon"><FileText size={28} /></div>
-                <div className="outcome__title">Documentation</div>
-                <div className="outcome__desc">Notes, case files, SOAP records, intake forms, PRDs — generated, not typed</div>
+            <div className="stat">
+              <div className="stat-num">5×</div>
+              <div className="stat-label">
+                the same information
+                <br />
+                entered into different systems
               </div>
-              <div className="outcome">
-                <div className="outcome__arrow">CONVERSATION →</div>
-                <div className="outcome__icon"><BarChart3 size={28} /></div>
-                <div className="outcome__title">Reports</div>
-                <div className="outcome__desc">Grant compliance, KPIs, pipeline reviews, promo packets — auto-compiled from real data</div>
+            </div>
+            <div className="stat">
+              <div className="stat-num">60%</div>
+              <div className="stat-label">
+                of organizational knowledge
+                <br />
+                lives in someone&apos;s head
               </div>
-              <div className="outcome">
-                <div className="outcome__arrow">CONVERSATION →</div>
-                <div className="outcome__icon"><Brain size={28} /></div>
-                <div className="outcome__title">Knowledge Base</div>
-                <div className="outcome__desc">Policies, workflows, SOPs captured and searchable. Updates push org-wide instantly</div>
-              </div>
-              <div className="outcome">
-                <div className="outcome__arrow">CONVERSATION →</div>
-                <div className="outcome__icon"><CheckCircle2 size={28} /></div>
-                <div className="outcome__title">Tasks & Follow-ups</div>
-                <div className="outcome__desc">Calendar invites, action items, reminders — created the moment the call ends</div>
-              </div>
-              <div className="outcome">
-                <div className="outcome__arrow">CONVERSATION →</div>
-                <div className="outcome__icon"><Target size={28} /></div>
-                <div className="outcome__title">Context & Guides</div>
-                <div className="outcome__desc">Relationship history, prompts, and personal details — surfaced before hello</div>
-              </div>
-              <div className="outcome">
-                <div className="outcome__arrow">CONVERSATION →</div>
-                <div className="outcome__icon"><TrendingUp size={28} /></div>
-                <div className="outcome__title">Insights</div>
-                <div className="outcome__desc">Training recs, efficiency patterns, goal alerts — organizational intelligence</div>
+            </div>
+            <div className="stat">
+              <div className="stat-num">20+ hrs</div>
+              <div className="stat-label">
+                quarterly compiling
+                <br />
+                reports from memory
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* TRUST */}
-      <section className="trust">
-        <div className="container">
-          <div className="trust__inner">
-            <span className="trust__badge">HIPAA Compliant</span>
-            <span className="trust__badge">End-to-End Encrypted</span>
-            <span className="trust__badge">No AI Training on Your Data</span>
-            <span className="trust__badge">Full Audit Trail</span>
+      {/* TESTIMONIAL */}
+      <section className="testimonial-section">
+        <div className="testimonial-inner reveal">
+          <div className="testimonial-quote">
+            &quot;This would allow us to scale. We wouldn&apos;t have to focus
+            so much on our reporting side of things. It would alleviate the
+            hassle. Let the people work with people.&quot;
+          </div>
+          <div className="testimonial-attr">
+            Carly, Director of Reentry Services · Operation New Hope
+          </div>
+          <div className="testimonial-context">
+            $30M nonprofit · 400 clients/week · 14 partner organizations
           </div>
         </div>
       </section>
 
-      {/* SOCIAL PROOF */}
-      <section className="proof">
-        <div className="container">
-          <div className="proof__grid reveal">
-            <div>
-              <div className="proof__text">&quot;This would allow us to scale. We wouldn&apos;t have to focus so much on our reporting side of things. It would alleviate the hassle of the reporting and let the reports report... just let the people work with people.&quot;</div>
-              <div className="proof__attr">— Carly, Director of Reentry Services · Operation New Hope</div>
-              <div className="proof__context">$30M nonprofit · 400 clients/week · 14 partner organizations · Been looking for this solution for over a year</div>
-            </div>
-            <div className="mp" style={{ minHeight: "300px" }}>
-              <div className="mp__icon"><Video size={28} /></div>
-              <div className="mp__label">Testimonial Video or Photo</div>
-              <div className="mp__desc">Video clip of Carly: from bogged down with data to letting people work with people. &quot;I am so relieved right now.&quot;</div>
-              <div className="mp__dims">1:1 or 4:3 · 800×800 · MP4 (30-60 sec) or JPG</div>
-            </div>
+      {/* HOW IT WORKS */}
+      <section className="section" id="how">
+        <div className="section-inner reveal">
+          <div className="section-label">How it works</div>
+          <div className="section-title">
+            Conversations in.
+            <br />
+            <em>Everything else out.</em>
           </div>
-        </div>
-      </section>
-
-      {/* PAIN */}
-      <section className="pain">
-        <div className="container">
-          <div className="pain__header reveal">
-            <div className="kicker">The problem nobody solves</div>
-            <h2>Your team does the work twice. <em>Once</em> with people. Once with <em>systems.</em></h2>
-          </div>
-          <div className="pain-row reveal">
-            <div className="pain-card">
-              <div className="pain-card__stat">16 hrs</div>
-              <div className="pain-card__label">per week on documentation that could be automatic</div>
-            </div>
-            <div className="pain-card">
-              <div className="pain-card__stat">5×</div>
-              <div className="pain-card__label">the same information entered into different systems</div>
-            </div>
-            <div className="pain-card">
-              <div className="pain-card__stat">60%</div>
-              <div className="pain-card__label">of organizational knowledge lives in someone&apos;s head</div>
-            </div>
-            <div className="pain-card">
-              <div className="pain-card__stat">20+ hrs</div>
-              <div className="pain-card__label">quarterly compiling reports from memory</div>
-            </div>
-          </div>
-          <div className="mp reveal" style={{ minHeight: "200px", maxWidth: "800px", margin: "0 auto" }}>
-            <div className="mp__icon"><Clapperboard size={28} /></div>
-            <div className="mp__label">&quot;Conversations In, Everything Else Out&quot; Visual</div>
-            <div className="mp__desc">Animated diagram: a single conversation icon in the center radiates outward into 6 outputs — Documentation, Reports, Knowledge Base, Tasks, Context, and Insights. Shows the single-input architecture.</div>
-            <div className="mp__dims">16:9 · 1200×675 · Animated SVG or MP4 loop</div>
-          </div>
-        </div>
-      </section>
-
-      {/* HOW */}
-      <section className="how">
-        <div className="container">
-          <div className="how__header reveal">
-            <div className="kicker">How it works</div>
-            <h2>Conversations in. Everything else out.</h2>
-          </div>
-          <div className="steps reveal">
+          <div className="steps">
             <div className="step">
-              <div className="step__num">01 · TALK</div>
+              <div className="step-num">01 · TALK</div>
               <h3>Your team has conversations</h3>
-              <p>Phone calls, Zoom meetings, standups, support tickets. No internet? Print an attendance sheet, snap a photo. Context and conversation guides surface in real-time.</p>
-              <div className="mp" style={{ minHeight: "160px" }}>
-                <div className="mp__icon"><Smartphone size={28} /></div>
-                <div className="mp__label">Screenshot</div>
-                <div className="mp__desc">Incoming call with context card — relationship history, key reminders, conversation guide.</div>
-                <div className="mp__dims">375×300 · PNG</div>
-              </div>
+              <p>
+                Phone calls, Zoom meetings, standups, support tickets. No
+                internet? Snap a photo of an attendance sheet. Context and
+                conversation guides surface in real-time.
+              </p>
             </div>
             <div className="step">
-              <div className="step__num">02 · GENERATE</div>
+              <div className="step-num">02 · GENERATE</div>
               <h3>Inkra handles the rest</h3>
-              <p>Documentation writes itself. Reports compile from real data. Tasks and follow-ups create automatically. Calendar invites schedule themselves.</p>
-              <div className="mp" style={{ minHeight: "160px" }}>
-                <div className="mp__icon"><Zap size={28} /></div>
-                <div className="mp__label">Screenshot</div>
-                <div className="mp__desc">Post-call output: auto-generated notes, form data filled, follow-up tasks, calendar invite sent, report updated.</div>
-                <div className="mp__dims">375×300 · PNG</div>
-              </div>
+              <p>
+                Documentation writes itself. Reports compile from real data.
+                Tasks and follow-ups create automatically. Calendar invites
+                schedule themselves.
+              </p>
             </div>
             <div className="step">
-              <div className="step__num">03 · COMPOUND</div>
+              <div className="step-num">03 · COMPOUND</div>
               <h3>Your org gets smarter</h3>
-              <p>Every interaction builds the knowledge base. Best practices surface. Goal tracking alerts you when targets are hit. The org&apos;s memory never walks out the door.</p>
-              <div className="mp" style={{ minHeight: "160px" }}>
-                <div className="mp__icon"><Brain size={28} /></div>
-                <div className="mp__label">Screenshot</div>
-                <div className="mp__desc">Knowledge base, goal tracker at 82%, training recommendation, organizational intelligence dashboard.</div>
-                <div className="mp__dims">375×300 · PNG</div>
-              </div>
+              <p>
+                Every interaction builds the knowledge base. Best practices
+                surface. Goal tracking alerts when targets hit. The org&apos;s
+                memory never walks out the door.
+              </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* STORIES */}
-      <section className="stories">
-        <div className="container">
-          <div className="stories__header reveal">
-            <div className="kicker">Sound familiar?</div>
-            <h2>One platform. Every team. Every conversation becomes an output.</h2>
-          </div>
-          <div className="story-tabs reveal">
-            <div className={`story-tab ${activeStory === "sales" ? "active" : ""}`} onClick={() => showStory("sales")}>Sales</div>
-            <div className={`story-tab ${activeStory === "nonprofit" ? "active" : ""}`} onClick={() => showStory("nonprofit")}>Nonprofits</div>
-            <div className={`story-tab ${activeStory === "healthcare" ? "active" : ""}`} onClick={() => showStory("healthcare")}>Healthcare</div>
-            <div className={`story-tab ${activeStory === "research" ? "active" : ""}`} onClick={() => showStory("research")}>UX Research</div>
-            <div className={`story-tab ${activeStory === "management" ? "active" : ""}`} onClick={() => showStory("management")}>People Managers</div>
-            <div className={`story-tab ${activeStory === "product" ? "active" : ""}`} onClick={() => showStory("product")}>Product Teams</div>
-            <div className={`story-tab ${activeStory === "support" ? "active" : ""}`} onClick={() => showStory("support")}>Customer Support</div>
-            <div className={`story-tab ${activeStory === "operations" ? "active" : ""}`} onClick={() => showStory("operations")}>Multi-Location Ops</div>
+      {/* INDUSTRY STORIES */}
+      <section className="section">
+        <div className="section-inner">
+          <div className="section-label reveal">Sound familiar?</div>
+          <div className="section-title reveal">
+            One platform. Every team.
+            <br />
+            <em>Every conversation becomes an output.</em>
           </div>
 
-          {/* Sales Story */}
-          <div className={`story ${activeStory === "sales" ? "active" : ""}`} id="story-sales">
-            <div className="story__copy">
-              <h3>Your top rep closes because they remember the little things.</h3>
-              <p className="story__scenario">Jordan remembers that his prospect&apos;s kid just started Little League. He brings it up on the call — the prospect lights up. That&apos;s not CRM data. That&apos;s <strong>relationship intelligence.</strong> But when Jordan gets promoted, <strong>$2M in pipeline goes cold overnight.</strong></p>
-              <div className="story__with-inkra">
-                <div className="story__with-label">✓ With Inkra</div>
-                <div className="story__with-text">Every call auto-captures the Little League detail, org chart intel, and budget timing. Conversation guides remind reps what to bring up. When reps move up, the next person inherits a living relationship — not an empty record.</div>
+          {/* Sales */}
+          <div className="story reveal">
+            <div className="story-content">
+              <div className="story-tag">Sales & Account Management</div>
+              <h3>
+                Your top rep closes because they remember the little things.
+              </h3>
+              <p>
+                Jordan remembers his prospect&apos;s kid just started Little
+                League. He brings it up on the call. The prospect lights up.
+                But when Jordan gets promoted, $2M in pipeline goes cold
+                overnight.
+              </p>
+              <div className="story-with">✓ With Inkra</div>
+              <div className="story-benefit">
+                Every call auto-captures relationship details, org chart intel,
+                and budget timing. When reps move up, the next person inherits a
+                living relationship, not an empty record.
               </div>
             </div>
-            <div className="mp" style={{ minHeight: "340px" }}>
-              <div className="mp__icon"><Smartphone size={28} /></div>
-              <div className="mp__label">Sales Story Screenshot</div>
-              <div className="mp__desc">Incoming call from &quot;David Chen, VP Eng @ Acme&quot; with context card: last call topics, personal note &quot;daughter Maya — Little League playoffs next week.&quot;</div>
-              <div className="mp__dims">4:3 · 900×675 · PNG</div>
-            </div>
-          </div>
-
-          {/* Nonprofit Story */}
-          <div className={`story ${activeStory === "nonprofit" ? "active" : ""}`} id="story-nonprofit">
-            <div className="story__copy">
-              <h3>Your case managers chose this work to help people. Not fill out forms.</h3>
-              <p className="story__scenario">Maria serves 400 clients weekly across 14 partner organizations. Every call generates paperwork — the same data, <strong>3–5 times.</strong> Every quarterly report: 20+ hours. And when staff leaves, years of client trust vanish.</p>
-              <div className="story__with-inkra">
-                <div className="story__with-label">✓ With Inkra</div>
-                <div className="story__with-text">Calls auto-document. Grant reports auto-generate with narratives, not just numbers. For group sessions where devices aren&apos;t allowed, snap a photo of an attendance sheet — AI logs all 400 clients and generates session notes.</div>
+            <div className="story-visual">
+              <div className="story-mockup">
+                <div className="mockup-header">
+                  <div className="mockup-avatar">DC</div>
+                  <div>
+                    <div className="mockup-name">David Chen</div>
+                    <div className="mockup-meta">VP Eng · Acme Corp</div>
+                  </div>
+                </div>
+                <div className="mockup-row">
+                  <span className="mockup-label">Last call</span>
+                  <span className="mockup-value">2 days ago</span>
+                </div>
+                <div className="mockup-row">
+                  <span className="mockup-label">Deal stage</span>
+                  <span className="mockup-chip blue">Proposal sent</span>
+                </div>
+                <div className="mockup-row">
+                  <span className="mockup-label">Personal note</span>
+                  <span className="mockup-value" style={{ fontSize: "12px" }}>
+                    Maya: Little League playoffs
+                  </span>
+                </div>
+                <div className="mockup-row">
+                  <span className="mockup-label">Next action</span>
+                  <span className="mockup-chip green">Follow up Thu</span>
+                </div>
               </div>
-            </div>
-            <div className="mp" style={{ minHeight: "340px" }}>
-              <div className="mp__icon"><Smartphone size={28} /></div>
-              <div className="mp__label">Nonprofit Story Screenshot</div>
-              <div className="mp__desc">Client &quot;James Walker&quot; with reentry milestones, program completion (Step 3/5), grant compliance dashboard at 72%.</div>
-              <div className="mp__dims">4:3 · 900×675 · PNG</div>
-            </div>
-          </div>
-
-          {/* Healthcare Story */}
-          <div className={`story ${activeStory === "healthcare" ? "active" : ""}`} id="story-healthcare">
-            <div className="story__copy">
-              <h3>Your patients come back for session 4. Do you remember sessions 1–3?</h3>
-              <p className="story__scenario">Dr. Okafor sees 25 patients daily. Each has a multi-visit treatment plan. She spends <strong>90 minutes after clinic</strong> writing SOAP notes. Her biller waits. The front desk has <strong>no context when patients call between visits.</strong></p>
-              <div className="story__with-inkra">
-                <div className="story__with-label">✓ With Inkra</div>
-                <div className="story__with-text">SOAP notes auto-generate. Treatment tracks across sessions 1–6. Billing docs ready before checkout. For group sessions in restricted facilities, photo-upload attendance handles it all.</div>
-              </div>
-            </div>
-            <div className="mp" style={{ minHeight: "340px" }}>
-              <div className="mp__icon"><Building2 size={28} /></div>
-              <div className="mp__label">Healthcare Screenshot</div>
-              <div className="mp__desc">Patient &quot;Sarah M.&quot; — session 4/6, auto-SOAP note, billing codes ready, mobility progress chart.</div>
-              <div className="mp__dims">4:3 · 900×675 · PNG</div>
             </div>
           </div>
 
-          {/* Research Story */}
-          <div className={`story ${activeStory === "research" ? "active" : ""}`} id="story-research">
-            <div className="story__copy">
-              <h3>Your best insights come when you stop taking notes and start listening.</h3>
-              <p className="story__scenario">Priya runs 45-minute interviews. The best moments come off-script. But she can&apos;t take notes AND be present. After each call: <strong>90 minutes reconstructing what was said.</strong></p>
-              <div className="story__with-inkra">
-                <div className="story__with-label">✓ With Inkra</div>
-                <div className="story__with-text">Full interviews captured. Notes auto-generate in her template. Cross-interview patterns surface: &quot;5/8 mentioned onboarding friction.&quot; PRD input forms auto-populate from findings.</div>
+          {/* Nonprofits */}
+          <div className="story reveal">
+            <div className="story-content">
+              <div className="story-tag">Nonprofit Case Management</div>
+              <h3>
+                Your case managers chose this work to help people. Not fill out
+                forms.
+              </h3>
+              <p>
+                Maria serves 400 clients weekly across 14 partner organizations.
+                Every call generates paperwork: the same data, 3 to 5 times. Every
+                quarterly report: 20+ hours reconstructing from memory.
+              </p>
+              <div className="story-with">✓ With Inkra</div>
+              <div className="story-benefit">
+                Calls auto-document. Grant reports auto-generate with
+                narratives, not just numbers. Photo-upload attendance handles
+                group sessions where devices aren&apos;t allowed.
               </div>
             </div>
-            <div className="mp" style={{ minHeight: "340px" }}>
-              <div className="mp__icon"><Microscope size={28} /></div>
-              <div className="mp__label">Research Screenshot</div>
-              <div className="mp__desc">Participant &quot;User #7&quot; with discussion guide, live transcription, auto-tagged insights, cross-interview patterns.</div>
-              <div className="mp__dims">4:3 · 900×675 · PNG</div>
+            <div className="story-visual">
+              <div className="story-mockup">
+                <div className="mockup-header">
+                  <div className="mockup-avatar">JW</div>
+                  <div>
+                    <div className="mockup-name">James Walker</div>
+                    <div className="mockup-meta">Reentry Support · Step 3/5</div>
+                  </div>
+                </div>
+                <div className="mockup-row">
+                  <span className="mockup-label">Housing</span>
+                  <span className="mockup-chip green">Stable</span>
+                </div>
+                <div className="mockup-row">
+                  <span className="mockup-label">Employment</span>
+                  <span className="mockup-chip amber">Interview Thu</span>
+                </div>
+                <div className="mockup-row">
+                  <span className="mockup-label">Compliance</span>
+                  <span className="mockup-chip green">On track</span>
+                </div>
+                <div className="mockup-row">
+                  <span className="mockup-label">Grant reporting</span>
+                  <span className="mockup-value">Auto-updated</span>
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* Management Story */}
-          <div className={`story ${activeStory === "management" ? "active" : ""}`} id="story-management">
-            <div className="story__copy">
-              <h3>Your engineer mentioned wanting to learn Rust three months ago. Do you remember?</h3>
-              <p className="story__scenario">Marcus has 8 direct reports. Promo packet time arrives and his notes are... sparse. <strong>12 hours to write a packet that still feels thin.</strong> His director wants a team health report — he has nothing but vibes.</p>
-              <div className="story__with-inkra">
-                <div className="story__with-label">✓ With Inkra</div>
-                <div className="story__with-text">Every 1:1 auto-documented. Promo packets write themselves from 6 months of documented growth. Reports show one team member is 30% slower — Inkra suggests training.</div>
+          {/* Healthcare */}
+          <div className="story reveal">
+            <div className="story-content">
+              <div className="story-tag">Healthcare & Medical</div>
+              <h3>
+                Your patients come back for session 4. Do you remember sessions
+                1 through 3?
+              </h3>
+              <p>
+                Dr. Okafor sees 25 patients daily. Each has a multi-visit
+                treatment plan. She spends 90 minutes after clinic writing SOAP
+                notes. Her biller waits. The front desk has no context when
+                patients call between visits.
+              </p>
+              <div className="story-with">✓ With Inkra</div>
+              <div className="story-benefit">
+                SOAP notes auto-generate. Treatment tracks across all sessions.
+                Billing docs ready before checkout. Every conversation becomes
+                billable revenue.
               </div>
             </div>
-            <div className="mp" style={{ minHeight: "340px" }}>
-              <div className="mp__icon"><Users size={28} /></div>
-              <div className="mp__label">Manager Screenshot</div>
-              <div className="mp__desc">&quot;Aisha Patel, Senior Engineer&quot; — 12 documented 1:1s, growth goals, &quot;Generate Promo Packet&quot; button.</div>
-              <div className="mp__dims">4:3 · 900×675 · PNG</div>
+            <div className="story-visual">
+              <div className="story-mockup">
+                <div className="mockup-header">
+                  <div className="mockup-avatar">SM</div>
+                  <div>
+                    <div className="mockup-name">Sarah M.</div>
+                    <div className="mockup-meta">Session 4 of 6 · PT</div>
+                  </div>
+                </div>
+                <div className="mockup-row">
+                  <span className="mockup-label">SOAP note</span>
+                  <span className="mockup-chip green">Generated</span>
+                </div>
+                <div className="mockup-row">
+                  <span className="mockup-label">Billing codes</span>
+                  <span className="mockup-chip blue">97110, 97140</span>
+                </div>
+                <div className="mockup-row">
+                  <span className="mockup-label">Mobility</span>
+                  <span className="mockup-value">+15° since S1</span>
+                </div>
+                <div className="mockup-row">
+                  <span className="mockup-label">Next session</span>
+                  <span className="mockup-value">March 4</span>
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* Product Story */}
-          <div className={`story ${activeStory === "product" ? "active" : ""}`} id="story-product">
-            <div className="story__copy">
-              <h3>Your standup just pushed back the timeline. Does the VP know yet?</h3>
-              <p className="story__scenario">A blocker surfaces in Tuesday&apos;s standup that pushes the launch by two weeks. <strong>The VP finds out on Friday.</strong> Ravi spends 4 hours a week writing status updates that are outdated by the time he sends them.</p>
-              <div className="story__with-inkra">
-                <div className="story__with-label">✓ With Inkra</div>
-                <div className="story__with-text">Inkra auto-joins standups. PRDs generate from product conversations. Timeline changes auto-push to stakeholders — the VP knows Tuesday, not Friday.</div>
+          {/* UX Research */}
+          <div className="story reveal">
+            <div className="story-content">
+              <div className="story-tag">UX Research</div>
+              <h3>
+                Your best insights come when you stop taking notes and start
+                listening.
+              </h3>
+              <p>
+                Priya runs 45-minute user interviews. The best moments come
+                off-script. But she can&apos;t take notes AND be present. After
+                each call: 90 minutes reconstructing what was said.
+              </p>
+              <div className="story-with">✓ With Inkra</div>
+              <div className="story-benefit">
+                Full interviews captured. Notes auto-generate in your template.
+                Cross-interview patterns surface: &quot;5/8 mentioned onboarding
+                friction.&quot; PRD input forms auto-populate from findings.
               </div>
             </div>
-            <div className="mp" style={{ minHeight: "340px" }}>
-              <div className="mp__icon"><Rocket size={28} /></div>
-              <div className="mp__label">Product Team Screenshot</div>
-              <div className="mp__desc">Auto-generated PRD with linked standup notes, auto-detected timeline change, stakeholder notification sent.</div>
-              <div className="mp__dims">4:3 · 900×675 · PNG</div>
+            <div className="story-visual">
+              <div className="story-mockup">
+                <div className="mockup-header">
+                  <div className="mockup-avatar">U7</div>
+                  <div>
+                    <div className="mockup-name">User #7</div>
+                    <div className="mockup-meta">Discovery Interview</div>
+                  </div>
+                </div>
+                <div className="mockup-row">
+                  <span className="mockup-label">Duration</span>
+                  <span className="mockup-value">42 min</span>
+                </div>
+                <div className="mockup-row">
+                  <span className="mockup-label">Key insight</span>
+                  <span className="mockup-chip blue">Onboarding friction</span>
+                </div>
+                <div className="mockup-row">
+                  <span className="mockup-label">Pattern match</span>
+                  <span className="mockup-value">5/8 users</span>
+                </div>
+                <div className="mockup-row">
+                  <span className="mockup-label">PRD updated</span>
+                  <span className="mockup-chip green">Auto-linked</span>
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* Support Story */}
-          <div className={`story ${activeStory === "support" ? "active" : ""}`} id="story-support">
-            <div className="story__copy">
-              <h3>Your support team follows a workflow that changed last week. Do they know?</h3>
-              <p className="story__scenario">The refund policy changed Tuesday. Three reps gave the old policy Wednesday. <strong>Training takes weeks to propagate.</strong> The best rep&apos;s shortcuts live in her head — when she&apos;s out, resolution times spike 40%.</p>
-              <div className="story__with-inkra">
-                <div className="story__with-label">✓ With Inkra</div>
-                <div className="story__with-text">Knowledge system updates the moment a policy changes. Conversation guides surface the right process during calls. Best practices auto-capture from top performers and become team playbooks.</div>
+          {/* People Management */}
+          <div className="story reveal">
+            <div className="story-content">
+              <div className="story-tag">People Management</div>
+              <h3>
+                Your engineer mentioned wanting to learn Rust three months ago.
+                Do you remember?
+              </h3>
+              <p>
+                Marcus has 8 direct reports. Promo packet time arrives and his
+                notes are... sparse. 12 hours to write a packet that still feels
+                thin. His director wants a team health report. He has nothing
+                but vibes.
+              </p>
+              <div className="story-with">✓ With Inkra</div>
+              <div className="story-benefit">
+                Every 1:1 auto-documented. Promo packets write themselves from 6
+                months of documented growth. Reports show team patterns: one
+                member is 30% slower, so you recommend training.
               </div>
             </div>
-            <div className="mp" style={{ minHeight: "340px" }}>
-              <div className="mp__icon"><Headphones size={28} /></div>
-              <div className="mp__label">Support Screenshot</div>
-              <div className="mp__desc">Active support call with updated refund policy flagged, suggested responses, auto-generated ticket summary.</div>
-              <div className="mp__dims">4:3 · 900×675 · PNG</div>
+            <div className="story-visual">
+              <div className="story-mockup">
+                <div className="mockup-header">
+                  <div className="mockup-avatar">AP</div>
+                  <div>
+                    <div className="mockup-name">Aisha Patel</div>
+                    <div className="mockup-meta">Senior Engineer · 12 1:1s</div>
+                  </div>
+                </div>
+                <div className="mockup-row">
+                  <span className="mockup-label">Growth goals</span>
+                  <span className="mockup-chip blue">Rust, Leadership</span>
+                </div>
+                <div className="mockup-row">
+                  <span className="mockup-label">Wins logged</span>
+                  <span className="mockup-value">8 this quarter</span>
+                </div>
+                <div className="mockup-row">
+                  <span className="mockup-label">Promo packet</span>
+                  <span className="mockup-chip green">Ready to generate</span>
+                </div>
+                <div className="mockup-row">
+                  <span className="mockup-label">Next 1:1</span>
+                  <span className="mockup-value">Tomorrow 2pm</span>
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* Operations Story */}
-          <div className={`story ${activeStory === "operations" ? "active" : ""}`} id="story-operations">
-            <div className="story__copy">
-              <h3>Location 7 figured out intake. The other 11 don&apos;t know yet.</h3>
-              <p className="story__scenario">Regional director overseeing 12 locations. Best practices trapped in one manager&apos;s head. <strong>Three weeks just getting everyone to submit data in the same format.</strong></p>
-              <div className="story__with-inkra">
-                <div className="story__with-label">✓ With Inkra</div>
-                <div className="story__with-text">Inkra captures how every location operates. Surfaces what works: &quot;Location 7&apos;s intake is 40% faster.&quot; Codifies best practices into playbooks. Reports auto-generate across all locations.</div>
+          {/* Product Teams */}
+          <div className="story reveal">
+            <div className="story-content">
+              <div className="story-tag">Product Teams</div>
+              <h3>
+                Your standup just pushed back the timeline. Does the VP know
+                yet?
+              </h3>
+              <p>
+                A blocker surfaces in Tuesday&apos;s standup that pushes the
+                launch by two weeks. The VP finds out on Friday. Ravi spends 4
+                hours a week writing status updates that are outdated by the
+                time he sends them.
+              </p>
+              <div className="story-with">✓ With Inkra</div>
+              <div className="story-benefit">
+                Inkra auto-joins standups. PRDs generate from product
+                conversations. Timeline changes auto-push to stakeholders. The
+                VP knows Tuesday, not Friday.
               </div>
             </div>
-            <div className="mp" style={{ minHeight: "340px" }}>
-              <div className="mp__icon"><BarChart3 size={28} /></div>
-              <div className="mp__label">Operations Screenshot</div>
-              <div className="mp__desc">Multi-location dashboard: 12 pins, performance table, &quot;Location 7 — 40% faster. View playbook →&quot;</div>
-              <div className="mp__dims">4:3 · 900×675 · PNG</div>
+            <div className="story-visual">
+              <div className="story-mockup">
+                <div className="mockup-header">
+                  <div className="mockup-avatar">PM</div>
+                  <div>
+                    <div className="mockup-name">Project Alpha</div>
+                    <div className="mockup-meta">Sprint 4 · 3 blockers</div>
+                  </div>
+                </div>
+                <div className="mockup-row">
+                  <span className="mockup-label">Timeline</span>
+                  <span className="mockup-chip amber">Shifted +2 wks</span>
+                </div>
+                <div className="mockup-row">
+                  <span className="mockup-label">Stakeholders</span>
+                  <span className="mockup-chip green">Notified</span>
+                </div>
+                <div className="mockup-row">
+                  <span className="mockup-label">PRD status</span>
+                  <span className="mockup-value">Auto-updated</span>
+                </div>
+                <div className="mockup-row">
+                  <span className="mockup-label">Next standup</span>
+                  <span className="mockup-value">Wed 9:30am</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Customer Support */}
+          <div className="story reveal">
+            <div className="story-content">
+              <div className="story-tag">Customer Support</div>
+              <h3>
+                Your support team follows a workflow that changed last week. Do
+                they know?
+              </h3>
+              <p>
+                The refund policy changed Tuesday. Three reps gave the old
+                policy Wednesday. Training takes weeks to propagate. The best
+                rep&apos;s shortcuts live in her head. When she&apos;s out,
+                resolution times spike 40%.
+              </p>
+              <div className="story-with">✓ With Inkra</div>
+              <div className="story-benefit">
+                Knowledge system updates the moment a policy changes.
+                Conversation guides surface the right process during calls. Best
+                practices auto-capture from top performers and become team
+                playbooks.
+              </div>
+            </div>
+            <div className="story-visual">
+              <div className="story-mockup">
+                <div className="mockup-header">
+                  <div className="mockup-avatar">TK</div>
+                  <div>
+                    <div className="mockup-name">Ticket #4892</div>
+                    <div className="mockup-meta">Refund Request · Live</div>
+                  </div>
+                </div>
+                <div className="mockup-row">
+                  <span className="mockup-label">Policy</span>
+                  <span className="mockup-chip green">Updated today</span>
+                </div>
+                <div className="mockup-row">
+                  <span className="mockup-label">Suggested response</span>
+                  <span className="mockup-chip blue">Ready</span>
+                </div>
+                <div className="mockup-row">
+                  <span className="mockup-label">Resolution time</span>
+                  <span className="mockup-value">2m 34s</span>
+                </div>
+                <div className="mockup-row">
+                  <span className="mockup-label">CSAT prediction</span>
+                  <span className="mockup-value">94%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Legal */}
+          <div className="story reveal">
+            <div className="story-content">
+              <div className="story-tag">Legal Services</div>
+              <h3>
+                Your client mentioned a key detail in the third call. Can you
+                find it?
+              </h3>
+              <p>
+                Attorney Kim has 40 active matters. Each client call surfaces
+                new facts. She bills 6 hours but spends 2 more on documentation.
+                When preparing for trial, she searches through months of
+                scattered notes.
+              </p>
+              <div className="story-with">✓ With Inkra</div>
+              <div className="story-benefit">
+                Every client conversation indexed and searchable. Matter
+                timelines auto-build. Billable time captured accurately. Trial
+                prep pulls relevant moments across all calls instantly.
+              </div>
+            </div>
+            <div className="story-visual">
+              <div className="story-mockup">
+                <div className="mockup-header">
+                  <div className="mockup-avatar">MK</div>
+                  <div>
+                    <div className="mockup-name">Matter: Chen v. Apex</div>
+                    <div className="mockup-meta">12 calls · Trial in 30d</div>
+                  </div>
+                </div>
+                <div className="mockup-row">
+                  <span className="mockup-label">Key facts</span>
+                  <span className="mockup-value">24 indexed</span>
+                </div>
+                <div className="mockup-row">
+                  <span className="mockup-label">Billable captured</span>
+                  <span className="mockup-chip green">18.5 hrs</span>
+                </div>
+                <div className="mockup-row">
+                  <span className="mockup-label">Timeline</span>
+                  <span className="mockup-chip blue">Auto-generated</span>
+                </div>
+                <div className="mockup-row">
+                  <span className="mockup-label">Last update</span>
+                  <span className="mockup-value">Yesterday</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Multi-Location Ops */}
+          <div className="story reveal">
+            <div className="story-content">
+              <div className="story-tag">Multi-Location Operations</div>
+              <h3>
+                Location 7 figured out intake. The other 11 don&apos;t know yet.
+              </h3>
+              <p>
+                Regional director overseeing 12 locations. Best practices
+                trapped in one manager&apos;s head. Three weeks just getting
+                everyone to submit data in the same format.
+              </p>
+              <div className="story-with">✓ With Inkra</div>
+              <div className="story-benefit">
+                Inkra captures how every location operates. Surfaces what works:
+                &quot;Location 7&apos;s intake is 40% faster.&quot; Codifies
+                best practices into playbooks. Reports auto-generate across all
+                locations.
+              </div>
+            </div>
+            <div className="story-visual">
+              <div className="story-mockup">
+                <div className="mockup-header">
+                  <div className="mockup-avatar">RE</div>
+                  <div>
+                    <div className="mockup-name">Regional Overview</div>
+                    <div className="mockup-meta">12 locations · Q1 2026</div>
+                  </div>
+                </div>
+                <div className="mockup-row">
+                  <span className="mockup-label">Top performer</span>
+                  <span className="mockup-chip green">Location 7</span>
+                </div>
+                <div className="mockup-row">
+                  <span className="mockup-label">Intake speed</span>
+                  <span className="mockup-value">40% faster</span>
+                </div>
+                <div className="mockup-row">
+                  <span className="mockup-label">Playbook</span>
+                  <span className="mockup-chip blue">Published</span>
+                </div>
+                <div className="mockup-row">
+                  <span className="mockup-label">Adoption</span>
+                  <span className="mockup-value">8/12 locations</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Industries */}
+          <div style={{ marginTop: "48px", textAlign: "center" }} className="reveal">
+            <p style={{ fontSize: "14px", color: "var(--ink-muted)", marginBottom: "16px" }}>
+              If your team runs on conversations, Inkra runs for you.
+            </p>
+            <div className="industries">
+              <span className="ind-chip">Sales</span>
+              <span className="ind-chip">Nonprofits</span>
+              <span className="ind-chip">Healthcare</span>
+              <span className="ind-chip">UX Research</span>
+              <span className="ind-chip">People Management</span>
+              <span className="ind-chip">Product Teams</span>
+              <span className="ind-chip">Customer Support</span>
+              <span className="ind-chip">Legal</span>
+              <span className="ind-chip">Real Estate</span>
+              <span className="ind-chip">Multi-Location Ops</span>
             </div>
           </div>
         </div>
       </section>
 
-      {/* FEATURES */}
-      <section className="features">
-        <div className="container">
-          <div className="features__header reveal">
-            <div className="kicker">The platform</div>
-            <h2>Eight engines. One conversation to power them all.</h2>
+      {/* ENGINES */}
+      <section className="section" style={{ background: "var(--paper-warm)" }}>
+        <div className="section-inner reveal">
+          <div className="section-label">The platform</div>
+          <div className="section-title">
+            Eight engines. One conversation
+            <br />
+            <em>to power them all.</em>
           </div>
-          <div className="feat-grid reveal">
-            <div className="feat">
-              <div className="feat__icon"><Mic2 size={22} /></div>
+          <div className="engines">
+            <div className="engine">
+              <div className="engine-icon">📞</div>
               <h4>Conversation Capture</h4>
-              <p>Phone calls, Zoom meetings, standups, support tickets — plus paper-based sessions via photo upload.</p>
+              <p>
+                Calls, meetings, standups, support tickets, plus paper sessions
+                via photo upload.
+              </p>
             </div>
-            <div className="feat">
-              <div className="feat__icon"><FileText size={22} /></div>
+            <div className="engine">
+              <div className="engine-icon">📄</div>
               <h4>Auto-Documentation</h4>
-              <p>Notes, case files, SOAP records, intake forms, PRDs, tech specs — generated, not typed.</p>
+              <p>
+                Notes, case files, SOAP records, intake forms, PRDs:
+                generated, not typed.
+              </p>
             </div>
-            <div className="feat">
-              <div className="feat__icon"><Target size={22} /></div>
+            <div className="engine">
+              <div className="engine-icon">💬</div>
               <h4>Conversation Guides</h4>
-              <p>Real-time prompts, reminders, and key details — surfaced during live calls.</p>
+              <p>
+                Real-time prompts, reminders, and key details surfaced during
+                live calls.
+              </p>
             </div>
-            <div className="feat">
-              <div className="feat__icon"><BarChart3 size={22} /></div>
-              <h4>Reports & Goal Tracking</h4>
-              <p>Grant reports, KPI dashboards, pipeline reviews. Alerts when you hit targets — even early.</p>
+            <div className="engine">
+              <div className="engine-icon">📊</div>
+              <h4>Reports & Goals</h4>
+              <p>
+                Grant reports, KPI dashboards, pipeline reviews. Alerts when
+                targets are hit.
+              </p>
             </div>
-            <div className="feat">
-              <div className="feat__icon"><ClipboardList size={22} /></div>
-              <h4>Program & Session Tracking</h4>
-              <p>Multi-session treatments, training programs, client journeys. Completion tracking for compliance.</p>
+            <div className="engine">
+              <div className="engine-icon">🔄</div>
+              <h4>Program Tracking</h4>
+              <p>
+                Multi-session treatments, training programs, client journeys.
+                Completion for compliance.
+              </p>
             </div>
-            <div className="feat">
-              <div className="feat__icon"><Brain size={22} /></div>
+            <div className="engine">
+              <div className="engine-icon">📚</div>
               <h4>Knowledge System</h4>
-              <p>Policies, workflows, and SOPs captured from practice. Updates push org-wide instantly.</p>
+              <p>
+                Policies, workflows, SOPs captured from practice. Updates push
+                org-wide instantly.
+              </p>
             </div>
-            <div className="feat">
-              <div className="feat__icon"><Eye size={22} /></div>
+            <div className="engine">
+              <div className="engine-icon">📈</div>
               <h4>Workforce Intelligence</h4>
-              <p>Team performance visibility without asking. Training recs from efficiency data.</p>
+              <p>
+                Team performance visibility without asking. Training recs from
+                efficiency data.
+              </p>
             </div>
-            <div className="feat">
-              <div className="feat__icon"><Camera size={22} /></div>
-              <h4>IRL-to-Digital Capture</h4>
-              <p>No internet? Print attendance sheets, snap a photo. AI logs attendance and generates notes.</p>
+            <div className="engine">
+              <div className="engine-icon">📸</div>
+              <h4>IRL-to-Digital</h4>
+              <p>
+                No internet? Print attendance sheets, snap a photo. Everything
+                gets logged automatically.
+              </p>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* INDUSTRIES */}
-      <section className="ind">
-        <div className="container">
-          <div className="ind__header reveal">
-            <div className="kicker">Who it&apos;s for</div>
-            <h2>If your team runs on conversations, Inkra runs for you.</h2>
-          </div>
-          <div className="ind-wrap reveal">
-            <div className="ind-chip">Sales & Account Management</div>
-            <div className="ind-chip">Nonprofit Case Management</div>
-            <div className="ind-chip">Healthcare & Medical Practices</div>
-            <div className="ind-chip">Behavioral Health</div>
-            <div className="ind-chip">UX Research</div>
-            <div className="ind-chip">Product & Engineering Teams</div>
-            <div className="ind-chip">Customer Support</div>
-            <div className="ind-chip">Legal Services</div>
-            <div className="ind-chip">Real Estate</div>
-            <div className="ind-chip">People Management</div>
-            <div className="ind-chip">Multi-Location Operations</div>
-            <div className="ind-chip">Tax & Financial Advisory</div>
-            <div className="ind-chip">Education & Coaching</div>
           </div>
         </div>
       </section>
 
       {/* CTA */}
-      <section className="cta" id="cta">
-        <div className="container">
-          <div className="cta__inner reveal">
-            <div className="kicker">Spring 2026 Pilot</div>
-            <h2>Your conversations should <em>do the work.</em></h2>
-            <p className="cta__sub">20 founding organizations get priority pricing, white-glove onboarding, and direct roadmap input.</p>
-            <div className="cta__urgency">Applications reviewed weekly</div>
-            <form className="wl" onSubmit={handleFormSubmit}>
-              <input type="text" placeholder="First name" required />
-              <input type="text" placeholder="Last name" required />
-              <input type="email" placeholder="Work email" required className="full" />
-              <input type="text" placeholder="Organization" required />
-              <select required defaultValue="">
-                <option value="" disabled>Your role</option>
-                <option>Sales / Account Management</option>
-                <option>Case Manager / Social Worker</option>
-                <option>Program Director</option>
-                <option>Executive Director / CEO</option>
-                <option>Engineering / Product Manager</option>
-                <option>UX Researcher</option>
-                <option>IT / Operations</option>
-                <option>Clinician / Therapist / Doctor</option>
-                <option>Customer Support Lead</option>
-                <option>Other</option>
-              </select>
-              <select required defaultValue="">
-                <option value="" disabled>Team size</option>
-                <option>1–5</option>
-                <option>6–15</option>
-                <option>16–50</option>
-                <option>51–100</option>
-                <option>100+</option>
-              </select>
-              <select required className="full" defaultValue="">
-                <option value="" disabled>Industry</option>
-                <option>Sales / Tech</option>
-                <option>Nonprofit / Human Services</option>
-                <option>Behavioral Health</option>
-                <option>Healthcare / Medical</option>
-                <option>UX Research / Design</option>
-                <option>Product / Engineering</option>
-                <option>Customer Support</option>
-                <option>Legal</option>
-                <option>Real Estate</option>
-                <option>Education</option>
-                <option>Financial Services</option>
-                <option>Government</option>
-                <option>Multi-Location Retail / Operations</option>
-                <option>Other</option>
-              </select>
-              <button type="submit" className="wl__btn">Apply for the Spring 2026 Pilot →</button>
-            </form>
-            <div className="wl__note">No credit card · Invite-only · One business day response</div>
+      <section className="cta-section" id="cta">
+        <div className="cta-inner reveal">
+          <h2>
+            Your conversations should
+            <br />
+            <em>do the work.</em>
+          </h2>
+          <p>
+            20 founding organizations get priority pricing, white-glove
+            onboarding, and direct roadmap input.
+          </p>
+          <form className="wl-form" onSubmit={handleFormSubmit}>
+            <input type="text" placeholder="First name" required />
+            <input type="text" placeholder="Last name" required />
+            <input type="email" placeholder="Work email" required className="full" />
+            <input type="text" placeholder="Organization" required />
+            <select required defaultValue="">
+              <option value="" disabled>Your role</option>
+              <option>Sales / Account Management</option>
+              <option>Case Manager / Social Worker</option>
+              <option>Program Director</option>
+              <option>Executive Director / CEO</option>
+              <option>Engineering / Product Manager</option>
+              <option>UX Researcher</option>
+              <option>IT / Operations</option>
+              <option>Clinician / Therapist / Doctor</option>
+              <option>Customer Support Lead</option>
+              <option>Other</option>
+            </select>
+            <select required className="full" defaultValue="">
+              <option value="" disabled>Team size</option>
+              <option>1–5</option>
+              <option>6–15</option>
+              <option>16–50</option>
+              <option>51–100</option>
+              <option>100+</option>
+            </select>
+            <select required className="full" defaultValue="">
+              <option value="" disabled>Industry</option>
+              <option>Sales / Tech</option>
+              <option>Nonprofit / Human Services</option>
+              <option>Behavioral Health</option>
+              <option>Healthcare / Medical</option>
+              <option>UX Research / Design</option>
+              <option>Product / Engineering</option>
+              <option>Customer Support</option>
+              <option>Legal</option>
+              <option>Real Estate</option>
+              <option>Education</option>
+              <option>Financial Services</option>
+              <option>Government</option>
+              <option>Multi-Location Retail / Operations</option>
+              <option>Other</option>
+            </select>
+            <button type="submit" className="wl-btn">
+              Apply for the Spring 2026 Pilot →
+            </button>
+          </form>
+          <div className="cta-note">
+            No credit card · Invite-only · One business day response
           </div>
         </div>
       </section>
 
       {/* FOOTER */}
-      <footer className="footer">
-        <div className="container">
-          <div className="footer__inner">
-            <div className="footer__brand">Inkra<span>.</span></div>
-            <div className="footer__links">
-              <a href="#" className="footer__link">Privacy</a>
-              <a href="#" className="footer__link">Terms</a>
-              <a href="#" className="footer__link">Security</a>
-              <a href="mailto:hello@inkra.io" className="footer__link">Contact</a>
-            </div>
-            <div className="footer__copy">© 2026 Inkra · Phoenixing LLC</div>
-          </div>
+      <footer>
+        <div className="foot-left">
+          <span className="foot-name">Inkra</span>
+          <span className="foot-copy">© 2026 Inkra · Phoenixing LLC</span>
+        </div>
+        <div className="foot-links">
+          <a href="#">Privacy</a>
+          <a href="#">Terms</a>
+          <a href="#">Security</a>
+          <a href="mailto:hello@inkra.app">Contact</a>
         </div>
       </footer>
     </>

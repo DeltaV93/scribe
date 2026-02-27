@@ -17,8 +17,78 @@
  * - Ink Red (#B34747): Errors, alerts
  * - Ink Amber (#B26A00): Warnings, review
  *
- * Typography: Inter-only for enterprise signal
+ * Typography:
+ * - Tiempos Text (serif): Headlines, display text
+ * - Soehne (sans-serif): Body text, UI
  */
+
+/* =============================================================================
+   CUSTOM FONTS
+   ============================================================================= */
+
+/* Tiempos Text - Serif for headings */
+@font-face {
+  font-family: 'Tiempos Text';
+  src: url('/fonts/tiempos-text-regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Tiempos Text';
+  src: url('/fonts/tiempos-text-semibold.woff2') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Soehne - Sans-serif for body */
+@font-face {
+  font-family: 'Soehne';
+  src: url('/fonts/soehne-light.woff2') format('woff2');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Soehne';
+  src: url('/fonts/soehne-medium.woff') format('woff');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Soehne Breit (wide) - For special display use */
+@font-face {
+  font-family: 'Soehne Breit';
+  src: url('/fonts/soehne-breit-extrabold.woff') format('woff');
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* =============================================================================
+   TYPOGRAPHY BASE STYLES
+   ============================================================================= */
+
+/* Headings use Tiempos (serif) */
+h1, h2, h3, h4, h5, h6,
+.font-serif {
+  font-family: 'Tiempos Text', Georgia, 'Times New Roman', serif;
+}
+
+/* Body uses Soehne (sans-serif) - set via Tailwind's font-sans */
+body {
+  font-family: 'Soehne', var(--font-inter), system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-weight: 300; /* Soehne Light as default */
+}
+
+/* Medium weight for emphasis */
+strong, b, .font-medium {
+  font-weight: 500;
+}
 
 @layer base {
   :root {

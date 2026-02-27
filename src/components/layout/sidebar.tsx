@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import {
@@ -198,29 +199,39 @@ export function Sidebar({ user }: SidebarProps) {
         )}
       >
         {/* Header */}
-        <div className="flex h-16 items-center justify-between border-b px-4">
-          {!collapsed && (
-            <Link href="/dashboard" className="flex items-center gap-2">
-              <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-lg">
-                  I
-                </span>
-              </div>
-              <span className="font-semibold text-xl">Inkra</span>
-            </Link>
-          )}
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setCollapsed(!collapsed)}
-            className={cn(collapsed && "mx-auto")}
-          >
-            {collapsed ? (
+        <div className={cn(
+          "flex h-16 items-center border-b px-4",
+          collapsed ? "justify-center" : "justify-between"
+        )}>
+          {!collapsed ? (
+            <>
+              <Link href="/dashboard" className="flex items-center gap-3">
+                <Image
+                  src="/inkra-logo.svg"
+                  alt="Inkra"
+                  width={48}
+                  height={14}
+                  priority
+                />
+                <span className="text-lg font-extrabold tracking-tight">Inkra</span>
+              </Link>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setCollapsed(!collapsed)}
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+            </>
+          ) : (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setCollapsed(!collapsed)}
+            >
               <Menu className="h-4 w-4" />
-            ) : (
-              <ChevronLeft className="h-4 w-4" />
-            )}
-          </Button>
+            </Button>
+          )}
         </div>
 
         {/* Navigation */}

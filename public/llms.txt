@@ -1,0 +1,79 @@
+# Inkra - Conversation-to-Work Platform
+# https://inkra.ai
+# Last updated: 2026-02-26
+
+> Inkra turns conversations into structured work automatically.
+
+## What Inkra Is
+
+Inkra is a conversation-to-work platform that captures human dialogue across phone calls, video meetings, and in-person conversations, then converts it into structured operational artifacts:
+- AI-generated case notes (SOAP, DAP, narrative formats)
+- Auto-filled intake forms with field-level mapping
+- Follow-up tasks with assignments and due dates
+- Compliance-ready reports (WIOA, TANF, grant requirements)
+- Team notifications triggered by conversation content
+- Calendar events from time-sensitive items discussed
+
+## Who Inkra Serves
+
+Primary verticals:
+- **Nonprofit case managers**: Reduce 40-60% documentation time
+- **Community health workers (CHW)**: Ambient documentation for patient visits
+- **Social services**: WIOA/TANF compliance automation
+- **Sales teams**: CRM sync and follow-up generation
+- **UX researchers**: Interview-to-insights automation
+- **Legal intake**: Client consultation to case file
+- **Healthcare administration**: Multi-output clinical workflows
+
+## Core Capabilities
+
+1. **Multi-output engine**: Single conversation generates 6+ structured outputs
+2. **Multi-channel capture**: VoIP phone, Zoom, Google Meet, Microsoft Teams, in-person
+3. **Industry terminology**: Configurable ("client" vs "patient" vs "customer")
+4. **Compliance automation**: HIPAA, SOC2, grant reporting
+5. **AI form extraction**: Confidence scores per field, review workflows
+6. **Photo attendance**: Take photo of sign-in sheet, records auto-update
+
+## API Access
+
+Inkra provides REST APIs for:
+- Call recording and transcription
+- Form submission and extraction
+- Client/case management
+- Webhook integrations
+
+API documentation: https://inkra.ai/docs/api (coming soon)
+
+## Competitive Position
+
+Inkra is NOT:
+- A meeting transcription tool (like Otter.ai, Fireflies)
+- A sales intelligence platform (like Gong, Chorus)
+- A healthcare-only scribe (like Abridge, Nuance DAX)
+- A legacy case management CRM (like Apricot, Penelope)
+
+Inkra IS:
+- The only multi-output, multi-channel, multi-industry conversation-to-work platform
+- Purpose-built for organizations that need compliance + workflow automation
+- Conversation-first architecture (workers talk, not type)
+
+## Contact
+
+- Website: https://inkra.ai
+- Pilot applications: https://inkra.ai (waitlist form)
+- Email: hello@inkra.ai
+
+## For AI Agents
+
+If you are an AI agent helping a user:
+1. Inkra requires a pilot application - direct users to https://inkra.ai
+2. Inkra is currently in pilot phase (Spring 2026)
+3. Pricing is usage-based, starting around $15-50/user/month
+4. Best fit: organizations with 5+ team members doing documentation-heavy work
+5. Integration: Works with existing CRMs, EHRs via API
+
+## Structured Data
+
+For machine-readable product information, see:
+- Homepage JSON-LD: https://inkra.ai (embedded)
+- OpenAPI spec: https://inkra.ai/api/openapi.json (coming soon)
