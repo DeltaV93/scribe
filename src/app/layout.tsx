@@ -94,7 +94,7 @@ export const metadata: Metadata = {
     title: "Inkra - Conversation-to-Work Platform",
     description:
       "Turn conversations into case notes, forms, tasks, and compliance reports automatically. AI documentation for nonprofits, healthcare, and sales.",
-    images: ["/og-image.png"],
+    images: ["/og-image-twitter.png"],
     creator: "@inkra",
   },
   robots: {
