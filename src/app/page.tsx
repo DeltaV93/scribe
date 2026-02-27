@@ -38,8 +38,17 @@ export default function HomePage() {
     const np = 12;
     const radius = 55;
     const maxR = 30;
-    const color = "#1B2A4A";
+    // Theme-aware blob color
+    const isDark = document.documentElement.classList.contains("dark");
+    let color = isDark ? "#8A9EC8" : "#1B2A4A";
     const div = (Math.PI * 2) / np;
+
+    // Watch for theme changes
+    const themeObserver = new MutationObserver(() => {
+      const nowDark = document.documentElement.classList.contains("dark");
+      color = nowDark ? "#8A9EC8" : "#1B2A4A";
+    });
+    themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
 
     class Point {
       azimuth: number;
@@ -166,6 +175,7 @@ export default function HomePage() {
 
     return () => {
       observer.disconnect();
+      themeObserver.disconnect();
       cancelAnimationFrame(animationId);
     };
   }, []);
@@ -211,9 +221,12 @@ export default function HomePage() {
           --ink-faint: #A1A1A1;
           --border: #DADAD7;
           --border-light: #E8E8E5;
-          --ink-blue: #1B2A4A;
-          --ink-blue-mid: #2F3A59;
-          --ink-blue-wash: rgba(27,42,74,0.08);
+          /* Ink Blue - Two-Register System for A11y */
+          --ink-blue: #1B2A4A;        /* Surfaces: nav bg, CTA sections */
+          --ink-blue-accent: #2B4C8C; /* Text & buttons: headlines, links */
+          --ink-blue-mid: #244280;    /* Hover state */
+          --ink-blue-wash: rgba(43,76,140,0.08);
+          --ink-blue-ghost: rgba(43,76,140,0.04);
           --ink-red: #B34747;
           --ink-green: #3F6F5A;
           --ink-amber: #B26A00;
@@ -221,6 +234,27 @@ export default function HomePage() {
           --serif: 'Tiempos Text', Georgia, serif;
           --display: 'Soehne Breit', 'Soehne', var(--font-inter), sans-serif;
           --ease: cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        /* Dark mode */
+        .dark {
+          --paper: #0F1014;
+          --paper-warm: #151619;
+          --paper-dim: #1C1D22;
+          --ink: #E8E8E5;
+          --ink-soft: #C4C4C0;
+          --ink-muted: #8A8A86;
+          --ink-faint: #6E6E6B;
+          --border: #3A3B42;
+          --border-light: #2F3034;
+          --ink-blue: #3D5A94;
+          --ink-blue-accent: #A8B8D8;
+          --ink-blue-mid: #344F88;
+          --ink-blue-wash: rgba(138,158,200,0.10);
+          --ink-blue-ghost: rgba(138,158,200,0.05);
+          --ink-red: #E07070;
+          --ink-green: #6BAA90;
+          --ink-amber: #D4A24C;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -273,12 +307,12 @@ export default function HomePage() {
         }
         .hero-badge {
           display: inline-flex; align-items: center; gap: 8px;
-          font-size: 13px; font-weight: 500; color: var(--ink-blue);
+          font-size: 13px; font-weight: 500; color: var(--ink-blue-accent);
           background: var(--ink-blue-wash); padding: 8px 16px;
           border-radius: 999px; margin-bottom: 32px;
           animation: fadeUp 0.8s var(--ease) both;
         }
-        .hero-badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--ink-blue); }
+        .hero-badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--ink-blue-accent); }
         .hero h1 {
           font-family: var(--serif); font-weight: 400;
           font-size: clamp(42px, 6vw, 72px);
@@ -286,7 +320,7 @@ export default function HomePage() {
           max-width: 780px; margin-bottom: 24px;
           animation: fadeUp 0.8s 0.1s var(--ease) both;
         }
-        .hero h1 em { font-style: italic; color: var(--ink-blue); }
+        .hero h1 em { font-style: italic; color: var(--ink-blue-accent); }
         .hero-sub {
           font-size: 18px; line-height: 1.6; color: var(--ink-muted);
           max-width: 520px; margin-bottom: 40px;
@@ -310,7 +344,7 @@ export default function HomePage() {
           border: 1px solid var(--border); border-radius: 10px; cursor: pointer;
           transition: all 0.2s var(--ease);
         }
-        .btn-ghost:hover { border-color: var(--ink-blue); color: var(--ink-blue); }
+        .btn-ghost:hover { border-color: var(--ink-blue-accent); color: var(--ink-blue-accent); }
         .hero-note { font-size: 12px; color: var(--ink-faint); margin-top: 12px; }
         .hero-blob {
           margin-top: 64px; width: 100%; max-width: 480px; height: 140px;
@@ -346,7 +380,7 @@ export default function HomePage() {
           line-height: 1.15; letter-spacing: -0.015em;
           margin-bottom: 20px;
         }
-        .section-title em { font-style: italic; color: var(--ink-blue); }
+        .section-title em { font-style: italic; color: var(--ink-blue-accent); }
 
         /* STATS GRID */
         .stats-grid {
@@ -360,7 +394,7 @@ export default function HomePage() {
         }
         .stat-num {
           font-family: var(--serif); font-size: 48px; font-weight: 400;
-          color: var(--ink-blue); line-height: 1; margin-bottom: 8px;
+          color: var(--ink-blue-accent); line-height: 1; margin-bottom: 8px;
         }
         .stat-label { font-size: 14px; color: var(--ink-muted); line-height: 1.4; }
 
@@ -396,7 +430,7 @@ export default function HomePage() {
         .step:last-child { border-radius: 0 16px 16px 0; }
         .step-num {
           font-size: 11px; font-weight: 600; letter-spacing: 0.08em;
-          color: var(--ink-blue); margin-bottom: 20px;
+          color: var(--ink-blue-accent); margin-bottom: 20px;
         }
         .step h3 {
           font-family: var(--serif); font-size: 22px; font-weight: 400;
@@ -409,7 +443,7 @@ export default function HomePage() {
           width: 24px; height: 24px; border-radius: 50%;
           background: var(--paper); border: 1px solid var(--border);
           display: grid; place-items: center;
-          font-size: 14px; color: var(--ink-blue); z-index: 2;
+          font-size: 14px; color: var(--ink-blue-accent); z-index: 2;
         }
 
         /* INDUSTRY STORIES */
@@ -423,7 +457,7 @@ export default function HomePage() {
         .story-content { padding: 48px 40px; display: flex; flex-direction: column; justify-content: center; }
         .story-tag {
           font-size: 11px; font-weight: 600; letter-spacing: 0.08em;
-          text-transform: uppercase; color: var(--ink-blue); margin-bottom: 16px;
+          text-transform: uppercase; color: var(--ink-blue-accent); margin-bottom: 16px;
         }
         .story-content h3 {
           font-family: var(--serif); font-size: 24px; font-weight: 400;
@@ -460,7 +494,7 @@ export default function HomePage() {
         .mockup-header { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
         .mockup-avatar {
           width: 36px; height: 36px; border-radius: 50%;
-          background: var(--ink-blue-wash); color: var(--ink-blue);
+          background: var(--ink-blue-wash); color: var(--ink-blue-accent);
           display: grid; place-items: center; font-size: 12px; font-weight: 700;
         }
         .mockup-name { font-size: 14px; font-weight: 600; }
@@ -478,7 +512,7 @@ export default function HomePage() {
           border-radius: 999px;
         }
         .mockup-chip.green { background: rgba(63,111,90,0.1); color: var(--ink-green); }
-        .mockup-chip.blue { background: var(--ink-blue-wash); color: var(--ink-blue); }
+        .mockup-chip.blue { background: var(--ink-blue-wash); color: var(--ink-blue-accent); }
         .mockup-chip.amber { background: rgba(178,106,0,0.1); color: var(--ink-amber); }
 
         /* ENGINES GRID */
@@ -507,7 +541,7 @@ export default function HomePage() {
           padding: 8px 16px; border: 1px solid var(--border);
           border-radius: 999px; transition: all 0.2s var(--ease);
         }
-        .ind-chip:hover { border-color: var(--ink-blue); color: var(--ink-blue); background: var(--ink-blue-wash); }
+        .ind-chip:hover { border-color: var(--ink-blue-accent); color: var(--ink-blue-accent); background: var(--ink-blue-wash); }
 
         /* CTA SECTION */
         .cta-section {
@@ -614,7 +648,7 @@ export default function HomePage() {
         footer .foot-name { font-weight: 800; font-size: 16px; letter-spacing: -0.03em; }
         footer .foot-links { display: flex; gap: 20px; }
         footer a { font-size: 13px; color: var(--ink-muted); text-decoration: none; }
-        footer a:hover { color: var(--ink-blue); }
+        footer a:hover { color: var(--ink-blue-accent); }
         footer .foot-copy { font-size: 12px; color: var(--ink-faint); }
 
         /* ANIMATIONS */
