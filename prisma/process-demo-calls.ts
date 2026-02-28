@@ -7,6 +7,7 @@
 import { PrismaClient, ProcessingStatus, ActionItemStatus, ActionItemSource } from '@prisma/client';
 import { reExtractCallFields, regenerateCallSummary } from '../src/lib/services/call-processing';
 import { onCallCompleted, recordCallActivityOnGoals } from '../src/lib/services/grant-metrics';
+import { createDraftsFromCall } from '../src/lib/services/call-goal-drafts';
 
 const prisma = new PrismaClient();
 
@@ -141,6 +142,19 @@ async function main() {
         } catch (error) {
           console.warn(`  - Grant metrics warning: ${error instanceof Error ? error.message : 'Unknown'}`);
         }
+      }
+
+      // Create goal drafts for rich call context
+      console.log('  - Creating goal drafts...');
+      try {
+        const draftResult = await createDraftsFromCall(call.id);
+        if (draftResult.created > 0) {
+          console.log(`  - Created ${draftResult.created} goal drafts`);
+        } else {
+          console.log('  - No applicable goals found for drafts');
+        }
+      } catch (error) {
+        console.warn(`  - Goal drafts warning: ${error instanceof Error ? error.message : 'Unknown'}`);
       }
 
       console.log('  - Done!\n');
