@@ -243,22 +243,32 @@ export async function recalculateGoalProgress(
 ): Promise<ProgressCalculation> {
   const calculation = await calculateGoalProgress(goalId);
 
-  // Only update if progress or status changed
-  if (
+  const progressChanged =
     calculation.newProgress !== calculation.previousProgress ||
-    calculation.newStatus !== calculation.previousStatus
-  ) {
-    await prisma.$transaction([
-      // Update goal
-      prisma.goal.update({
-        where: { id: goalId },
-        data: {
-          progress: calculation.newProgress,
-          status: calculation.newStatus,
-          updatedAt: new Date(),
-        },
-      }),
-      // Record progress history
+    calculation.newStatus !== calculation.previousStatus;
+
+  // Record history if progress/status changed OR if notes provided (call activity)
+  const shouldRecordHistory = progressChanged || trigger?.notes;
+
+  if (shouldRecordHistory) {
+    const operations = [];
+
+    // Only update goal if progress/status actually changed
+    if (progressChanged) {
+      operations.push(
+        prisma.goal.update({
+          where: { id: goalId },
+          data: {
+            progress: calculation.newProgress,
+            status: calculation.newStatus,
+            updatedAt: new Date(),
+          },
+        })
+      );
+    }
+
+    // Always record history when triggered
+    operations.push(
       prisma.goalProgress.create({
         data: {
           goalId,
@@ -271,11 +281,15 @@ export async function recalculateGoalProgress(
           notes: trigger?.notes,
           recordedById: trigger?.recordedById,
         },
-      }),
-    ]);
+      })
+    );
 
-    // Trigger notifications if needed
-    await checkAndTriggerNotifications(goalId, calculation);
+    await prisma.$transaction(operations);
+
+    // Trigger notifications only if progress actually changed
+    if (progressChanged) {
+      await checkAndTriggerNotifications(goalId, calculation);
+    }
   }
 
   return calculation;

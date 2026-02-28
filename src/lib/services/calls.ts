@@ -317,13 +317,25 @@ export async function endCall(callId: string) {
 
   // Track grant metrics when call completes (no AI dependency)
   if (updatedCall.status === CallStatus.COMPLETED && updatedCall.clientId) {
+    const clientName = `${updatedCall.client.firstName} ${updatedCall.client.lastName}`;
+
     try {
-      const { onCallCompleted } = await import('./grant-metrics');
+      const { onCallCompleted, recordCallActivityOnGoals } = await import('./grant-metrics');
+
+      // Track CLIENT_CONTACTS metric on matching deliverables
       await onCallCompleted({
         id: callId,
         clientId: updatedCall.clientId,
         orgId: updatedCall.client.orgId,
-        clientName: `${updatedCall.client.firstName} ${updatedCall.client.lastName}`,
+        clientName,
+      });
+
+      // Record call activity on ALL goals (for history visibility)
+      await recordCallActivityOnGoals({
+        id: callId,
+        clientId: updatedCall.clientId,
+        orgId: updatedCall.client.orgId,
+        clientName,
       });
     } catch (error) {
       // Log but don't fail - grant metrics are non-critical

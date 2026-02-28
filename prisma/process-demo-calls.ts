@@ -6,7 +6,7 @@
 
 import { PrismaClient, ProcessingStatus, ActionItemStatus, ActionItemSource } from '@prisma/client';
 import { reExtractCallFields, regenerateCallSummary } from '../src/lib/services/call-processing';
-import { onCallCompleted } from '../src/lib/services/grant-metrics';
+import { onCallCompleted, recordCallActivityOnGoals } from '../src/lib/services/grant-metrics';
 
 const prisma = new PrismaClient();
 
@@ -125,6 +125,14 @@ async function main() {
         console.log('  - Tracking grant metrics...');
         try {
           await onCallCompleted({
+            id: call.id,
+            clientId: call.clientId,
+            orgId: call.client.orgId,
+            clientName,
+          });
+
+          // Record call activity on ALL goals
+          await recordCallActivityOnGoals({
             id: call.id,
             clientId: call.clientId,
             orgId: call.client.orgId,

@@ -167,6 +167,37 @@ export async function onFormSubmitted(submission: {
   });
 }
 
+/**
+ * Record call activity on ALL goals linked to grants in the org
+ * This ensures all goals show call history regardless of deliverable metric type
+ */
+export async function recordCallActivityOnGoals(call: {
+  id: string;
+  clientId: string;
+  orgId: string;
+  clientName?: string;
+}): Promise<void> {
+  // Find all active grants in the org
+  const grants = await prisma.grant.findMany({
+    where: {
+      orgId: call.orgId,
+      status: { in: ["DRAFT", "ACTIVE"] },
+      archivedAt: null,
+    },
+    select: { id: true },
+  });
+
+  const notes = call.clientName
+    ? `${call.clientName} - call completed`
+    : "Call completed";
+
+  // Notify all linked goals for each grant
+  const { onGrantProgressUpdated } = await import("./goal-progress");
+  await Promise.all(
+    grants.map((grant) => onGrantProgressUpdated(grant.id, notes))
+  );
+}
+
 // ============================================
 // HELPER FUNCTIONS
 // ============================================
