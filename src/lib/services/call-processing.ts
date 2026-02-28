@@ -166,6 +166,34 @@ export async function processCompletedCall(
       },
     });
 
+    // Step 7: Extract and save action items from AI summary
+    const actionItems = summaryResult.summary?.actionItems;
+    if (actionItems && actionItems.length > 0) {
+      try {
+        const { processCallActionItems } = await import('@/lib/ai/call-action-items');
+        await processCallActionItems(callId, transcription.raw);
+        console.log(`[CallProcessing] Created action items for call ${callId}`);
+      } catch (error) {
+        // Log but don't fail - action items are non-critical
+        console.error(`[CallProcessing] Failed to create action items for call ${callId}:`, error);
+      }
+    }
+
+    // Step 8: Create goal drafts for impact reporting
+    try {
+      const { createDraftsFromCall } = await import('@/lib/services/call-goal-drafts');
+      const draftResult = await createDraftsFromCall(callId);
+      if (draftResult.created > 0) {
+        console.log(`[CallProcessing] Created ${draftResult.created} goal drafts for call ${callId}`);
+      }
+      if (draftResult.errors.length > 0) {
+        console.warn(`[CallProcessing] Goal draft errors: ${draftResult.errors.join(', ')}`);
+      }
+    } catch (error) {
+      // Log but don't fail - goal drafts are non-critical
+      console.error(`[CallProcessing] Failed to create goal drafts for call ${callId}:`, error);
+    }
+
     console.log(`[CallProcessing] Successfully processed call ${callId}`);
 
     return {

@@ -675,6 +675,7 @@ model User {
   createdGoals              Goal[]               @relation("GoalCreator")
   goalProgressRecords       GoalProgress[]       @relation("GoalProgressRecorder")
   goalUpdates               GoalUpdate[]         @relation("GoalUpdateCreator")
+  reviewedCallGoalDrafts    CallGoalDraft[]      @relation("CallGoalDraftReviewer")
   ownedKpis                 Kpi[]                @relation("KpiOwner")
   createdKpis               Kpi[]                @relation("KpiCreator")
   kpiProgressRecords        KpiProgress[]        @relation("KpiProgressRecorder")
@@ -1343,6 +1344,9 @@ model Call {
   // Calendar Integration (PX-822)
   calendarEvents         CalendarEvent[]
   pendingSchedulingItems PendingSchedulingItem[]
+
+  // Goal Draft Relations (Rich Call Context)
+  goalDrafts CallGoalDraft[]
 
   @@index([clientId])
   @@index([caseManagerId])
@@ -3697,6 +3701,9 @@ model Goal {
   // Updates/Check-ins
   updates GoalUpdate[]
 
+  // Call goal drafts (pending review)
+  callDrafts CallGoalDraft[]
+
   @@index([orgId, status])
   @@index([orgId, type])
   @@index([ownerId])
@@ -3806,6 +3813,42 @@ model GoalUpdate {
   createdBy User @relation("GoalUpdateCreator", fields: [createdById], references: [id])
 
   @@index([goalId, createdAt])
+}
+
+// Call Goal Draft - Draft goal updates created from call AI processing
+// Supports review workflow: PENDING -> APPROVED/REJECTED/EDITED
+model CallGoalDraft {
+  id     String @id @default(uuid())
+  callId String
+  goalId String
+
+  // Draft content
+  narrative   String  @db.Text // AI-generated natural language update
+  actionItems Json // Array of action items relevant to this goal
+  keyPoints   Json // Key points relevant to this goal
+  sentiment   String? // Call sentiment (positive/neutral/negative/mixed)
+  topics      Json // Topics discussed
+
+  // Mapping metadata
+  mappingType String // "client_linked" | "topic_matched" | "manual"
+  confidence  Float // AI confidence in goal relevance (0-1)
+
+  // Review workflow
+  status        String    @default("PENDING") // PENDING | APPROVED | REJECTED | EDITED
+  reviewedById  String?
+  reviewedAt    DateTime?
+  editedContent String?   @db.Text // If case manager edited the narrative
+
+  createdAt DateTime @default(now())
+
+  // Relations
+  call       Call  @relation(fields: [callId], references: [id], onDelete: Cascade)
+  goal       Goal  @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  reviewedBy User? @relation("CallGoalDraftReviewer", fields: [reviewedById], references: [id])
+
+  @@unique([callId, goalId])
+  @@index([goalId, status])
+  @@index([callId])
 }
 
 // ============================================
