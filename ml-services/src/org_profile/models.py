@@ -89,7 +89,7 @@ class PrivacyLedger(Base, UUIDMixin):
     model_id: Mapped[Optional[UUID]] = mapped_column(PG_UUID(as_uuid=True), nullable=True)
     model_version_id: Mapped[Optional[UUID]] = mapped_column(PG_UUID(as_uuid=True), nullable=True)
     recorded_at: Mapped[datetime] = mapped_column(nullable=False)
-    metadata: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
+    extra_data: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
 
     # Relationships
     org_profile: Mapped["OrgProfile"] = relationship("OrgProfile", back_populates="privacy_ledger")
