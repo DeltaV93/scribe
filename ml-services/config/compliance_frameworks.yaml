@@ -1,0 +1,96 @@
+# Compliance Framework Defaults
+# These are loaded into the ComplianceFramework table on initialization
+
+frameworks:
+  HIPAA:
+    name: "HIPAA"
+    default_retention:
+      training_data: "6y"
+      audit_events: "6y"
+      model_artifacts: "6y"
+      phi_access_logs: "6y"
+    required_audit_events:
+      - "model.deployed"
+      - "model.rollback"
+      - "inference.phi_accessed"
+      - "training.completed"
+      - "privacy.budget.exhausted"
+      - "data.exported"
+      - "user.authenticated"
+    data_handling_rules:
+      encryption_at_rest: true
+      encryption_in_transit: true
+      minimum_encryption: "AES-256"
+      phi_access_logging: true
+      data_residency: "us"
+
+  SOC2:
+    name: "SOC2"
+    default_retention:
+      training_data: "7y"
+      audit_events: "7y"
+      model_artifacts: "indefinite"
+      access_logs: "1y"
+    required_audit_events:
+      - "model.deployed"
+      - "model.rollback"
+      - "training.completed"
+      - "training.failed"
+      - "user.authenticated"
+      - "user.permission_changed"
+      - "system.config_changed"
+    data_handling_rules:
+      encryption_at_rest: true
+      encryption_in_transit: true
+      change_management: true
+      access_reviews: "quarterly"
+      penetration_testing: "annual"
+
+  GDPR:
+    name: "GDPR"
+    default_retention:
+      training_data: "purpose_limited"  # Delete when no longer needed
+      audit_events: "3y"
+      model_artifacts: "purpose_limited"
+      personal_data: "purpose_limited"
+    required_audit_events:
+      - "data.accessed"
+      - "data.exported"
+      - "data.deleted"
+      - "consent.granted"
+      - "consent.revoked"
+      - "data_subject.request"
+    data_handling_rules:
+      encryption_at_rest: true
+      encryption_in_transit: true
+      data_residency: "eu"
+      right_to_erasure: true
+      data_portability: true
+      purpose_limitation: true
+      consent_tracking: true
+
+  FERPA:
+    name: "FERPA"
+    default_retention:
+      education_records: "5y"
+      audit_events: "5y"
+      training_data: "5y"
+    required_audit_events:
+      - "record.accessed"
+      - "record.disclosed"
+      - "consent.obtained"
+    data_handling_rules:
+      encryption_at_rest: true
+      disclosure_logging: true
+      parent_access: true
+      annual_notification: true
+
+  CUSTOM:
+    name: "CUSTOM"
+    default_retention:
+      training_data: "configurable"
+      audit_events: "configurable"
+      model_artifacts: "configurable"
+    required_audit_events: []
+    data_handling_rules:
+      configurable: true

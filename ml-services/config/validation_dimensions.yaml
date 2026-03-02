@@ -1,0 +1,98 @@
+# Validation Dimensions Configuration
+# See PX-896 for research background
+#
+# These thresholds are used by PX-895 (Training Orchestration)
+# to gate model deployments.
+
+validation_gates:
+  # Accuracy metrics - required for all models
+  accuracy:
+    enabled: true
+    metrics:
+      - name: f1_score
+        threshold: 0.85
+        comparison: gte  # greater than or equal
+        description: "F1 score must be at least 0.85"
+      - name: precision
+        threshold: 0.80
+        comparison: gte
+        description: "Precision must be at least 0.80"
+      - name: recall
+        threshold: 0.75
+        comparison: gte
+        description: "Recall must be at least 0.75"
+
+  # Calibration - critical for confidence-based feedback scoring
+  calibration:
+    enabled: true
+    metrics:
+      - name: expected_calibration_error
+        threshold: 0.05
+        comparison: lte  # less than or equal
+        description: "ECE must be below 0.05 for confidence scores to be meaningful"
+      - name: brier_score
+        threshold: 0.15
+        comparison: lte
+        description: "Brier score for probabilistic calibration"
+
+  # Drift detection - triggers alerts and retraining
+  drift:
+    enabled: true
+    metrics:
+      - name: psi  # Population Stability Index
+        threshold: 0.1
+        comparison: lte
+        description: "PSI above 0.1 indicates significant drift"
+      - name: feature_drift_score
+        threshold: 0.15
+        comparison: lte
+        description: "Aggregate feature drift metric"
+      - name: concept_drift_score
+        threshold: 0.20
+        comparison: lte
+        description: "Output distribution drift"
+
+  # Fairness - only for sensitivity classifier (PX-878)
+  fairness:
+    enabled_for:
+      - sensitivity_classifier
+    metrics:
+      - name: demographic_parity_diff
+        threshold: 0.1
+        comparison: lte
+        description: "Difference in positive rates across groups"
+      - name: equalized_odds_diff
+        threshold: 0.1
+        comparison: lte
+        description: "Difference in TPR/FPR across groups"
+
+# Per-model type overrides
+model_overrides:
+  extraction:
+    accuracy:
+      metrics:
+        - name: field_accuracy
+          threshold: 0.90
+          comparison: gte
+        - name: field_completeness
+          threshold: 0.85
+          comparison: gte
+
+  classification:
+    accuracy:
+      metrics:
+        - name: macro_f1
+          threshold: 0.80
+          comparison: gte
+        - name: weighted_f1
+          threshold: 0.85
+          comparison: gte
+
+  llm:
+    calibration:
+      enabled: false  # LLM calibration handled differently
+
+# Alert thresholds (warning before failure)
+alert_thresholds:
+  accuracy_warning: 0.90  # Warn at 90% of threshold
+  drift_warning: 0.80     # Warn at 80% of threshold
