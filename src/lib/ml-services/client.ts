@@ -1,0 +1,422 @@
+/**
+ * ML Services API Client
+ *
+ * Client for communicating with the ml-services FastAPI backend.
+ * Used server-side only (API routes, server actions).
+ */
+
+import {
+  Model,
+  ModelCreate,
+  ModelUpdate,
+  ModelVersion,
+  VersionCreate,
+  VersionUpdate,
+  ModelDeployment,
+  DeploymentCreate,
+  OrgProfile,
+  OrgProfileCreate,
+  OrgProfileUpdate,
+  PrivacyBudget,
+  ComplianceStatus,
+  AuditEvent,
+  AuditEventCreate,
+  PaginatedResponse,
+  MLServiceError,
+  MLServiceApiError,
+  ModelType,
+} from "./types";
+
+// Configuration from environment
+const ML_SERVICE_URL = process.env.ML_SERVICE_URL || "http://localhost:8000";
+const ML_SERVICE_API_KEY = process.env.ML_SERVICE_API_KEY || "";
+
+interface RequestOptions {
+  method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
+  body?: unknown;
+  params?: Record<string, string | number | boolean | undefined>;
+  orgId?: string;
+}
+
+/**
+ * Base fetch wrapper with authentication and error handling
+ */
+async function mlFetch<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
+  const { method = "GET", body, params, orgId } = options;
+
+  // Build URL with query params
+  const url = new URL(`${ML_SERVICE_URL}${endpoint}`);
+  if (params) {
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined) {
+        url.searchParams.set(key, String(value));
+      }
+    });
+  }
+
+  // Build headers
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    "X-Service-API-Key": ML_SERVICE_API_KEY,
+  };
+
+  if (orgId) {
+    headers["X-Org-ID"] = orgId;
+  }
+
+  // Make request
+  const response = await fetch(url.toString(), {
+    method,
+    headers,
+    body: body ? JSON.stringify(body) : undefined,
+    // Disable caching for API calls
+    cache: "no-store",
+  });
+
+  // Handle errors
+  if (!response.ok) {
+    let errorData: MLServiceError;
+    try {
+      errorData = await response.json();
+    } catch {
+      throw new MLServiceApiError(
+        "UNKNOWN_ERROR",
+        `HTTP ${response.status}: ${response.statusText}`,
+        response.status
+      );
+    }
+    throw MLServiceApiError.fromResponse(errorData, response.status);
+  }
+
+  // Parse response
+  return response.json();
+}
+
+// ============================================================================
+// Model Registry
+// ============================================================================
+
+export const models = {
+  /**
+   * List models with optional filtering
+   */
+  async list(options?: {
+    modelType?: ModelType;
+    includeGlobal?: boolean;
+    page?: number;
+    pageSize?: number;
+    orgId?: string;
+  }): Promise<PaginatedResponse<Model>> {
+    return mlFetch("/v1/models", {
+      params: {
+        model_type: options?.modelType,
+        include_global: options?.includeGlobal,
+        page: options?.page,
+        page_size: options?.pageSize,
+      },
+      orgId: options?.orgId,
+    });
+  },
+
+  /**
+   * Get a model by ID
+   */
+  async get(modelId: string): Promise<Model> {
+    return mlFetch(`/v1/models/${modelId}`);
+  },
+
+  /**
+   * Create a new model
+   */
+  async create(data: ModelCreate): Promise<Model> {
+    return mlFetch("/v1/models", {
+      method: "POST",
+      body: data,
+    });
+  },
+
+  /**
+   * Update a model
+   */
+  async update(modelId: string, data: ModelUpdate): Promise<Model> {
+    return mlFetch(`/v1/models/${modelId}`, {
+      method: "PATCH",
+      body: data,
+    });
+  },
+};
+
+// ============================================================================
+// Model Versions
+// ============================================================================
+
+export const versions = {
+  /**
+   * List versions for a model
+   */
+  async list(modelId: string): Promise<{ items: ModelVersion[]; total: number }> {
+    return mlFetch(`/v1/models/${modelId}/versions`);
+  },
+
+  /**
+   * Get a specific version
+   */
+  async get(modelId: string, versionNumber: number): Promise<ModelVersion> {
+    return mlFetch(`/v1/models/${modelId}/versions/${versionNumber}`);
+  },
+
+  /**
+   * Create a new version
+   */
+  async create(modelId: string, data: VersionCreate = {}): Promise<ModelVersion> {
+    return mlFetch(`/v1/models/${modelId}/versions`, {
+      method: "POST",
+      body: data,
+    });
+  },
+
+  /**
+   * Update a version
+   */
+  async update(
+    modelId: string,
+    versionNumber: number,
+    data: VersionUpdate
+  ): Promise<ModelVersion> {
+    return mlFetch(`/v1/models/${modelId}/versions/${versionNumber}`, {
+      method: "PATCH",
+      body: data,
+    });
+  },
+
+  /**
+   * Deploy a version
+   */
+  async deploy(
+    modelId: string,
+    versionNumber: number,
+    data: DeploymentCreate
+  ): Promise<ModelDeployment> {
+    return mlFetch(`/v1/models/${modelId}/versions/${versionNumber}/deploy`, {
+      method: "POST",
+      body: data,
+    });
+  },
+
+  /**
+   * Rollback to a specific version
+   */
+  async rollback(
+    modelId: string,
+    versionNumber: number,
+    environment: "staging" | "production"
+  ): Promise<ModelDeployment> {
+    return mlFetch(`/v1/models/${modelId}/versions/${versionNumber}/rollback`, {
+      method: "POST",
+      params: { environment },
+    });
+  },
+};
+
+// ============================================================================
+// Org Profile
+// ============================================================================
+
+export const orgProfile = {
+  /**
+   * Get org profile
+   */
+  async get(orgId: string): Promise<OrgProfile> {
+    return mlFetch(`/v1/orgs/${orgId}/profile`);
+  },
+
+  /**
+   * Create org profile
+   */
+  async create(orgId: string, data: Omit<OrgProfileCreate, "org_id">): Promise<OrgProfile> {
+    return mlFetch(`/v1/orgs/${orgId}/profile`, {
+      method: "POST",
+      body: { ...data, org_id: orgId },
+    });
+  },
+
+  /**
+   * Update org profile
+   */
+  async update(orgId: string, data: OrgProfileUpdate): Promise<OrgProfile> {
+    return mlFetch(`/v1/orgs/${orgId}/profile`, {
+      method: "PUT",
+      body: data,
+    });
+  },
+
+  /**
+   * Get privacy budget status
+   */
+  async getPrivacyBudget(orgId: string): Promise<PrivacyBudget> {
+    return mlFetch(`/v1/orgs/${orgId}/privacy/budget`);
+  },
+
+  /**
+   * Get compliance status
+   */
+  async getComplianceStatus(orgId: string): Promise<ComplianceStatus> {
+    return mlFetch(`/v1/orgs/${orgId}/compliance`);
+  },
+};
+
+// ============================================================================
+// Audit Events
+// ============================================================================
+
+export const audit = {
+  /**
+   * Create an audit event
+   */
+  async createEvent(data: AuditEventCreate): Promise<AuditEvent> {
+    return mlFetch("/v1/audit/events", {
+      method: "POST",
+      body: data,
+    });
+  },
+
+  /**
+   * List audit events
+   */
+  async listEvents(options: {
+    orgId: string;
+    eventType?: string;
+    riskTier?: string;
+    startDate?: string;
+    endDate?: string;
+    page?: number;
+    pageSize?: number;
+  }): Promise<PaginatedResponse<AuditEvent>> {
+    return mlFetch("/v1/audit/events", {
+      params: {
+        org_id: options.orgId,
+        event_type: options.eventType,
+        risk_tier: options.riskTier,
+        start_date: options.startDate,
+        end_date: options.endDate,
+        page: options.page,
+        page_size: options.pageSize,
+      },
+    });
+  },
+
+  /**
+   * Get a specific audit event
+   */
+  async getEvent(eventId: string): Promise<AuditEvent> {
+    return mlFetch(`/v1/audit/events/${eventId}`);
+  },
+};
+
+// ============================================================================
+// Health & Utility
+// ============================================================================
+
+export const health = {
+  /**
+   * Check if ml-services is healthy
+   */
+  async check(): Promise<{ status: string }> {
+    return mlFetch("/healthz");
+  },
+
+  /**
+   * Check readiness (db + redis connected)
+   */
+  async ready(): Promise<{ status: string; db: string; redis: string }> {
+    return mlFetch("/readyz");
+  },
+};
+
+// ============================================================================
+// Convenience Functions
+// ============================================================================
+
+/**
+ * Emit a model deployment audit event
+ */
+export async function emitModelDeployed(
+  orgId: string,
+  modelId: string,
+  versionId: string,
+  environment: string,
+  actorId: string
+): Promise<AuditEvent> {
+  return audit.createEvent({
+    org_id: orgId,
+    event_type: "model.deployed",
+    risk_tier: "medium",
+    actor_id: actorId,
+    actor_type: "user",
+    event_data: {
+      model_id: modelId,
+      version_id: versionId,
+      environment,
+    },
+    source_service: "inkra-nextjs",
+    occurred_at: new Date().toISOString(),
+  });
+}
+
+/**
+ * Emit a model rollback audit event
+ */
+export async function emitModelRollback(
+  orgId: string,
+  modelId: string,
+  fromVersion: number,
+  toVersion: number,
+  environment: string,
+  actorId: string
+): Promise<AuditEvent> {
+  return audit.createEvent({
+    org_id: orgId,
+    event_type: "model.rollback",
+    risk_tier: "high",
+    actor_id: actorId,
+    actor_type: "user",
+    event_data: {
+      model_id: modelId,
+      from_version: fromVersion,
+      to_version: toVersion,
+      environment,
+    },
+    source_service: "inkra-nextjs",
+    occurred_at: new Date().toISOString(),
+  });
+}
+
+/**
+ * Check if org has privacy budget available
+ */
+export async function hasPrivacyBudget(orgId: string): Promise<boolean> {
+  try {
+    const budget = await orgProfile.getPrivacyBudget(orgId);
+    return !budget.is_exhausted;
+  } catch (error) {
+    // If org profile doesn't exist, assume budget is available
+    if (error instanceof MLServiceApiError && error.code === "ORG_PROFILE_NOT_FOUND") {
+      return true;
+    }
+    throw error;
+  }
+}
+
+// Default export for convenience
+const mlServices = {
+  models,
+  versions,
+  orgProfile,
+  audit,
+  health,
+  emitModelDeployed,
+  emitModelRollback,
+  hasPrivacyBudget,
+};
+
+export default mlServices;
