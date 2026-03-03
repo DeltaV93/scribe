@@ -81,7 +81,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       console.error("Failed to create local audit log:", localAuditError);
     }
 
-    return NextResponse.json({ success: true, data: deployment });
+    return NextResponse.json({ success: true, data: deployment }, { status: 201 });
   } catch (error) {
     console.error("Error deploying version:", error);
 

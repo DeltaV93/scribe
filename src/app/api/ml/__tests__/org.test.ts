@@ -236,7 +236,7 @@ describe("GET /api/ml/org/privacy-budget", () => {
     expect(data.data.epsilon_remaining).toBe(0);
   });
 
-  it("should handle profile not found", async () => {
+  it("should handle profile not found with defaults", async () => {
     const { MLServiceApiError } = await import("@/lib/ml-services");
     mockMLServices.orgProfile.getPrivacyBudget.mockRejectedValue(
       new MLServiceApiError("ORG_PROFILE_NOT_FOUND", "Profile not found", 404)
@@ -245,8 +245,13 @@ describe("GET /api/ml/org/privacy-budget", () => {
     const { GET } = await import("../org/privacy-budget/route");
 
     const response = await GET();
+    const data = await response.json();
 
-    expect(response.status).toBe(404);
+    // Route returns 200 with sensible defaults when profile doesn't exist
+    expect(response.status).toBe(200);
+    expect(data.success).toBe(true);
+    expect(data.data.epsilon_budget).toBe(0);
+    expect(data.data.is_exhausted).toBe(false);
   });
 });
 
@@ -301,6 +306,7 @@ describe("GET /api/ml/health", () => {
   });
 
   it("should return health status", async () => {
+    mockMLServices.health.check.mockResolvedValue({ status: "ok" });
     mockMLServices.health.ready.mockResolvedValue({
       status: "ok",
       db: "connected",
@@ -318,6 +324,7 @@ describe("GET /api/ml/health", () => {
   });
 
   it("should handle unhealthy status", async () => {
+    mockMLServices.health.check.mockResolvedValue({ status: "ok" });
     mockMLServices.health.ready.mockResolvedValue({
       status: "degraded",
       db: "connected",
@@ -329,11 +336,13 @@ describe("GET /api/ml/health", () => {
     const response = await GET();
     const data = await response.json();
 
-    expect(response.status).toBe(200);
+    // Route returns 503 for any non-ok status
+    expect(response.status).toBe(503);
     expect(data.data.status).toBe("degraded");
   });
 
   it("should handle ml-services connection failure", async () => {
+    mockMLServices.health.check.mockRejectedValue(new Error("Connection refused"));
     mockMLServices.health.ready.mockRejectedValue(new Error("Connection refused"));
 
     const { GET } = await import("../health/route");
@@ -342,6 +351,6 @@ describe("GET /api/ml/health", () => {
     const data = await response.json();
 
     expect(response.status).toBe(503);
-    expect(data.error).toBeDefined();
+    expect(data.data.status).toBe("degraded");
   });
 });

@@ -182,7 +182,7 @@ describe("POST /api/ml/models/[modelId]/versions/[versionNumber]/deploy", () => 
     );
     const response = await POST(
       request as never,
-      { params: { modelId, versionNumber } } as never
+      { params: Promise.resolve({ modelId, versionNumber }) } as never
     );
     const data = await response.json();
 
@@ -215,7 +215,7 @@ describe("POST /api/ml/models/[modelId]/versions/[versionNumber]/deploy", () => 
     );
     const response = await POST(
       request as never,
-      { params: { modelId, versionNumber } } as never
+      { params: Promise.resolve({ modelId, versionNumber }) } as never
     );
     const data = await response.json();
 
@@ -247,7 +247,7 @@ describe("POST /api/ml/models/[modelId]/versions/[versionNumber]/deploy", () => 
     );
     await POST(
       request as never,
-      { params: { modelId, versionNumber } } as never
+      { params: Promise.resolve({ modelId, versionNumber }) } as never
     );
 
     expect(mockMLServices.versions.deploy).toHaveBeenCalledWith(
@@ -277,7 +277,7 @@ describe("POST /api/ml/models/[modelId]/versions/[versionNumber]/deploy", () => 
     );
     const response = await POST(
       request as never,
-      { params: { modelId, versionNumber } } as never
+      { params: Promise.resolve({ modelId, versionNumber }) } as never
     );
 
     expect(response.status).toBe(400);
@@ -297,18 +297,23 @@ describe("POST /api/ml/models/[modelId]/versions/[versionNumber]/rollback", () =
       environment: "production",
     });
     mockMLServices.versions.rollback.mockResolvedValue(deployment);
+    mockMLServices.versions.list.mockResolvedValue({ items: [], total: 0 });
 
     const { POST } = await import(
       "../models/[modelId]/versions/[versionNumber]/rollback/route"
     );
 
     const request = new Request(
-      `http://localhost:3000/api/ml/models/${modelId}/versions/${versionNumber}/rollback?environment=production`,
-      { method: "POST" }
+      `http://localhost:3000/api/ml/models/${modelId}/versions/${versionNumber}/rollback`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ environment: "production" }),
+      }
     );
     const response = await POST(
       request as never,
-      { params: { modelId, versionNumber } } as never
+      { params: Promise.resolve({ modelId, versionNumber }) } as never
     );
     const data = await response.json();
 
@@ -324,14 +329,18 @@ describe("POST /api/ml/models/[modelId]/versions/[versionNumber]/rollback", () =
       "../models/[modelId]/versions/[versionNumber]/rollback/route"
     );
 
-    // Missing environment query param
+    // Missing environment in body
     const request = new Request(
       `http://localhost:3000/api/ml/models/${modelId}/versions/${versionNumber}/rollback`,
-      { method: "POST" }
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      }
     );
     const response = await POST(
       request as never,
-      { params: { modelId, versionNumber } } as never
+      { params: Promise.resolve({ modelId, versionNumber }) } as never
     );
 
     expect(response.status).toBe(400);
@@ -345,18 +354,23 @@ describe("POST /api/ml/models/[modelId]/versions/[versionNumber]/rollback", () =
     mockMLServices.versions.rollback.mockRejectedValue(
       new MLServiceApiError("VERSION_NOT_FOUND", "Version not found", 404)
     );
+    mockMLServices.versions.list.mockResolvedValue({ items: [], total: 0 });
 
     const { POST } = await import(
       "../models/[modelId]/versions/[versionNumber]/rollback/route"
     );
 
     const request = new Request(
-      `http://localhost:3000/api/ml/models/${modelId}/versions/${versionNumber}/rollback?environment=production`,
-      { method: "POST" }
+      `http://localhost:3000/api/ml/models/${modelId}/versions/${versionNumber}/rollback`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ environment: "production" }),
+      }
     );
     const response = await POST(
       request as never,
-      { params: { modelId, versionNumber } } as never
+      { params: Promise.resolve({ modelId, versionNumber }) } as never
     );
 
     expect(response.status).toBe(404);
