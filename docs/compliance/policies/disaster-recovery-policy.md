@@ -1,7 +1,7 @@
 # Disaster Recovery Policy
 
 **Document ID:** DR-POL-001
-**Version:** 2.0
+**Version:** 2.1
 **Effective Date:** March 3, 2026
 **Review Date:** March 3, 2027
 **Owner:** DevOps Lead
@@ -39,8 +39,11 @@ This policy covers:
 | Redis/ElastiCache | 30 min | N/A (ephemeral) | P1 |
 | ECS Services (ML) | 15 min | N/A | P1 |
 | Next.js App (Railway) | 15 min | N/A | P1 |
+| Ray Cluster | 30 min | N/A | P2 |
+| Training Jobs | 2 hours | Job state in DB | P2 |
 | S3 Uploads | 2 hours | 1 hour | P2 |
 | Background Jobs | 1 hour | 30 min | P2 |
+| Feedback Collection | 1 hour | 15 min | P3 |
 
 ## 4. Disaster Classification
 
@@ -62,6 +65,8 @@ This policy covers:
 | S3 bucket corruption | P1 | Cross-region failover |
 | ECS cluster failure | P1 | Auto-scaling + redeployment |
 | Redis/ElastiCache failure | P1 | Cluster recreation + job replay |
+| Ray cluster failure | P2 | Restart cluster + resume jobs |
+| Training job failure | P2 | Re-queue from database state |
 | Railway deployment failure | P2 | Rollback to previous version |
 | ECR image corruption | P2 | Rebuild from source + redeploy |
 | DNS/domain issues | P2 | DNS failover procedure |
@@ -112,6 +117,40 @@ This policy covers:
 | Socket.IO Server | Redis Adapter | Reconnect clients automatically |
 | Live Collaboration | Redis Pub/Sub | State persisted in database |
 | Call Status Updates | Twilio Webhooks | Webhooks auto-retry |
+
+### 5.5 Training Orchestration
+
+| Component | Location | Backup Method | Recovery |
+|-----------|----------|---------------|----------|
+| Training Jobs Table | ML Services RDS | Multi-AZ + PITR | Automatic failover |
+| Ray Head Node | ECS Fargate | Stateless | Redeploy from ECR |
+| Ray Worker Nodes | ECS Fargate | Stateless | Redeploy from ECR |
+| Training Artifacts | S3 | Versioning + CRR | Cross-region restore |
+| Job Checkpoints | S3 | Versioning | Restore + resume |
+| Celery Monitor Task | ECS Worker | Redis | Re-queue on startup |
+
+**Training Job States:**
+
+| State | Recovery Strategy |
+|-------|-------------------|
+| `pending` | Re-submit to Ray cluster |
+| `running` | Check Ray job status, resume or restart |
+| `completed` | No action needed |
+| `failed` | Retry if retriable, otherwise mark failed |
+| `cancelled` | No action needed |
+
+### 5.6 Feedback Collection
+
+| Component | Location | Backup Method | Recovery |
+|-----------|----------|---------------|----------|
+| Feedback Table | ML Services RDS | Multi-AZ + PITR | Automatic failover |
+| Feedback Aggregates | ML Services RDS | Multi-AZ + PITR | Automatic failover |
+| Aggregation Task | Celery Beat | Scheduled | Re-run aggregation |
+
+**Feedback Recovery Notes:**
+- Individual feedback records are stored in the database with full audit trail
+- Daily aggregation runs via Celery Beat and can be manually triggered
+- Export functionality available for compliance reporting
 
 ## 6. Backup Strategy
 
@@ -281,7 +320,62 @@ This policy covers:
 5. Verify all services healthy via /healthz and /readyz
 6. Document incident
 
-### 7.6 Region Failure
+### 7.6 Training Orchestration Recovery
+
+**Scenario: Ray cluster failure**
+
+1. Check Ray head node status in ECS
+2. Review CloudWatch logs for errors
+3. If head node crash: ECS auto-restarts
+4. If cluster corruption: Force new deployment
+5. Query database for interrupted jobs
+6. Resubmit `pending` and `running` jobs
+7. Verify cluster health via Ray dashboard
+8. Document incident
+
+**Runbook:** [Ray Cluster Recovery](../runbooks/ray-cluster-recovery.md)
+
+**Scenario: Training job stuck or failed**
+
+1. Query job status from ml-services API
+2. Check Ray job status (if assigned)
+3. If Ray job lost: Resubmit to cluster
+4. If resource issue: Scale cluster or adjust requirements
+5. If checkpoint exists: Resume from checkpoint
+6. Update job status in database
+7. Notify job owner of recovery status
+
+**Commands:**
+```bash
+# List stuck training jobs
+curl -H "Authorization: Bearer $TOKEN" \
+  "https://ml.scrybe.app/api/v1/training/jobs?status=running&older_than=2h"
+
+# Resubmit failed jobs
+curl -X POST -H "Authorization: Bearer $TOKEN" \
+  "https://ml.scrybe.app/api/v1/training/jobs/{job_id}/retry"
+```
+
+### 7.7 Feedback Collection Recovery
+
+**Scenario: Feedback data inconsistency**
+
+1. Verify feedback records in database
+2. Check aggregation table timestamps
+3. Manually trigger re-aggregation if needed
+4. Verify stats match raw data
+5. Document any data gaps
+
+**Commands:**
+```bash
+# Trigger manual aggregation
+celery -A ml_services.celery_app call feedback.tasks.aggregate_feedback_daily
+
+# Verify feedback counts
+psql $DATABASE_URL -c "SELECT COUNT(*) FROM feedback WHERE created_at > now() - interval '24 hours';"
+```
+
+### 7.8 Region Failure
 
 **Scenario: Complete AWS region outage**
 
@@ -298,7 +392,7 @@ This policy covers:
 
 **Runbook:** [Region Failover Runbook](../runbooks/region-failover.md)
 
-### 7.7 Security Incident Recovery
+### 7.9 Security Incident Recovery
 
 **Scenario: Data breach or system compromise**
 
@@ -316,7 +410,7 @@ This policy covers:
 7. Enhanced monitoring post-recovery
 8. Complete incident review
 
-### 7.8 Third-Party Service Recovery
+### 7.10 Third-Party Service Recovery
 
 **Scenario: Critical third-party service outage**
 
@@ -409,6 +503,9 @@ This policy covers:
 | Database failover | Quarterly | Trigger RDS failover, measure downtime |
 | ECR image rollback | Monthly | Deploy previous version, verify functionality |
 | Migration rollback | Per-release | Test downgrade path before production |
+| Ray cluster restart | Monthly | Stop Ray head, verify worker recovery, resume jobs |
+| Training job recovery | Monthly | Kill running job, verify re-queue from DB state |
+| Feedback aggregation | Monthly | Manually trigger aggregation, verify data integrity |
 
 ## 10. Documentation Requirements
 
@@ -432,6 +529,8 @@ All runbooks must include:
 - [ ] Redis Recovery
 - [ ] Region Failover
 - [ ] Container Rebuild
+- [ ] Ray Cluster Recovery
+- [ ] Training Job Recovery
 
 ### 10.2 Test Results
 
@@ -458,37 +557,44 @@ Post-incident documentation:
 ### 11.1 Critical Path
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                        CRITICAL PATH                             │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                  │
-│  DNS (Cloudflare) ──► ALB/Railway ──► Application               │
-│                            │                                     │
-│                            ▼                                     │
-│                    ┌───────────────┐                            │
-│                    │   PostgreSQL   │◄── Primary Database        │
-│                    └───────────────┘                            │
-│                            │                                     │
-│              ┌─────────────┼─────────────┐                      │
-│              ▼             ▼             ▼                       │
-│         ┌────────┐   ┌─────────┐   ┌──────────┐                │
-│         │ Redis  │   │   S3    │   │ Supabase │                │
-│         │ Cache  │   │ Storage │   │   Auth   │                │
-│         └────────┘   └─────────┘   └──────────┘                │
-│              │                                                   │
-│              ▼                                                   │
-│     ┌─────────────────┐                                         │
-│     │  ML Services    │◄── ECS Fargate                          │
-│     │  (API/Worker)   │                                         │
-│     └─────────────────┘                                         │
-│              │                                                   │
-│              ▼                                                   │
-│     ┌─────────────────┐                                         │
-│     │  ML Database    │◄── RDS PostgreSQL                       │
-│     │  + ElastiCache  │                                         │
-│     └─────────────────┘                                         │
-│                                                                  │
-└─────────────────────────────────────────────────────────────────┘
+┌───────────────────────────────────────────────────────────────────────┐
+│                          CRITICAL PATH                                 │
+├───────────────────────────────────────────────────────────────────────┤
+│                                                                        │
+│  DNS (Cloudflare) ──► ALB/Railway ──► Application                     │
+│                            │                                           │
+│                            ▼                                           │
+│                    ┌───────────────┐                                  │
+│                    │   PostgreSQL   │◄── Primary Database              │
+│                    └───────────────┘                                  │
+│                            │                                           │
+│              ┌─────────────┼─────────────┐                            │
+│              ▼             ▼             ▼                             │
+│         ┌────────┐   ┌─────────┐   ┌──────────┐                      │
+│         │ Redis  │   │   S3    │   │ Supabase │                      │
+│         │ Cache  │   │ Storage │   │   Auth   │                      │
+│         └────────┘   └─────────┘   └──────────┘                      │
+│              │                                                         │
+│              ▼                                                         │
+│     ┌─────────────────┐                                               │
+│     │  ML Services    │◄── ECS Fargate                                │
+│     │  (API/Worker)   │                                               │
+│     └─────────────────┘                                               │
+│              │                                                         │
+│       ┌──────┴──────┐                                                 │
+│       ▼             ▼                                                  │
+│  ┌──────────┐  ┌──────────────┐                                      │
+│  │ ML RDS   │  │ Ray Cluster  │◄── Training Orchestration             │
+│  │ + Redis  │  │ (Head+Worker)│                                       │
+│  └──────────┘  └──────────────┘                                      │
+│       │             │                                                  │
+│       └──────┬──────┘                                                 │
+│              ▼                                                         │
+│     ┌─────────────────┐                                               │
+│     │  S3 Artifacts   │◄── Model Storage + Checkpoints                │
+│     └─────────────────┘                                               │
+│                                                                        │
+└───────────────────────────────────────────────────────────────────────┘
 ```
 
 ### 11.2 Recovery Order
@@ -502,9 +608,11 @@ In a full system recovery, restore in this order:
 5. **Secrets Manager** - Verify all secrets accessible
 6. **ECR** - Verify container images available
 7. **ECS Services** - Deploy ML Services (API → Worker → Beat)
-8. **Application** - Deploy Next.js to Railway
-9. **Background Jobs** - Verify job processing
-10. **Third-party Integrations** - Verify webhooks, API connections
+8. **Ray Cluster** - Deploy Ray head + workers (if training required)
+9. **Application** - Deploy Next.js to Railway
+10. **Background Jobs** - Verify job processing
+11. **Training Jobs** - Resume interrupted training jobs
+12. **Third-party Integrations** - Verify webhooks, API connections
 
 ## 12. Compliance Mapping
 
@@ -582,6 +690,239 @@ aws s3api copy-object \
 
 ---
 
+## Appendix B: Local Development Setup
+
+This section documents how to run all system components locally for development and testing.
+
+### B.1 Prerequisites
+
+```bash
+# Required software
+- Node.js 18+ (for Next.js app)
+- Python 3.11+ (for ml-services)
+- Docker & Docker Compose (for databases)
+- PostgreSQL client (psql)
+- Redis (optional, Docker preferred)
+```
+
+### B.2 Next.js Application
+
+```bash
+# Navigate to project root
+cd /path/to/scribe
+
+# Install dependencies
+npm install
+
+# Set up environment variables
+cp .env.example .env.local
+# Edit .env.local with your values
+
+# Generate Prisma client
+npm run db:generate
+
+# Push schema to database (development)
+npm run db:push
+
+# Seed test data (optional)
+npm run db:seed
+
+# Start development server
+npm run dev
+# App available at http://localhost:3000
+```
+
+### B.3 ML Services (Python/FastAPI)
+
+```bash
+# Navigate to ml-services directory
+cd /path/to/scribe/ml-services
+
+# Create virtual environment
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
+pip install -r requirements-dev.txt  # For testing
+
+# Set up environment variables
+cp .env.example .env
+# Edit .env with your values:
+# - DATABASE_URL=postgresql://user:pass@localhost:5432/ml_services
+# - REDIS_URL=redis://localhost:6379/0
+# - ML_SERVICE_API_KEY=dev-api-key
+
+# Run database migrations
+alembic upgrade head
+
+# Start the API server
+uvicorn src.main:app --reload --port 8000
+# API available at http://localhost:8000
+# Docs at http://localhost:8000/docs
+```
+
+### B.4 Celery Workers (Background Jobs)
+
+```bash
+# In ml-services directory with virtualenv activated
+
+# Start Celery worker (in a separate terminal)
+celery -A src.celery_app worker --loglevel=info
+
+# Start Celery Beat scheduler (in another terminal)
+celery -A src.celery_app beat --loglevel=info
+
+# Or run both with:
+celery -A src.celery_app worker --beat --loglevel=info
+```
+
+### B.5 Ray Cluster (Training Orchestration)
+
+```bash
+# Local Ray cluster for development
+# In ml-services directory with virtualenv activated
+
+# Start Ray head node
+ray start --head --port=6379 --dashboard-port=8265
+
+# Ray dashboard available at http://localhost:8265
+
+# To stop Ray
+ray stop
+
+# Note: For production, Ray runs on ECS Fargate
+# Local development uses a single-node Ray cluster
+```
+
+### B.6 Docker Compose (Databases)
+
+```bash
+# Start PostgreSQL and Redis via Docker Compose
+cd /path/to/scribe/ml-services
+
+# Start all services
+docker-compose up -d
+
+# Services started:
+# - PostgreSQL: localhost:5432
+# - Redis: localhost:6379
+
+# View logs
+docker-compose logs -f
+
+# Stop services
+docker-compose down
+
+# Stop and remove volumes (reset data)
+docker-compose down -v
+```
+
+**docker-compose.yml example:**
+```yaml
+version: '3.8'
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: ml_services
+      POSTGRES_PASSWORD: dev_password
+      POSTGRES_DB: ml_services
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+volumes:
+  postgres_data:
+  redis_data:
+```
+
+### B.7 Running Tests
+
+```bash
+# Next.js unit tests
+npm run test
+
+# Next.js E2E tests
+npm run test:e2e
+
+# ML Services unit tests
+cd ml-services
+pytest tests/unit -v
+
+# ML Services integration tests (requires Docker)
+pytest tests/integration -v
+
+# Run all ML Services tests
+pytest tests/ -v --cov=src
+```
+
+### B.8 Full Stack Local Development
+
+To run the complete system locally:
+
+1. **Terminal 1: Databases**
+   ```bash
+   cd ml-services && docker-compose up
+   ```
+
+2. **Terminal 2: ML Services API**
+   ```bash
+   cd ml-services
+   source venv/bin/activate
+   uvicorn src.main:app --reload --port 8000
+   ```
+
+3. **Terminal 3: Celery Worker**
+   ```bash
+   cd ml-services
+   source venv/bin/activate
+   celery -A src.celery_app worker --beat --loglevel=info
+   ```
+
+4. **Terminal 4: Ray (if training needed)**
+   ```bash
+   cd ml-services
+   source venv/bin/activate
+   ray start --head
+   ```
+
+5. **Terminal 5: Next.js App**
+   ```bash
+   npm run dev
+   ```
+
+### B.9 Environment Variables Reference
+
+**Next.js (.env.local):**
+```env
+DATABASE_URL=postgresql://...
+SUPABASE_URL=https://...
+SUPABASE_ANON_KEY=...
+ML_SERVICES_URL=http://localhost:8000
+ML_SERVICE_API_KEY=dev-api-key
+```
+
+**ML Services (.env):**
+```env
+DATABASE_URL=postgresql://ml_services:dev_password@localhost:5432/ml_services
+REDIS_URL=redis://localhost:6379/0
+ML_SERVICE_API_KEY=dev-api-key
+RAY_ADDRESS=ray://localhost:6379
+AWS_REGION=us-west-2
+S3_BUCKET_MODELS=ml-models-dev
+```
+
+---
+
 **Approval:**
 
 | Name | Title | Signature | Date |
@@ -598,3 +939,4 @@ aws s3api copy-object \
 |---------|------|--------|---------|
 | 1.0 | Feb 1, 2026 | DevOps Lead | Initial version |
 | 2.0 | Mar 3, 2026 | DevOps Lead | Added ML Services infrastructure (ECS, RDS, ElastiCache), container registry recovery, background job system, real-time services, updated third-party contacts, quick reference commands |
+| 2.1 | Mar 3, 2026 | DevOps Lead | Added Training Orchestration (Ray cluster recovery, training job states), Feedback Collection, updated infrastructure diagram, added Local Development Setup appendix |
