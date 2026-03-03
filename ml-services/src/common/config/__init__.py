@@ -45,8 +45,12 @@ class Settings(BaseSettings):
 
     # AWS
     AWS_REGION: str = "us-east-1"
+    AWS_ACCOUNT_ID: str = ""  # Required for Security Hub
     AWS_S3_BUCKET_MODELS: str = "inkra-ml-models"
     AWS_S3_BUCKET_AUDIT: str = "inkra-ml-audit"
+
+    # Next.js App (for callbacks)
+    NEXT_APP_URL: str = "http://localhost:3000"
 
     # Rate Limiting
     RATE_LIMIT_ENABLED: bool = True

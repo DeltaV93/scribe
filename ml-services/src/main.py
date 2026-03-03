@@ -16,9 +16,12 @@ from prometheus_client import make_asgi_app
 
 from src.common.config import settings
 from src.common.db.session import init_db, close_db
+from src.common.exceptions import register_exception_handlers
+from src.common.metrics import init_metrics
 from src.common.middleware.auth import ServiceAuthMiddleware
 from src.common.middleware.request_id import RequestIDMiddleware
 from src.common.middleware.logging import LoggingMiddleware
+from src.common.middleware.rate_limit import RateLimitMiddleware
 
 # Domain routers
 from src.registry.router import router as registry_router
@@ -33,6 +36,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """Application lifespan manager."""
     # Startup
     logger.info("Starting ML Services", version=settings.VERSION)
+    init_metrics(settings.VERSION)
     await init_db()
     yield
     # Shutdown
@@ -49,8 +53,12 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+# Register domain exception handlers
+register_exception_handlers(app)
+
 # Middleware (order matters - last added is first executed)
 app.add_middleware(LoggingMiddleware)
+app.add_middleware(RateLimitMiddleware)
 app.add_middleware(ServiceAuthMiddleware)
 app.add_middleware(RequestIDMiddleware)
 app.add_middleware(
@@ -64,6 +72,7 @@ app.add_middleware(
 # Mount Prometheus metrics
 metrics_app = make_asgi_app()
 app.mount("/metrics", metrics_app)
+
 
 # Health endpoints
 @app.get("/healthz", tags=["Health"])
@@ -116,7 +125,7 @@ app.include_router(org_profile_router, prefix="/v1", tags=["Org Profile"])
 app.include_router(audit_router, prefix="/v1", tags=["Audit"])
 
 
-# Global exception handler
+# Global exception handler for uncaught exceptions
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception) -> JSONResponse:
     """Handle uncaught exceptions."""

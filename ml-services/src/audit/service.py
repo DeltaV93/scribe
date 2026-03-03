@@ -1,16 +1,20 @@
 """Audit service for event routing and sinks."""
 
 import fnmatch
-from datetime import datetime
-from typing import List
+import json
+from datetime import datetime, timezone
+from typing import List, Optional
 from uuid import UUID
 
+import aioboto3
 import structlog
+from botocore.exceptions import ClientError
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.audit.models import AuditEvent, AuditRoute, AuditSink, RiskTier, SinkType
 from src.audit.schemas import AuditEventCreate
+from src.common.config import settings
 
 logger = structlog.get_logger()
 
@@ -22,12 +26,28 @@ RISK_TIER_ORDER = {
     RiskTier.CRITICAL: 3,
 }
 
+# Security Hub severity mapping
+RISK_TO_SEVERITY = {
+    RiskTier.LOW: {"Label": "LOW", "Normalized": 20},
+    RiskTier.MEDIUM: {"Label": "MEDIUM", "Normalized": 50},
+    RiskTier.HIGH: {"Label": "HIGH", "Normalized": 70},
+    RiskTier.CRITICAL: {"Label": "CRITICAL", "Normalized": 90},
+}
+
 
 class AuditService:
     """Service for audit event routing and persistence."""
 
     def __init__(self, session: AsyncSession):
         self.session = session
+        self._boto_session: Optional[aioboto3.Session] = None
+
+    @property
+    def boto_session(self) -> aioboto3.Session:
+        """Lazy-load boto3 session."""
+        if self._boto_session is None:
+            self._boto_session = aioboto3.Session(region_name=settings.AWS_REGION)
+        return self._boto_session
 
     async def emit_event(self, data: AuditEventCreate) -> AuditEvent:
         """Emit an audit event and route to appropriate sinks."""
@@ -42,7 +62,7 @@ class AuditService:
             source_service=data.source_service,
             correlation_id=data.correlation_id,
             occurred_at=data.occurred_at,
-            ingested_at=datetime.utcnow(),
+            ingested_at=datetime.now(timezone.utc),
         )
         self.session.add(event)
         await self.session.flush()
@@ -68,7 +88,6 @@ class AuditService:
             .where(
                 (AuditRoute.org_id == event.org_id) | (AuditRoute.org_id.is_(None))
             )
-            .options()
         )
         routes = list(result.scalars().all())
 
@@ -141,22 +160,187 @@ class AuditService:
             )
 
     async def _send_to_s3(self, event: AuditEvent, sink: AuditSink) -> None:
-        """Archive event to S3."""
-        # TODO: Implement S3 archiving
-        # import aioboto3
-        # session = aioboto3.Session()
-        # async with session.client('s3') as s3:
-        #     await s3.put_object(...)
-        pass
+        """Archive event to S3 with date-partitioned path."""
+        bucket = sink.config.get("bucket", settings.AWS_S3_BUCKET_AUDIT)
+        prefix = sink.config.get("prefix", "audit-events")
+
+        # Partition by org_id/year/month/day for efficient querying
+        occurred = event.occurred_at
+        s3_key = (
+            f"{prefix}/"
+            f"org_id={event.org_id}/"
+            f"year={occurred.year}/"
+            f"month={occurred.month:02d}/"
+            f"day={occurred.day:02d}/"
+            f"{event.id}.json"
+        )
+
+        # Serialize event to JSON
+        event_json = json.dumps(
+            {
+                "id": str(event.id),
+                "org_id": str(event.org_id),
+                "event_type": event.event_type,
+                "risk_tier": event.risk_tier.value if hasattr(event.risk_tier, "value") else event.risk_tier,
+                "actor_id": str(event.actor_id) if event.actor_id else None,
+                "actor_type": event.actor_type.value if hasattr(event.actor_type, "value") else event.actor_type,
+                "event_data": event.event_data,
+                "source_service": event.source_service,
+                "correlation_id": str(event.correlation_id) if event.correlation_id else None,
+                "occurred_at": event.occurred_at.isoformat(),
+                "ingested_at": event.ingested_at.isoformat(),
+            },
+            default=str,
+        )
+
+        try:
+            async with self.boto_session.client("s3") as s3:
+                await s3.put_object(
+                    Bucket=bucket,
+                    Key=s3_key,
+                    Body=event_json.encode("utf-8"),
+                    ContentType="application/json",
+                    # Add metadata for easier S3 inventory queries
+                    Metadata={
+                        "event-type": event.event_type,
+                        "risk-tier": str(event.risk_tier),
+                        "org-id": str(event.org_id),
+                    },
+                )
+
+            # Update event with archive path
+            event.s3_archive_path = f"s3://{bucket}/{s3_key}"
+
+            logger.debug(
+                "Event archived to S3",
+                event_id=str(event.id),
+                s3_path=event.s3_archive_path,
+            )
+
+        except ClientError as e:
+            logger.error(
+                "S3 upload failed",
+                event_id=str(event.id),
+                bucket=bucket,
+                key=s3_key,
+                error=str(e),
+            )
+            raise
 
     async def _send_to_security_hub(self, event: AuditEvent, sink: AuditSink) -> None:
-        """Send event to AWS Security Hub."""
-        # TODO: Implement Security Hub integration
-        # import aioboto3
-        # session = aioboto3.Session()
-        # async with session.client('securityhub') as hub:
-        #     await hub.batch_import_findings(...)
-        pass
+        """Send event to AWS Security Hub as a finding."""
+        # Get AWS account ID from config or derive from caller identity
+        account_id = sink.config.get("account_id", settings.AWS_ACCOUNT_ID)
+        product_arn = sink.config.get(
+            "product_arn",
+            f"arn:aws:securityhub:{settings.AWS_REGION}:{account_id}:product/{account_id}/default",
+        )
+
+        # Map risk tier to Security Hub severity
+        severity = RISK_TO_SEVERITY.get(
+            event.risk_tier, {"Label": "INFORMATIONAL", "Normalized": 0}
+        )
+
+        # Build finding
+        finding = {
+            "SchemaVersion": "2018-10-08",
+            "Id": f"inkra-ml-services/{event.id}",
+            "ProductArn": product_arn,
+            "GeneratorId": "inkra-ml-services-audit",
+            "AwsAccountId": account_id,
+            "Types": [self._get_finding_type(event.event_type)],
+            "CreatedAt": event.occurred_at.isoformat(),
+            "UpdatedAt": event.ingested_at.isoformat(),
+            "Severity": severity,
+            "Title": f"ML Services: {event.event_type}",
+            "Description": self._get_finding_description(event),
+            "Resources": [
+                {
+                    "Type": "Other",
+                    "Id": f"org/{event.org_id}",
+                    "Partition": "aws",
+                    "Region": settings.AWS_REGION,
+                    "Details": {
+                        "Other": {
+                            "org_id": str(event.org_id),
+                            "source_service": event.source_service,
+                            "correlation_id": str(event.correlation_id) if event.correlation_id else "none",
+                        }
+                    },
+                }
+            ],
+            "RecordState": "ACTIVE",
+            "ProductFields": {
+                "inkra/event_type": event.event_type,
+                "inkra/risk_tier": str(event.risk_tier),
+                "inkra/actor_type": str(event.actor_type),
+                "inkra/actor_id": str(event.actor_id) if event.actor_id else "system",
+            },
+        }
+
+        try:
+            async with self.boto_session.client("securityhub") as hub:
+                response = await hub.batch_import_findings(Findings=[finding])
+
+                if response.get("FailedCount", 0) > 0:
+                    failed = response.get("FailedFindings", [])
+                    logger.warning(
+                        "Some findings failed to import",
+                        event_id=str(event.id),
+                        failed=failed,
+                    )
+                else:
+                    logger.debug(
+                        "Finding imported to Security Hub",
+                        event_id=str(event.id),
+                        finding_id=finding["Id"],
+                    )
+
+        except ClientError as e:
+            error_code = e.response.get("Error", {}).get("Code", "Unknown")
+            # Don't fail if Security Hub isn't enabled
+            if error_code == "InvalidAccessException":
+                logger.warning(
+                    "Security Hub not enabled or accessible",
+                    event_id=str(event.id),
+                    error=str(e),
+                )
+            else:
+                logger.error(
+                    "Security Hub import failed",
+                    event_id=str(event.id),
+                    error=str(e),
+                )
+                raise
+
+    def _get_finding_type(self, event_type: str) -> str:
+        """Map event type to Security Hub finding type."""
+        type_mapping = {
+            "model.deployed": "Software and Configuration Checks/ML Model Deployment",
+            "model.rollback": "Software and Configuration Checks/ML Model Rollback",
+            "training.failed": "Software and Configuration Checks/ML Training Failure",
+            "privacy.budget.exhausted": "Sensitive Data Identifications/Privacy Budget Exhausted",
+            "privacy.budget.warning": "Sensitive Data Identifications/Privacy Budget Warning",
+            "inference.phi_accessed": "Sensitive Data Identifications/PHI Access",
+        }
+        return type_mapping.get(event_type, "Software and Configuration Checks/ML Services Event")
+
+    def _get_finding_description(self, event: AuditEvent) -> str:
+        """Generate human-readable description for Security Hub finding."""
+        descriptions = {
+            "model.deployed": f"Model deployed to {event.event_data.get('environment', 'unknown')} environment",
+            "model.rollback": f"Model rolled back in {event.event_data.get('environment', 'unknown')} environment",
+            "privacy.budget.exhausted": (
+                f"Privacy budget exhausted. "
+                f"Consumed: {event.event_data.get('consumed', 0)}, "
+                f"Budget: {event.event_data.get('budget', 0)}"
+            ),
+            "training.failed": f"Training job failed: {event.event_data.get('error', 'Unknown error')}",
+        }
+        return descriptions.get(
+            event.event_type,
+            f"ML Services audit event: {event.event_type}. Data: {json.dumps(event.event_data)}",
+        )
 
 
 # Convenience functions for common event types
@@ -185,7 +369,7 @@ async def emit_model_deployed(
                 "environment": environment,
             },
             source_service="ml-services",
-            occurred_at=datetime.utcnow(),
+            occurred_at=datetime.now(timezone.utc),
         )
     )
 
@@ -210,6 +394,36 @@ async def emit_privacy_budget_exhausted(
                 "budget": budget,
             },
             source_service="ml-services",
-            occurred_at=datetime.utcnow(),
+            occurred_at=datetime.now(timezone.utc),
+        )
+    )
+
+
+async def emit_model_rollback(
+    session: AsyncSession,
+    org_id: UUID,
+    model_id: UUID,
+    from_version: int,
+    to_version: int,
+    environment: str,
+    actor_id: UUID,
+) -> AuditEvent:
+    """Emit a model.rollback event."""
+    service = AuditService(session)
+    return await service.emit_event(
+        AuditEventCreate(
+            org_id=org_id,
+            event_type="model.rollback",
+            risk_tier=RiskTier.HIGH,
+            actor_id=actor_id,
+            actor_type="user",
+            event_data={
+                "model_id": str(model_id),
+                "from_version": from_version,
+                "to_version": to_version,
+                "environment": environment,
+            },
+            source_service="ml-services",
+            occurred_at=datetime.now(timezone.utc),
         )
     )
