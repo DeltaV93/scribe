@@ -98,3 +98,23 @@ variable "domain_name" {
   description = "Domain name for the API"
   type        = string
 }
+
+# Monitoring
+variable "alarm_email" {
+  description = "Email address for alarm notifications"
+  type        = string
+  default     = ""
+}
+
+variable "enable_slack_integration" {
+  description = "Enable Slack integration for alarms"
+  type        = bool
+  default     = false
+}
+
+variable "slack_webhook_url" {
+  description = "Slack webhook URL for notifications"
+  type        = string
+  default     = ""
+  sensitive   = true
+}

@@ -1,0 +1,328 @@
+# Prometheus Alert Rules for ML Services
+# These rules match CloudWatch alarms and add application-level alerts
+
+groups:
+  # Service Health Alerts
+  - name: ml_services_health
+    interval: 30s
+    rules:
+      - alert: HighErrorRate
+        expr: |
+          sum(rate(http_requests_total{job="ml-services",status=~"5.."}[5m]))
+          / sum(rate(http_requests_total{job="ml-services"}[5m])) > 0.01
+        for: 5m
+        labels:
+          severity: critical
+          service: ml-services
+        annotations:
+          summary: "High 5xx error rate detected"
+          description: "ML Services 5xx error rate is {{ $value | humanizePercentage }} (threshold: 1%)"
+          runbook_url: "https://docs.inkra.io/runbooks/high-error-rate"
+
+      - alert: HighLatency
+        expr: |
+          histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket{job="ml-services"}[5m])) by (le)) > 2
+        for: 5m
+        labels:
+          severity: warning
+          service: ml-services
+        annotations:
+          summary: "High p99 latency detected"
+          description: "ML Services p99 latency is {{ $value | humanizeDuration }} (threshold: 2s)"
+          runbook_url: "https://docs.inkra.io/runbooks/high-latency"
+
+      - alert: ServiceDown
+        expr: up{job="ml-services"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: ml-services
+        annotations:
+          summary: "ML Services instance is down"
+          description: "ML Services instance {{ $labels.instance }} has been down for more than 1 minute"
+          runbook_url: "https://docs.inkra.io/runbooks/service-down"
+
+      - alert: HealthCheckFailing
+        expr: |
+          sum(rate(http_requests_total{job="ml-services",endpoint="/healthz",status!="200"}[5m]))
+          / sum(rate(http_requests_total{job="ml-services",endpoint="/healthz"}[5m])) > 0
+        for: 2m
+        labels:
+          severity: critical
+          service: ml-services
+        annotations:
+          summary: "Health check failures detected"
+          description: "ML Services health check is failing"
+          runbook_url: "https://docs.inkra.io/runbooks/health-check-failing"
+
+  # Model Registry Alerts
+  - name: ml_registry
+    interval: 60s
+    rules:
+      - alert: DeploymentFailureRate
+        expr: |
+          sum(rate(ml_registry_deployments_total{job="ml-services",status="failed"}[1h]))
+          / sum(rate(ml_registry_deployments_total{job="ml-services"}[1h])) > 0.1
+        for: 15m
+        labels:
+          severity: warning
+          service: ml-services
+          component: registry
+        annotations:
+          summary: "High model deployment failure rate"
+          description: "Model deployment failure rate is {{ $value | humanizePercentage }} (threshold: 10%)"
+
+      - alert: NoActiveModels
+        expr: ml_registry_models_total{job="ml-services"} == 0
+        for: 5m
+        labels:
+          severity: warning
+          service: ml-services
+          component: registry
+        annotations:
+          summary: "No models registered"
+          description: "No models are registered in the ML registry"
+
+  # Training Jobs Alerts
+  - name: ml_training
+    interval: 60s
+    rules:
+      - alert: TrainingJobStuck
+        expr: |
+          ml_training_job_duration_seconds{job="ml-services",status="running"} > 3600
+        for: 30m
+        labels:
+          severity: warning
+          service: ml-services
+          component: training
+        annotations:
+          summary: "Training job potentially stuck"
+          description: "Training job {{ $labels.job_id }} has been running for over {{ $value | humanizeDuration }}"
+
+      - alert: HighTrainingFailureRate
+        expr: |
+          sum(rate(ml_training_jobs_by_status{job="ml-services",status="failed"}[1h]))
+          / sum(rate(ml_training_jobs_by_status{job="ml-services"}[1h])) > 0.2
+        for: 30m
+        labels:
+          severity: warning
+          service: ml-services
+          component: training
+        annotations:
+          summary: "High training job failure rate"
+          description: "Training job failure rate is {{ $value | humanizePercentage }} (threshold: 20%)"
+
+      - alert: TooManyActiveJobs
+        expr: ml_training_jobs_active{job="ml-services"} > 20
+        for: 10m
+        labels:
+          severity: warning
+          service: ml-services
+          component: training
+        annotations:
+          summary: "Too many active training jobs"
+          description: "{{ $value }} active training jobs (threshold: 20)"
+
+  # Privacy Budget Alerts
+  - name: ml_privacy
+    interval: 60s
+    rules:
+      - alert: PrivacyBudgetNearExhaustion
+        expr: |
+          privacy_epsilon_consumed{job="ml-services"} / privacy_epsilon_budget{job="ml-services"} > 0.8
+        for: 1h
+        labels:
+          severity: warning
+          service: ml-services
+          component: privacy
+        annotations:
+          summary: "Privacy budget approaching exhaustion"
+          description: "Organization {{ $labels.org_id }} has consumed {{ $value | humanizePercentage }} of privacy budget"
+
+      - alert: PrivacyBudgetExhausted
+        expr: |
+          privacy_epsilon_consumed{job="ml-services"} >= privacy_epsilon_budget{job="ml-services"}}
+        for: 5m
+        labels:
+          severity: critical
+          service: ml-services
+          component: privacy
+        annotations:
+          summary: "Privacy budget exhausted"
+          description: "Organization {{ $labels.org_id }} has exhausted their privacy budget"
+
+      - alert: RapidPrivacyConsumption
+        expr: |
+          rate(privacy_epsilon_consumed{job="ml-services"}[1h]) > 0.5
+        for: 30m
+        labels:
+          severity: warning
+          service: ml-services
+          component: privacy
+        annotations:
+          summary: "Rapid privacy budget consumption"
+          description: "Organization {{ $labels.org_id }} is consuming privacy budget rapidly"
+
+  # Audit Alerts
+  - name: ml_audit
+    interval: 60s
+    rules:
+      - alert: HighRiskAuditEvent
+        expr: |
+          sum(increase(audit_events_total{job="ml-services",risk_tier="critical"}[5m])) > 0
+        for: 0m
+        labels:
+          severity: critical
+          service: ml-services
+          component: audit
+        annotations:
+          summary: "Critical risk audit event detected"
+          description: "{{ $value }} critical risk audit events in the last 5 minutes"
+
+      - alert: S3ArchiveFailure
+        expr: |
+          sum(rate(audit_s3_archive_success_total{job="ml-services"}[15m]))
+          / sum(rate(audit_s3_archive_total{job="ml-services"}[15m])) < 0.99
+        for: 15m
+        labels:
+          severity: warning
+          service: ml-services
+          component: audit
+        annotations:
+          summary: "Audit S3 archive failures"
+          description: "Audit archive success rate is {{ $value | humanizePercentage }} (threshold: 99%)"
+
+      - alert: AuditIngestionStopped
+        expr: |
+          sum(rate(audit_events_total{job="ml-services"}[15m])) == 0
+        for: 30m
+        labels:
+          severity: warning
+          service: ml-services
+          component: audit
+        annotations:
+          summary: "Audit event ingestion stopped"
+          description: "No audit events have been ingested in the last 30 minutes"
+
+  # Infrastructure Alerts
+  - name: ml_infrastructure
+    interval: 30s
+    rules:
+      - alert: RedisHighMemory
+        expr: |
+          redis_memory_used_bytes{job="ml-services"} / redis_memory_max_bytes{job="ml-services"} > 0.8
+        for: 5m
+        labels:
+          severity: warning
+          service: ml-services
+          component: redis
+        annotations:
+          summary: "Redis memory usage high"
+          description: "Redis memory usage is {{ $value | humanizePercentage }}"
+
+      - alert: RedisCriticalMemory
+        expr: |
+          redis_memory_used_bytes{job="ml-services"} / redis_memory_max_bytes{job="ml-services"} > 0.95
+        for: 2m
+        labels:
+          severity: critical
+          service: ml-services
+          component: redis
+        annotations:
+          summary: "Redis memory critically high"
+          description: "Redis memory usage is {{ $value | humanizePercentage }}"
+
+      - alert: RedisHighConnections
+        expr: redis_connected_clients{job="ml-services"} > 100
+        for: 5m
+        labels:
+          severity: warning
+          service: ml-services
+          component: redis
+        annotations:
+          summary: "Redis connections high"
+          description: "Redis has {{ $value }} connected clients"
+
+      - alert: RedisEvictions
+        expr: increase(redis_evicted_keys_total{job="ml-services"}[5m]) > 0
+        for: 5m
+        labels:
+          severity: warning
+          service: ml-services
+          component: redis
+        annotations:
+          summary: "Redis evicting keys"
+          description: "Redis has evicted {{ $value }} keys in the last 5 minutes"
+
+      - alert: DatabaseConnectionPoolExhausted
+        expr: |
+          db_connections_active{job="ml-services"} / db_connections_max{job="ml-services"} > 0.8
+        for: 5m
+        labels:
+          severity: warning
+          service: ml-services
+          component: database
+        annotations:
+          summary: "Database connection pool nearing exhaustion"
+          description: "Database connection pool is {{ $value | humanizePercentage }} utilized"
+
+      - alert: ECSTaskCountLow
+        expr: ecs_task_count{job="ml-services",service="api"} < 1
+        for: 2m
+        labels:
+          severity: critical
+          service: ml-services
+          component: ecs
+        annotations:
+          summary: "No API tasks running"
+          description: "No ECS API tasks are running"
+
+      - alert: WorkerTaskCountLow
+        expr: ecs_task_count{job="ml-services",service="worker"} < 1
+        for: 5m
+        labels:
+          severity: critical
+          service: ml-services
+          component: ecs
+        annotations:
+          summary: "No worker tasks running"
+          description: "No ECS worker tasks are running"
+
+  # Celery Worker Alerts
+  - name: ml_celery
+    interval: 30s
+    rules:
+      - alert: CeleryQueueBacklog
+        expr: celery_queue_length{job="ml-services"} > 100
+        for: 10m
+        labels:
+          severity: warning
+          service: ml-services
+          component: celery
+        annotations:
+          summary: "Celery queue backlog"
+          description: "Celery queue {{ $labels.queue }} has {{ $value }} pending tasks"
+
+      - alert: CeleryWorkerDown
+        expr: celery_workers_active{job="ml-services"} == 0
+        for: 5m
+        labels:
+          severity: critical
+          service: ml-services
+          component: celery
+        annotations:
+          summary: "No Celery workers active"
+          description: "No Celery workers are active"
+
+      - alert: CeleryTaskFailureRate
+        expr: |
+          sum(rate(celery_task_failed_total{job="ml-services"}[15m]))
+          / sum(rate(celery_task_total{job="ml-services"}[15m])) > 0.1
+        for: 15m
+        labels:
+          severity: warning
+          service: ml-services
+          component: celery
+        annotations:
+          summary: "High Celery task failure rate"
+          description: "Celery task failure rate is {{ $value | humanizePercentage }}"

@@ -1,6 +1,7 @@
 """Pytest configuration and fixtures."""
 
 import asyncio
+import os
 from typing import AsyncGenerator
 from uuid import uuid4
 
@@ -14,6 +15,9 @@ from testcontainers.redis import RedisContainer
 from src.common.db.base import Base
 from src.common.db.session import get_session
 from src.main import app
+
+# Set test API key environment variable before importing settings
+os.environ.setdefault("SERVICE_API_KEY", "test-key")
 
 
 @pytest.fixture(scope="session")
@@ -40,7 +44,7 @@ def redis_container():
 
 @pytest_asyncio.fixture
 async def db_session(postgres_container) -> AsyncGenerator[AsyncSession, None]:
-    """Create test database session."""
+    """Create test database session with fresh tables for each test."""
     db_url = postgres_container.get_connection_url().replace(
         "postgresql://", "postgresql+asyncpg://"
     )
@@ -58,8 +62,10 @@ async def db_session(postgres_container) -> AsyncGenerator[AsyncSession, None]:
 
     async with async_session() as session:
         yield session
+        # Rollback any uncommitted changes
+        await session.rollback()
 
-    # Cleanup
+    # Cleanup tables after test
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
 
@@ -68,7 +74,7 @@ async def db_session(postgres_container) -> AsyncGenerator[AsyncSession, None]:
 
 @pytest_asyncio.fixture
 async def client(db_session: AsyncSession) -> AsyncGenerator[AsyncClient, None]:
-    """Create test HTTP client."""
+    """Create test HTTP client with authenticated API key."""
 
     async def override_get_session():
         yield db_session
@@ -100,4 +106,35 @@ def sample_model_data():
         "model_type": "extraction",
         "description": "Test extraction model",
         "is_global": False,
+    }
+
+
+@pytest.fixture
+def sample_org_profile_data(sample_org_id):
+    """Sample org profile creation data."""
+    return {
+        "org_id": str(sample_org_id),
+        "compliance_frameworks": ["HIPAA"],
+        "retention_policies": {"training_data": "6y"},
+        "privacy_settings": {"anonymization": True},
+        "epsilon_budget": 5.0,
+        "model_training_enabled": True,
+        "audit_routing_config": {},
+    }
+
+
+@pytest.fixture
+def sample_audit_event_data(sample_org_id):
+    """Sample audit event creation data."""
+    from datetime import datetime, timezone
+
+    return {
+        "org_id": str(sample_org_id),
+        "event_type": "model.deployed",
+        "risk_tier": "medium",
+        "actor_id": str(uuid4()),
+        "actor_type": "user",
+        "event_data": {"model_id": str(uuid4())},
+        "source_service": "test-service",
+        "occurred_at": datetime.now(timezone.utc).isoformat(),
     }

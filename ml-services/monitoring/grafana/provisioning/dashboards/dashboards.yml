@@ -1,0 +1,17 @@
+# Dashboard provisioning configuration for Grafana
+# This file tells Grafana where to find and how to load dashboards
+
+apiVersion: 1
+
+providers:
+  - name: 'ML Services Dashboards'
+    orgId: 1
+    folder: 'ML Services'
+    folderUid: 'ml-services-folder'
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 30
+    allowUiUpdates: true
+    options:
+      path: /etc/grafana/provisioning/dashboards/files
+      foldersFromFilesStructure: false

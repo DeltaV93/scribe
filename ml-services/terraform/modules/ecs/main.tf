@@ -395,3 +395,19 @@ output "service_security_group_id" {
 output "cluster_name" {
   value = aws_ecs_cluster.main.name
 }
+
+output "api_service_name" {
+  value = aws_ecs_service.api.name
+}
+
+output "worker_service_name" {
+  value = aws_ecs_service.worker.name
+}
+
+output "alb_arn_suffix" {
+  value = aws_lb.main.arn_suffix
+}
+
+output "target_group_arn_suffix" {
+  value = aws_lb_target_group.api.arn_suffix
+}

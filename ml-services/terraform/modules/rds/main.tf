@@ -82,3 +82,7 @@ output "connection_url" {
   value     = "postgresql+asyncpg://${aws_db_instance.main.username}:${random_password.master.result}@${aws_db_instance.main.endpoint}/${var.database_name}"
   sensitive = true
 }
+
+output "instance_identifier" {
+  value = aws_db_instance.main.identifier
+}

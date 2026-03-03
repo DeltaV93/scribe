@@ -173,6 +173,35 @@ resource "aws_s3_bucket_lifecycle_configuration" "audit" {
   }
 }
 
+# Monitoring and Alerting
+module "monitoring" {
+  source = "./modules/monitoring"
+
+  environment = var.environment
+
+  # ECS
+  ecs_cluster_name        = module.ecs.cluster_name
+  ecs_api_service_name    = module.ecs.api_service_name
+  ecs_worker_service_name = module.ecs.worker_service_name
+  api_desired_count       = var.api_desired_count
+  worker_desired_count    = var.worker_desired_count
+
+  # RDS
+  rds_instance_identifier = module.rds.instance_identifier
+
+  # ElastiCache
+  elasticache_cluster_id = module.redis.cluster_id
+
+  # ALB
+  alb_arn_suffix          = module.ecs.alb_arn_suffix
+  target_group_arn_suffix = module.ecs.target_group_arn_suffix
+
+  # Notifications
+  alarm_email              = var.alarm_email
+  enable_slack_integration = var.enable_slack_integration
+  slack_webhook_url        = var.slack_webhook_url
+}
+
 # Outputs
 output "api_endpoint" {
   description = "API endpoint URL"
@@ -188,4 +217,19 @@ output "rds_endpoint" {
   description = "RDS endpoint"
   value       = module.rds.endpoint
   sensitive   = true
+}
+
+output "monitoring_sns_topic_arn" {
+  description = "SNS topic ARN for monitoring alarms"
+  value       = module.monitoring.sns_topic_arn
+}
+
+output "monitoring_critical_sns_topic_arn" {
+  description = "SNS topic ARN for critical monitoring alarms"
+  value       = module.monitoring.critical_sns_topic_arn
+}
+
+output "cloudwatch_dashboard_name" {
+  description = "CloudWatch dashboard name"
+  value       = module.monitoring.dashboard_name
 }
