@@ -21,6 +21,12 @@ import {
   ComplianceStatus,
   AuditEvent,
   AuditEventCreate,
+  Feedback,
+  FeedbackCreate,
+  FeedbackStats,
+  FeedbackExport,
+  FeedbackType,
+  AggregationPeriod,
   PaginatedResponse,
   MLServiceError,
   MLServiceApiError,
@@ -36,13 +42,14 @@ interface RequestOptions {
   body?: unknown;
   params?: Record<string, string | number | boolean | undefined>;
   orgId?: string;
+  userId?: string;
 }
 
 /**
  * Base fetch wrapper with authentication and error handling
  */
 async function mlFetch<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
-  const { method = "GET", body, params, orgId } = options;
+  const { method = "GET", body, params, orgId, userId } = options;
 
   // Build URL with query params
   const url = new URL(`${ML_SERVICE_URL}${endpoint}`);
@@ -62,6 +69,10 @@ async function mlFetch<T>(endpoint: string, options: RequestOptions = {}): Promi
 
   if (orgId) {
     headers["X-Org-ID"] = orgId;
+  }
+
+  if (userId) {
+    headers["X-User-ID"] = userId;
   }
 
   // Make request
@@ -314,6 +325,114 @@ export const audit = {
 };
 
 // ============================================================================
+// Feedback
+// ============================================================================
+
+export const feedback = {
+  /**
+   * Submit feedback on a model output
+   */
+  async submit(data: FeedbackCreate, orgId: string, userId: string): Promise<Feedback> {
+    return mlFetch("/v1/feedback", {
+      method: "POST",
+      body: data,
+      orgId,
+      userId,
+    });
+  },
+
+  /**
+   * List feedback with filtering
+   */
+  async list(options: {
+    orgId: string;
+    modelId?: string;
+    versionId?: string;
+    feedbackType?: FeedbackType;
+    startDate?: string;
+    endDate?: string;
+    page?: number;
+    pageSize?: number;
+  }): Promise<PaginatedResponse<Feedback>> {
+    return mlFetch("/v1/feedback", {
+      params: {
+        model_id: options.modelId,
+        version_id: options.versionId,
+        feedback_type: options.feedbackType,
+        start_date: options.startDate,
+        end_date: options.endDate,
+        page: options.page,
+        page_size: options.pageSize,
+      },
+      orgId: options.orgId,
+    });
+  },
+
+  /**
+   * Get feedback by ID
+   */
+  async get(feedbackId: string, orgId: string): Promise<Feedback> {
+    return mlFetch(`/v1/feedback/${feedbackId}`, {
+      orgId,
+    });
+  },
+
+  /**
+   * Delete feedback
+   */
+  async delete(feedbackId: string, orgId: string): Promise<void> {
+    return mlFetch(`/v1/feedback/${feedbackId}`, {
+      method: "DELETE",
+      orgId,
+    });
+  },
+
+  /**
+   * Get feedback statistics for a model
+   */
+  async getStats(options: {
+    modelId: string;
+    versionId?: string;
+    period?: AggregationPeriod;
+    limit?: number;
+    orgId: string;
+  }): Promise<FeedbackStats> {
+    return mlFetch(`/v1/feedback/stats/${options.modelId}`, {
+      params: {
+        version_id: options.versionId,
+        period: options.period,
+        limit: options.limit,
+      },
+      orgId: options.orgId,
+    });
+  },
+
+  /**
+   * Export feedback for retraining
+   */
+  async export(options: {
+    modelId: string;
+    versionId?: string;
+    feedbackTypes?: FeedbackType[];
+    startDate?: string;
+    endDate?: string;
+    limit?: number;
+    orgId: string;
+  }): Promise<FeedbackExport> {
+    return mlFetch(`/v1/feedback/export/${options.modelId}`, {
+      params: {
+        version_id: options.versionId,
+        feedback_types: options.feedbackTypes?.join(","),
+        start_date: options.startDate,
+        end_date: options.endDate,
+        limit: options.limit,
+      },
+      orgId: options.orgId,
+    });
+  },
+};
+
+// ============================================================================
 // Health & Utility
 // ============================================================================
 
@@ -413,6 +532,7 @@ const mlServices = {
   versions,
   orgProfile,
   audit,
+  feedback,
   health,
   emitModelDeployed,
   emitModelRollback,

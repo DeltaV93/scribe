@@ -167,6 +167,86 @@ export interface AuditEventCreate {
   occurred_at: string;
 }
 
+// === Feedback ===
+
+export type FeedbackType = "thumbs_up" | "thumbs_down" | "correction" | "comment";
+export type AggregationPeriod = "day" | "week" | "month";
+
+export interface Feedback {
+  id: string;
+  org_id: string;
+  model_id: string;
+  version_id: string | null;
+  user_id: string;
+  feedback_type: FeedbackType;
+  rating: number | null;
+  input_data: Record<string, unknown> | null;
+  output_data: Record<string, unknown> | null;
+  corrected_output: Record<string, unknown> | null;
+  comment: string | null;
+  metadata: Record<string, unknown> | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface FeedbackCreate {
+  model_id: string;
+  version_id?: string;
+  feedback_type: FeedbackType;
+  rating?: number;
+  input_data?: Record<string, unknown>;
+  output_data?: Record<string, unknown>;
+  corrected_output?: Record<string, unknown>;
+  comment?: string;
+  metadata?: Record<string, unknown>;
+}
+
+export interface FeedbackAggregate {
+  id: string;
+  model_id: string;
+  version_id: string | null;
+  period: AggregationPeriod;
+  period_start: string;
+  period_end: string;
+  total_count: number;
+  positive_count: number;
+  negative_count: number;
+  correction_count: number;
+  comment_count: number;
+  avg_rating: number | null;
+  rating_count: number;
+  computed_at: string;
+}
+
+export interface FeedbackStats {
+  model_id: string;
+  version_id: string | null;
+  aggregates: FeedbackAggregate[];
+  total_feedback: number;
+  total_positive: number;
+  total_negative: number;
+  total_corrections: number;
+  overall_positive_rate: number;
+}
+
+export interface FeedbackExportItem {
+  id: string;
+  feedback_type: FeedbackType;
+  input_data: Record<string, unknown> | null;
+  output_data: Record<string, unknown> | null;
+  corrected_output: Record<string, unknown> | null;
+  rating: number | null;
+  created_at: string;
+}
+
+export interface FeedbackExport {
+  model_id: string;
+  version_id: string | null;
+  items: FeedbackExportItem[];
+  total: number;
+  exported_at: string;
+}
+
 // === Pagination ===
 
 export interface PaginatedResponse<T> {

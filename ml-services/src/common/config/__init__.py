@@ -60,6 +60,11 @@ class Settings(BaseSettings):
     CIRCUIT_BREAKER_FAILURE_THRESHOLD: int = 5
     CIRCUIT_BREAKER_RECOVERY_TIMEOUT: int = 30
 
+    # Ray Cluster (Training Orchestration)
+    RAY_ADDRESS: str = "ray://localhost:10001"
+    RAY_WORKING_DIR: str = ""  # Working directory for Ray jobs
+    RAY_PIP_PACKAGES: str = "scikit-learn,numpy,pandas"  # Comma-separated pip packages
+
 
 @lru_cache
 def get_settings() -> Settings:

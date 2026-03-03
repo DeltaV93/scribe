@@ -21,6 +21,7 @@ from src.org_profile.models import (  # noqa: F401
     ComplianceFramework,
 )
 from src.audit.models import AuditEvent, AuditSink, AuditRoute  # noqa: F401
+from src.training.models import TrainingJob  # noqa: F401
 
 config = context.config
 

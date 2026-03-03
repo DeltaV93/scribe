@@ -77,4 +77,9 @@ class ServiceAuthMiddleware(BaseHTTPMiddleware):
         if org_id:
             request.state.org_id = org_id
 
+        # Extract user_id from header for user context
+        user_id = request.headers.get("X-User-ID")
+        if user_id:
+            request.state.user_id = user_id
+
         return await call_next(request)

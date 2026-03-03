@@ -427,3 +427,111 @@ async def emit_model_rollback(
             occurred_at=datetime.now(timezone.utc),
         )
     )
+
+
+async def emit_training_started(
+    session: AsyncSession,
+    org_id: UUID,
+    job_id: UUID,
+    model_id: UUID,
+    actor_id: Optional[UUID] = None,
+) -> AuditEvent:
+    """Emit a training.started event."""
+    service = AuditService(session)
+    return await service.emit_event(
+        AuditEventCreate(
+            org_id=org_id,
+            event_type="training.started",
+            risk_tier=RiskTier.LOW,
+            actor_id=actor_id,
+            actor_type="user" if actor_id else "system",
+            event_data={
+                "job_id": str(job_id),
+                "model_id": str(model_id),
+            },
+            source_service="ml-services",
+            occurred_at=datetime.now(timezone.utc),
+        )
+    )
+
+
+async def emit_training_completed(
+    session: AsyncSession,
+    org_id: UUID,
+    job_id: UUID,
+    model_id: UUID,
+    version_id: UUID,
+    metrics: Optional[dict] = None,
+) -> AuditEvent:
+    """Emit a training.completed event."""
+    service = AuditService(session)
+    return await service.emit_event(
+        AuditEventCreate(
+            org_id=org_id,
+            event_type="training.completed",
+            risk_tier=RiskTier.LOW,
+            actor_id=None,
+            actor_type="system",
+            event_data={
+                "job_id": str(job_id),
+                "model_id": str(model_id),
+                "version_id": str(version_id),
+                "metrics": metrics or {},
+            },
+            source_service="ml-services",
+            occurred_at=datetime.now(timezone.utc),
+        )
+    )
+
+
+async def emit_training_failed(
+    session: AsyncSession,
+    org_id: UUID,
+    job_id: UUID,
+    model_id: UUID,
+    error: str,
+) -> AuditEvent:
+    """Emit a training.failed event."""
+    service = AuditService(session)
+    return await service.emit_event(
+        AuditEventCreate(
+            org_id=org_id,
+            event_type="training.failed",
+            risk_tier=RiskTier.MEDIUM,
+            actor_id=None,
+            actor_type="system",
+            event_data={
+                "job_id": str(job_id),
+                "model_id": str(model_id),
+                "error": error,
+            },
+            source_service="ml-services",
+            occurred_at=datetime.now(timezone.utc),
+        )
+    )
+
+
+async def emit_training_cancelled(
+    session: AsyncSession,
+    org_id: UUID,
+    job_id: UUID,
+    model_id: UUID,
+    actor_id: Optional[UUID] = None,
+) -> AuditEvent:
+    """Emit a training.cancelled event."""
+    service = AuditService(session)
+    return await service.emit_event(
+        AuditEventCreate(
+            org_id=org_id,
+            event_type="training.cancelled",
+            risk_tier=RiskTier.LOW,
+            actor_id=actor_id,
+            actor_type="user" if actor_id else "system",
+            event_data={
+                "job_id": str(job_id),
+                "model_id": str(model_id),
+            },
+            source_service="ml-services",
+            occurred_at=datetime.now(timezone.utc),
+        )
+    )

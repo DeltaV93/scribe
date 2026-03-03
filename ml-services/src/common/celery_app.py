@@ -40,4 +40,17 @@ app.conf.beat_schedule = {
         "task": "src.audit.tasks.archive_old_events",
         "schedule": 86400.0,  # Every 24 hours
     },
+    "compute-feedback-aggregates-daily": {
+        "task": "src.feedback.tasks.compute_daily_aggregates",
+        "schedule": 86400.0,  # Every 24 hours
+    },
+    "monitor-active-training-jobs": {
+        "task": "src.training.tasks.monitor_all_active_jobs",
+        "schedule": 300.0,  # Every 5 minutes
+    },
+    "cleanup-old-training-jobs": {
+        "task": "src.training.tasks.cleanup_completed_jobs",
+        "schedule": 86400.0,  # Every 24 hours
+        "args": (30,),  # days_old=30
+    },
 }

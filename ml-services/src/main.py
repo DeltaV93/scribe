@@ -27,6 +27,8 @@ from src.common.middleware.rate_limit import RateLimitMiddleware
 from src.registry.router import router as registry_router
 from src.org_profile.router import router as org_profile_router
 from src.audit.router import router as audit_router
+from src.feedback.router import router as feedback_router
+from src.training.router import router as training_router
 
 logger = structlog.get_logger()
 
@@ -123,6 +125,8 @@ async def livez() -> dict:
 app.include_router(registry_router, prefix="/v1", tags=["Model Registry"])
 app.include_router(org_profile_router, prefix="/v1", tags=["Org Profile"])
 app.include_router(audit_router, prefix="/v1", tags=["Audit"])
+app.include_router(feedback_router, prefix="/v1", tags=["Feedback"])
+app.include_router(training_router, prefix="/v1", tags=["Training"])
 
 
 # Global exception handler for uncaught exceptions

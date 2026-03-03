@@ -4,13 +4,19 @@
  * Model Registry Content
  *
  * Client component for displaying and managing the model registry.
+ * Includes error handling, retry functionality, and loading states.
  */
 
 import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Loader2, Plus } from "lucide-react";
-import { ModelTable, CreateModelDialog } from "@/components/ml";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Loader2, Plus, RefreshCw, AlertTriangle, WifiOff } from "lucide-react";
+import {
+  ModelTable,
+  CreateModelDialog,
+  MLErrorBoundary,
+} from "@/components/ml";
 import type { Model, ModelType } from "@/lib/ml-services";
 
 interface ModelsResponse {
@@ -24,9 +30,17 @@ interface ModelsResponse {
   };
 }
 
-export function ModelRegistryContent() {
+type LoadingState = "idle" | "loading" | "success" | "error";
+
+interface FetchError {
+  message: string;
+  isNetworkError: boolean;
+}
+
+function ModelRegistryContentInner() {
   const [models, setModels] = useState<Model[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [loadingState, setLoadingState] = useState<LoadingState>("loading");
+  const [error, setError] = useState<FetchError | null>(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [filters, setFilters] = useState<{
@@ -35,7 +49,9 @@ export function ModelRegistryContent() {
   }>({});
 
   const fetchModels = useCallback(async () => {
-    setIsLoading(true);
+    setLoadingState("loading");
+    setError(null);
+
     try {
       const params = new URLSearchParams();
       if (filters.modelType) {
@@ -46,16 +62,33 @@ export function ModelRegistryContent() {
       const response = await fetch(`/api/ml/models?${params.toString()}`);
 
       if (!response.ok) {
-        throw new Error("Failed to fetch models");
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          errorData.error?.message || `Failed to fetch models (${response.status})`
+        );
       }
 
       const data: ModelsResponse = await response.json();
       setModels(data.data);
-    } catch (error) {
-      console.error("Failed to fetch models:", error);
-      toast.error("Failed to load models");
-    } finally {
-      setIsLoading(false);
+      setLoadingState("success");
+    } catch (err) {
+      console.error("[ModelRegistry] Failed to fetch models:", err);
+
+      const isNetworkError =
+        err instanceof TypeError && err.message.includes("fetch");
+
+      setError({
+        message: err instanceof Error ? err.message : "An unexpected error occurred",
+        isNetworkError,
+      });
+      setLoadingState("error");
+
+      // Show toast for non-network errors (network errors are shown inline)
+      if (!isNetworkError) {
+        toast.error("Failed to load models", {
+          description: err instanceof Error ? err.message : undefined,
+        });
+      }
     }
   }, [filters.modelType]);
 
@@ -77,16 +110,26 @@ export function ModelRegistryContent() {
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error?.message || "Failed to create model");
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error?.message || "Failed to create model");
       }
 
-      toast.success("Model created successfully");
+      const result = await response.json();
+
+      toast.success("Model created successfully", {
+        description: `"${data.name}" has been added to the registry.`,
+      });
+
       setIsCreateDialogOpen(false);
       fetchModels();
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to create model");
-      throw error;
+
+      return result;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to create model";
+      toast.error("Failed to create model", {
+        description: message,
+      });
+      throw err;
     } finally {
       setIsCreating(false);
     }
@@ -96,11 +139,60 @@ export function ModelRegistryContent() {
     setFilters(newFilters);
   };
 
+  const handleOpenCreateDialog = () => {
+    setIsCreateDialogOpen(true);
+  };
+
+  // Error state with retry
+  if (loadingState === "error" && error) {
+    return (
+      <div className="space-y-4">
+        {/* Actions - disabled when error */}
+        <div className="flex justify-end">
+          <Button disabled>
+            <Plus className="h-4 w-4 mr-2" />
+            Create Model
+          </Button>
+        </div>
+
+        {/* Error Alert */}
+        <Alert variant="destructive">
+          <div className="flex items-start gap-3">
+            {error.isNetworkError ? (
+              <WifiOff className="h-5 w-5 mt-0.5" />
+            ) : (
+              <AlertTriangle className="h-5 w-5 mt-0.5" />
+            )}
+            <div className="flex-1">
+              <AlertTitle>
+                {error.isNetworkError ? "Connection Error" : "Failed to Load Models"}
+              </AlertTitle>
+              <AlertDescription className="mt-1">
+                {error.isNetworkError
+                  ? "Unable to connect to the server. Please check your internet connection and try again."
+                  : error.message}
+              </AlertDescription>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={fetchModels}
+                className="mt-3"
+              >
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Try Again
+              </Button>
+            </div>
+          </div>
+        </Alert>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
       {/* Actions */}
       <div className="flex justify-end">
-        <Button onClick={() => setIsCreateDialogOpen(true)}>
+        <Button onClick={handleOpenCreateDialog}>
           <Plus className="h-4 w-4 mr-2" />
           Create Model
         </Button>
@@ -109,8 +201,9 @@ export function ModelRegistryContent() {
       {/* Models Table */}
       <ModelTable
         models={models}
-        isLoading={isLoading}
+        isLoading={loadingState === "loading"}
         onFilterChange={handleFilterChange}
+        onCreateClick={handleOpenCreateDialog}
       />
 
       {/* Create Dialog */}
@@ -121,5 +214,19 @@ export function ModelRegistryContent() {
         isLoading={isCreating}
       />
     </div>
+  );
+}
+
+/**
+ * Model Registry Content with Error Boundary
+ */
+export function ModelRegistryContent() {
+  return (
+    <MLErrorBoundary
+      title="Model Registry Error"
+      description="An error occurred while loading the model registry. Please try refreshing the page."
+    >
+      <ModelRegistryContentInner />
+    </MLErrorBoundary>
   );
 }
