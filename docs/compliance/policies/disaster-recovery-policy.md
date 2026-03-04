@@ -524,13 +524,13 @@ All runbooks must include:
 - [x] S3 Failover
 - [x] Incident Response
 - [x] Infrastructure Rebuild
-- [ ] ML Services Database Restore
-- [ ] ECS Recovery
-- [ ] Redis Recovery
-- [ ] Region Failover
+- [x] ML Services Database Restore
+- [x] ECS Recovery
+- [x] Redis Recovery
+- [x] Region Failover
 - [ ] Container Rebuild
-- [ ] Ray Cluster Recovery
-- [ ] Training Job Recovery
+- [x] Ray Cluster Recovery
+- [x] Training Job Recovery
 
 ### 10.2 Test Results
 
