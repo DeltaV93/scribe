@@ -10,8 +10,10 @@ import { SettingsTab } from "@/components/admin/settings-tab";
 import { SettingsDelegationTab } from "@/components/admin/settings-delegation-tab";
 import { PhoneCostCard } from "@/components/admin/phone-cost-card";
 import { NoteApprovalsTab } from "@/components/admin/note-approvals-tab";
+import { MLSettingsTab } from "@/components/admin/ml-settings-tab";
+import { WaitlistTab } from "@/components/admin/waitlist-tab";
 import { Button } from "@/components/ui/button";
-import { Loader2, Shield, FileText } from "lucide-react";
+import { Loader2, Shield, FileText, Brain, UserPlus } from "lucide-react";
 import Link from "next/link";
 
 interface PhoneStats {
@@ -36,12 +38,14 @@ export default function AdminPage() {
   const [pricing, setPricing] = useState<PhonePricing | null>(null);
   const [pendingRequestCount, setPendingRequestCount] = useState(0);
   const [pendingNoteApprovalCount, setPendingNoteApprovalCount] = useState(0);
+  const [pendingWaitlistCount, setPendingWaitlistCount] = useState(0);
 
   useEffect(() => {
     checkAuth();
     fetchStats();
     fetchPendingCount();
     fetchPendingNoteApprovalCount();
+    fetchPendingWaitlistCount();
   }, []);
 
   const checkAuth = async () => {
@@ -98,10 +102,23 @@ export default function AdminPage() {
     }
   };
 
+  const fetchPendingWaitlistCount = async () => {
+    try {
+      const response = await fetch("/api/admin/waitlist?status=PENDING&limit=1");
+      if (response.ok) {
+        const data = await response.json();
+        setPendingWaitlistCount(data.counts?.pending || 0);
+      }
+    } catch (error) {
+      console.error("Failed to fetch waitlist count:", error);
+    }
+  };
+
   const refreshData = () => {
     fetchStats();
     fetchPendingCount();
     fetchPendingNoteApprovalCount();
+    fetchPendingWaitlistCount();
   };
 
   if (isLoading) {
@@ -165,6 +182,19 @@ export default function AdminPage() {
           </TabsTrigger>
           <TabsTrigger value="settings">Settings</TabsTrigger>
           <TabsTrigger value="delegation">Delegation</TabsTrigger>
+          <TabsTrigger value="ml-settings" className="flex items-center gap-1">
+            <Brain className="h-3.5 w-3.5" />
+            ML Settings
+          </TabsTrigger>
+          <TabsTrigger value="waitlist" className="relative flex items-center gap-1">
+            <UserPlus className="h-3.5 w-3.5" />
+            Waitlist
+            {pendingWaitlistCount > 0 && (
+              <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-destructive text-destructive-foreground text-xs flex items-center justify-center">
+                {pendingWaitlistCount}
+              </span>
+            )}
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="team">
@@ -196,6 +226,14 @@ export default function AdminPage() {
 
         <TabsContent value="delegation">
           <SettingsDelegationTab />
+        </TabsContent>
+
+        <TabsContent value="ml-settings">
+          <MLSettingsTab onDataChange={refreshData} />
+        </TabsContent>
+
+        <TabsContent value="waitlist">
+          <WaitlistTab onDataChange={refreshData} />
         </TabsContent>
       </Tabs>
     </div>

@@ -3,8 +3,64 @@ import { requireAuth } from "@/lib/auth";
 import mlServices, { MLServiceApiError } from "@/lib/ml-services";
 import { z } from "zod";
 
+// Custom signals validation
+const customSignalsSchema = z.object({
+  keywords: z.array(z.string()).optional(),
+  patterns: z.array(z.string()).optional(),
+  weights: z.record(z.number()).optional(),
+});
+
+// Matching rules validation
+const matchingRulesSchema = z.object({
+  overrides: z.array(z.record(z.unknown())).optional(),
+  weights: z.record(z.number()).optional(),
+  disabled_rules: z.array(z.string()).optional(),
+});
+
+// Industry enum values
+const industryValues = [
+  "nonprofit",
+  "healthcare",
+  "tech",
+  "legal",
+  "sales",
+  "education",
+  "government",
+  "finance",
+  "other",
+] as const;
+
+// Company type enum values
+const companyTypeValues = [
+  "startup",
+  "enterprise",
+  "nonprofit",
+  "government",
+  "agency",
+  "consulting",
+] as const;
+
+// Model tier enum values
+const modelTierValues = ["shared", "private"] as const;
+
 // Validation schema for updating org profile
 const updateOrgProfileSchema = z.object({
+  // Industry & classification (PX-889)
+  industry: z.enum(industryValues).nullable().optional(),
+  secondary_industry: z.enum(industryValues).nullable().optional(),
+  company_type: z.enum(companyTypeValues).nullable().optional(),
+  team_roles: z.array(z.string()).optional(),
+
+  // Model configuration (PX-889)
+  model_tier: z.enum(modelTierValues).optional(),
+  data_sharing_consent: z.boolean().optional(),
+
+  // Custom signals & matching (PX-889)
+  custom_signals: customSignalsSchema.optional(),
+  matching_rules: matchingRulesSchema.optional(),
+  risk_overrides: z.record(z.string()).optional(),
+
+  // Compliance & privacy (existing)
   compliance_frameworks: z.array(z.string()).optional(),
   retention_policies: z.record(z.string()).optional(),
   privacy_settings: z.record(z.unknown()).optional(),
@@ -76,14 +132,18 @@ export async function PUT(request: NextRequest) {
       );
     }
 
+    // Convert validated data to match API types
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const updateData = validation.data as any;
+
     // Try to update existing profile, or create if it doesn't exist
     let profile;
     try {
-      profile = await mlServices.orgProfile.update(user.orgId, validation.data);
+      profile = await mlServices.orgProfile.update(user.orgId, updateData);
     } catch (error) {
       if (error instanceof MLServiceApiError && error.code === "ORG_PROFILE_NOT_FOUND") {
         // Profile doesn't exist, create it
-        profile = await mlServices.orgProfile.create(user.orgId, validation.data);
+        profile = await mlServices.orgProfile.create(user.orgId, updateData);
       } else {
         throw error;
       }

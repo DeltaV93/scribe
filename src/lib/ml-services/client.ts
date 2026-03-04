@@ -31,6 +31,9 @@ import {
   MLServiceError,
   MLServiceApiError,
   ModelType,
+  IndustryDefault,
+  IndustryListResponse,
+  Industry,
 } from "./types";
 
 // Configuration from environment
@@ -273,6 +276,26 @@ export const orgProfile = {
    */
   async getComplianceStatus(orgId: string): Promise<ComplianceStatus> {
     return mlFetch(`/v1/orgs/${orgId}/compliance`);
+  },
+};
+
+// ============================================================================
+// Industry Defaults
+// ============================================================================
+
+export const industries = {
+  /**
+   * List all available industry configurations
+   */
+  async list(): Promise<IndustryListResponse> {
+    return mlFetch("/v1/industries");
+  },
+
+  /**
+   * Get a specific industry configuration
+   */
+  async get(industryId: Industry | string): Promise<IndustryDefault> {
+    return mlFetch(`/v1/industries/${industryId}`);
   },
 };
 
@@ -531,6 +554,7 @@ const mlServices = {
   models,
   versions,
   orgProfile,
+  industries,
   audit,
   feedback,
   health,

@@ -88,6 +88,17 @@ export function createMockOrgProfile(
   return {
     id,
     org_id: overrides.org_id || crypto.randomUUID(),
+    // New PX-889 fields
+    industry: null,
+    secondary_industry: null,
+    company_type: null,
+    team_roles: [],
+    model_tier: "shared",
+    data_sharing_consent: false,
+    custom_signals: { keywords: [], patterns: [], weights: {} },
+    matching_rules: { overrides: [], weights: {}, disabled_rules: [] },
+    risk_overrides: {},
+    // Existing fields
     compliance_frameworks: ["HIPAA"],
     retention_policies: { training_data: "6y", audit_events: "7y" },
     privacy_settings: { anonymization: true },

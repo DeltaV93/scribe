@@ -21,6 +21,55 @@ class OrgProfile(Base, UUIDMixin, TimestampMixin):
         PG_UUID(as_uuid=True), unique=True, nullable=False, index=True
     )
 
+    # === Industry & Company Classification (PX-889) ===
+    # Primary industry classification
+    industry: Mapped[Optional[str]] = mapped_column(
+        String(50), nullable=True, index=True
+    )  # nonprofit, healthcare, tech, legal, sales, etc.
+
+    # Secondary industry for hybrid orgs (e.g., FQHC = healthcare + nonprofit)
+    secondary_industry: Mapped[Optional[str]] = mapped_column(
+        String(50), nullable=True
+    )
+
+    # Company type classification
+    company_type: Mapped[Optional[str]] = mapped_column(
+        String(50), nullable=True
+    )  # startup, enterprise, nonprofit, government
+
+    # Team roles configured for this org
+    team_roles: Mapped[List[str]] = mapped_column(
+        JSON, default=list, nullable=False
+    )  # ["case_manager", "supervisor", ...]
+
+    # === Model Training Configuration (PX-889) ===
+    # Model tier determines data sharing behavior
+    model_tier: Mapped[str] = mapped_column(
+        String(20), default="shared", nullable=False, index=True
+    )  # "shared" or "private"
+
+    # Explicit opt-in consent for global model training
+    data_sharing_consent: Mapped[bool] = mapped_column(
+        Boolean, default=False, nullable=False
+    )
+
+    # === Custom Signals & Matching (PX-889) ===
+    # Custom detection signals: {keywords: [], patterns: [], weights: {}}
+    custom_signals: Mapped[dict] = mapped_column(
+        JSON, default=dict, nullable=False
+    )
+
+    # Form matching rule overrides: {overrides: [], weights: {}, disabled_rules: []}
+    matching_rules: Mapped[dict] = mapped_column(
+        JSON, default=dict, nullable=False
+    )
+
+    # Per-model risk tier overrides: {model_id: risk_tier}
+    risk_overrides: Mapped[dict] = mapped_column(
+        JSON, default=dict, nullable=False
+    )
+
+    # === Compliance (existing) ===
     # Compliance frameworks enabled for this org
     compliance_frameworks: Mapped[List[str]] = mapped_column(
         JSON, default=list, nullable=False

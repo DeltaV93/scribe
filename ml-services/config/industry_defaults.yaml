@@ -1,0 +1,358 @@
+# Industry Default Libraries
+# These provide default signals, patterns, team roles, and compliance suggestions
+# per industry. Applied via "Preview Defaults" → "Apply Defaults" in admin UI.
+#
+# Multilingual support: Spanish keywords included for nonprofit/healthcare
+# per PX-896 research (71.4% of LEP population is Spanish-speaking).
+
+industries:
+  nonprofit:
+    id: nonprofit
+    name: "Nonprofit / Social Services"
+    description: "Case management, client services, community programs"
+    suggested_compliance:
+      - "HIPAA"  # If handling health-related services
+      - "WIOA"   # Workforce programs
+      - "42CFR"  # Substance abuse programs
+    team_roles:
+      - case_manager
+      - program_manager
+      - supervisor
+      - intake_specialist
+      - outreach_worker
+      - social_worker
+      - volunteer_coordinator
+    custom_signals:
+      keywords:
+        # English
+        - client
+        - participant
+        - intake
+        - case
+        - referral
+        - enrollment
+        - assessment
+        - service
+        - program
+        - benefit
+        - eligibility
+        - follow-up
+        # Spanish (per PX-896)
+        - cliente
+        - participante
+        - inscripcion
+        - caso
+        - referido
+        - evaluacion
+        - servicio
+        - programa
+        - beneficio
+        - elegibilidad
+        - seguimiento
+      patterns:
+        - "case\\s+#?\\d+"
+        - "client\\s+id[:\\s]+\\d+"
+        - "intake\\s+date"
+        - "referral\\s+from"
+        - "programa\\s+de"
+      weights:
+        client: 1.5
+        participant: 1.5
+        intake: 1.3
+        case: 1.2
+        cliente: 1.5
+        participante: 1.5
+    meeting_signals:
+      - intake_meeting
+      - case_review
+      - client_session
+      - team_staffing
+      - family_meeting
+      - home_visit
+
+  healthcare:
+    id: healthcare
+    name: "Healthcare / FQHC"
+    description: "Patient care, clinical documentation, HIPAA compliance"
+    suggested_compliance:
+      - "HIPAA"
+    team_roles:
+      - physician
+      - nurse
+      - medical_assistant
+      - care_coordinator
+      - social_worker
+      - case_manager
+      - patient_navigator
+      - scheduler
+      - billing_specialist
+    custom_signals:
+      keywords:
+        # English
+        - patient
+        - diagnosis
+        - treatment
+        - medication
+        - appointment
+        - visit
+        - chart
+        - vitals
+        - labs
+        - imaging
+        - referral
+        - discharge
+        - follow-up
+        - chief_complaint
+        - history
+        # Spanish (per PX-896)
+        - paciente
+        - diagnostico
+        - tratamiento
+        - medicamento
+        - cita
+        - visita
+        - historia
+        - sintomas
+        - queja_principal
+        - alta
+        - seguimiento
+      patterns:
+        - "MRN\\s*[:#]?\\s*\\d+"
+        - "DOB[:\\s]+\\d{1,2}/\\d{1,2}/\\d{2,4}"
+        - "ICD[\\-\\s]?10[:\\s]+[A-Z]\\d+"
+        - "CPT[:\\s]+\\d+"
+        - "patient\\s+id[:\\s]+\\d+"
+        - "dx[:\\s]+"
+        - "rx[:\\s]+"
+      weights:
+        patient: 1.5
+        diagnosis: 1.5
+        treatment: 1.3
+        medication: 1.3
+        paciente: 1.5
+        diagnostico: 1.5
+    meeting_signals:
+      - patient_visit
+      - clinical_encounter
+      - care_team_huddle
+      - case_conference
+      - discharge_planning
+      - follow_up_call
+
+  tech:
+    id: tech
+    name: "Technology / SaaS"
+    description: "Product development, user research, customer success"
+    suggested_compliance:
+      - "SOC2"
+      - "GDPR"
+    team_roles:
+      - product_manager
+      - engineer
+      - designer
+      - ux_researcher
+      - customer_success
+      - support_agent
+      - sales_rep
+      - account_executive
+      - solutions_engineer
+    custom_signals:
+      keywords:
+        - user
+        - customer
+        - feedback
+        - feature
+        - bug
+        - sprint
+        - release
+        - deployment
+        - incident
+        - ticket
+        - subscription
+        - churn
+        - onboarding
+        - activation
+        - retention
+      patterns:
+        - "ticket[\\-#]\\d+"
+        - "issue[\\-#]\\d+"
+        - "PR[\\-#]\\d+"
+        - "JIRA[\\-:]\\s*[A-Z]+\\-\\d+"
+        - "customer\\s+id[:\\s]+\\w+"
+        - "user\\s+id[:\\s]+\\w+"
+      weights:
+        user: 1.3
+        customer: 1.3
+        feedback: 1.2
+        feature: 1.1
+    meeting_signals:
+      - standup
+      - sprint_planning
+      - retrospective
+      - user_interview
+      - customer_call
+      - demo
+      - onboarding_call
+
+  legal:
+    id: legal
+    name: "Legal / Law Firm"
+    description: "Client matters, case management, legal documentation"
+    suggested_compliance:
+      - "SOC2"
+    team_roles:
+      - attorney
+      - paralegal
+      - legal_assistant
+      - case_manager
+      - intake_specialist
+      - receptionist
+      - billing_coordinator
+    custom_signals:
+      keywords:
+        - client
+        - matter
+        - case
+        - hearing
+        - filing
+        - motion
+        - discovery
+        - deposition
+        - settlement
+        - litigation
+        - counsel
+        - retainer
+        - billable
+        - opposing
+        - court
+      patterns:
+        - "case\\s+no\\.?[:\\s]+[A-Z0-9\\-]+"
+        - "matter[\\-#:]\\s*\\d+"
+        - "docket[:\\s]+[A-Z0-9\\-]+"
+        - "file\\s+no\\.?[:\\s]+\\d+"
+        - "client\\s+id[:\\s]+\\d+"
+      weights:
+        client: 1.5
+        matter: 1.5
+        case: 1.4
+        hearing: 1.3
+    meeting_signals:
+      - client_intake
+      - case_review
+      - deposition
+      - client_meeting
+      - court_prep
+      - settlement_conference
+
+  sales:
+    id: sales
+    name: "Sales / Business Development"
+    description: "Pipeline management, customer acquisition, deal tracking"
+    suggested_compliance:
+      - "SOC2"
+      - "GDPR"
+    team_roles:
+      - sales_rep
+      - account_executive
+      - sales_manager
+      - business_development_rep
+      - solutions_consultant
+      - sales_engineer
+      - customer_success
+    custom_signals:
+      keywords:
+        - prospect
+        - lead
+        - deal
+        - pipeline
+        - opportunity
+        - quota
+        - close
+        - proposal
+        - contract
+        - negotiation
+        - decision_maker
+        - stakeholder
+        - budget
+        - timeline
+        - competitor
+      patterns:
+        - "deal\\s+value[:\\s]+\\$?[\\d,]+"
+        - "opp[ortunity]?[\\-#:]\\s*\\d+"
+        - "account[\\-#:]\\s*\\d+"
+        - "close\\s+date[:\\s]+"
+        - "ARR[:\\s]+\\$?[\\d,]+"
+      weights:
+        prospect: 1.4
+        deal: 1.4
+        opportunity: 1.3
+        pipeline: 1.2
+    meeting_signals:
+      - discovery_call
+      - demo
+      - proposal_review
+      - negotiation
+      - contract_review
+      - onboarding_kickoff
+
+  education:
+    id: education
+    name: "Education / K-12 / Higher Ed"
+    description: "Student services, academic records, educational programs"
+    suggested_compliance:
+      - "FERPA"
+    team_roles:
+      - teacher
+      - counselor
+      - administrator
+      - registrar
+      - academic_advisor
+      - student_services
+      - dean
+      - principal
+    custom_signals:
+      keywords:
+        - student
+        - enrollment
+        - course
+        - grade
+        - transcript
+        - attendance
+        - parent
+        - guardian
+        - iep
+        - accommodation
+        - graduation
+        - major
+        - credit
+      patterns:
+        - "student\\s+id[:\\s]+\\d+"
+        - "course[:\\s]+[A-Z]+\\s*\\d+"
+        - "GPA[:\\s]+[\\d\\.]+"
+        - "grade[:\\s]+[A-F][\\+\\-]?"
+      weights:
+        student: 1.5
+        enrollment: 1.3
+        course: 1.2
+    meeting_signals:
+      - parent_teacher_conference
+      - iep_meeting
+      - counseling_session
+      - academic_advising
+      - staff_meeting
+
+# Hybrid organization mappings
+# For orgs that span multiple industries (e.g., FQHC = healthcare + nonprofit)
+hybrid_mappings:
+  fqhc:
+    primary: healthcare
+    secondary: nonprofit
+    description: "Federally Qualified Health Center"
+  legal_aid:
+    primary: legal
+    secondary: nonprofit
+    description: "Legal Aid Nonprofit"
+  edtech:
+    primary: tech
+    secondary: education
+    description: "Education Technology Company"

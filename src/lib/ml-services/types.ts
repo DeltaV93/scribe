@@ -85,9 +85,67 @@ export interface DeploymentCreate {
 
 // === Org Profile ===
 
+// Industry classifications
+export type Industry =
+  | "nonprofit"
+  | "healthcare"
+  | "tech"
+  | "legal"
+  | "sales"
+  | "education"
+  | "government"
+  | "finance"
+  | "other";
+
+// Company type classifications
+export type CompanyType =
+  | "startup"
+  | "enterprise"
+  | "nonprofit"
+  | "government"
+  | "agency"
+  | "consulting";
+
+// Model training tier
+export type ModelTier = "shared" | "private";
+
+// Custom signals configuration
+export interface CustomSignals {
+  keywords: string[];
+  patterns: string[];
+  weights: Record<string, number>;
+}
+
+// Form matching rules configuration
+export interface MatchingRules {
+  overrides: Record<string, unknown>[];
+  weights: Record<string, number>;
+  disabled_rules: string[];
+}
+
+// Risk tier overrides per model
+export type RiskOverrides = Record<string, RiskTier>;
+
 export interface OrgProfile {
   id: string;
   org_id: string;
+
+  // Industry & classification (PX-889)
+  industry: Industry | null;
+  secondary_industry: Industry | null;
+  company_type: CompanyType | null;
+  team_roles: string[];
+
+  // Model configuration (PX-889)
+  model_tier: ModelTier;
+  data_sharing_consent: boolean;
+
+  // Custom signals & matching (PX-889)
+  custom_signals: CustomSignals;
+  matching_rules: MatchingRules;
+  risk_overrides: RiskOverrides;
+
+  // Compliance & privacy (existing)
   compliance_frameworks: string[];
   retention_policies: Record<string, string>;
   privacy_settings: Record<string, unknown>;
@@ -102,6 +160,23 @@ export interface OrgProfile {
 
 export interface OrgProfileCreate {
   org_id: string;
+
+  // Industry & classification
+  industry?: Industry;
+  secondary_industry?: Industry;
+  company_type?: CompanyType;
+  team_roles?: string[];
+
+  // Model configuration
+  model_tier?: ModelTier;
+  data_sharing_consent?: boolean;
+
+  // Custom signals & matching
+  custom_signals?: Partial<CustomSignals>;
+  matching_rules?: Partial<MatchingRules>;
+  risk_overrides?: RiskOverrides;
+
+  // Compliance & privacy
   compliance_frameworks?: string[];
   retention_policies?: Record<string, string>;
   privacy_settings?: Record<string, unknown>;
@@ -111,12 +186,44 @@ export interface OrgProfileCreate {
 }
 
 export interface OrgProfileUpdate {
+  // Industry & classification
+  industry?: Industry | null;
+  secondary_industry?: Industry | null;
+  company_type?: CompanyType | null;
+  team_roles?: string[];
+
+  // Model configuration
+  model_tier?: ModelTier;
+  data_sharing_consent?: boolean;
+
+  // Custom signals & matching
+  custom_signals?: Partial<CustomSignals>;
+  matching_rules?: Partial<MatchingRules>;
+  risk_overrides?: RiskOverrides;
+
+  // Compliance & privacy
   compliance_frameworks?: string[];
   retention_policies?: Record<string, string>;
   privacy_settings?: Record<string, unknown>;
   epsilon_budget?: number;
   model_training_enabled?: boolean;
   audit_routing_config?: Record<string, unknown>;
+}
+
+// Industry defaults
+export interface IndustryDefault {
+  id: Industry;
+  name: string;
+  description: string;
+  suggested_compliance: string[];
+  team_roles: string[];
+  custom_signals: CustomSignals;
+  meeting_signals: string[];
+}
+
+export interface IndustryListResponse {
+  industries: IndustryDefault[];
+  total: number;
 }
 
 export interface PrivacyBudget {
