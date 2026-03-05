@@ -202,6 +202,10 @@ export async function canRecordClient(clientId: string): Promise<boolean> {
 /**
  * Mark recordings for deletion after consent revocation
  * Called by the revocation process
+ *
+ * Note: Actual S3 deletion happens during the retention purge process.
+ * This function prepares the records and returns the count of affected recordings.
+ * Use deleteClientRecordings() from recording-cleanup.ts for immediate deletion.
  */
 export async function markRecordingsForDeletion(
   clientId: string,
@@ -216,10 +220,27 @@ export async function markRecordingsForDeletion(
     select: { id: true, recordingUrl: true },
   });
 
-  // In a real implementation, we would:
-  // 1. Update call records to mark for deletion
-  // 2. Queue S3 deletion jobs with retention delay
-  // For now, just return count
+  // Get client's org for audit logging
+  const client = await prisma.client.findUnique({
+    where: { id: clientId },
+    select: { orgId: true },
+  });
+
+  if (client && calls.length > 0) {
+    await createAuditLog({
+      orgId: client.orgId,
+      userId: revokedById,
+      action: "UPDATE",
+      resource: "CLIENT",
+      resourceId: clientId,
+      details: {
+        type: "recordings_marked_for_deletion",
+        recordingCount: calls.length,
+        callIds: calls.map((c) => c.id),
+      },
+    });
+  }
+
   return calls.length;
 }
 

@@ -7,6 +7,7 @@ import { CallTimer } from "./call-timer";
 import { CallStatusBadge } from "./call-status-badge";
 import { CallNotesPanel } from "./call-notes-panel";
 import { ConversationGuide } from "./conversation-guide";
+import { UnrecordedCallModal } from "./unrecorded-call-modal";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -79,6 +80,7 @@ interface CallInterfaceProps {
   formSections: FormSection[];
   previousNotes: Note[];
   initialStatus?: CallStatus;
+  isRecorded?: boolean;
 }
 
 export function CallInterface({
@@ -87,6 +89,7 @@ export function CallInterface({
   formSections,
   previousNotes,
   initialStatus = CallStatus.INITIATING,
+  isRecorded = true,
 }: CallInterfaceProps) {
   const router = useRouter();
   const [status, setStatus] = useState<CallStatus>(initialStatus);
@@ -99,6 +102,7 @@ export function CallInterface({
   const [lockError, setLockError] = useState<string | null>(null);
   const [browserCallConnected, setBrowserCallConnected] = useState(false);
   const [micPermissionDenied, setMicPermissionDenied] = useState(false);
+  const [showUnrecordedModal, setShowUnrecordedModal] = useState(false);
   const heartbeatRef = useRef<NodeJS.Timeout | null>(null);
   const hasLockRef = useRef(false);
   const browserCallInitiated = useRef(false);
@@ -431,6 +435,12 @@ export function CallInterface({
       setStatus(CallStatus.COMPLETED);
       toast.success("Call ended");
 
+      // Show unrecorded modal if call was not recorded (PX-735 US-4)
+      if (!isRecorded) {
+        setShowUnrecordedModal(true);
+        return; // Don't redirect yet - let user handle documentation first
+      }
+
       // Redirect to review screen
       router.push(`/calls/${callId}/review`);
     } catch (error) {
@@ -478,6 +488,31 @@ export function CallInterface({
       newCompleted.add(fieldId);
     }
     setCompletedFields(newCompleted);
+  };
+
+  // Calculate call duration for display
+  const getCallDuration = useCallback((): string | undefined => {
+    if (!startTime) return undefined;
+    const durationMs = Date.now() - startTime.getTime();
+    const minutes = Math.floor(durationMs / 60000);
+    const seconds = Math.floor((durationMs % 60000) / 1000);
+    return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+  }, [startTime]);
+
+  // Unrecorded call modal handlers
+  const handleAddNotes = () => {
+    setShowUnrecordedModal(false);
+    router.push(`/clients/${client.id}?tab=notes&callId=${callId}`);
+  };
+
+  const handleCompleteForms = () => {
+    setShowUnrecordedModal(false);
+    router.push(`/clients/${client.id}?tab=forms&callId=${callId}`);
+  };
+
+  const handleDismissUnrecordedModal = () => {
+    setShowUnrecordedModal(false);
+    router.push(`/calls/${callId}/review`);
   };
 
   const isConnected = status === CallStatus.IN_PROGRESS;
@@ -581,6 +616,17 @@ export function CallInterface({
         onHoldToggle={handleHoldToggle}
         onEndCall={handleEndCall}
         disabled={isEndingCall || !isActive}
+      />
+
+      {/* Unrecorded Call Modal (PX-735 US-4) */}
+      <UnrecordedCallModal
+        open={showUnrecordedModal}
+        onOpenChange={setShowUnrecordedModal}
+        clientName={`${client.firstName} ${client.lastName}`}
+        callDuration={getCallDuration()}
+        onAddNotes={handleAddNotes}
+        onCompleteForms={handleCompleteForms}
+        onDismiss={handleDismissUnrecordedModal}
       />
     </div>
   );

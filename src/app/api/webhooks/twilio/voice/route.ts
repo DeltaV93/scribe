@@ -17,13 +17,17 @@ const VoiceResponse = twilio.twiml.VoiceResponse;
  * POST /api/webhooks/twilio/voice - Handle Twilio voice webhook
  * This is called when Twilio needs TwiML instructions for a call
  *
- * For browser-initiated calls (via Twilio Device SDK):
- * - The browser connects to Twilio
- * - Check consent status and route accordingly:
- *   - PENDING: Play consent prompt first
- *   - GRANTED: Dial with recording
- *   - REVOKED: Dial without recording
- * - Audio is bridged: Browser <-> Twilio <-> Client Phone
+ * Call types:
+ * 1. Browser-initiated outbound calls (from starts with "client:"):
+ *    - Check consent status and route accordingly
+ *    - PENDING: Play consent prompt first
+ *    - GRANTED: Dial with recording
+ *    - REVOKED: Dial without recording
+ *
+ * 2. Inbound calls (from is a phone number, to is our Twilio number):
+ *    - Per PX-735 US-5: ALWAYS play consent prompt regardless of prior status
+ *    - Consent prompt captures fresh consent for each inbound interaction
+ *    - Route to appropriate case manager after consent response
  */
 export async function POST(request: NextRequest) {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
@@ -66,12 +70,19 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // The "To" parameter contains the phone number passed from browser
-    // The "From" will be "client:userId" for browser-initiated calls
+    // Determine call type based on From field
+    // Browser-initiated: From starts with "client:" (e.g., "client:user-123")
+    // Inbound: From is a phone number (e.g., "+14155551234")
     const isBrowserCall = from?.startsWith("client:");
+    const isInboundCall = from?.startsWith("+") && !isBrowserCall;
 
+    // Handle inbound calls (PX-735 US-5)
+    if (isInboundCall) {
+      return handleInboundCall(request, { from, to, callSid, baseUrl });
+    }
+
+    // Handle server-initiated calls (not browser, not inbound phone)
     if (!isBrowserCall) {
-      // This is a direct server-initiated call, just acknowledge
       const response = new VoiceResponse();
       response.say("Connecting your call.");
       return new NextResponse(response.toString(), {
@@ -226,6 +237,101 @@ export async function POST(request: NextRequest) {
     response.hangup();
 
     return new NextResponse(response.toString(), {
+      headers: { "Content-Type": "text/xml" },
+    });
+  }
+}
+
+/**
+ * Handle inbound calls (PX-735 US-5)
+ *
+ * Per spec: ALL inbound calls should play consent prompt regardless of prior consent.
+ * This ensures fresh consent is captured for each inbound interaction.
+ */
+async function handleInboundCall(
+  request: NextRequest,
+  params: {
+    from: string;
+    to: string;
+    callSid: string;
+    baseUrl: string;
+  }
+): Promise<NextResponse> {
+  const { from, to, callSid, baseUrl } = params;
+
+  console.log(
+    `[Voice Webhook] Inbound call from ${from} to ${to}, CallSid=${callSid}`
+  );
+
+  try {
+    // Try to find the client by phone number
+    const client = await prisma.client.findFirst({
+      where: {
+        phone: from,
+      },
+      select: {
+        id: true,
+        orgId: true,
+      },
+    });
+
+    // Create a call record for inbound call
+    let callId: string | undefined;
+    if (client) {
+      // Find an available case manager for this client's org
+      const caseManager = await prisma.user.findFirst({
+        where: {
+          orgId: client.orgId,
+          role: { in: ["CASE_MANAGER", "PROGRAM_MANAGER", "ADMIN"] },
+        },
+        include: {
+          twilioNumber: true,
+        },
+      });
+
+      if (caseManager) {
+        const call = await prisma.call.create({
+          data: {
+            clientId: client.id,
+            caseManagerId: caseManager.id,
+            status: CallStatus.RINGING,
+            direction: "INBOUND",
+            twilioCallSid: callSid,
+            startedAt: new Date(),
+            isRecorded: false, // Will be updated based on consent
+          },
+        });
+        callId = call.id;
+        console.log(`[Voice Webhook] Created inbound call record: ${callId}`);
+      }
+    }
+
+    // Always play consent prompt for inbound calls (per US-5)
+    // This ensures fresh consent regardless of prior status
+    console.log(
+      `[Voice Webhook] Playing consent prompt for inbound call from ${from}`
+    );
+
+    const twiml = generateConsentPromptTwiML({
+      callId: callId || `inbound-${callSid}`,
+      clientId: client?.id || "",
+      baseUrl,
+    });
+
+    return new NextResponse(twiml, {
+      headers: { "Content-Type": "text/xml" },
+    });
+  } catch (error) {
+    console.error("[Voice Webhook] Error handling inbound call:", error);
+
+    // On error, still try to play consent prompt with minimal params
+    const twiml = generateConsentPromptTwiML({
+      callId: `inbound-${callSid}`,
+      clientId: "",
+      baseUrl,
+    });
+
+    return new NextResponse(twiml, {
       headers: { "Content-Type": "text/xml" },
     });
   }
