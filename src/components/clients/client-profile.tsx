@@ -477,9 +477,13 @@ export function ClientProfile({ clientId }: ClientProfileProps) {
             <CardContent>
               <div className="space-y-4">
                 {calls.slice(0, 3).map((call) => (
-                  <div key={call.id} className="flex items-start gap-3">
+                  <div
+                    key={call.id}
+                    className="flex items-start gap-3 p-2 -mx-2 rounded-md hover:bg-muted/50 cursor-pointer transition-colors"
+                    onClick={() => router.push(`/calls/${call.id}`)}
+                  >
                     <PhoneCall className="h-4 w-4 text-muted-foreground mt-0.5" />
-                    <div>
+                    <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium">Call - {call.status}</p>
                       <p className="text-xs text-muted-foreground">
                         {format(new Date(call.startedAt), "MMM d, yyyy h:mm a")}
@@ -488,9 +492,16 @@ export function ClientProfile({ clientId }: ClientProfileProps) {
                   </div>
                 ))}
                 {recentNotes.slice(0, 2).map((note) => (
-                  <div key={note.id} className="flex items-start gap-3">
+                  <div
+                    key={note.id}
+                    className="flex items-start gap-3 p-2 -mx-2 rounded-md hover:bg-muted/50 cursor-pointer transition-colors"
+                    onClick={() => {
+                      setSelectedNote(note);
+                      setShowNoteDetailDrawer(true);
+                    }}
+                  >
                     <MessageSquare className="h-4 w-4 text-muted-foreground mt-0.5" />
-                    <div>
+                    <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium line-clamp-1">
                         {note.content.replace(/<[^>]*>/g, "").substring(0, 50)}...
                       </p>
