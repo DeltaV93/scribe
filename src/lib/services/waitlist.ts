@@ -79,6 +79,23 @@ export function isDemoAccount(email: string): boolean {
   return demoEmails.includes(email.toLowerCase());
 }
 
+// Internal admin emails from environment variable
+export function getInternalAdminEmails(): string[] {
+  const envVar = process.env.INTERNAL_ADMIN_EMAILS || "";
+  return envVar
+    .split(",")
+    .map((email) => email.trim().toLowerCase())
+    .filter((email) => email.length > 0);
+}
+
+/**
+ * Check if an email is an internal admin who can manage the waitlist
+ */
+export function isInternalAdmin(email: string): boolean {
+  const internalEmails = getInternalAdminEmails();
+  return internalEmails.includes(email.toLowerCase());
+}
+
 // ============================================
 // Token Generation
 // ============================================

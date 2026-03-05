@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/db";
-import { batchApproveWaitlist } from "@/lib/services/waitlist";
+import { batchApproveWaitlist, isInternalAdmin } from "@/lib/services/waitlist";
 import { z } from "zod";
 
 const batchApproveSchema = z.object({
@@ -24,13 +24,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Check if user is admin
+    // Check if user is internal admin
     const dbUser = await prisma.user.findUnique({
       where: { supabaseUserId: user.id },
-      select: { id: true, role: true },
+      select: { id: true, email: true },
     });
 
-    if (!dbUser || !["SUPER_ADMIN", "ADMIN"].includes(dbUser.role)) {
+    if (!dbUser || !isInternalAdmin(dbUser.email)) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 

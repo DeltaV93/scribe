@@ -39,13 +39,14 @@ export default function AdminPage() {
   const [pendingRequestCount, setPendingRequestCount] = useState(0);
   const [pendingNoteApprovalCount, setPendingNoteApprovalCount] = useState(0);
   const [pendingWaitlistCount, setPendingWaitlistCount] = useState(0);
+  const [canAccessWaitlist, setCanAccessWaitlist] = useState(false);
 
   useEffect(() => {
     checkAuth();
     fetchStats();
     fetchPendingCount();
     fetchPendingNoteApprovalCount();
-    fetchPendingWaitlistCount();
+    checkWaitlistAccess();
   }, []);
 
   const checkAuth = async () => {
@@ -102,6 +103,21 @@ export default function AdminPage() {
     }
   };
 
+  const checkWaitlistAccess = async () => {
+    try {
+      const response = await fetch("/api/admin/waitlist/check-access");
+      if (response.ok) {
+        const data = await response.json();
+        setCanAccessWaitlist(data.hasAccess);
+        if (data.hasAccess) {
+          fetchPendingWaitlistCount();
+        }
+      }
+    } catch (error) {
+      console.error("Failed to check waitlist access:", error);
+    }
+  };
+
   const fetchPendingWaitlistCount = async () => {
     try {
       const response = await fetch("/api/admin/waitlist?status=PENDING&limit=1");
@@ -118,7 +134,9 @@ export default function AdminPage() {
     fetchStats();
     fetchPendingCount();
     fetchPendingNoteApprovalCount();
-    fetchPendingWaitlistCount();
+    if (canAccessWaitlist) {
+      fetchPendingWaitlistCount();
+    }
   };
 
   if (isLoading) {
@@ -186,15 +204,17 @@ export default function AdminPage() {
             <Brain className="h-3.5 w-3.5" />
             ML Settings
           </TabsTrigger>
-          <TabsTrigger value="waitlist" className="relative flex items-center gap-1">
-            <UserPlus className="h-3.5 w-3.5" />
-            Waitlist
-            {pendingWaitlistCount > 0 && (
-              <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-destructive text-destructive-foreground text-xs flex items-center justify-center">
-                {pendingWaitlistCount}
-              </span>
-            )}
-          </TabsTrigger>
+          {canAccessWaitlist && (
+            <TabsTrigger value="waitlist" className="relative flex items-center gap-1">
+              <UserPlus className="h-3.5 w-3.5" />
+              Waitlist
+              {pendingWaitlistCount > 0 && (
+                <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-destructive text-destructive-foreground text-xs flex items-center justify-center">
+                  {pendingWaitlistCount}
+                </span>
+              )}
+            </TabsTrigger>
+          )}
         </TabsList>
 
         <TabsContent value="team">
@@ -232,9 +252,11 @@ export default function AdminPage() {
           <MLSettingsTab onDataChange={refreshData} />
         </TabsContent>
 
-        <TabsContent value="waitlist">
-          <WaitlistTab onDataChange={refreshData} />
-        </TabsContent>
+        {canAccessWaitlist && (
+          <TabsContent value="waitlist">
+            <WaitlistTab onDataChange={refreshData} />
+          </TabsContent>
+        )}
       </Tabs>
     </div>
   );
