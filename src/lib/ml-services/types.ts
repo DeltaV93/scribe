@@ -363,6 +363,172 @@ export interface PaginatedResponse<T> {
   page_size: number;
 }
 
+// === Matching (PX-887) ===
+
+export type SignalType = "keyword" | "pattern" | "meeting_signal";
+export type ConfidenceLevel = "high" | "medium" | "low" | "insufficient";
+export type SegmentType =
+  | "intake"
+  | "case_review"
+  | "standup"
+  | "supervision"
+  | "client_checkin"
+  | "patient_visit"
+  | "sales_call"
+  | "user_interview"
+  | "unknown";
+
+export interface Signal {
+  type: SignalType;
+  value: string;
+  confidence: number;
+  source: string;
+  language?: string;
+}
+
+export interface Match {
+  signal: Signal;
+  position: { start: number; end: number };
+  weight: number;
+  contribution: number;
+}
+
+export interface Segment {
+  start_time: number | null;
+  end_time: number | null;
+  segment_type: SegmentType;
+  confidence: number;
+  text_sample?: string;
+}
+
+export interface MatchResult {
+  form_id: string;
+  form_name: string;
+  confidence: number;
+  confidence_level: ConfidenceLevel;
+  matched_signals: Match[];
+  segment?: Segment;
+}
+
+export interface DetectionRequest {
+  text: string;
+  org_id?: string;
+  industry?: Industry;
+  custom_signals?: CustomSignals;
+}
+
+export interface DetectionResponse {
+  signals: Signal[];
+  total_matches: number;
+  processing_time_ms: number;
+}
+
+export interface ScoreRequest {
+  text: string;
+  form_id: string;
+  org_id?: string;
+  model_id?: string;
+}
+
+export interface ScoreResponse {
+  confidence: number;
+  confidence_level: ConfidenceLevel;
+  threshold_tier: "standard" | "elevated" | "strict";
+  signals_found: number;
+}
+
+export interface SegmentRequest {
+  transcript: string;
+  industry?: Industry;
+  timestamps?: Array<{ time: number; text: string }>;
+}
+
+export interface SegmentResponse {
+  segments: Segment[];
+  total_segments: number;
+  processing_time_ms: number;
+}
+
+export interface MatchRequest {
+  transcript: string;
+  org_id: string;
+  form_candidates?: Array<{ id: string; name: string; keywords?: string[] }>;
+  timestamps?: Array<{ time: number; text: string }>;
+}
+
+export interface MatchResponse {
+  matches: MatchResult[];
+  total_forms_checked: number;
+  processing_time_ms: number;
+}
+
+// === Privacy (PX-897 Enhanced) ===
+
+export type QueryType = "count" | "sum" | "mean" | "histogram";
+
+export interface DPQueryRequest {
+  org_id: string;
+  query_type: QueryType;
+  data: number[];
+  epsilon?: number;
+  sensitivity?: number;
+}
+
+export interface DPQueryResponse {
+  result: number | number[];
+  epsilon_consumed: number;
+  noise_scale: number;
+  query_type: QueryType;
+}
+
+export interface BudgetConsumption {
+  org_id: string;
+  epsilon_consumed: number;
+  epsilon_remaining: number;
+  consumption_rate: number;
+  estimated_exhaustion_date: string | null;
+}
+
+export interface GroupingKey {
+  form_id?: string;
+  action_type?: string;
+  meeting_type?: string;
+  industry?: string;
+  key_string: string;
+}
+
+export interface GroupStats {
+  grouping_key: GroupingKey;
+  correction_count: number;
+  org_count: number;
+  meets_threshold: boolean;
+}
+
+// === Audit (PX-898 Enhanced) ===
+
+export interface AuditExportRequest {
+  org_id: string;
+  start_date?: string;
+  end_date?: string;
+  risk_tiers?: RiskTier[];
+  event_types?: string[];
+  format?: "json" | "csv" | "parquet";
+}
+
+export interface AuditExportResponse {
+  job_id: string;
+  status: "pending" | "processing" | "completed" | "failed";
+  download_url?: string;
+  expires_at?: string;
+}
+
+export interface AuditQueueStatus {
+  customer_queue_length: number;
+  internal_queue_length: number;
+  buffer_size: number;
+  last_flush_at: string | null;
+}
+
 // === Errors ===
 
 export interface MLServiceError {

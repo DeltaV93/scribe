@@ -67,6 +67,11 @@ ml = [
     "scikit-learn>=1.4.0",
 ]
 
+privacy = [
+    "opendp>=0.10.0",
+    "numpy>=1.26.0",
+]
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"

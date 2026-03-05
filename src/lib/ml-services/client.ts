@@ -34,6 +34,25 @@ import {
   IndustryDefault,
   IndustryListResponse,
   Industry,
+  // PX-887 Matching types
+  DetectionRequest,
+  DetectionResponse,
+  ScoreRequest,
+  ScoreResponse,
+  SegmentRequest,
+  SegmentResponse,
+  MatchRequest,
+  MatchResponse,
+  // PX-897 Privacy types
+  DPQueryRequest,
+  DPQueryResponse,
+  BudgetConsumption,
+  GroupStats,
+  // PX-898 Audit types
+  AuditExportRequest,
+  AuditExportResponse,
+  AuditQueueStatus,
+  RiskTier,
 } from "./types";
 
 // Configuration from environment
@@ -456,6 +475,170 @@ export const feedback = {
 };
 
 // ============================================================================
+// Matching (PX-887)
+// ============================================================================
+
+export const matching = {
+  /**
+   * Detect signals in text
+   */
+  async detect(data: DetectionRequest): Promise<DetectionResponse> {
+    return mlFetch("/v1/matching/detect", {
+      method: "POST",
+      body: data,
+    });
+  },
+
+  /**
+   * Calculate confidence score for a form match
+   */
+  async score(data: ScoreRequest): Promise<ScoreResponse> {
+    return mlFetch("/v1/matching/score", {
+      method: "POST",
+      body: data,
+    });
+  },
+
+  /**
+   * Detect meeting segments in transcript
+   */
+  async detectSegments(data: SegmentRequest): Promise<SegmentResponse> {
+    return mlFetch("/v1/matching/segments", {
+      method: "POST",
+      body: data,
+    });
+  },
+
+  /**
+   * Match transcript to forms
+   */
+  async matchForms(data: MatchRequest): Promise<MatchResponse> {
+    return mlFetch("/v1/matching/match", {
+      method: "POST",
+      body: data,
+    });
+  },
+};
+
+// ============================================================================
+// Privacy (PX-897)
+// ============================================================================
+
+export const privacy = {
+  /**
+   * Get privacy budget for an organization
+   */
+  async getBudget(orgId: string): Promise<PrivacyBudget> {
+    return mlFetch(`/v1/privacy/budget/${orgId}`);
+  },
+
+  /**
+   * Consume privacy budget
+   */
+  async consumeBudget(
+    orgId: string,
+    epsilon: number,
+    purpose: string
+  ): Promise<BudgetConsumption> {
+    return mlFetch(`/v1/privacy/budget/${orgId}/consume`, {
+      method: "POST",
+      body: { epsilon_amount: epsilon, purpose },
+    });
+  },
+
+  /**
+   * Execute a differentially private query
+   */
+  async query(data: DPQueryRequest): Promise<DPQueryResponse> {
+    return mlFetch("/v1/privacy/query", {
+      method: "POST",
+      body: data,
+    });
+  },
+
+  /**
+   * List grouping keys with statistics
+   */
+  async listGroups(orgId: string): Promise<{ groups: GroupStats[]; total: number }> {
+    return mlFetch(`/v1/privacy/groups/${orgId}`);
+  },
+
+  /**
+   * Check privacy service health
+   */
+  async checkHealth(): Promise<{ status: string; opendp_available: boolean }> {
+    return mlFetch("/v1/privacy/health");
+  },
+};
+
+// ============================================================================
+// Audit (PX-898 Enhanced)
+// ============================================================================
+
+export const auditEnhanced = {
+  /**
+   * Create audit event with automatic risk tier detection
+   */
+  async createEventAutoTier(
+    data: Omit<AuditEventCreate, "risk_tier"> & { model_id?: string }
+  ): Promise<AuditEvent & { routing_decision: { source: string; reason: string } }> {
+    return mlFetch("/v1/audit/events/auto-tier", {
+      method: "POST",
+      body: data,
+    });
+  },
+
+  /**
+   * Request an audit export
+   */
+  async requestExport(data: AuditExportRequest): Promise<AuditExportResponse> {
+    return mlFetch("/v1/audit/export", {
+      method: "POST",
+      body: data,
+    });
+  },
+
+  /**
+   * Check export job status
+   */
+  async getExportStatus(jobId: string): Promise<AuditExportResponse> {
+    return mlFetch(`/v1/audit/export/${jobId}`);
+  },
+
+  /**
+   * Get audit queue status
+   */
+  async getQueueStatus(): Promise<AuditQueueStatus> {
+    return mlFetch("/v1/audit/queue/status");
+  },
+
+  /**
+   * List events with risk tier filtering
+   */
+  async listByRiskTier(options: {
+    orgId: string;
+    riskTier?: RiskTier;
+    eventType?: string;
+    startDate?: string;
+    endDate?: string;
+    page?: number;
+    pageSize?: number;
+  }): Promise<PaginatedResponse<AuditEvent>> {
+    return mlFetch("/v1/audit/events", {
+      params: {
+        org_id: options.orgId,
+        risk_tier: options.riskTier,
+        event_type: options.eventType,
+        start_date: options.startDate,
+        end_date: options.endDate,
+        page: options.page,
+        page_size: options.pageSize,
+      },
+    });
+  },
+};
+
+// ============================================================================
 // Health & Utility
 // ============================================================================
 
@@ -556,7 +739,10 @@ const mlServices = {
   orgProfile,
   industries,
   audit,
+  auditEnhanced,
   feedback,
+  matching,
+  privacy,
   health,
   emitModelDeployed,
   emitModelRollback,

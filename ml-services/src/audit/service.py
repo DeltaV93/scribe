@@ -1,4 +1,7 @@
-"""Audit service for event routing and sinks."""
+"""Audit service for event routing and sinks.
+
+Implements core audit event persistence and routing to external sinks.
+"""
 
 import fnmatch
 import json
@@ -13,6 +16,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.audit.models import AuditEvent, AuditRoute, AuditSink, RiskTier, SinkType
+from src.audit.risk_tiers import get_default_risk_tier
 from src.audit.schemas import AuditEventCreate
 from src.common.config import settings
 
@@ -50,12 +54,28 @@ class AuditService:
         return self._boto_session
 
     async def emit_event(self, data: AuditEventCreate) -> AuditEvent:
-        """Emit an audit event and route to appropriate sinks."""
+        """
+        Emit an audit event and route to appropriate sinks.
+
+        If risk_tier is not provided, auto-detects based on event type defaults.
+        For more sophisticated routing (org overrides, model tiers, compliance),
+        use the /events/auto-tier endpoint which uses the oracle layer.
+        """
+        # Auto-detect risk tier if not provided
+        risk_tier = data.risk_tier
+        if risk_tier is None:
+            risk_tier = get_default_risk_tier(data.event_type)
+            logger.debug(
+                "Auto-detected risk tier",
+                event_type=data.event_type,
+                risk_tier=risk_tier.value,
+            )
+
         # Create event
         event = AuditEvent(
             org_id=data.org_id,
             event_type=data.event_type,
-            risk_tier=data.risk_tier,
+            risk_tier=risk_tier,
             actor_id=data.actor_id,
             actor_type=data.actor_type,
             event_data=data.event_data,

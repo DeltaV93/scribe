@@ -29,6 +29,8 @@ from src.org_profile.router import router as org_profile_router
 from src.audit.router import router as audit_router
 from src.feedback.router import router as feedback_router
 from src.training.router import router as training_router
+from src.matching.router import router as matching_router
+from src.privacy.router import router as privacy_router
 
 logger = structlog.get_logger()
 
@@ -127,6 +129,8 @@ app.include_router(org_profile_router, prefix="/v1", tags=["Org Profile"])
 app.include_router(audit_router, prefix="/v1", tags=["Audit"])
 app.include_router(feedback_router, prefix="/v1", tags=["Feedback"])
 app.include_router(training_router, prefix="/v1", tags=["Training"])
+app.include_router(matching_router, prefix="/v1", tags=["Form Matching"])
+app.include_router(privacy_router, prefix="/v1", tags=["Privacy"])
 
 
 # Global exception handler for uncaught exceptions

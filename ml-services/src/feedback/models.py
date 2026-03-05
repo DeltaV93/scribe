@@ -72,7 +72,8 @@ class Feedback(Base, UUIDMixin, TimestampMixin):
     comment: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
 
     # Additional metadata (e.g., session info, UI context)
-    metadata: Mapped[Optional[dict]] = mapped_column(JSONB, nullable=True)
+    # Note: using 'extra_metadata' to avoid SQLAlchemy reserved word 'metadata'
+    extra_metadata: Mapped[Optional[dict]] = mapped_column(JSONB, nullable=True)
 
 
 class FeedbackAggregate(Base, UUIDMixin):
