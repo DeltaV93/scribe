@@ -273,7 +273,7 @@ export async function middleware(request: NextRequest) {
     "/contact",
     "/mfa-setup",
     "/mfa-verify",
-  ].includes(pathname);
+  ].includes(pathname) || pathname.startsWith("/signup/waitlist/");
 
   // Check if route is protected
   const isProtectedRoute = protectedRoutes.some(

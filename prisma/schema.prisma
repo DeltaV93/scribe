@@ -199,6 +199,13 @@ enum InvitationStatus {
   REVOKED
 }
 
+enum WaitlistStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  COMPLETED // User created account
+}
+
 // ============================================
 // PROGRAM MANAGEMENT ENUMS
 // ============================================
@@ -574,6 +581,9 @@ model User {
 
   // User Invitation Relations
   invitationsSent UserInvitation[] @relation("InvitedBy")
+
+  // Waitlist Approvals (PX-901)
+  waitlistApprovals Waitlist[] @relation("WaitlistApprover")
 
   // Deactivation tracking
   deactivatedAt   DateTime?
@@ -1596,6 +1606,43 @@ model UserInvitation {
   @@index([token])
   @@index([email, orgId])
   @@index([status])
+}
+
+// ============================================
+// WAITLIST (PX-901: Account Gating)
+// ============================================
+
+model Waitlist {
+  id             String         @id @default(uuid())
+  email          String         @unique
+  firstName      String
+  lastName       String
+  organization   String
+  role           String
+  teamSize       String
+  industry       String
+  status         WaitlistStatus @default(PENDING)
+
+  // Approval token for account creation
+  approvalToken  String?        @unique
+  tokenExpiresAt DateTime?
+
+  // Timestamps
+  submittedAt    DateTime       @default(now())
+  approvedAt     DateTime?
+  completedAt    DateTime?      // When user created account
+
+  // Who approved (nullable - admin user)
+  approvedById   String?
+  approvedBy     User?          @relation("WaitlistApprover", fields: [approvedById], references: [id])
+
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  @@index([status])
+  @@index([submittedAt])
+  @@index([email])
+  @@index([approvalToken])
 }
 
 // ============================================

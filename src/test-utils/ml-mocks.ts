@@ -4,6 +4,7 @@
  * Mock data generators and MSW handlers for testing ML Services integration.
  */
 
+import { vi } from "vitest";
 import type {
   Model,
   ModelVersion,

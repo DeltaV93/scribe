@@ -56,7 +56,9 @@ type EmailTemplate =
   | "user_reactivated"
   | "client_reply_notification"
   | "draft_digest"
-  | "email_bounced";
+  | "email_bounced"
+  | "waitlist_confirmation"
+  | "waitlist_approved";
 
 // ============================================
 // CORE EMAIL SENDING
@@ -261,6 +263,38 @@ function renderTemplate(
           <p><strong>Reason:</strong> ${data.reason}</p>
         </div>
         <p>Please verify the client's email address and update their record if needed.</p>
+      `;
+      break;
+
+    case "waitlist_confirmation":
+      content = `
+        <p>Hello ${data.firstName},</p>
+        <p>Thanks for signing up for the Inkra pilot! We've added you to our waitlist.</p>
+        <div class="highlight">
+          <p><strong>Organization:</strong> ${data.organization}</p>
+          <p><strong>Role:</strong> ${data.role}</p>
+          <p><strong>Team Size:</strong> ${data.teamSize}</p>
+          <p><strong>Industry:</strong> ${data.industry}</p>
+        </div>
+        <p>We review applications weekly and will reach out when a spot opens up. In the meantime, we may contact you to learn more about your workflow and how Inkra can help.</p>
+        <p>Have questions? Just reply to this email.</p>
+      `;
+      break;
+
+    case "waitlist_approved":
+      content = `
+        <p>Hello ${data.firstName},</p>
+        <p>Great news! You've been approved for the Inkra pilot program.</p>
+        <p>Click the button below to create your account and get started:</p>
+        <p><a href="${data.accountCreationUrl}" class="button">Create Your Account</a></p>
+        <p style="color: #6b7280; font-size: 14px;">This link expires in 7 days.</p>
+        <p><strong>Next steps:</strong></p>
+        <ol style="color: #4b5563; margin: 16px 0; padding-left: 24px;">
+          <li>Create your account using the link above</li>
+          <li>Connect your communication channels (phone, email, etc.)</li>
+          <li>Have conversations and let Inkra turn them into structured work</li>
+        </ol>
+        <p>We're excited to have you on board. If you have any questions, just reply to this email.</p>
       `;
       break;
 
@@ -603,6 +637,58 @@ export async function sendDraftDigestEmail(
         lastEditedAt: draft.lastEditedAt.toLocaleDateString(),
       })),
       formsUrl: `${data.appUrl}/forms`,
+    },
+  });
+}
+
+// ============================================
+// Waitlist Notifications
+// ============================================
+
+/**
+ * Send waitlist confirmation email when user submits waitlist form
+ */
+export async function sendWaitlistConfirmationEmail(
+  email: string,
+  data: {
+    firstName: string;
+    organization: string;
+    role: string;
+    teamSize: string;
+    industry: string;
+  }
+): Promise<void> {
+  await sendEmail({
+    to: email,
+    subject: "You're on the Inkra pilot waitlist",
+    template: "waitlist_confirmation",
+    data: {
+      firstName: data.firstName,
+      organization: data.organization,
+      role: data.role,
+      teamSize: data.teamSize,
+      industry: data.industry,
+    },
+  });
+}
+
+/**
+ * Send waitlist approval email when admin approves user
+ */
+export async function sendWaitlistApprovalEmail(
+  email: string,
+  data: {
+    firstName: string;
+    accountCreationUrl: string;
+  }
+): Promise<void> {
+  await sendEmail({
+    to: email,
+    subject: "You're approved for the Inkra pilot!",
+    template: "waitlist_approved",
+    data: {
+      firstName: data.firstName,
+      accountCreationUrl: data.accountCreationUrl,
     },
   });
 }

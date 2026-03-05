@@ -373,3 +373,169 @@ export async function resendVerificationEmail(
     success: "Verification email sent! Please check your inbox.",
   };
 }
+
+// ============================================
+// WAITLIST SIGNUP
+// ============================================
+
+const waitlistSignUpSchema = z.object({
+  email: z.string().email("Please enter a valid email address"),
+  password: z
+    .string()
+    .min(8, "Password must be at least 8 characters")
+    .regex(
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
+      "Password must contain at least one uppercase letter, one lowercase letter, and one number"
+    ),
+  confirmPassword: z.string(),
+  name: z.string().min(2, "Name must be at least 2 characters"),
+  organizationName: z
+    .string()
+    .min(2, "Organization name must be at least 2 characters"),
+  token: z.string().min(64, "Invalid token"),
+});
+
+/**
+ * Sign up a user from waitlist approval
+ * Uses pre-filled data from waitlist entry
+ */
+export async function signUpFromWaitlist(
+  _prevState: AuthState,
+  formData: FormData
+): Promise<AuthState> {
+  const rawData = {
+    email: formData.get("email") as string,
+    password: formData.get("password") as string,
+    confirmPassword: formData.get("confirmPassword") as string,
+    name: formData.get("name") as string,
+    organizationName: formData.get("organizationName") as string,
+    token: formData.get("token") as string,
+  };
+
+  // Validate input
+  const validatedFields = waitlistSignUpSchema.safeParse(rawData);
+
+  if (!validatedFields.success) {
+    return {
+      error: validatedFields.error.errors[0].message,
+    };
+  }
+
+  const { email, password, confirmPassword, name, organizationName, token } =
+    validatedFields.data;
+
+  // Check passwords match
+  if (password !== confirmPassword) {
+    return {
+      error: "Passwords do not match",
+    };
+  }
+
+  // Import waitlist service dynamically to avoid circular deps
+  const { verifyApprovalToken, markWaitlistCompleted } = await import(
+    "@/lib/services/waitlist"
+  );
+
+  // Verify token is still valid
+  const tokenResult = await verifyApprovalToken(token);
+
+  if (!tokenResult.valid) {
+    const errorMessages: Record<string, string> = {
+      expired: "This invitation link has expired. Please contact us for a new one.",
+      used: "This invitation link has already been used.",
+      not_found: "Invalid invitation link.",
+    };
+    return {
+      error: errorMessages[tokenResult.reason || "not_found"] || "Invalid link.",
+    };
+  }
+
+  // Verify email matches waitlist entry
+  if (tokenResult.entry?.email.toLowerCase() !== email.toLowerCase()) {
+    return {
+      error: "Email address mismatch. Please use the email from your invitation.",
+    };
+  }
+
+  // Check if email already exists
+  const existingUser = await prisma.user.findUnique({
+    where: { email },
+  });
+
+  if (existingUser) {
+    return {
+      error: "An account with this email already exists",
+    };
+  }
+
+  const supabase = await createClient();
+
+  // Create Supabase auth user
+  const { data: authData, error: authError } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback`,
+      data: {
+        name,
+        organizationName,
+      },
+    },
+  });
+
+  if (authError) {
+    return {
+      error: authError.message,
+    };
+  }
+
+  if (!authData.user) {
+    return {
+      error: "Failed to create account. Please try again.",
+    };
+  }
+
+  // Generate unique org slug
+  let orgSlug = generateSlug(organizationName);
+  const existingOrg = await prisma.organization.findUnique({
+    where: { slug: orgSlug },
+  });
+
+  if (existingOrg) {
+    orgSlug = `${orgSlug}-${Date.now().toString(36)}`;
+  }
+
+  // Create organization and user in database
+  try {
+    const defaultPermissions = getDefaultPermissions(UserRole.ADMIN);
+
+    await prisma.organization.create({
+      data: {
+        name: organizationName,
+        slug: orgSlug,
+        users: {
+          create: {
+            email,
+            name,
+            supabaseUserId: authData.user.id,
+            role: UserRole.ADMIN,
+            ...defaultPermissions,
+          },
+        },
+      },
+    });
+
+    // Mark waitlist entry as completed
+    await markWaitlistCompleted(token);
+  } catch (dbError) {
+    console.error("Database error during waitlist signup:", dbError);
+    return {
+      error: "Failed to create organization. Please contact support.",
+    };
+  }
+
+  return {
+    success:
+      "Account created! Please check your email to verify your account.",
+  };
+}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import {
   OrganizationJsonLd,
@@ -10,8 +10,20 @@ import {
   inkraFAQs,
 } from "@/components/seo/json-ld";
 
+// Form submission state type
+type FormStatus = "idle" | "submitting" | "success" | "error" | "duplicate";
+
+interface FormState {
+  status: FormStatus;
+  message: string;
+}
+
 export default function HomePage() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [formState, setFormState] = useState<FormState>({
+    status: "idle",
+    message: "",
+  });
 
   useEffect(() => {
     // Scroll reveal animation
@@ -184,12 +196,65 @@ export default function HomePage() {
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
   };
 
-  const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleFormSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const btn = e.currentTarget.querySelector(".wl-btn") as HTMLButtonElement;
-    if (btn) {
-      btn.textContent = "You're on the list ✓";
-      btn.disabled = true;
+
+    // Prevent double submission
+    if (formState.status === "submitting") return;
+
+    setFormState({ status: "submitting", message: "" });
+
+    const form = e.currentTarget;
+    const formData = new FormData(form);
+
+    const data = {
+      firstName: formData.get("firstName") as string,
+      lastName: formData.get("lastName") as string,
+      email: formData.get("email") as string,
+      organization: formData.get("organization") as string,
+      role: formData.get("role") as string,
+      teamSize: formData.get("teamSize") as string,
+      industry: formData.get("industry") as string,
+    };
+
+    try {
+      const response = await fetch("/api/waitlist", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        // Check if duplicate
+        if (result.duplicate) {
+          setFormState({
+            status: "duplicate",
+            message: result.message || "You're already on the list!",
+          });
+        } else {
+          setFormState({
+            status: "success",
+            message: result.message || "You're on the list! We'll notify you when your access is ready.",
+          });
+        }
+      } else {
+        // Handle errors
+        const errorMessage = result.error?.message || "Something went wrong. Please try again.";
+        setFormState({
+          status: "error",
+          message: errorMessage,
+        });
+      }
+    } catch (error) {
+      console.error("Form submission error:", error);
+      setFormState({
+        status: "error",
+        message: "Network error. Please check your connection and try again.",
+      });
     }
   };
 
@@ -628,10 +693,58 @@ export default function HomePage() {
           box-shadow: 0 8px 24px rgba(0,0,0,0.2);
         }
         .wl-btn:disabled {
-          background: var(--ink-green);
-          color: #fff;
-          cursor: default;
+          opacity: 0.7;
+          cursor: not-allowed;
           transform: none;
+          box-shadow: none;
+        }
+        .wl-btn:disabled:hover {
+          transform: none;
+          box-shadow: none;
+        }
+        .wl-form input:disabled,
+        .wl-form select:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+        }
+        .wl-error {
+          background: rgba(220, 38, 38, 0.15);
+          border: 1px solid rgba(220, 38, 38, 0.4);
+          border-radius: 10px;
+          padding: 12px 16px;
+          font-size: 14px;
+          color: #fca5a5;
+          text-align: center;
+        }
+        .wl-confirmation {
+          text-align: center;
+          padding: 40px 20px;
+          animation: fadeUp 0.5s var(--ease) both;
+        }
+        .wl-confirmation-icon {
+          width: 64px;
+          height: 64px;
+          border-radius: 50%;
+          background: rgba(255, 255, 255, 0.15);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin: 0 auto 20px;
+          font-size: 28px;
+          color: #fff;
+        }
+        .wl-confirmation-title {
+          font-family: var(--serif);
+          font-size: 24px;
+          font-weight: 400;
+          margin-bottom: 12px;
+        }
+        .wl-confirmation-message {
+          font-size: 15px;
+          opacity: 0.8;
+          line-height: 1.6;
+          max-width: 400px;
+          margin: 0 auto;
         }
         @media (max-width: 600px) {
           .wl-form { grid-template-columns: 1fr; }
@@ -1410,56 +1523,83 @@ export default function HomePage() {
             20 founding organizations get priority pricing, white-glove
             onboarding, and direct roadmap input.
           </p>
-          <form className="wl-form" onSubmit={handleFormSubmit}>
-            <input type="text" placeholder="First name" required />
-            <input type="text" placeholder="Last name" required />
-            <input type="email" placeholder="Work email" required className="full" />
-            <input type="text" placeholder="Organization" required />
-            <select required defaultValue="">
-              <option value="" disabled>Your role</option>
-              <option>Sales / Account Management</option>
-              <option>Case Manager / Social Worker</option>
-              <option>Program Director</option>
-              <option>Executive Director / CEO</option>
-              <option>Engineering / Product Manager</option>
-              <option>UX Researcher</option>
-              <option>IT / Operations</option>
-              <option>Clinician / Therapist / Doctor</option>
-              <option>Customer Support Lead</option>
-              <option>Other</option>
-            </select>
-            <select required className="full" defaultValue="">
-              <option value="" disabled>Team size</option>
-              <option>1–5</option>
-              <option>6–15</option>
-              <option>16–50</option>
-              <option>51–100</option>
-              <option>100+</option>
-            </select>
-            <select required className="full" defaultValue="">
-              <option value="" disabled>Industry</option>
-              <option>Sales / Tech</option>
-              <option>Nonprofit / Human Services</option>
-              <option>Behavioral Health</option>
-              <option>Healthcare / Medical</option>
-              <option>UX Research / Design</option>
-              <option>Product / Engineering</option>
-              <option>Customer Support</option>
-              <option>Legal</option>
-              <option>Real Estate</option>
-              <option>Education</option>
-              <option>Financial Services</option>
-              <option>Government</option>
-              <option>Multi-Location Retail / Operations</option>
-              <option>Other</option>
-            </select>
-            <button type="submit" className="wl-btn">
-              Apply for the Spring 2026 Pilot →
-            </button>
-          </form>
-          <div className="cta-note">
-            No credit card · Invite-only · One business day response
-          </div>
+          {formState.status === "success" || formState.status === "duplicate" ? (
+            <div className="wl-confirmation">
+              <div className="wl-confirmation-icon">
+                {formState.status === "duplicate" ? "!" : "\u2713"}
+              </div>
+              <div className="wl-confirmation-title">
+                {formState.status === "duplicate" ? "You're already on the list!" : "You're on the list!"}
+              </div>
+              <div className="wl-confirmation-message">
+                {formState.status === "duplicate"
+                  ? "We already have your application. We'll notify you when your access is ready."
+                  : "We'll notify you when your access is ready. Check your inbox for a confirmation email."}
+              </div>
+            </div>
+          ) : (
+            <>
+              <form className="wl-form" onSubmit={handleFormSubmit}>
+                <input type="text" name="firstName" placeholder="First name" required disabled={formState.status === "submitting"} />
+                <input type="text" name="lastName" placeholder="Last name" required disabled={formState.status === "submitting"} />
+                <input type="email" name="email" placeholder="Work email" required className="full" disabled={formState.status === "submitting"} />
+                <input type="text" name="organization" placeholder="Organization" required disabled={formState.status === "submitting"} />
+                <select name="role" required defaultValue="" disabled={formState.status === "submitting"}>
+                  <option value="" disabled>Your role</option>
+                  <option>Sales / Account Management</option>
+                  <option>Case Manager / Social Worker</option>
+                  <option>Program Director</option>
+                  <option>Executive Director / CEO</option>
+                  <option>Engineering / Product Manager</option>
+                  <option>UX Researcher</option>
+                  <option>IT / Operations</option>
+                  <option>Clinician / Therapist / Doctor</option>
+                  <option>Customer Support Lead</option>
+                  <option>Other</option>
+                </select>
+                <select name="teamSize" required className="full" defaultValue="" disabled={formState.status === "submitting"}>
+                  <option value="" disabled>Team size</option>
+                  <option>1-5</option>
+                  <option>6-15</option>
+                  <option>16-50</option>
+                  <option>51-100</option>
+                  <option>100+</option>
+                </select>
+                <select name="industry" required className="full" defaultValue="" disabled={formState.status === "submitting"}>
+                  <option value="" disabled>Industry</option>
+                  <option>Sales / Tech</option>
+                  <option>Nonprofit / Human Services</option>
+                  <option>Behavioral Health</option>
+                  <option>Healthcare / Medical</option>
+                  <option>UX Research / Design</option>
+                  <option>Product / Engineering</option>
+                  <option>Customer Support</option>
+                  <option>Legal</option>
+                  <option>Real Estate</option>
+                  <option>Education</option>
+                  <option>Financial Services</option>
+                  <option>Government</option>
+                  <option>Multi-Location Retail / Operations</option>
+                  <option>Other</option>
+                </select>
+                {formState.status === "error" && (
+                  <div className="wl-error full">
+                    {formState.message}
+                  </div>
+                )}
+                <button
+                  type="submit"
+                  className="wl-btn"
+                  disabled={formState.status === "submitting"}
+                >
+                  {formState.status === "submitting" ? "Submitting..." : "Apply for the Spring 2026 Pilot"}
+                </button>
+              </form>
+              <div className="cta-note">
+                No credit card · Invite-only · One business day response
+              </div>
+            </>
+          )}
         </div>
       </section>
 
