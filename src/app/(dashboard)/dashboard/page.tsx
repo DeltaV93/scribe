@@ -1,5 +1,6 @@
 import { getCurrentUser } from "@/lib/auth";
 import { redirect } from "next/navigation";
+import { prisma } from "@/lib/db";
 import {
   Card,
   CardContent,
@@ -9,6 +10,29 @@ import {
 } from "@/components/ui/card";
 import { FileText, Users, Phone, TrendingUp } from "lucide-react";
 
+async function getDashboardStats(organizationId: string) {
+  const now = new Date();
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+
+  const [activeForms, totalClients, callsThisMonth, submissionsThisMonth] =
+    await Promise.all([
+      prisma.form.count({
+        where: { orgId: organizationId, status: "PUBLISHED" },
+      }),
+      prisma.client.count({
+        where: { orgId: organizationId },
+      }),
+      prisma.call.count({
+        where: { caseManager: { orgId: organizationId }, startedAt: { gte: monthStart } },
+      }),
+      prisma.formSubmission.count({
+        where: { orgId: organizationId, submittedAt: { gte: monthStart } },
+      }),
+    ]);
+
+  return { activeForms, totalClients, callsThisMonth, submissionsThisMonth };
+}
+
 export default async function DashboardPage() {
   const user = await getCurrentUser();
 
@@ -16,31 +40,33 @@ export default async function DashboardPage() {
     redirect("/login");
   }
 
+  const dashboardStats = await getDashboardStats(user.orgId);
+
   const stats = [
     {
       title: "Active Forms",
-      value: "0",
+      value: dashboardStats.activeForms.toString(),
       description: "Published intake forms",
       icon: FileText,
       trend: null,
     },
     {
       title: "Total Clients",
-      value: "0",
+      value: dashboardStats.totalClients.toString(),
       description: "Registered clients",
       icon: Users,
       trend: null,
     },
     {
       title: "Calls This Month",
-      value: "0",
+      value: dashboardStats.callsThisMonth.toString(),
       description: "Processed calls",
       icon: Phone,
       trend: null,
     },
     {
       title: "Submissions",
-      value: "0",
+      value: dashboardStats.submissionsThisMonth.toString(),
       description: "Form submissions this month",
       icon: TrendingUp,
       trend: null,

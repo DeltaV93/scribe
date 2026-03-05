@@ -295,7 +295,6 @@ async function handleInboundCall(
             clientId: client.id,
             caseManagerId: caseManager.id,
             status: CallStatus.RINGING,
-            direction: "INBOUND",
             twilioCallSid: callSid,
             startedAt: new Date(),
             isRecorded: false, // Will be updated based on consent

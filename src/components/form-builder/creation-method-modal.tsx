@@ -116,7 +116,7 @@ export function CreationMethodModal({
                 key={method.id}
                 onClick={() => handleSelect(method.id)}
                 className={cn(
-                  "relative flex items-start gap-4 rounded-lg border-2 p-4 text-left transition-all hover:border-primary/50 hover:bg-accent",
+                  "relative flex items-start gap-4 rounded-lg border-2 p-4 text-left transition-all hover:border-primary/50 hover:bg-muted",
                   isSelected && "border-primary bg-primary/5",
                   !isSelected && "border-muted"
                 )}

@@ -52,7 +52,8 @@ export type AuditResource =
   | "GOAL"
   | "KPI"
   | "SESSION"
-  | "CALENDAR_EVENT";
+  | "CALENDAR_EVENT"
+  | "SYSTEM";
 
 export interface AuditLogEntry {
   id: string;

@@ -160,6 +160,7 @@ function extractResourceIdFromParams(
     KPI: ["kpiId", "kpi_id", "id"],
     SESSION: ["sessionId", "session_id", "id"],
     CALENDAR_EVENT: ["eventId", "calendarEventId", "id"],
+    SYSTEM: ["systemId", "jobId", "id"],
   };
 
   const possibleParams = resourceParamMap[resource] || ["id"];
