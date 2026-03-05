@@ -6,6 +6,8 @@ for matching transcripts to forms.
 Phase 1: Signal detection, pattern matching, and segment detection.
 Phase 2: NLP integration with spaCy tokenization, sentence embeddings,
          entity extraction, and intent classification.
+Phase 3: Feedback loop with correction scoring, auto-retraining triggers,
+         A/B testing, and canary deployments.
 
 NLP components are optional and use lazy loading. The rule-based system
 always works as a fallback if NLP models are not installed.
@@ -26,6 +28,23 @@ from src.matching.confidence import ConfidenceScorer
 from src.matching.segment_detector import MeetingSegmentDetector
 from src.matching.matcher import FormMatcher
 
+# Phase 3: Feedback loop
+from src.matching.feedback import (
+    FormMatchingFeedback,
+    FormMatchingFeedbackType,
+    FeedbackSignal,
+    FormMatchingFeedbackCollector,
+    analyze_edits,
+    get_feedback_collector,
+)
+from src.matching.correction_scorer import (
+    CorrectionScorer,
+    CorrectionScore,
+    QualityTier,
+    TrainingDataset,
+    create_training_dataset,
+)
+
 __all__ = [
     # Types
     "Signal",
@@ -41,6 +60,19 @@ __all__ = [
     "ConfidenceScorer",
     "MeetingSegmentDetector",
     "FormMatcher",
+    # Feedback (Phase 3)
+    "FormMatchingFeedback",
+    "FormMatchingFeedbackType",
+    "FeedbackSignal",
+    "FormMatchingFeedbackCollector",
+    "analyze_edits",
+    "get_feedback_collector",
+    # Correction Scoring (Phase 3)
+    "CorrectionScorer",
+    "CorrectionScore",
+    "QualityTier",
+    "TrainingDataset",
+    "create_training_dataset",
 ]
 
 

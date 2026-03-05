@@ -529,6 +529,108 @@ export interface AuditQueueStatus {
   last_flush_at: string | null;
 }
 
+// === Form Matching Feedback (PX-887 Phase 3) ===
+
+export type FormMatchingFeedbackType =
+  | "form_confirmed"
+  | "form_override_suggestions"
+  | "form_override_manual"
+  | "no_form_matched"
+  | "minor_edit"
+  | "significant_edit";
+
+export type FormFeedbackSignal =
+  | "strong_positive"
+  | "positive"
+  | "neutral"
+  | "negative"
+  | "strong_negative";
+
+export type QualityTier = "high" | "medium" | "low" | "rejected";
+
+export interface FormFeedbackConfirmation {
+  org_id: string;
+  call_id: string;
+  user_id: string;
+  suggested_form_id: string;
+  suggested_form_name: string;
+  suggested_confidence: number;
+  all_suggestions: Array<{
+    form_id: string;
+    form_name: string;
+    confidence: number;
+  }>;
+  industry?: string;
+  meeting_type?: string;
+}
+
+export interface FormFeedbackOverride {
+  org_id: string;
+  call_id: string;
+  user_id: string;
+  suggested_form_id?: string;
+  suggested_form_name?: string;
+  suggested_confidence?: number;
+  selected_form_id: string;
+  selected_form_name: string;
+  all_suggestions: Array<{
+    form_id: string;
+    form_name: string;
+    confidence: number;
+  }>;
+  was_in_suggestions: boolean;
+  industry?: string;
+  meeting_type?: string;
+}
+
+export interface FormFeedbackEdit {
+  org_id: string;
+  call_id: string;
+  user_id: string;
+  form_id: string;
+  form_name: string;
+  original_output: Record<string, unknown>;
+  edited_output: Record<string, unknown>;
+  confidence?: number;
+  industry?: string;
+}
+
+export interface FormFeedbackResponse {
+  feedback_type: FormMatchingFeedbackType;
+  signal: FormFeedbackSignal;
+  signal_weight: number;
+  quality_score?: number;
+  is_significant_edit?: boolean;
+}
+
+export interface EditAnalysis {
+  edit_distance: number;
+  content_change_ratio: number;
+  is_significant: boolean;
+  fields_changed: number;
+  total_fields: number;
+  changed_field_names: string[];
+}
+
+export interface FormFeedbackStats {
+  pending_count: number;
+  by_type: Record<FormMatchingFeedbackType, number>;
+  by_signal: Record<FormFeedbackSignal, number>;
+  avg_quality_score?: number;
+}
+
+export interface TrainingDatasetResult {
+  processed: number;
+  training_samples: number;
+  rejected: number;
+  high_quality: number;
+  medium_quality: number;
+  low_quality: number;
+  total_weight: number;
+  positive_weight: number;
+  negative_weight: number;
+}
+
 // === Errors ===
 
 export interface MLServiceError {

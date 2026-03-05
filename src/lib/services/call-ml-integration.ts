@@ -448,3 +448,158 @@ export async function auditFormSelection(
     console.error("[CallMLIntegration] Failed to emit form selection audit event:", error);
   }
 }
+
+// ============================================================================
+// Form Matching Feedback (PX-887 Phase 3)
+// ============================================================================
+
+/**
+ * Record form confirmation feedback
+ * User accepted the auto-suggested form
+ */
+export async function recordFormConfirmation(
+  orgId: string,
+  callId: string,
+  userId: string,
+  suggestedFormId: string,
+  suggestedFormName: string,
+  suggestedConfidence: number,
+  allSuggestions: Array<{ form_id: string; form_name: string; confidence: number }>,
+  industry?: string,
+  meetingType?: string
+): Promise<void> {
+  try {
+    await mlServices.matchingFeedback.recordConfirmation({
+      org_id: orgId,
+      call_id: callId,
+      user_id: userId,
+      suggested_form_id: suggestedFormId,
+      suggested_form_name: suggestedFormName,
+      suggested_confidence: suggestedConfidence,
+      all_suggestions: allSuggestions,
+      industry,
+      meeting_type: meetingType,
+    });
+
+    console.log("[CallMLIntegration] Form confirmation feedback recorded");
+  } catch (error) {
+    // Log but don't fail - feedback is non-critical
+    console.error("[CallMLIntegration] Failed to record form confirmation:", error);
+  }
+}
+
+/**
+ * Record form override feedback
+ * User selected a different form than suggested
+ */
+export async function recordFormOverride(
+  orgId: string,
+  callId: string,
+  userId: string,
+  suggestedFormId: string | null,
+  suggestedFormName: string | null,
+  suggestedConfidence: number | null,
+  selectedFormId: string,
+  selectedFormName: string,
+  allSuggestions: Array<{ form_id: string; form_name: string; confidence: number }>,
+  wasInSuggestions: boolean,
+  industry?: string,
+  meetingType?: string
+): Promise<void> {
+  try {
+    await mlServices.matchingFeedback.recordOverride({
+      org_id: orgId,
+      call_id: callId,
+      user_id: userId,
+      suggested_form_id: suggestedFormId ?? undefined,
+      suggested_form_name: suggestedFormName ?? undefined,
+      suggested_confidence: suggestedConfidence ?? undefined,
+      selected_form_id: selectedFormId,
+      selected_form_name: selectedFormName,
+      all_suggestions: allSuggestions,
+      was_in_suggestions: wasInSuggestions,
+      industry,
+      meeting_type: meetingType,
+    });
+
+    console.log("[CallMLIntegration] Form override feedback recorded", {
+      wasInSuggestions,
+    });
+  } catch (error) {
+    // Log but don't fail - feedback is non-critical
+    console.error("[CallMLIntegration] Failed to record form override:", error);
+  }
+}
+
+/**
+ * Record content edit feedback
+ * User modified extracted data
+ */
+export async function recordContentEdit(
+  orgId: string,
+  callId: string,
+  userId: string,
+  formId: string,
+  formName: string,
+  originalOutput: Record<string, unknown>,
+  editedOutput: Record<string, unknown>,
+  confidence?: number,
+  industry?: string
+): Promise<{ isSignificant: boolean } | null> {
+  try {
+    const response = await mlServices.matchingFeedback.recordEdit({
+      org_id: orgId,
+      call_id: callId,
+      user_id: userId,
+      form_id: formId,
+      form_name: formName,
+      original_output: originalOutput,
+      edited_output: editedOutput,
+      confidence,
+      industry,
+    });
+
+    console.log("[CallMLIntegration] Content edit feedback recorded", {
+      isSignificant: response.is_significant_edit,
+      feedbackType: response.feedback_type,
+    });
+
+    return {
+      isSignificant: response.is_significant_edit ?? false,
+    };
+  } catch (error) {
+    // Log but don't fail - feedback is non-critical
+    console.error("[CallMLIntegration] Failed to record content edit:", error);
+    return null;
+  }
+}
+
+/**
+ * Analyze edit magnitude without recording feedback
+ */
+export async function analyzeEditMagnitude(
+  originalOutput: Record<string, unknown>,
+  editedOutput: Record<string, unknown>,
+  threshold: number = 0.20
+): Promise<{
+  isSignificant: boolean;
+  contentChangeRatio: number;
+  fieldsChanged: number;
+} | null> {
+  try {
+    const analysis = await mlServices.matchingFeedback.analyzeEdit(
+      originalOutput,
+      editedOutput,
+      threshold
+    );
+
+    return {
+      isSignificant: analysis.is_significant,
+      contentChangeRatio: analysis.content_change_ratio,
+      fieldsChanged: analysis.fields_changed,
+    };
+  } catch (error) {
+    console.error("[CallMLIntegration] Failed to analyze edit magnitude:", error);
+    return null;
+  }
+}

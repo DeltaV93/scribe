@@ -1,10 +1,11 @@
-"""Form matching API endpoints (PX-887 Phase 1).
+"""Form matching API endpoints (PX-887 Phase 1-3).
 
 Provides endpoints for:
 - Signal detection
 - Confidence scoring
 - Segment detection
 - Full form matching
+- Feedback collection (Phase 3)
 """
 
 from typing import Optional
@@ -25,6 +26,17 @@ from src.matching.signals import SignalDetector, SignalsConfig
 from src.matching.confidence import ConfidenceScorer
 from src.matching.segment_detector import MeetingSegmentDetector
 from src.matching.matcher import FormMatcher
+from src.matching.feedback import (
+    FormMatchingFeedbackType,
+    FeedbackSignal,
+    get_feedback_collector,
+    analyze_edits,
+)
+from src.matching.correction_scorer import (
+    CorrectionScorer,
+    QualityTier,
+    create_training_dataset,
+)
 
 
 router = APIRouter(prefix="/matching")
@@ -472,3 +484,311 @@ async def match_forms(
         ),
         processing_time_ms=elapsed_ms,
     )
+
+
+# --- Phase 3: Feedback Endpoints ---
+
+
+class FeedbackConfirmationRequest(BaseModel):
+    """Request to record form confirmation."""
+
+    org_id: UUID
+    call_id: UUID
+    user_id: UUID
+    suggested_form_id: UUID
+    suggested_form_name: str
+    suggested_confidence: float = Field(..., ge=0.0, le=1.0)
+    all_suggestions: list[dict] = Field(default_factory=list)
+    industry: Optional[str] = None
+    meeting_type: Optional[str] = None
+
+
+class FeedbackOverrideRequest(BaseModel):
+    """Request to record form override."""
+
+    org_id: UUID
+    call_id: UUID
+    user_id: UUID
+    suggested_form_id: Optional[UUID] = None
+    suggested_form_name: Optional[str] = None
+    suggested_confidence: Optional[float] = Field(None, ge=0.0, le=1.0)
+    selected_form_id: UUID
+    selected_form_name: str
+    all_suggestions: list[dict] = Field(default_factory=list)
+    was_in_suggestions: bool = False
+    industry: Optional[str] = None
+    meeting_type: Optional[str] = None
+
+
+class FeedbackEditRequest(BaseModel):
+    """Request to record content edits."""
+
+    org_id: UUID
+    call_id: UUID
+    user_id: UUID
+    form_id: UUID
+    form_name: str
+    original_output: dict
+    edited_output: dict
+    confidence: Optional[float] = Field(None, ge=0.0, le=1.0)
+    industry: Optional[str] = None
+
+
+class FeedbackResponse(BaseModel):
+    """Response from feedback recording."""
+
+    feedback_type: str
+    signal: str
+    signal_weight: float
+    quality_score: Optional[float] = None
+    is_significant_edit: Optional[bool] = None
+
+
+class EditAnalysisResponse(BaseModel):
+    """Response from edit analysis."""
+
+    edit_distance: float
+    content_change_ratio: float
+    is_significant: bool
+    fields_changed: int
+    total_fields: int
+    changed_field_names: list[str]
+
+
+class FeedbackStatsResponse(BaseModel):
+    """Statistics about collected feedback."""
+
+    pending_count: int
+    by_type: dict[str, int]
+    by_signal: dict[str, int]
+    avg_quality_score: Optional[float] = None
+
+
+@router.post("/feedback/confirmation", response_model=FeedbackResponse)
+async def record_confirmation(
+    request: FeedbackConfirmationRequest,
+) -> FeedbackResponse:
+    """Record that user confirmed an auto-suggested form.
+
+    This is a positive feedback signal indicating the model
+    correctly matched the form.
+    """
+    collector = get_feedback_collector()
+
+    feedback = collector.record_confirmation(
+        org_id=request.org_id,
+        call_id=request.call_id,
+        user_id=request.user_id,
+        suggested_form_id=request.suggested_form_id,
+        suggested_form_name=request.suggested_form_name,
+        suggested_confidence=request.suggested_confidence,
+        all_suggestions=request.all_suggestions,
+        industry=request.industry,
+        meeting_type=request.meeting_type,
+    )
+
+    return FeedbackResponse(
+        feedback_type=feedback.feedback_type.value if feedback.feedback_type else "unknown",
+        signal=feedback.signal.value if feedback.signal else "neutral",
+        signal_weight=feedback.signal_weight,
+        quality_score=feedback.quality_score,
+    )
+
+
+@router.post("/feedback/override", response_model=FeedbackResponse)
+async def record_override(
+    request: FeedbackOverrideRequest,
+) -> FeedbackResponse:
+    """Record that user selected a different form than suggested.
+
+    This is a negative feedback signal indicating the model's
+    suggestion was incorrect.
+    """
+    collector = get_feedback_collector()
+
+    feedback = collector.record_override(
+        org_id=request.org_id,
+        call_id=request.call_id,
+        user_id=request.user_id,
+        suggested_form_id=request.suggested_form_id,
+        suggested_form_name=request.suggested_form_name,
+        suggested_confidence=request.suggested_confidence,
+        selected_form_id=request.selected_form_id,
+        selected_form_name=request.selected_form_name,
+        all_suggestions=request.all_suggestions,
+        was_in_suggestions=request.was_in_suggestions,
+        industry=request.industry,
+        meeting_type=request.meeting_type,
+    )
+
+    return FeedbackResponse(
+        feedback_type=feedback.feedback_type.value if feedback.feedback_type else "unknown",
+        signal=feedback.signal.value if feedback.signal else "neutral",
+        signal_weight=feedback.signal_weight,
+        quality_score=feedback.quality_score,
+    )
+
+
+@router.post("/feedback/no-match", response_model=FeedbackResponse)
+async def record_no_match(
+    org_id: UUID,
+    call_id: UUID,
+    user_id: UUID,
+    all_suggestions: list[dict] = [],
+    industry: Optional[str] = None,
+    meeting_type: Optional[str] = None,
+) -> FeedbackResponse:
+    """Record that user selected 'None of these' for all suggestions.
+
+    Strong negative signal indicating none of the suggestions
+    were appropriate.
+    """
+    collector = get_feedback_collector()
+
+    feedback = collector.record_no_match(
+        org_id=org_id,
+        call_id=call_id,
+        user_id=user_id,
+        all_suggestions=all_suggestions,
+        industry=industry,
+        meeting_type=meeting_type,
+    )
+
+    return FeedbackResponse(
+        feedback_type=feedback.feedback_type.value if feedback.feedback_type else "unknown",
+        signal=feedback.signal.value if feedback.signal else "neutral",
+        signal_weight=feedback.signal_weight,
+        quality_score=feedback.quality_score,
+    )
+
+
+@router.post("/feedback/edit", response_model=FeedbackResponse)
+async def record_edit(
+    request: FeedbackEditRequest,
+) -> FeedbackResponse:
+    """Record content edits to extracted data.
+
+    Analyzes the magnitude of edits to determine signal strength.
+    Minor edits (<20% change) are positive signals.
+    Significant edits (>=20% change) are negative signals.
+    """
+    collector = get_feedback_collector()
+
+    feedback = collector.record_content_edit(
+        org_id=request.org_id,
+        call_id=request.call_id,
+        user_id=request.user_id,
+        form_id=request.form_id,
+        form_name=request.form_name,
+        original_output=request.original_output,
+        edited_output=request.edited_output,
+        confidence=request.confidence,
+        industry=request.industry,
+    )
+
+    return FeedbackResponse(
+        feedback_type=feedback.feedback_type.value if feedback.feedback_type else "unknown",
+        signal=feedback.signal.value if feedback.signal else "neutral",
+        signal_weight=feedback.signal_weight,
+        quality_score=feedback.quality_score,
+        is_significant_edit=feedback.content_change_ratio >= 0.20 if feedback.content_change_ratio else None,
+    )
+
+
+@router.post("/feedback/analyze-edit", response_model=EditAnalysisResponse)
+async def analyze_edit(
+    original_output: dict,
+    edited_output: dict,
+    threshold: float = 0.20,
+) -> EditAnalysisResponse:
+    """Analyze the magnitude of content edits.
+
+    Compares original ML-extracted output to user-edited version
+    to determine if changes are significant (>20% by default).
+    """
+    analysis = analyze_edits(original_output, edited_output, threshold)
+
+    return EditAnalysisResponse(
+        edit_distance=analysis.edit_distance,
+        content_change_ratio=analysis.content_change_ratio,
+        is_significant=analysis.is_significant,
+        fields_changed=analysis.fields_changed,
+        total_fields=analysis.total_fields,
+        changed_field_names=analysis.changed_field_names,
+    )
+
+
+@router.get("/feedback/stats", response_model=FeedbackStatsResponse)
+async def get_feedback_stats() -> FeedbackStatsResponse:
+    """Get statistics about pending feedback.
+
+    Returns counts by type and signal strength.
+    """
+    collector = get_feedback_collector()
+    pending = collector.get_pending_feedback()
+
+    by_type: dict[str, int] = {}
+    by_signal: dict[str, int] = {}
+    total_quality = 0.0
+    quality_count = 0
+
+    for fb in pending:
+        if fb.feedback_type:
+            type_name = fb.feedback_type.value
+            by_type[type_name] = by_type.get(type_name, 0) + 1
+
+        if fb.signal:
+            signal_name = fb.signal.value
+            by_signal[signal_name] = by_signal.get(signal_name, 0) + 1
+
+        if fb.quality_score is not None:
+            total_quality += fb.quality_score
+            quality_count += 1
+
+    avg_quality = total_quality / quality_count if quality_count > 0 else None
+
+    return FeedbackStatsResponse(
+        pending_count=len(pending),
+        by_type=by_type,
+        by_signal=by_signal,
+        avg_quality_score=avg_quality,
+    )
+
+
+@router.post("/feedback/process")
+async def process_pending_feedback(
+    min_quality_tier: str = "medium",
+) -> dict:
+    """Process pending feedback and create training dataset.
+
+    Scores corrections and filters for training quality.
+    Returns statistics about the resulting dataset.
+    """
+    collector = get_feedback_collector()
+    pending = collector.get_pending_feedback()
+
+    if not pending:
+        return {
+            "processed": 0,
+            "training_samples": 0,
+            "rejected": 0,
+        }
+
+    # Create training dataset
+    tier = QualityTier(min_quality_tier)
+    dataset = create_training_dataset(pending, min_tier=tier)
+
+    # Clear processed feedback
+    collector.clear_pending()
+
+    return {
+        "processed": dataset.total_processed,
+        "training_samples": len(dataset.corrections),
+        "rejected": dataset.total_rejected,
+        "high_quality": dataset.high_quality_count,
+        "medium_quality": dataset.medium_quality_count,
+        "low_quality": dataset.low_quality_count,
+        "total_weight": dataset.total_weight,
+        "positive_weight": dataset.positive_signal_weight,
+        "negative_weight": dataset.negative_signal_weight,
+    }

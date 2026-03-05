@@ -43,6 +43,15 @@ import {
   SegmentResponse,
   MatchRequest,
   MatchResponse,
+  // PX-887 Phase 3 Feedback types
+  FormFeedbackConfirmation,
+  FormFeedbackOverride,
+  FormFeedbackEdit,
+  FormFeedbackResponse,
+  EditAnalysis,
+  FormFeedbackStats,
+  TrainingDatasetResult,
+  QualityTier,
   // PX-897 Privacy types
   DPQueryRequest,
   DPQueryResponse,
@@ -521,6 +530,98 @@ export const matching = {
 };
 
 // ============================================================================
+// Matching Feedback (PX-887 Phase 3)
+// ============================================================================
+
+export const matchingFeedback = {
+  /**
+   * Record that user confirmed auto-suggested form
+   */
+  async recordConfirmation(data: FormFeedbackConfirmation): Promise<FormFeedbackResponse> {
+    return mlFetch("/v1/matching/feedback/confirmation", {
+      method: "POST",
+      body: data,
+    });
+  },
+
+  /**
+   * Record that user selected a different form than suggested
+   */
+  async recordOverride(data: FormFeedbackOverride): Promise<FormFeedbackResponse> {
+    return mlFetch("/v1/matching/feedback/override", {
+      method: "POST",
+      body: data,
+    });
+  },
+
+  /**
+   * Record that user selected "None of these"
+   */
+  async recordNoMatch(
+    orgId: string,
+    callId: string,
+    userId: string,
+    allSuggestions: Array<{ form_id: string; form_name: string; confidence: number }>,
+    industry?: string,
+    meetingType?: string
+  ): Promise<FormFeedbackResponse> {
+    return mlFetch("/v1/matching/feedback/no-match", {
+      method: "POST",
+      params: {
+        org_id: orgId,
+        call_id: callId,
+        user_id: userId,
+        industry,
+        meeting_type: meetingType,
+      },
+      body: allSuggestions,
+    });
+  },
+
+  /**
+   * Record content edits to extracted data
+   */
+  async recordEdit(data: FormFeedbackEdit): Promise<FormFeedbackResponse> {
+    return mlFetch("/v1/matching/feedback/edit", {
+      method: "POST",
+      body: data,
+    });
+  },
+
+  /**
+   * Analyze edit magnitude without recording
+   */
+  async analyzeEdit(
+    originalOutput: Record<string, unknown>,
+    editedOutput: Record<string, unknown>,
+    threshold?: number
+  ): Promise<EditAnalysis> {
+    return mlFetch("/v1/matching/feedback/analyze-edit", {
+      method: "POST",
+      params: { threshold },
+      body: { original_output: originalOutput, edited_output: editedOutput },
+    });
+  },
+
+  /**
+   * Get pending feedback statistics
+   */
+  async getStats(): Promise<FormFeedbackStats> {
+    return mlFetch("/v1/matching/feedback/stats");
+  },
+
+  /**
+   * Process pending feedback into training dataset
+   */
+  async processForTraining(minQualityTier: QualityTier = "medium"): Promise<TrainingDatasetResult> {
+    return mlFetch("/v1/matching/feedback/process", {
+      method: "POST",
+      params: { min_quality_tier: minQualityTier },
+    });
+  },
+};
+
+// ============================================================================
 // Privacy (PX-897)
 // ============================================================================
 
@@ -742,6 +843,7 @@ const mlServices = {
   auditEnhanced,
   feedback,
   matching,
+  matchingFeedback,
   privacy,
   health,
   emitModelDeployed,
