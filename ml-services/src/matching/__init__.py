@@ -1,8 +1,14 @@
 """Form Auto-Detection & Matching Service (PX-887).
 
 This module provides rule-based signal detection and confidence scoring
-for matching transcripts to forms. Phase 1 focuses on signal detection,
-pattern matching, and segment detection without NLP model integration.
+for matching transcripts to forms.
+
+Phase 1: Signal detection, pattern matching, and segment detection.
+Phase 2: NLP integration with spaCy tokenization, sentence embeddings,
+         entity extraction, and intent classification.
+
+NLP components are optional and use lazy loading. The rule-based system
+always works as a fallback if NLP models are not installed.
 """
 
 from src.matching.types import (
@@ -36,3 +42,7 @@ __all__ = [
     "MeetingSegmentDetector",
     "FormMatcher",
 ]
+
+
+# NLP components are available via the nlp submodule
+# Import with: from src.matching.nlp import SpaCyTokenizer, EmbeddingModel, etc.

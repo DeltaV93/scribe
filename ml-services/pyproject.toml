@@ -67,6 +67,15 @@ ml = [
     "scikit-learn>=1.4.0",
 ]
 
+nlp = [
+    # spaCy for tokenization and NER
+    "spacy>=3.7.0",
+    # Sentence transformers for semantic similarity
+    "sentence-transformers>=2.3.0",
+    # NumPy for vector operations
+    "numpy>=1.26.0",
+]
+
 privacy = [
     "opendp>=0.10.0",
     "numpy>=1.26.0",

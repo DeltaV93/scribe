@@ -89,6 +89,15 @@ export async function POST(request: NextRequest, context: RouteContext) {
           ? Object.keys(result.extractedFields).length
           : 0,
         hasSummary: !!result.summary,
+        // ML form matching results
+        mlFormMatches: result.mlFormMatches?.length ?? 0,
+        autoSuggestedForm: result.autoSuggestedForm
+          ? {
+              formId: result.autoSuggestedForm.formId,
+              formName: result.autoSuggestedForm.formName,
+              confidence: result.autoSuggestedForm.confidence,
+            }
+          : null,
       },
     });
   } catch (error) {

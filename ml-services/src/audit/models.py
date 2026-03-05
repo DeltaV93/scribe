@@ -56,6 +56,10 @@ class AuditEvent(Base, UUIDMixin):
     occurred_at: Mapped[datetime] = mapped_column(nullable=False, index=True)
     ingested_at: Mapped[datetime] = mapped_column(nullable=False)
 
+    # Model tracking (PX-898) - links audit events to triggering models
+    model_id: Mapped[Optional[UUID]] = mapped_column(PG_UUID(as_uuid=True), nullable=True)
+    model_version_id: Mapped[Optional[UUID]] = mapped_column(PG_UUID(as_uuid=True), nullable=True)
+
     # S3 archive reference (if archived)
     s3_archive_path: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
 

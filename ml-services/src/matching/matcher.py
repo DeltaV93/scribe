@@ -1,11 +1,11 @@
-"""Form matching orchestrator (PX-887 Phase 1).
+"""Form matching orchestrator (PX-887 Phase 1 + Phase 2 NLP).
 
 Combines signal detection, confidence scoring, and segment detection
-to match transcripts to forms.
+to match transcripts to forms. Phase 2 adds optional NLP enhancement.
 """
 
 import time
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 from uuid import UUID
 
 import structlog
@@ -13,9 +13,11 @@ import structlog
 from src.matching.types import (
     ConfidenceLevel,
     FormCandidate,
+    Match,
     MatchingContext,
     MatchResult,
     Segment,
+    Signal,
 )
 from src.matching.signals import SignalDetector, SignalsConfig
 from src.matching.confidence import ConfidenceScorer, ThresholdTier
@@ -25,8 +27,24 @@ from src.org_profile.industry_defaults import (
     get_industry,
 )
 
+if TYPE_CHECKING:
+    from src.matching.nlp import EmbeddingModel, EntityExtractor
+
 
 logger = structlog.get_logger()
+
+
+# NLP enhancement configuration
+NLP_CONFIG = {
+    # Weight for NLP semantic similarity score
+    "semantic_similarity_weight": 0.3,
+    # Weight for rule-based score
+    "rule_based_weight": 0.7,
+    # Minimum semantic similarity to boost confidence
+    "min_semantic_similarity": 0.5,
+    # Boost applied when semantic similarity is high
+    "semantic_boost_max": 0.15,
+}
 
 
 class FormMatcher:
@@ -36,8 +54,10 @@ class FormMatcher:
     - SignalDetector: Keyword and pattern detection
     - ConfidenceScorer: Score calculation and tier thresholds
     - MeetingSegmentDetector: Segment boundary detection
+    - (Phase 2) NLP components for semantic enhancement
 
-    Phase 1 implementation is rule-based. Phase 2 will add NLP integration.
+    Rule-based matching is always available. NLP enhancement is optional
+    and gracefully degrades if models are not installed.
     """
 
     def __init__(
@@ -45,6 +65,7 @@ class FormMatcher:
         signal_detector: Optional[SignalDetector] = None,
         confidence_scorer: Optional[ConfidenceScorer] = None,
         segment_detector: Optional[MeetingSegmentDetector] = None,
+        enable_nlp: bool = True,
     ):
         """Initialize the form matcher.
 
@@ -52,16 +73,72 @@ class FormMatcher:
             signal_detector: Optional custom signal detector
             confidence_scorer: Optional custom confidence scorer
             segment_detector: Optional custom segment detector
+            enable_nlp: Whether to enable NLP enhancement (Phase 2)
         """
         self.signal_detector = signal_detector or SignalDetector()
         self.confidence_scorer = confidence_scorer or ConfidenceScorer()
         self.segment_detector = segment_detector or MeetingSegmentDetector()
+
+        # NLP components (lazy loaded)
+        self._enable_nlp = enable_nlp
+        self._embedding_model: Optional["EmbeddingModel"] = None
+        self._entity_extractor: Optional["EntityExtractor"] = None
+        self._nlp_available: Optional[bool] = None
+
+    @property
+    def nlp_available(self) -> bool:
+        """Check if NLP components are available."""
+        if not self._enable_nlp:
+            return False
+
+        if self._nlp_available is None:
+            try:
+                from src.matching.nlp import EmbeddingModel
+
+                self._embedding_model = EmbeddingModel()
+                self._nlp_available = self._embedding_model.available
+
+                if self._nlp_available:
+                    logger.info("NLP enhancement enabled for form matching")
+                else:
+                    logger.info(
+                        "NLP enhancement disabled - sentence-transformers not available"
+                    )
+            except ImportError:
+                self._nlp_available = False
+                logger.info("NLP enhancement disabled - nlp module not available")
+
+        return self._nlp_available
+
+    @property
+    def embedding_model(self) -> Optional["EmbeddingModel"]:
+        """Get the embedding model if available."""
+        if self.nlp_available:
+            return self._embedding_model
+        return None
+
+    @property
+    def entity_extractor(self) -> Optional["EntityExtractor"]:
+        """Get the entity extractor (lazy loaded)."""
+        if not self.nlp_available:
+            return None
+
+        if self._entity_extractor is None:
+            try:
+                from src.matching.nlp import EntityExtractor
+
+                self._entity_extractor = EntityExtractor()
+            except ImportError:
+                pass
+
+        return self._entity_extractor
 
     def match_forms(
         self,
         transcript: str,
         context: MatchingContext,
         timestamps: Optional[list[tuple[float, float, str]]] = None,
+        use_nlp: Optional[bool] = None,
     ) -> list[MatchResult]:
         """Match a transcript to forms.
 
@@ -69,20 +146,25 @@ class FormMatcher:
         1. Load signals from context (industry defaults + org customizations)
         2. If segmentation enabled, detect segments
         3. For each segment (or whole transcript):
-           a. Detect signals in text
-           b. Score each form candidate
-           c. Apply risk tier thresholds
+           a. Detect signals in text (rule-based)
+           b. (Phase 2) Enhance with NLP if available
+           c. Score each form candidate
+           d. Apply risk tier thresholds
         4. Return ranked results
 
         Args:
             transcript: The transcript text to match
             context: Matching context with org settings and form candidates
             timestamps: Optional timestamps for segment detection
+            use_nlp: Override NLP usage (None uses instance setting)
 
         Returns:
             List of MatchResult objects, ranked by confidence
         """
         start_time = time.perf_counter()
+
+        # Determine if NLP should be used
+        should_use_nlp = use_nlp if use_nlp is not None else self.nlp_available
 
         # Build signals config from context
         signals_config = self._build_signals_config(context)
@@ -104,6 +186,7 @@ class FormMatcher:
                     segment,
                     context,
                     signals_config,
+                    use_nlp=should_use_nlp,
                 )
                 all_results.extend(segment_results)
         else:
@@ -112,6 +195,7 @@ class FormMatcher:
                 transcript,
                 context,
                 signals_config,
+                use_nlp=should_use_nlp,
             )
             all_results.extend(results)
 
@@ -132,6 +216,7 @@ class FormMatcher:
             result_count=len(all_results),
             top_confidence=all_results[0].confidence if all_results else 0,
             processing_time_ms=elapsed_ms,
+            nlp_enabled=should_use_nlp,
         )
 
         return all_results
@@ -207,6 +292,7 @@ class FormMatcher:
         segment: Segment,
         context: MatchingContext,
         signals_config: SignalsConfig,
+        use_nlp: bool = False,
     ) -> list[MatchResult]:
         """Match a single segment to forms."""
         results = self._match_text(
@@ -215,6 +301,7 @@ class FormMatcher:
             signals_config,
             segment_index=segment.segment_index,
             segment_type=segment.segment_type,
+            use_nlp=use_nlp,
         )
         return results
 
@@ -225,6 +312,7 @@ class FormMatcher:
         signals_config: SignalsConfig,
         segment_index: Optional[int] = None,
         segment_type=None,
+        use_nlp: bool = False,
     ) -> list[MatchResult]:
         """Match text against form candidates.
 
@@ -234,11 +322,12 @@ class FormMatcher:
             signals_config: Signal detection configuration
             segment_index: Optional segment index
             segment_type: Optional segment type
+            use_nlp: Whether to use NLP enhancement
 
         Returns:
             List of MatchResult objects
         """
-        # Detect signals in text
+        # Detect signals in text (rule-based)
         detection_result = self.signal_detector.detect_all(text, signals_config)
 
         if not detection_result.signals:
@@ -248,6 +337,11 @@ class FormMatcher:
                 segment_index=segment_index,
             )
             return []
+
+        # Extract entities if NLP is enabled
+        extracted_entities: list[Signal] = []
+        if use_nlp and self.entity_extractor:
+            extracted_entities = self._extract_entity_signals(text)
 
         results: list[MatchResult] = []
 
@@ -260,13 +354,20 @@ class FormMatcher:
                 risk_overrides=context.risk_overrides,
             )
 
-            # Score the form
+            # Score the form (rule-based)
+            all_signals = detection_result.signals + extracted_entities
             confidence, matches = self.confidence_scorer.score_matches(
-                signals=detection_result.signals,
+                signals=all_signals,
                 form_id=form.form_id,
                 form_name=form.form_name,
                 primary_keywords=form.keywords,
             )
+
+            # Apply NLP semantic enhancement if available
+            semantic_boost = 0.0
+            if use_nlp and self.embedding_model and form.keywords:
+                semantic_boost = self._compute_semantic_boost(text, form)
+                confidence = min(1.0, confidence + semantic_boost)
 
             # Check minimum threshold
             if confidence < context.min_confidence_threshold:
@@ -278,6 +379,16 @@ class FormMatcher:
                 tier,
             )
 
+            scoring_breakdown = {
+                "signal_count": len(matches),
+                "keyword_matches": len([m for m in matches if m.signal.type == "keyword"]),
+                "pattern_matches": len([m for m in matches if m.signal.type == "pattern"]),
+                "entity_matches": len([m for m in matches if m.signal.type == "entity"]),
+                "total_weight": detection_result.total_weight,
+                "semantic_boost": semantic_boost,
+                "nlp_enabled": use_nlp,
+            }
+
             result = MatchResult(
                 form_id=form.form_id,
                 form_name=form.form_name,
@@ -286,12 +397,7 @@ class FormMatcher:
                 matched_signals=matches,
                 segment_index=segment_index,
                 segment_type=segment_type,
-                scoring_breakdown={
-                    "signal_count": len(matches),
-                    "keyword_matches": len([m for m in matches if m.signal.type == "keyword"]),
-                    "pattern_matches": len([m for m in matches if m.signal.type == "pattern"]),
-                    "total_weight": detection_result.total_weight,
-                },
+                scoring_breakdown=scoring_breakdown,
                 processing_time_ms=detection_result.processing_time_ms,
             )
             results.append(result)
@@ -300,6 +406,114 @@ class FormMatcher:
         results.sort(key=lambda r: r.confidence, reverse=True)
 
         return results
+
+    def _extract_entity_signals(self, text: str) -> list[Signal]:
+        """Extract named entities and convert to signals.
+
+        Uses the entity extractor to find domain-specific identifiers
+        like case numbers, MRNs, and client IDs.
+
+        Args:
+            text: Text to analyze
+
+        Returns:
+            List of entity-based signals
+        """
+        if not self.entity_extractor:
+            return []
+
+        try:
+            result = self.entity_extractor.extract(
+                text,
+                include_spacy=True,
+                include_patterns=True,
+            )
+
+            signals = []
+            for entity in result.entities:
+                signals.append(
+                    Signal(
+                        type="entity",
+                        value=entity.value,
+                        normalized_value=entity.normalized_value,
+                        weight=entity.confidence,
+                        position=entity.start_char,
+                        length=entity.end_char - entity.start_char,
+                        language="en",
+                        metadata={
+                            "entity_type": entity.type,
+                            "source": entity.source,
+                        },
+                    )
+                )
+
+            return signals
+
+        except Exception as e:
+            logger.warning(
+                "Error extracting entities",
+                error=str(e),
+            )
+            return []
+
+    def _compute_semantic_boost(
+        self,
+        text: str,
+        form: FormCandidate,
+    ) -> float:
+        """Compute semantic similarity boost for a form.
+
+        Uses embedding similarity between transcript text and
+        form keywords/description to boost confidence.
+
+        Args:
+            text: Transcript text
+            form: Form candidate to compare
+
+        Returns:
+            Confidence boost (0.0 to semantic_boost_max)
+        """
+        if not self.embedding_model or not form.keywords:
+            return 0.0
+
+        try:
+            # Create form description from keywords
+            form_description = " ".join(form.keywords)
+
+            # Compute semantic similarity
+            sim_result = self.embedding_model.compute_similarity(text, form_description)
+
+            if sim_result is None:
+                return 0.0
+
+            similarity = sim_result.similarity
+
+            # Only boost if similarity exceeds minimum threshold
+            min_sim = NLP_CONFIG["min_semantic_similarity"]
+            max_boost = NLP_CONFIG["semantic_boost_max"]
+
+            if similarity < min_sim:
+                return 0.0
+
+            # Linear interpolation from min_sim to 1.0 -> 0.0 to max_boost
+            boost = (similarity - min_sim) / (1.0 - min_sim) * max_boost
+
+            logger.debug(
+                "Computed semantic boost",
+                form_name=form.form_name,
+                similarity=similarity,
+                boost=boost,
+            )
+
+            return boost
+
+        except Exception as e:
+            logger.warning(
+                "Error computing semantic boost",
+                form_name=form.form_name,
+                error=str(e),
+            )
+            return 0.0
 
     def match_metadata(
         self,

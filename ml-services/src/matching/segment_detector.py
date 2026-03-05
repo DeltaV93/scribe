@@ -1,13 +1,15 @@
-"""Meeting segment detection for form matching (PX-887 Phase 1).
+"""Meeting segment detection for form matching (PX-887 Phase 1 + Phase 2 NLP).
 
 Detects boundaries between different parts of a meeting based on
 vocabulary shifts. Industry-aware: nonprofit/tech meetings segment,
 healthcare stays single-encounter.
+
+Phase 2 adds IntentClassifier for better segment type detection.
 """
 
 import time
 from dataclasses import dataclass
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
 import structlog
 
@@ -18,6 +20,9 @@ from src.matching.types import (
     SegmentationResult,
 )
 from src.matching.signals import SignalDetector, SignalsConfig
+
+if TYPE_CHECKING:
+    from src.matching.nlp import IntentClassifier
 
 
 logger = structlog.get_logger()
@@ -42,6 +47,9 @@ class SegmentConfig:
 
     # Industries that use single-encounter mode (no segmentation)
     single_encounter_industries: tuple[str, ...] = ("healthcare",)
+
+    # Enable NLP-based intent classification
+    enable_nlp: bool = True
 
 
 # Vocabulary patterns for segment type detection
@@ -96,7 +104,9 @@ SEGMENT_VOCABULARY = {
 class MeetingSegmentDetector:
     """Detects segments within meeting transcripts.
 
-    Phase 1 implementation uses rule-based vocabulary shift detection.
+    Phase 1: Rule-based vocabulary shift detection.
+    Phase 2: NLP-enhanced intent classification (optional).
+
     Segments represent distinct parts of a meeting that may need
     different forms.
 
@@ -109,18 +119,60 @@ class MeetingSegmentDetector:
         self,
         config: Optional[SegmentConfig] = None,
         signal_detector: Optional[SignalDetector] = None,
+        intent_classifier: Optional["IntentClassifier"] = None,
     ):
         """Initialize the segment detector.
 
         Args:
             config: Segment detection configuration
             signal_detector: Signal detector for vocabulary analysis
+            intent_classifier: Optional NLP intent classifier (Phase 2)
         """
         self.config = config or SegmentConfig()
         self.signal_detector = signal_detector or SignalDetector()
+        self._intent_classifier = intent_classifier
+        self._nlp_available: Optional[bool] = None
 
         # Build segment vocabulary configs
         self._segment_configs = self._build_segment_configs()
+
+    @property
+    def nlp_available(self) -> bool:
+        """Check if NLP intent classification is available."""
+        if not self.config.enable_nlp:
+            return False
+
+        if self._nlp_available is None:
+            try:
+                from src.matching.nlp import IntentClassifier
+
+                if self._intent_classifier is None:
+                    self._intent_classifier = IntentClassifier()
+
+                # Check if the underlying models are available
+                self._nlp_available = (
+                    self._intent_classifier.embedding_model is not None
+                    and self._intent_classifier.embedding_model.available
+                )
+
+                if self._nlp_available:
+                    logger.info("NLP intent classification enabled")
+                else:
+                    logger.info(
+                        "NLP intent classification disabled - using rule-based fallback"
+                    )
+            except ImportError:
+                self._nlp_available = False
+                logger.debug("NLP module not available - using rule-based fallback")
+
+        return self._nlp_available
+
+    @property
+    def intent_classifier(self) -> Optional["IntentClassifier"]:
+        """Get the intent classifier if NLP is available."""
+        if self.nlp_available:
+            return self._intent_classifier
+        return None
 
     def _build_segment_configs(self) -> dict[SegmentType, SignalsConfig]:
         """Build SignalsConfig for each segment type."""
@@ -421,11 +473,72 @@ class MeetingSegmentDetector:
     def _classify_segment(self, text: str) -> tuple[SegmentType, float]:
         """Classify a text segment into a segment type.
 
+        Uses NLP intent classifier if available, falls back to rule-based.
+
         Returns the best matching type and confidence score.
         """
         if not text:
             return SegmentType.UNKNOWN, 0.0
 
+        # Try NLP-based classification first
+        if self.intent_classifier:
+            nlp_result = self._classify_with_nlp(text)
+            if nlp_result is not None:
+                return nlp_result
+
+        # Fall back to rule-based classification
+        return self._classify_rule_based(text)
+
+    def _classify_with_nlp(self, text: str) -> Optional[tuple[SegmentType, float]]:
+        """Classify segment using NLP intent classifier.
+
+        Args:
+            text: Text to classify
+
+        Returns:
+            (SegmentType, confidence) or None if classification failed
+        """
+        if not self.intent_classifier:
+            return None
+
+        try:
+            result = self.intent_classifier.classify(text, use_embeddings=True)
+
+            # Convert intent to segment type
+            segment_type = result.to_segment_type()
+
+            if segment_type == SegmentType.UNKNOWN and result.confidence < 0.3:
+                # Low confidence - fall back to rule-based
+                return None
+
+            logger.debug(
+                "NLP segment classification",
+                intent=result.intent.value,
+                segment_type=segment_type.value,
+                confidence=result.confidence,
+                signals=len(result.supporting_signals),
+            )
+
+            return segment_type, result.confidence
+
+        except Exception as e:
+            logger.warning(
+                "NLP classification failed, using rule-based fallback",
+                error=str(e),
+            )
+            return None
+
+    def _classify_rule_based(self, text: str) -> tuple[SegmentType, float]:
+        """Classify segment using rule-based vocabulary matching.
+
+        This is the Phase 1 implementation used as fallback.
+
+        Args:
+            text: Text to classify
+
+        Returns:
+            (SegmentType, confidence)
+        """
         best_type = SegmentType.UNKNOWN
         best_score = 0.0
 

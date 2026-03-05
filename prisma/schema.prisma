@@ -1334,6 +1334,11 @@ model Call {
   confidenceScores  Json? // Field slug -> ExtractionConfidence
   manualCorrections Json? // Array of FieldCorrection
 
+  // ML Service Integration
+  mlMatchedForms      Json?     // Array of FormMatch with confidence scores
+  mlMatchingTimestamp DateTime? // When form matching was run
+  mlServiceUsed       Boolean   @default(false) // Whether ML service was available
+
   // Queue for retry
   aiProcessingStatus  ProcessingStatus @default(PENDING)
   aiProcessingError   String?

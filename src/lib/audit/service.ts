@@ -700,4 +700,56 @@ export const AuditLogger = {
       resourceName: eventTitle,
     });
   },
+
+  // ML Form Matching Audit Methods
+  async callFormMatched(
+    orgId: string,
+    userId: string | null,
+    callId: string,
+    totalMatches: number,
+    topMatchFormId: string | null,
+    topMatchConfidence: number | null,
+    mlServiceUsed: boolean
+  ) {
+    return createAuditLog({
+      orgId,
+      userId,
+      action: "EXTRACT",
+      resource: "CALL",
+      resourceId: callId,
+      details: {
+        action: "ml_form_matching",
+        totalMatches,
+        topMatchFormId,
+        topMatchConfidence,
+        mlServiceUsed,
+      },
+    });
+  },
+
+  async callFormSelected(
+    orgId: string,
+    userId: string,
+    callId: string,
+    formId: string,
+    formName: string,
+    mlConfidence: number | null,
+    wasAutoSuggested: boolean
+  ) {
+    return createAuditLog({
+      orgId,
+      userId,
+      action: "EXTRACT",
+      resource: "CALL",
+      resourceId: callId,
+      details: {
+        action: "form_selected",
+        formId,
+        formName,
+        mlConfidence,
+        wasAutoSuggested,
+        selectionMethod: wasAutoSuggested ? "auto_suggested" : "manual",
+      },
+    });
+  },
 };

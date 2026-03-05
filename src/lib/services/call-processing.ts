@@ -24,6 +24,14 @@ import {
 import { isDeepgramConfigured } from "@/lib/deepgram/client";
 import { getTwilioConfig } from "@/lib/twilio/client";
 import type { ExtractableField } from "@/lib/ai/types";
+import {
+  detectFormsFromTranscript,
+  storeFormMatchingResults,
+  auditFormMatching,
+  getBestAutoSuggestedForm,
+  type FormMatchingResult,
+  type FormMatch,
+} from "./call-ml-integration";
 
 const MAX_RETRIES = 3;
 const RETRY_DELAY_MS = 5000;
@@ -38,6 +46,8 @@ interface ProcessingResult {
   extractedFields?: Record<string, unknown>;
   confidenceScores?: Record<string, number>;
   summary?: CallSummary;
+  mlFormMatches?: FormMatch[];
+  autoSuggestedForm?: FormMatch | null;
   error?: string;
 }
 
@@ -108,6 +118,50 @@ export async function processCompletedCall(
         transcriptJson: transcription.segments as unknown as object,
       },
     });
+
+    // Step 2.5: ML Form Matching (runs in parallel, non-blocking)
+    let mlFormMatches: FormMatch[] = [];
+    let autoSuggestedForm: FormMatch | null = null;
+    let mlMatchingResult: FormMatchingResult | null = null;
+
+    try {
+      console.log(`[CallProcessing] Running ML form matching`);
+      mlMatchingResult = await detectFormsFromTranscript(
+        transcription.raw,
+        call.client.orgId
+      );
+
+      if (mlMatchingResult.success) {
+        mlFormMatches = mlMatchingResult.matches;
+        autoSuggestedForm = getBestAutoSuggestedForm(mlFormMatches);
+
+        // Store results on call record
+        await storeFormMatchingResults(callId, mlMatchingResult);
+
+        // Emit audit event
+        await auditFormMatching(
+          call.client.orgId,
+          null, // System-initiated
+          callId,
+          mlMatchingResult
+        );
+
+        if (autoSuggestedForm) {
+          console.log(
+            `[CallProcessing] Auto-suggested form: ${autoSuggestedForm.formName} (${(autoSuggestedForm.confidence * 100).toFixed(1)}% confidence)`
+          );
+        } else if (mlFormMatches.length > 0) {
+          console.log(
+            `[CallProcessing] Found ${mlFormMatches.length} form matches (highest: ${(mlFormMatches[0].confidence * 100).toFixed(1)}%)`
+          );
+        }
+      } else {
+        console.warn(`[CallProcessing] ML form matching failed: ${mlMatchingResult.error}`);
+      }
+    } catch (mlError) {
+      // ML service errors are non-critical - log and continue
+      console.error(`[CallProcessing] ML form matching error:`, mlError);
+    }
 
     // Step 3: Get form fields to extract
     const fields = await getFormFieldsForExtraction(call.formIds);
@@ -206,6 +260,8 @@ export async function processCompletedCall(
       extractedFields,
       confidenceScores,
       summary: summaryResult.summary || undefined,
+      mlFormMatches,
+      autoSuggestedForm,
     };
   } catch (error) {
     console.error(`[CallProcessing] Error processing call ${callId}:`, error);

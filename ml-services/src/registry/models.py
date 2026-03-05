@@ -50,6 +50,10 @@ class Model(Base, UUIDMixin, TimestampMixin):
     is_global: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     org_id: Mapped[Optional[UUID]] = mapped_column(PG_UUID(as_uuid=True), nullable=True, index=True)
 
+    # Risk tier for audit routing (PX-897/898) - used by AuditOracle
+    # Values: low, medium, high, critical
+    risk_tier: Mapped[Optional[str]] = mapped_column(String(20), nullable=True)
+
     # Relationships
     versions: Mapped[List["ModelVersion"]] = relationship(
         "ModelVersion", back_populates="model", cascade="all, delete-orphan"
