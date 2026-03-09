@@ -1,0 +1,80 @@
+# Dependencies
+node_modules
+.pnp
+.pnp.js
+
+# Testing
+coverage
+.nyc_output
+playwright-report
+test-results
+
+# Build artifacts
+.next
+out
+build
+dist
+
+# Git
+.git
+.gitignore
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+
+# Environment files (secrets)
+.env
+.env.local
+.env.development
+.env.development.local
+.env.test
+.env.test.local
+.env.production
+.env.production.local
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Docker
+Dockerfile*
+docker-compose*
+.docker
+
+# Documentation
+docs
+*.md
+!README.md
+
+# CI/CD
+.github
+.gitlab-ci.yml
+.circleci
+
+# ML Services (separate Docker build)
+ml-services
+
+# Infrastructure
+infrastructure
+
+# Meeting notes and other non-code
+meeting notes
+
+# Development files
+.turbo
+.vercel
+.husky
+
+# TypeScript build cache
+*.tsbuildinfo
+
+# Playwright
+/playwright/.cache/
+
+# Prisma (keep schema, ignore migrations for image size)
+# prisma/migrations - actually we need migrations for deployment
