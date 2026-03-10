@@ -53,7 +53,13 @@ export type AuditResource =
   | "KPI"
   | "SESSION"
   | "CALENDAR_EVENT"
-  | "SYSTEM";
+  | "SYSTEM"
+  // PX-865: Conversation Capture System
+  | "CONVERSATION"
+  | "CONVERSATION_ACCESS"
+  | "FLAGGED_SEGMENT"
+  | "DRAFTED_OUTPUT"
+  | "INTEGRATION_PUSH";
 
 export interface AuditLogEntry {
   id: string;

@@ -161,6 +161,12 @@ function extractResourceIdFromParams(
     SESSION: ["sessionId", "session_id", "id"],
     CALENDAR_EVENT: ["eventId", "calendarEventId", "id"],
     SYSTEM: ["systemId", "jobId", "id"],
+    // PX-865: Conversation Capture System
+    CONVERSATION: ["conversationId", "id"],
+    CONVERSATION_ACCESS: ["accessId", "id"],
+    FLAGGED_SEGMENT: ["segmentId", "id"],
+    DRAFTED_OUTPUT: ["outputId", "id"],
+    INTEGRATION_PUSH: ["pushId", "id"],
   };
 
   const possibleParams = resourceParamMap[resource] || ["id"];

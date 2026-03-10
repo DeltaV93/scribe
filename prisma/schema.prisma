@@ -517,6 +517,10 @@ model Organization {
   calendarEvents            CalendarEvent[]
   pendingSchedulingItems    PendingSchedulingItem[]
 
+  // Conversation Capture System (PX-865)
+  conversations          Conversation[]
+  integrationConnections IntegrationConnection[]
+
   @@index([slug])
   @@index([stripeCustomerId])
 }
@@ -656,7 +660,8 @@ model User {
   passwordHistory PasswordHistory[]
 
   // User Session Relations
-  sessions UserSession[]
+  sessions       UserSession[]
+  trustedDevices TrustedDevice[]
 
   // Grant Tracking Relations (PX-697)
   createdGrants               Grant[]               @relation("GrantCreator")
@@ -725,6 +730,15 @@ model User {
   calendarIntegration    CalendarIntegration?
   calendarEvents         CalendarEvent[]
   pendingSchedulingItems PendingSchedulingItem[]
+
+  // Conversation Capture System (PX-865)
+  createdConversations         Conversation[]              @relation("ConversationCreator")
+  conversationAccess           ConversationAccess[]        @relation("ConversationAccessUser")
+  grantedConversationAccess    ConversationAccess[]        @relation("ConversationAccessGranter")
+  reviewedFlaggedSegments      FlaggedSegment[]            @relation("FlaggedSegmentReviewer")
+  reviewedDraftedOutputs       DraftedOutput[]             @relation("DraftedOutputReviewer")
+  confirmedObjectiveLinks      ConversationObjectiveLink[] @relation("ObjectiveLinkConfirmer")
+  connectedIntegrations        IntegrationConnection[]     @relation("IntegrationConnector")
 
   @@index([orgId])
   @@index([email])
@@ -1259,6 +1273,9 @@ model Client {
   // Calendar Integration (PX-822)
   calendarEvents         CalendarEvent[]
   pendingSchedulingItems PendingSchedulingItem[]
+
+  // Conversation Capture System (PX-865)
+  conversationLinks ConversationClient[] @relation("ConversationClients")
 
   @@index([orgId, status])
   @@index([orgId, phone])
@@ -3301,6 +3318,29 @@ model UserSession {
 }
 
 // ============================================
+// TRUSTED DEVICE MANAGEMENT (MFA Remember Device)
+// ============================================
+
+model TrustedDevice {
+  id         String    @id @default(uuid())
+  userId     String
+  tokenHash  String    @unique // HMAC-SHA256 hash of the device token
+  deviceInfo Json // { browser, os, device, isMobile, userAgent }
+  ipAddress  String
+  createdAt  DateTime  @default(now())
+  expiresAt  DateTime // 30-day trust expiration
+  lastUsedAt DateTime  @default(now())
+  revokedAt  DateTime?
+  revokedBy  String? // User ID who revoked (self or admin)
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, expiresAt])
+  @@index([tokenHash])
+}
+
+// ============================================
 // GRANT TRACKING (PX-697)
 // ============================================
 
@@ -3596,6 +3636,9 @@ model Objective {
 
   // Goals Hub Relations (PX-734)
   goalLinks GoalObjective[]
+
+  // Conversation Capture System (PX-865)
+  conversationLinks ConversationObjectiveLink[] @relation("ConversationObjectiveLinks")
 
   @@index([orgId, status])
   @@index([ownerId])
@@ -4686,4 +4729,426 @@ model PermissionDenialLog {
   @@index([orgId, userId])
   @@index([orgId, resource, action])
   @@index([createdAt])
+}
+
+// ============================================
+// CONVERSATION CAPTURE SYSTEM (PX-865)
+// ============================================
+// Unified conversation abstraction supporting phone calls, in-person meetings, and video meetings.
+// Uses joined table inheritance pattern with type-specific detail models.
+
+enum ConversationType {
+  PHONE_CALL
+  IN_PERSON
+  VIDEO_MEETING
+}
+
+enum ConversationStatus {
+  SCHEDULED // Future meeting
+  RECORDING // Currently being recorded
+  PROCESSING // Transcription/AI in progress
+  REVIEW // Awaiting human review (flagged content or outputs)
+  COMPLETED // Fully processed
+  FAILED // Processing failed
+}
+
+enum SensitivityTier {
+  STANDARD // Tier 3 - normal workflow, no restrictions
+  RESTRICTED // Tier 2 - RBAC limited, participants + granted only
+  REDACTED // Tier 1 - content permanently removed
+}
+
+enum SensitivityCategory {
+  PERSONAL_OFF_TOPIC // Gossip, personal struggles, non-work banter
+  HR_SENSITIVE // Layoffs, terminations, personnel changes
+  LEGAL_SENSITIVE // Legal discussions, compliance issues
+  HEALTH_SENSITIVE // Medical info, health conditions
+  FINANCIAL_SENSITIVE // Salary, M&A, financial projections
+}
+
+enum VideoPlatform {
+  ZOOM
+  GOOGLE_MEET
+  MICROSOFT_TEAMS
+}
+
+enum FlagReviewStatus {
+  PENDING // Awaiting human review
+  APPROVED // User agreed with AI suggestion
+  OVERRIDDEN // User chose different tier
+  DISMISSED // User said not sensitive
+}
+
+enum ConversationAccessType {
+  PARTICIPANT // Was in the meeting
+  GRANTED // Explicitly granted by owner
+  INHERITED // Via team/role
+}
+
+enum WorkflowOutputType {
+  ACTION_ITEM // Task for Linear/Jira
+  MEETING_NOTES // Document for Docs/Notion
+  DOCUMENT // Standalone document
+  CALENDAR_EVENT // Calendar event
+  GOAL_UPDATE // Update to OKR/Goal
+  DELAY_SIGNAL // Timeline impact signal (PX-875)
+}
+
+enum IntegrationPlatform {
+  LINEAR
+  JIRA
+  GOOGLE_DOCS
+  NOTION
+  GOOGLE_CALENDAR
+  OUTLOOK_CALENDAR
+}
+
+enum DraftStatus {
+  PENDING // Awaiting review
+  APPROVED // User approved
+  REJECTED // User rejected
+  PUSHED // Successfully pushed to destination
+  FAILED // Push failed
+}
+
+enum ConversationLinkStatus {
+  SUGGESTED // AI suggested link
+  CONFIRMED // User confirmed
+  REJECTED // User rejected
+}
+
+// Base conversation model - all shared fields
+model Conversation {
+  id    String           @id @default(uuid())
+  orgId String
+  type  ConversationType
+
+  // Basic metadata
+  title           String?
+  status          ConversationStatus @default(RECORDING)
+  startedAt       DateTime           @default(now())
+  endedAt         DateTime?
+  durationSeconds Int?
+
+  // Recording storage
+  recordingUrl       String? // S3 URL: recordings/{orgId}/{conversationId}.webm
+  recordingRetention DateTime? // When to delete based on org policy
+  isRecorded         Boolean  @default(true)
+
+  // Consent tracking (compatible with PX-735)
+  consentStatus    String? // JSON: consent status per participant
+  consentGrantedAt DateTime?
+  consentMethod    ConsentCollectionMethod?
+
+  // Transcript
+  transcriptRaw  String? @db.Text
+  transcriptJson Json? // Array of TranscriptSegment with speaker labels
+
+  // AI Processing
+  aiSummary        Json? // Conversation summary structure
+  extractedFields  Json? // Field slug -> value
+  confidenceScores Json? // Field slug -> confidence
+  formIds          String[] @default([]) // Forms for extraction
+
+  // Processing status
+  aiProcessingStatus  ProcessingStatus @default(PENDING)
+  aiProcessingError   String?
+  aiProcessingRetries Int              @default(0)
+
+  // Sensitivity classification
+  sensitivityTier    SensitivityTier @default(STANDARD)
+  flaggedSegments    FlaggedSegment[]
+  redactedSegments   Json? // Segments permanently removed
+
+  // Creator
+  createdById String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Migration: link to legacy Call record
+  legacyCallId String? @unique
+
+  // Relations
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  createdBy    User         @relation("ConversationCreator", fields: [createdById], references: [id])
+
+  // Type-specific details (one of these will be populated)
+  phoneCallDetails    PhoneCallDetails?
+  inPersonDetails     InPersonDetails?
+  videoMeetingDetails VideoMeetingDetails?
+
+  // Access control
+  accessList ConversationAccess[]
+
+  // Workflow outputs
+  draftedOutputs DraftedOutput[]
+
+  // Goal/OKR links
+  objectiveLinks ConversationObjectiveLink[]
+
+  // Participant links (for client tracking)
+  clientLinks ConversationClient[]
+
+  @@index([orgId, status])
+  @@index([orgId, type])
+  @@index([createdById])
+  @@index([startedAt])
+  @@index([sensitivityTier])
+  @@index([legacyCallId])
+}
+
+// Phone call specific details (Twilio VoIP)
+model PhoneCallDetails {
+  id             String @id @default(uuid())
+  conversationId String @unique
+
+  // Twilio integration
+  twilioCallSid String? @unique
+  direction     CallDirection @default(OUTBOUND)
+
+  // Primary participants
+  clientId      String? // Primary client on call
+  caseManagerId String? // Case manager who made/received call
+
+  // Relations
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([twilioCallSid])
+  @@index([clientId])
+  @@index([caseManagerId])
+}
+
+// In-person recording details
+model InPersonDetails {
+  id             String @id @default(uuid())
+  conversationId String @unique
+
+  // Participants (names or user IDs)
+  participants Json? // Array of { name?: string, userId?: string, email?: string }
+
+  // Client links (can be multiple clients in meeting)
+  clientIds String[] @default([])
+
+  // Location/device info
+  location   String?
+  deviceInfo Json? // { browser, os, deviceType }
+
+  // Offline upload support
+  offlineUploadAt DateTime? // If uploaded later from offline cache
+
+  // Relations
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+}
+
+// Video meeting details (Zoom, Meet, Teams)
+model VideoMeetingDetails {
+  id             String @id @default(uuid())
+  conversationId String @unique
+
+  // Platform info
+  platform          VideoPlatform
+  externalMeetingId String? // Platform's meeting ID
+  meetingUrl        String?
+
+  // Participants
+  participants Json? // Array of { name, email?, userId? }
+  clientIds    String[] @default([])
+
+  // Bot info (if using meeting bot)
+  botId       String? // Our bot instance ID
+  botJoinedAt DateTime?
+  botLeftAt   DateTime?
+
+  // Relations
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([platform])
+  @@index([externalMeetingId])
+}
+
+// Flagged content segments for sensitivity review
+model FlaggedSegment {
+  id             String   @id @default(uuid())
+  conversationId String
+
+  // Time markers in transcript
+  startTime Float // seconds
+  endTime   Float // seconds
+  text      String @db.Text
+
+  // AI classification
+  category      SensitivityCategory
+  confidence    Float // 0.0-1.0
+  suggestedTier SensitivityTier
+
+  // Review workflow
+  status       FlagReviewStatus @default(PENDING)
+  reviewedById String?
+  reviewedAt   DateTime?
+  finalTier    SensitivityTier?
+  reviewNotes  String?
+
+  createdAt DateTime @default(now())
+
+  // Relations
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  reviewedBy   User?        @relation("FlaggedSegmentReviewer", fields: [reviewedById], references: [id])
+
+  @@index([conversationId])
+  @@index([status])
+  @@index([category])
+}
+
+// ML training data for sensitivity detection (anonymized)
+model SensitivityDecision {
+  id                String              @id @default(uuid())
+  orgId             String
+  segmentText       String              @db.Text // Anonymized for global model
+  predictedCategory SensitivityCategory
+  predictedTier     SensitivityTier
+  actualTier        SensitivityTier
+  isCorrect         Boolean
+  isLocalModel      Boolean             @default(true) // If true, not shared globally
+  createdAt         DateTime            @default(now())
+
+  @@index([orgId])
+  @@index([predictedCategory])
+  @@index([isCorrect])
+}
+
+// Access control for conversations (especially Tier 2)
+model ConversationAccess {
+  id             String                 @id @default(uuid())
+  conversationId String
+  userId         String
+  grantedById    String?
+  accessType     ConversationAccessType
+  grantedAt      DateTime               @default(now())
+  revokedAt      DateTime? // Soft revoke
+
+  // Relations
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user         User         @relation("ConversationAccessUser", fields: [userId], references: [id])
+  grantedBy    User?        @relation("ConversationAccessGranter", fields: [grantedById], references: [id])
+
+  @@unique([conversationId, userId])
+  @@index([userId])
+}
+
+// Drafted workflow outputs from conversation processing
+model DraftedOutput {
+  id             String             @id @default(uuid())
+  conversationId String
+  outputType     WorkflowOutputType
+
+  // Draft content
+  title    String?
+  content  String  @db.Text // Markdown or plain text
+  metadata Json? // Type-specific fields (assignee, dueDate, priority, etc.)
+
+  // Source reference
+  sourceSnippet String? @db.Text // Transcript excerpt that generated this
+
+  // Destination
+  destinationPlatform IntegrationPlatform?
+  destinationConfig   Json? // Project ID, calendar ID, board ID, etc.
+
+  // Review workflow
+  status        DraftStatus @default(PENDING)
+  reviewedById  String?
+  reviewedAt    DateTime?
+  editedContent String?     @db.Text // User-edited version
+
+  // Push status
+  pushedAt   DateTime?
+  externalId String? // ID in destination system (Linear issue ID, etc.)
+  pushError  String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  reviewedBy   User?        @relation("DraftedOutputReviewer", fields: [reviewedById], references: [id])
+
+  @@index([conversationId])
+  @@index([outputType])
+  @@index([status])
+}
+
+// Link conversations to objectives/goals
+model ConversationObjectiveLink {
+  id             String                 @id @default(uuid())
+  conversationId String
+  objectiveId    String
+  confidence     Float // AI match confidence 0.0-1.0
+  status         ConversationLinkStatus @default(SUGGESTED)
+  confirmedById  String?
+  confirmedAt    DateTime?
+
+  // Delay signal data (PX-875)
+  delaySignalType String? // e.g., "resource_constraint", "dependency_blocked"
+  delayDays       Int? // Estimated delay in days
+  impactNotes     String?
+
+  createdAt DateTime @default(now())
+
+  // Relations
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  objective    Objective    @relation("ConversationObjectiveLinks", fields: [objectiveId], references: [id])
+  confirmedBy  User?        @relation("ObjectiveLinkConfirmer", fields: [confirmedById], references: [id])
+
+  @@unique([conversationId, objectiveId])
+  @@index([objectiveId])
+  @@index([status])
+}
+
+// Link conversations to clients (many-to-many)
+model ConversationClient {
+  id             String @id @default(uuid())
+  conversationId String
+  clientId       String
+  isPrimary      Boolean @default(false) // Primary client for this conversation
+  addedAt        DateTime @default(now())
+
+  // Relations
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  client       Client       @relation("ConversationClients", fields: [clientId], references: [id])
+
+  @@unique([conversationId, clientId])
+  @@index([clientId])
+}
+
+// Integration connection for workflow outputs
+model IntegrationConnection {
+  id       String              @id @default(uuid())
+  orgId    String
+  platform IntegrationPlatform
+  name     String // Display name (e.g., "Production Linear", "Notion Workspace")
+
+  // OAuth tokens (encrypted)
+  accessToken  String @db.Text
+  refreshToken String? @db.Text
+  expiresAt    DateTime?
+
+  // Platform-specific config
+  config Json? // Workspace ID, default project, etc.
+
+  // Status
+  isActive  Boolean  @default(true)
+  lastUsedAt DateTime?
+  lastError  String?
+
+  // Connected by
+  connectedById String
+  connectedAt   DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  connectedBy  User         @relation("IntegrationConnector", fields: [connectedById], references: [id])
+
+  @@unique([orgId, platform, name])
+  @@index([orgId, platform])
+  @@index([isActive])
 }
