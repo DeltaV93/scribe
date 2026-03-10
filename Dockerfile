@@ -95,6 +95,10 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=deps /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=deps /app/node_modules/@prisma ./node_modules/@prisma
 
+# Copy startup script
+COPY --chown=nextjs:nodejs scripts/start.sh ./start.sh
+RUN chmod +x ./start.sh
+
 # Switch to non-root user
 USER nextjs
 
@@ -105,8 +109,8 @@ EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
     CMD node -e "require('http').get('http://localhost:3000/api/health', (r) => { process.exit(r.statusCode === 200 ? 0 : 1) })"
 
-# Start the application
-CMD ["node", "server.js"]
+# Start the application with migration check
+CMD ["./start.sh"]
 
 # -----------------------------------------------------------------------------
 # Stage 4: Database Migration Runner (for CI/CD)
