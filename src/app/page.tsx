@@ -9,6 +9,7 @@ import {
   HowToJsonLd,
   inkraFAQs,
 } from "@/components/seo/json-ld";
+import { ProductDemo } from "@/components/marketing/product-demo";
 
 // Form submission state type
 type FormStatus = "idle" | "submitting" | "success" | "error" | "duplicate";
@@ -446,6 +447,11 @@ export default function HomePage() {
           margin-bottom: 20px;
         }
         .section-title em { font-style: italic; color: var(--ink-blue-accent); }
+        .section-subtitle {
+          font-size: 16px; color: var(--ink-muted); margin-bottom: 48px;
+          max-width: 480px; line-height: 1.6;
+        }
+        .demo-wrapper { margin-top: 0; }
 
         /* STATS GRID */
         .stats-grid {
@@ -816,16 +822,15 @@ export default function HomePage() {
 
       {/* HERO */}
       <section className="hero">
-        <div className="hero-badge">Conversation-to-Work Platform</div>
+        <div className="hero-badge">Workflow Automation Platform</div>
         <h1>
-          Your conversations
+          Your words become
           <br />
-          <em>do the work.</em>
+          <em>completed work.</em>
         </h1>
         <p className="hero-sub">
-          One input: your team&apos;s calls, meetings, and sessions. Six
-          outputs: documentation, reports, tasks, knowledge, context, and
-          insights. All automatic.
+          Inkra joins your calls and meetings, listens to what&apos;s discussed,
+          and automatically completes the work that comes after.
         </p>
         <div className="hero-cta-row">
           <button className="btn-primary" onClick={() => scrollTo("cta")}>
@@ -917,38 +922,16 @@ export default function HomePage() {
         <div className="section-inner reveal">
           <div className="section-label">How it works</div>
           <div className="section-title">
-            Conversations in.
+            Your words become
             <br />
-            <em>Everything else out.</em>
+            <em>completed work.</em>
           </div>
-          <div className="steps">
-            <div className="step">
-              <div className="step-num">01 · TALK</div>
-              <h3>Your team has conversations</h3>
-              <p>
-                Phone calls, Zoom meetings, standups, support tickets. No
-                internet? Snap a photo of an attendance sheet. Context and
-                conversation guides surface in real-time.
-              </p>
-            </div>
-            <div className="step">
-              <div className="step-num">02 · GENERATE</div>
-              <h3>Inkra handles the rest</h3>
-              <p>
-                Documentation writes itself. Reports compile from real data.
-                Tasks and follow-ups create automatically. Calendar invites
-                schedule themselves.
-              </p>
-            </div>
-            <div className="step">
-              <div className="step-num">03 · COMPOUND</div>
-              <h3>Your org gets smarter</h3>
-              <p>
-                Every interaction builds the knowledge base. Best practices
-                surface. Goal tracking alerts when targets hit. The org&apos;s
-                memory never walks out the door.
-              </p>
-            </div>
+          <p className="section-subtitle">
+            Watch a live session. Left side: the conversation. Right side: what
+            Inkra completes automatically.
+          </p>
+          <div className="demo-wrapper">
+            <ProductDemo />
           </div>
         </div>
       </section>
