@@ -2,15 +2,16 @@
 # Inkra Next.js Production Dockerfile
 # =============================================================================
 # Multi-stage build optimized for Next.js standalone output
+# Using Debian-slim for better Prisma OpenSSL compatibility
 # =============================================================================
 
 # -----------------------------------------------------------------------------
 # Stage 1: Dependencies
 # -----------------------------------------------------------------------------
-FROM node:20-alpine AS deps
+FROM node:20-slim AS deps
 
-# Add libc6-compat for Alpine compatibility
-RUN apk add --no-cache libc6-compat
+# Install OpenSSL for Prisma
+RUN apt-get update && apt-get install -y openssl ca-certificates && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
@@ -27,7 +28,10 @@ RUN npx prisma generate
 # -----------------------------------------------------------------------------
 # Stage 2: Builder
 # -----------------------------------------------------------------------------
-FROM node:20-alpine AS builder
+FROM node:20-slim AS builder
+
+# Install OpenSSL for Prisma
+RUN apt-get update && apt-get install -y openssl ca-certificates && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
@@ -62,12 +66,12 @@ RUN npm run build
 # -----------------------------------------------------------------------------
 # Stage 3: Production Runner
 # -----------------------------------------------------------------------------
-FROM node:20-alpine AS runner
+FROM node:20-slim AS runner
 
 WORKDIR /app
 
-# Install OpenSSL and libc compatibility for Prisma
-RUN apk add --no-cache openssl libc6-compat
+# Install OpenSSL for Prisma runtime
+RUN apt-get update && apt-get install -y openssl ca-certificates && rm -rf /var/lib/apt/lists/*
 
 # Security: Run as non-root user
 RUN addgroup --system --gid 1001 nodejs && \
@@ -91,9 +95,6 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=deps /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=deps /app/node_modules/@prisma ./node_modules/@prisma
 
-# Install production-only dependencies for Prisma
-RUN npm install --no-save @prisma/client
-
 # Switch to non-root user
 USER nextjs
 
@@ -110,7 +111,10 @@ CMD ["node", "server.js"]
 # -----------------------------------------------------------------------------
 # Stage 4: Database Migration Runner (for CI/CD)
 # -----------------------------------------------------------------------------
-FROM node:20-alpine AS migrator
+FROM node:20-slim AS migrator
+
+# Install OpenSSL for Prisma
+RUN apt-get update && apt-get install -y openssl ca-certificates && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
