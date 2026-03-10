@@ -18,6 +18,8 @@ export type FeatureFlag =
   | 'form-logic'
   | 'performance-metrics'
   | 'quizzes'
+  | 'conversation-capture'
+  | 'video-meeting-bot'
 
 // Feature flag configuration
 export interface FeatureFlagConfig {
@@ -40,6 +42,8 @@ const DEFAULT_FLAGS: Record<FeatureFlag, FeatureFlagConfig> = {
   'form-logic': { enabled: false },
   'performance-metrics': { enabled: false },
   'quizzes': { enabled: false },
+  'conversation-capture': { enabled: true }, // In-person recording enabled
+  'video-meeting-bot': { enabled: false }, // Video meeting bot disabled until infrastructure ready
 }
 
 /**

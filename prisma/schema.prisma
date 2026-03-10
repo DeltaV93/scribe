@@ -4955,9 +4955,11 @@ model VideoMeetingDetails {
   clientIds    String[] @default([])
 
   // Bot info (if using meeting bot)
-  botId       String? // Our bot instance ID
-  botJoinedAt DateTime?
-  botLeftAt   DateTime?
+  botId        String? // Our bot instance ID
+  botStatus    String? // Bot status: idle, joining, in_meeting, recording, etc.
+  botJoinedAt  DateTime?
+  botLeftAt    DateTime?
+  recordingUrl String? // S3 key for the recording
 
   // Relations
   conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
