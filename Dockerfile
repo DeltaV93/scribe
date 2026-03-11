@@ -127,9 +127,9 @@ COPY --from=builder /app/apps/web/prisma ./prisma
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/static ./apps/web/.next/static
 
-# Copy Prisma client
+# Copy Prisma generated client (contains engine binaries)
+# Note: @prisma/client is a symlink in pnpm, but .prisma has the actual generated code
 COPY --from=deps /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=deps /app/node_modules/@prisma ./node_modules/@prisma
 
 # Copy startup script
 COPY --chown=nextjs:nodejs scripts/start.sh ./start.sh
