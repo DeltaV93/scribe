@@ -6,6 +6,22 @@ import { submitToWaitlist } from "@/lib/services/waitlist";
 // ============================================
 // WAITLIST API (PX-902)
 // ============================================
+
+/**
+ * CORS headers for cross-origin requests from marketing site
+ */
+const corsHeaders = {
+  "Access-Control-Allow-Origin": process.env.MARKETING_URL || "https://oninkra.com",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type",
+};
+
+/**
+ * OPTIONS /api/waitlist - CORS preflight
+ */
+export async function OPTIONS() {
+  return new NextResponse(null, { status: 204, headers: corsHeaders });
+}
 // POST /api/waitlist - Submit waitlist entry
 // Rate limit: 10 submissions per IP per hour
 
@@ -92,6 +108,7 @@ export async function POST(request: NextRequest) {
         {
           status: 429,
           headers: {
+            ...corsHeaders,
             "X-RateLimit-Limit": rateLimitResult.limit.toString(),
             "X-RateLimit-Remaining": rateLimitResult.remaining.toString(),
             "X-RateLimit-Reset": rateLimitResult.reset.toString(),
@@ -114,7 +131,7 @@ export async function POST(request: NextRequest) {
             message: "Invalid JSON in request body",
           },
         },
-        { status: 400 }
+        { status: 400, headers: corsHeaders }
       );
     }
 
@@ -130,7 +147,7 @@ export async function POST(request: NextRequest) {
             details: validation.error.flatten(),
           },
         },
-        { status: 400 }
+        { status: 400, headers: corsHeaders }
       );
     }
 
@@ -162,7 +179,7 @@ export async function POST(request: NextRequest) {
           message: "You're already on the list! We'll notify you when your access is ready.",
           duplicate: true,
         },
-        { status: 200 }
+        { status: 200, headers: corsHeaders }
       );
     }
 
@@ -172,7 +189,7 @@ export async function POST(request: NextRequest) {
         message: "You're on the list! We'll notify you when your access is ready.",
         duplicate: false,
       },
-      { status: 201 }
+      { status: 201, headers: corsHeaders }
     );
   } catch (error) {
     console.error("[Waitlist API] Error processing submission:", error);
@@ -184,7 +201,7 @@ export async function POST(request: NextRequest) {
           message: "An error occurred. Please try again.",
         },
       },
-      { status: 500 }
+      { status: 500, headers: corsHeaders }
     );
   }
 }
