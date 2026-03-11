@@ -323,7 +323,7 @@ Turborepo is a high-performance build system for JavaScript/TypeScript monorepos
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": [".next/**", "!.next/cache/**", "dist/**"]
+      "outputs": [".next/**", "!.next/cache/**", "out/**", "dist/**"]
     },
     "dev": {
       "cache": false,
@@ -1480,16 +1480,52 @@ ls out/
 - Static export generates files to `out/` directory, not `.next/`
 - The `outputDirectory` is relative to where `vercel.json` is located
 
+### Environment Variables (Vercel - Marketing)
+
+| Variable | Value | Purpose |
+|----------|-------|---------|
+| `NEXT_PUBLIC_APP_URL` | `https://app.oninkra.com` | API endpoint for waitlist form |
+
+### Ignored Build Step (Monorepo Optimization)
+
+To skip builds when marketing code hasn't changed:
+
+**Settings → Git → Ignored Build Step:**
+```bash
+npx turbo-ignore @inkra/marketing
+```
+
+This skips deployment if only other packages (like `@inkra/web`) changed. Turborepo analyzes the dependency graph to determine if a rebuild is needed.
+
+### CORS Configuration
+
+The marketing site makes cross-origin API calls to the app. The waitlist API (`apps/web/src/app/api/waitlist/route.ts`) includes CORS headers:
+
+```typescript
+const corsHeaders = {
+  "Access-Control-Allow-Origin": process.env.MARKETING_URL || "https://oninkra.com",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type",
+};
+```
+
+**Required env var on Railway (web app):**
+| Variable | Value | Purpose |
+|----------|-------|---------|
+| `MARKETING_URL` | `https://oninkra.com` | CORS allowed origin |
+
 ### Vercel Deployment Checklist
 
 - [ ] Repository connected
 - [ ] Root directory set to `apps/marketing`
 - [ ] Framework Preset: "Other" (auto-detected from vercel.json)
-- [ ] Environment variables configured
-- [ ] Custom domain added
-- [ ] SSL certificate active
+- [ ] Environment variable: `NEXT_PUBLIC_APP_URL=https://app.oninkra.com`
+- [ ] Ignored Build Step: `npx turbo-ignore @inkra/marketing`
+- [ ] Custom domain added (`oninkra.com`)
+- [ ] SSL certificate active (automatic)
 - [ ] Build succeeds (~15 seconds)
 - [ ] All 16 pages render correctly
+- [ ] Waitlist form submits to app.oninkra.com
 
 ---
 
