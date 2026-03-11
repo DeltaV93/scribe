@@ -1,0 +1,5156 @@
+// Scrybe Solutions - Database Schema
+// Version 2.0 - January 2026
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ============================================
+// ENUMS
+// ============================================
+
+enum Tier {
+  FREE
+  STARTER
+  PROFESSIONAL
+  ENTERPRISE
+}
+
+enum FormType {
+  INTAKE
+  FOLLOWUP
+  REFERRAL
+  ASSESSMENT
+  CUSTOM
+}
+
+enum FormStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum FieldType {
+  TEXT_SHORT
+  TEXT_LONG
+  NUMBER
+  DATE
+  PHONE
+  EMAIL
+  ADDRESS
+  DROPDOWN
+  CHECKBOX
+  YES_NO
+  FILE
+  SIGNATURE
+}
+
+enum FieldPurpose {
+  GRANT_REQUIREMENT
+  INTERNAL_OPS
+  COMPLIANCE
+  OUTCOME_MEASUREMENT
+  RISK_ASSESSMENT
+  OTHER
+}
+
+enum GranteeType {
+  TEAM
+  USER
+}
+
+enum FormRole {
+  VIEW
+  USE
+  EDIT
+}
+
+// AuditAction is now a string field for flexibility
+
+enum ScanStatus {
+  PENDING
+  SCANNING
+  CLEAN
+  INFECTED
+  ERROR
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  ADMIN
+  PROGRAM_MANAGER
+  CASE_MANAGER
+  FACILITATOR // PX-729: New role for class facilitators
+  VIEWER
+}
+
+// RBAC: Role within a specific program (PX-XXX: RBAC Implementation)
+enum ProgramMemberRole {
+  MANAGER // Full program management
+  FACILITATOR // Session facilitation
+  CASE_MANAGER // Client-focused work
+  VIEWER // Read-only access
+}
+
+// ============================================
+// CLIENT & CALL ENUMS (Spec-2)
+// ============================================
+
+enum ClientStatus {
+  ACTIVE
+  ON_HOLD
+  CLOSED
+  PENDING
+}
+
+enum CallStatus {
+  INITIATING
+  RINGING
+  IN_PROGRESS
+  COMPLETED
+  ABANDONED
+  ATTEMPTED
+  FAILED
+}
+
+// PX-735: Direction for calls/interactions
+enum CallDirection {
+  INBOUND
+  OUTBOUND
+}
+
+// PX-735: Types of interactions (for unrecorded calls)
+enum InteractionType {
+  VOIP_CALL
+  IN_PERSON
+  VIDEO_CALL
+}
+
+// PX-735: Reasons why a call was not recorded
+enum UnrecordedReason {
+  CLIENT_OPT_OUT // Client pressed 2 during consent prompt
+  PRIOR_OPT_OUT // Client had previously revoked consent
+  SYSTEM_ERROR // Recording failed due to technical issue
+  CONSENT_ABANDONED // Client hung up during consent prompt
+}
+
+enum ProcessingStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  QUEUED_FOR_RETRY
+}
+
+enum NoteType {
+  INTERNAL
+  SHAREABLE
+}
+
+enum NoteStatus {
+  DRAFT
+  PENDING_APPROVAL
+  PUBLISHED
+  REJECTED
+}
+
+enum NotificationType {
+  MENTION
+  APPROVAL_REQUEST
+  APPROVAL_RESULT
+  REMINDER
+  SYSTEM
+  // Goals Hub notification types (PX-734)
+  GOAL_PROGRESS_ALERT // Goal reached threshold (25%, 50%, 75%, 100%)
+  GOAL_AT_RISK // Goal status changed to AT_RISK
+  GOAL_DEADLINE_APPROACHING // 30, 14, 7, 1 day warnings
+  GOAL_COMPLETED // Goal completed
+  KPI_THRESHOLD_REACHED // KPI hit target or warning level
+  CLIENT_GOAL_UPDATE // Client updated their goal
+  // Integration notification types (PX-831)
+  INTEGRATION_ERROR // OAuth token refresh failed, needs reconnect
+  CALENDAR_EVENT_CREATED // Tier 1 event auto-created
+  CALENDAR_PENDING_REVIEW // Tier 2 item needs review
+}
+
+enum ConsentMode {
+  AUTO_RECORDING
+  CASE_MANAGER_SCRIPT
+  DISABLED
+}
+
+enum PhoneNumberRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  EXPIRED
+  REVOKED
+}
+
+enum WaitlistStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  COMPLETED // User created account
+}
+
+// ============================================
+// PROGRAM MANAGEMENT ENUMS
+// ============================================
+
+enum ProgramStatus {
+  DRAFT
+  ACTIVE
+  COMPLETED
+  CANCELLED
+  ARCHIVED
+}
+
+enum ProgramLabelType {
+  PROGRAM
+  COURSE
+  CLASS
+  WORKSHOP
+  TRAINING
+  GROUP
+}
+
+enum EnrollmentStatus {
+  ENROLLED
+  IN_PROGRESS
+  COMPLETED
+  WITHDRAWN
+  FAILED
+  ON_HOLD
+}
+
+enum SessionStatus {
+  DRAFT
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  CANCELED
+  RESCHEDULED
+}
+
+enum MaterialType {
+  SYLLABUS
+  HANDOUT
+  PRESENTATION
+  WORKSHEET
+  ASSESSMENT
+  CERTIFICATE_TEMPLATE
+  OTHER
+}
+
+enum ExtractionStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+// ============================================
+// ATTENDANCE TRACKING ENUMS
+// ============================================
+
+enum AttendanceUploadStatus {
+  SHEET_GENERATED
+  IN_PROGRESS
+  PHOTO_UPLOADED
+  AI_PROCESSING
+  PENDING_REVIEW
+  CONFIRMED
+  FAILED
+  PENDING_OVERRIDE_REVIEW
+}
+
+enum AttendanceType {
+  PRESENT
+  EXCUSED
+  ABSENT
+}
+
+// ============================================
+// GRANT TRACKING ENUMS
+// ============================================
+
+enum GrantStatus {
+  DRAFT
+  ACTIVE
+  COMPLETED
+  EXPIRED
+  ARCHIVED
+}
+
+enum MetricType {
+  CLIENT_CONTACTS // Calls made to clients
+  CLIENTS_ENROLLED // Enrollments in programs
+  PROGRAM_COMPLETIONS // Clients completing programs
+  CLIENTS_HOUSED // Housing outcome achieved
+  SESSIONS_DELIVERED // Program sessions held
+  FORM_SUBMISSIONS // Forms completed
+  CUSTOM // User-defined counting logic
+}
+
+enum DeliverableStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  AT_RISK
+  COMPLETED
+  OVERDUE
+}
+
+enum ProgressEventType {
+  INCREMENT
+  DECREMENT
+  ADJUSTMENT
+  RESET
+}
+
+// ============================================
+// WORKFLOW & REMINDER ENUMS
+// ============================================
+
+enum TriggerEvent {
+  INTAKE_COMPLETED
+  ENROLLMENT_CREATED
+  CALL_COMPLETED
+  SESSION_MISSED
+  FORM_SUBMITTED
+  CLIENT_CREATED
+}
+
+enum ReminderStatus {
+  PENDING
+  SENT
+  ACKNOWLEDGED
+  COMPLETED
+  OVERDUE
+  CANCELLED
+}
+
+enum ReminderType {
+  FOLLOW_UP_CALL
+  DOCUMENT_REQUEST
+  APPOINTMENT_REMINDER
+  PROGRAM_CHECK_IN
+  CUSTOM
+}
+
+// ============================================
+// ACTION ITEM ENUMS
+// ============================================
+
+// ActionItemStatus is defined in Meeting Intelligence section
+// Reusing existing enum: OPEN, IN_PROGRESS, COMPLETED, CANCELLED
+
+enum ActionItemSource {
+  CALL_TRANSCRIPT
+  MANUAL
+  WORKFLOW
+}
+
+// ============================================
+// ORGANIZATION & USERS
+// ============================================
+
+model Organization {
+  id                 String  @id @default(uuid())
+  name               String
+  slug               String  @unique
+  tier               Tier    @default(FREE)
+  purchasedFormPacks Int     @default(0)
+  encryptionKeyId    String?
+  webhookUrl         String?
+
+  // Settings
+  settings Json @default("{}")
+
+  // Feature flags for new features
+  featureFlags Json @default("{}")
+
+  // User limits by tier (FREE=3, STARTER=10, PROFESSIONAL=50, ENTERPRISE=unlimited)
+  userLimit Int @default(3)
+
+  // VOIP Settings (Spec-2)
+  preferredAreaCode      String?
+  recordingRetentionDays Int         @default(30)
+  consentMode            ConsentMode @default(CASE_MANAGER_SCRIPT)
+  consentRecordingUrl    String?
+
+  // Billing
+  stripeCustomerId String? @unique
+
+  // Security Settings
+  requireMfa Boolean @default(false)
+
+  // Session Management Settings
+  sessionTimeoutMinutes Int @default(30) // 15-60 minutes configurable
+  maxConcurrentSessions Int @default(3) // Max sessions per user
+
+  // Real-Time Chat Settings (PX-713)
+  realTimeChatEnabled   Boolean @default(false)
+  businessHoursStart    String? // "09:00" (24h format)
+  businessHoursEnd      String? // "17:00" (24h format)
+  businessHoursTimezone String? // "America/New_York"
+  businessHoursDays     Int[]   @default([1, 2, 3, 4, 5]) // 0=Sun, 1=Mon...6=Sat
+
+  // Chatbot Intake Settings (PX-702)
+  chatbotEnabled       Boolean @default(false)
+  chatbotFormId        String? // Default form for chatbot intake
+  chatbotCrisisContact String? // Phone/email for crisis alerts
+  chatbotAuthRequired  Boolean @default(false) // Require auth before chatbot
+
+  // In-Person Recording Settings (PX-703)
+  inPersonRecordingEnabled    Boolean @default(false)
+  maxRecordingDurationMinutes Int     @default(60) // Max recording duration (default 60 min)
+
+  // Workforce Development Settings (PX-711)
+  workforceEnabled Boolean @default(false)
+
+  // Insurance Eligibility Settings (PX-712)
+  eligibilityCheckEnabled Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  users               User[]
+  teams               Team[]
+  forms               Form[]
+  formTemplates       FormTemplate[]
+  auditLogs           AuditLog[]
+  fileUploads         FileUpload[]
+  clients             Client[]
+  phoneNumberPool     PhoneNumberPool[]
+  phoneNumberRequests PhoneNumberRequest[]
+  userInvitations     UserInvitation[]
+  programs            Program[]
+
+  // Messaging Relations (Spec-3)
+  messages     Message[]
+  smsTemplates SmsTemplate[]
+
+  // Job Infrastructure Relations
+  jobProgress   JobProgress[]
+  noteTemplates NoteTemplate[]
+
+  // Notes Feature Relations
+  notes         Note[]
+  noteTags      NoteTag[]
+  notifications Notification[]
+
+  // Form Conversion Relations
+  formConversions FormConversion[]
+
+  // Automated Reporting Relations (Phase 4)
+  reportTemplates ReportTemplate[]
+  reports         Report[]
+  customMetrics   CustomMetric[]
+
+  // Funder Export Relations
+  exportTemplates ExportTemplate[]
+  funderExports   FunderExport[]
+
+  // Import Relations
+  importTemplates ImportTemplate[]
+  importBatches   ImportBatch[]
+
+  // Meeting Intelligence Relations
+  locations           Location[]
+  meetings            Meeting[]
+  meetingIntegrations MeetingIntegration[]
+
+  // Knowledge Base Relations
+  knowledgeEntries KnowledgeEntry[]
+
+  // Grant Tracking Relations (PX-697)
+  grants          Grant[]
+  workflowRules   WorkflowRule[]
+  reminders       Reminder[]
+  callActionItems CallActionItem[]
+
+  // OKR Relations
+  objectives Objective[]
+
+  // Goals Hub Relations (PX-734)
+  goals       Goal[]
+  kpis        Kpi[]
+  clientGoals ClientGoal[]
+
+  // Email Integration Relations (PX-705)
+  emailLogs EmailLog[]
+
+  // Real-Time Chat Relations (PX-713)
+  chatRooms ChatRoom[]
+
+  // Quiz Relations (PX-704, PX-707)
+  quizzes Quiz[]
+
+  // Chatbot Intake Relations (PX-702)
+  chatSessions ChatSession[]
+
+  // In-Person Recording Relations (PX-703)
+  inPersonRecordings InPersonRecording[]
+
+  // Consent Framework Relations (PX-735)
+  interactionMetadata InteractionMetadata[]
+
+  // RBAC Relations
+  settingsDelegations SettingsDelegation[]
+
+  // Calendar Integration (PX-822)
+  calendarIntegrations      CalendarIntegration[]
+  calendarEvents            CalendarEvent[]
+  pendingSchedulingItems    PendingSchedulingItem[]
+
+  // Conversation Capture System (PX-865)
+  conversations          Conversation[]
+  integrationConnections IntegrationConnection[]
+
+  @@index([slug])
+  @@index([stripeCustomerId])
+}
+
+model User {
+  id        String   @id @default(uuid())
+  orgId     String
+  email     String   @unique
+  name      String?
+  avatarUrl String?
+  role      UserRole @default(CASE_MANAGER)
+
+  // Supabase Auth
+  supabaseUserId String @unique
+
+  // Permissions (CRUD split for forms)
+  canCreateForms  Boolean @default(false)
+  canReadForms    Boolean @default(true)
+  canUpdateForms  Boolean @default(false)
+  canDeleteForms  Boolean @default(false)
+  canPublishForms Boolean @default(false)
+
+  // Caseload (Spec-2)
+  maxCaseload Int?
+
+  // Multi-Factor Authentication (MFA)
+  mfaEnabled     Boolean   @default(false)
+  mfaSecret      String? // Encrypted TOTP secret
+  mfaBackupCodes String[]  @default([]) // Hashed backup codes
+  mfaLastUsed    DateTime?
+  mfaEnabledAt   DateTime?
+
+  isActive    Boolean   @default(true)
+  lastLoginAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Relations
+  organization    Organization  @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  teamMemberships TeamMember[]
+  createdForms    Form[]        @relation("FormCreator")
+  formVersions    FormVersion[]
+  formAccess      FormAccess[]  @relation("AccessGranter")
+
+  // Client & Call Relations (Spec-2)
+  assignedClients Client[]         @relation("AssignedClients")
+  createdClients  Client[]         @relation("CreatedClients")
+  calls           Call[]
+  authoredNotes   Note[]           @relation("NoteAuthor")
+  approvedNotes   Note[]           @relation("NoteApprover")
+  twilioNumber    TwilioNumber?
+  formSubmissions FormSubmission[]
+  formEditLogs    FormEditLog[]
+
+  // Note Version and Mention Relations
+  noteVersions NoteVersion[] @relation("NoteVersionEditor")
+  noteMentions NoteMention[] @relation("NoteMentionedUser")
+
+  // Phone Number Request Relations
+  phoneRequests         PhoneNumberRequest[] @relation("PhoneRequests")
+  resolvedPhoneRequests PhoneNumberRequest[] @relation("ResolvedRequests")
+
+  // User Invitation Relations
+  invitationsSent UserInvitation[] @relation("InvitedBy")
+
+  // Waitlist Approvals (PX-901)
+  waitlistApprovals Waitlist[] @relation("WaitlistApprover")
+
+  // Deactivation tracking
+  deactivatedAt   DateTime?
+  deactivatedById String?
+
+  // Program Relations
+  facilitatedPrograms Program[]           @relation("ProgramFacilitator")
+  createdPrograms     Program[]           @relation("ProgramCreator")
+  enrolledClients     ProgramEnrollment[] @relation("EnrolledBy")
+  recordedAttendance  SessionAttendance[] @relation("AttendanceRecordedBy")
+  uploadedMaterials   ProgramMaterial[]   @relation("MaterialUploadedBy")
+
+  // Attendance Upload Relations
+  attendanceUploads       AttendanceUpload[]          @relation("AttendanceUploadedBy")
+  attendanceReviews       AttendanceUpload[]          @relation("AttendanceReviewedBy")
+  attendanceOverrides     AttendanceUpload[]          @relation("AttendanceOverrideApprovedBy")
+  attendanceVerifications AttendanceExtractedRecord[] @relation("AttendanceManuallyVerifiedBy")
+
+  // Messaging Relations (Spec-3)
+  sentMessages Message[] @relation("MessageSender")
+
+  // Job Infrastructure Relations
+  jobProgress   JobProgress[]
+  notifications Notification[]
+
+  // Note Template Relations
+  ownedNoteTemplates   NoteTemplate[] @relation("NoteTemplateOwner")
+  createdNoteTemplates NoteTemplate[] @relation("NoteTemplateCreator")
+
+  // Form Conversion Relations
+  formConversions FormConversion[]
+
+  // Automated Reporting Relations (Phase 4)
+  createdReportTemplates   ReportTemplate[]        @relation("ReportTemplateCreator")
+  publishedReportTemplates ReportTemplate[]        @relation("ReportTemplatePublisher")
+  generatedReports         Report[]
+  customMetrics            CustomMetric[]
+  curatedFunderDocs        FunderDocumentLibrary[]
+
+  // Funder Export Relations
+  createdExportTemplates ExportTemplate[] @relation("ExportTemplateCreator")
+  generatedFunderExports FunderExport[]   @relation("FunderExportGenerator")
+
+  // Import Relations
+  createdImportTemplates ImportTemplate[] @relation("ImportTemplateCreator")
+  uploadedImportBatches  ImportBatch[]    @relation("ImportBatchUploader")
+
+  // Meeting Intelligence Relations
+  createdMeetings      Meeting[]           @relation("MeetingCreator")
+  assignedActionItems  MeetingActionItem[] @relation("ActionItemAssignee")
+  completedActionItems MeetingActionItem[] @relation("ActionItemCompleter")
+  askedQuestions       MeetingQuestion[]   @relation("QuestionAsker")
+  answeredQuestions    MeetingQuestion[]   @relation("QuestionAnswerer")
+
+  // Knowledge Base Relations
+  createdKnowledge KnowledgeEntry[] @relation("KnowledgeCreator")
+  updatedKnowledge KnowledgeEntry[] @relation("KnowledgeUpdater")
+
+  // Location Access Control Relations
+  locationAccess        UserLocation[]
+  grantedLocationAccess UserLocation[] @relation("LocationAccessGranter")
+
+  // Password Security (HIPAA Compliance)
+  passwordChangedAt   DateTime?
+  failedLoginAttempts Int       @default(0)
+  lockedUntil         DateTime?
+  mustChangePassword  Boolean   @default(false)
+
+  // Password History Relation
+  passwordHistory PasswordHistory[]
+
+  // User Session Relations
+  sessions       UserSession[]
+  trustedDevices TrustedDevice[]
+
+  // Grant Tracking Relations (PX-697)
+  createdGrants               Grant[]               @relation("GrantCreator")
+  generatedGrantReports       GrantReport[]         @relation("GrantReportGenerator")
+  recordedDeliverableProgress DeliverableProgress[] @relation("DeliverableProgressRecorder")
+  createdWorkflowRules        WorkflowRule[]        @relation("WorkflowRuleCreator")
+  assignedReminders           Reminder[]            @relation("ReminderAssignee")
+  completedReminders          Reminder[]            @relation("ReminderCompleter")
+  assignedCallActionItems     CallActionItem[]      @relation("CallActionItemAssignee")
+  completedCallActionItems    CallActionItem[]      @relation("CallActionItemCompleter")
+
+  // Client Sharing Relations
+  clientsSharedWithMe ClientShare[] @relation("ClientSharedWith")
+  clientsSharedByMe   ClientShare[] @relation("ClientSharedBy")
+
+  // OKR Relations
+  ownedObjectives   Objective[]         @relation("ObjectiveOwner")
+  objectiveUpdates  ObjectiveUpdate[]   @relation("ObjectiveUpdateCreator")
+  keyResultProgress KeyResultProgress[] @relation("KeyResultProgressRecorder")
+
+  // Session Status History (PX-723)
+  sessionStatusChanges SessionStatusHistory[] @relation("SessionStatusChanger")
+
+  // Goals Hub Relations (PX-734)
+  ownedGoals                Goal[]               @relation("GoalOwner")
+  createdGoals              Goal[]               @relation("GoalCreator")
+  goalProgressRecords       GoalProgress[]       @relation("GoalProgressRecorder")
+  goalUpdates               GoalUpdate[]         @relation("GoalUpdateCreator")
+  reviewedCallGoalDrafts    CallGoalDraft[]      @relation("CallGoalDraftReviewer")
+  ownedKpis                 Kpi[]                @relation("KpiOwner")
+  createdKpis               Kpi[]                @relation("KpiCreator")
+  kpiProgressRecords        KpiProgress[]        @relation("KpiProgressRecorder")
+  assignedClientGoals       ClientGoal[]         @relation("ClientGoalAssignee")
+  createdClientGoals        ClientGoal[]         @relation("ClientGoalCreator")
+  clientGoalProgressRecords ClientGoalProgress[] @relation("ClientGoalProgressRecorder")
+
+  // Consent Relations (PX-735)
+  revokedConsents     ConsentRecord[]       @relation("ConsentRevoker")
+  interactionMetadata InteractionMetadata[] @relation("InteractionCaseManager")
+
+  // Activity Feed Relations (PX-728)
+  clientActivities ClientActivity[] @relation("ActivityActor")
+
+  // Quiz Relations (PX-704, PX-707)
+  createdQuizzes    Quiz[]        @relation("QuizCreator")
+  quizAttempts      QuizAttempt[] @relation("QuizAttemptUser")
+  quizAnswerReviews QuizAnswer[]  @relation("QuizAnswerReviewer")
+
+  // Chatbot Intake Relations (PX-702)
+  chatSessionHandoffs ChatSession[] @relation("ChatSessionHandoff")
+
+  // In-Person Recording Relations (PX-703)
+  inPersonRecordings InPersonRecording[]
+
+  // Case Manager Profile relation
+  caseManagerProfile CaseManagerProfile?
+
+  // RBAC Relations
+  programMemberships       ProgramMember[]        @relation("ProgramMembership")
+  assignedProgramMembers   ProgramMember[]        @relation("ProgramMemberAssigner")
+  delegatedSettings        SettingsDelegation[]   @relation("DelegatedSettings")
+  settingsDelegatedByMe    SettingsDelegation[]   @relation("SettingsDelegator")
+  permissionDenials        PermissionDenialLog[]  @relation("PermissionDenials")
+
+  // Calendar Integration (PX-822)
+  calendarIntegration    CalendarIntegration?
+  calendarEvents         CalendarEvent[]
+  pendingSchedulingItems PendingSchedulingItem[]
+
+  // Conversation Capture System (PX-865)
+  createdConversations         Conversation[]              @relation("ConversationCreator")
+  conversationAccess           ConversationAccess[]        @relation("ConversationAccessUser")
+  grantedConversationAccess    ConversationAccess[]        @relation("ConversationAccessGranter")
+  reviewedFlaggedSegments      FlaggedSegment[]            @relation("FlaggedSegmentReviewer")
+  reviewedDraftedOutputs       DraftedOutput[]             @relation("DraftedOutputReviewer")
+  confirmedObjectiveLinks      ConversationObjectiveLink[] @relation("ObjectiveLinkConfirmer")
+  connectedIntegrations        IntegrationConnection[]     @relation("IntegrationConnector")
+
+  @@index([orgId])
+  @@index([email])
+  @@index([supabaseUserId])
+}
+
+// ============================================
+// CASE MANAGER PROFILE (Client Matching)
+// ============================================
+
+enum AvailabilityStatus {
+  AVAILABLE
+  LIMITED
+  UNAVAILABLE
+  ON_LEAVE
+}
+
+model CaseManagerProfile {
+  id                   String             @id @default(uuid())
+  userId               String             @unique
+  maxCaseload          Int                @default(30)
+  currentCaseload      Int                @default(0)
+  skills               String[]           @default([])
+  languages            String[]           @default(["English"])
+  specializations      String[]           @default([])
+  availabilityStatus   AvailabilityStatus @default(AVAILABLE)
+  availabilityNote     String? // e.g., "Back from leave on 2/15"
+  preferredClientTypes String[]           @default([]) // e.g., ["families", "veterans", "youth"]
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([availabilityStatus])
+}
+
+// ============================================
+// CLIENT MATCH PREFERENCE
+// ============================================
+
+model ClientMatchPreference {
+  id                 String   @id @default(uuid())
+  clientId           String   @unique
+  preferredLanguages String[] @default([])
+  requiredSkills     String[] @default([])
+  specialNeeds       String[] @default([])
+  notes              String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  // Relations
+  client Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@index([clientId])
+}
+
+// ============================================
+// PASSWORD HISTORY (HIPAA Compliance)
+// ============================================
+
+model PasswordHistory {
+  id           String   @id @default(uuid())
+  userId       String
+  passwordHash String
+  createdAt    DateTime @default(now())
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+}
+
+model Team {
+  id          String   @id @default(uuid())
+  orgId       String
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  members      TeamMember[]
+  formAccess   FormAccess[]
+
+  // Goals Hub Relations (PX-734)
+  goals Goal[]
+  kpis  Kpi[]
+
+  @@unique([orgId, name])
+  @@index([orgId])
+}
+
+model TeamMember {
+  id        String   @id @default(uuid())
+  teamId    String
+  userId    String
+  createdAt DateTime @default(now())
+
+  // Relations
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([teamId, userId])
+  @@index([teamId])
+  @@index([userId])
+}
+
+// ============================================
+// FORMS & FIELDS
+// ============================================
+
+model Form {
+  id          String     @id @default(uuid())
+  orgId       String
+  name        String
+  description String?
+  type        FormType
+  status      FormStatus @default(DRAFT)
+  version     Int        @default(1)
+
+  // Settings (JSON for flexibility)
+  settings Json @default("{\"allowPartialSaves\": true, \"requireSupervisorReview\": false, \"autoArchiveDays\": null, \"activityTriggers\": []}")
+
+  // Form conversion fingerprint for duplicate detection
+  fieldFingerprint String?
+
+  createdById String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  archivedAt  DateTime?
+  publishedAt DateTime?
+
+  // Relations
+  organization Organization     @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  createdBy    User             @relation("FormCreator", fields: [createdById], references: [id])
+  fields       FormField[]
+  versions     FormVersion[]
+  access       FormAccess[]
+  submissions  FormSubmission[]
+  conversions  FormConversion[]
+  chatSessions ChatSession[] // Chatbot intake sessions using this form
+
+  @@index([orgId, status])
+  @@index([createdById])
+  @@index([status])
+  @@index([orgId, fieldFingerprint])
+}
+
+model FormField {
+  id          String       @id @default(uuid())
+  formId      String
+  slug        String
+  name        String
+  type        FieldType
+  purpose     FieldPurpose
+  purposeNote String?
+  helpText    String?
+
+  isRequired      Boolean @default(false)
+  isSensitive     Boolean @default(false)
+  isAiExtractable Boolean @default(true)
+
+  // For dropdown/checkbox - array of options
+  options Json?
+
+  // Grouping
+  section String?
+  order   Int     @default(0)
+
+  // Conditional logic (React Flow compatible)
+  conditionalLogic Json?
+
+  // i18n translations
+  translations Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  form               Form                @relation(fields: [formId], references: [id], onDelete: Cascade)
+  extractionExamples ExtractionExample[]
+
+  @@unique([formId, slug])
+  @@index([formId, order])
+}
+
+model FormVersion {
+  id                 String   @id @default(uuid())
+  formId             String
+  version            Int
+  snapshot           Json
+  aiExtractionPrompt String   @db.Text
+  publishedById      String
+  publishedAt        DateTime @default(now())
+
+  // Relations
+  form        Form             @relation(fields: [formId], references: [id], onDelete: Cascade)
+  publishedBy User             @relation(fields: [publishedById], references: [id])
+  submissions FormSubmission[]
+
+  @@unique([formId, version])
+  @@index([formId])
+}
+
+model FormAccess {
+  id          String      @id @default(uuid())
+  formId      String
+  granteeType GranteeType
+  granteeId   String
+  role        FormRole
+  grantedById String
+  grantedAt   DateTime    @default(now())
+
+  // Relations
+  form      Form  @relation(fields: [formId], references: [id], onDelete: Cascade)
+  grantedBy User  @relation("AccessGranter", fields: [grantedById], references: [id])
+  team      Team? @relation(fields: [granteeId], references: [id], map: "FormAccess_team_fkey")
+
+  @@unique([formId, granteeType, granteeId])
+  @@index([formId])
+  @@index([granteeId])
+}
+
+// ============================================
+// AI EXTRACTION
+// ============================================
+
+model ExtractionExample {
+  id                String   @id @default(uuid())
+  fieldId           String
+  transcriptSnippet String   @db.Text
+  extractedValue    String
+  // embedding      Unsupported("vector(1536)")?   // TODO: Re-enable when pgvector is installed
+  createdById       String
+  createdAt         DateTime @default(now())
+
+  // Relations
+  field FormField @relation(fields: [fieldId], references: [id], onDelete: Cascade)
+
+  @@index([fieldId])
+}
+
+// ============================================
+// TEMPLATES
+// ============================================
+
+model FormTemplate {
+  id               String   @id @default(uuid())
+  orgId            String?
+  name             String
+  description      String?
+  tags             String[]
+  thumbnail        String?
+  useCaseExamples  String[]
+  formSnapshot     Json
+  isSystemTemplate Boolean  @default(false)
+  createdById      String
+  createdAt        DateTime @default(now())
+  usageCount       Int      @default(0)
+
+  // Relations
+  organization Organization? @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@index([isSystemTemplate])
+  @@index([orgId])
+}
+
+// ============================================
+// SUBMISSIONS
+// ============================================
+
+model FormSubmission {
+  id            String  @id @default(uuid())
+  orgId         String
+  formId        String
+  formVersionId String
+  clientId      String?
+  callId        String?
+
+  // Submission data (encrypted sensitive fields)
+  data Json
+
+  // Status tracking
+  status     String  @default("DRAFT") // DRAFT, SUBMITTED, APPROVED, REJECTED
+  isComplete Boolean @default(false)
+  isDraft    Boolean @default(true)
+
+  // AI extraction metadata
+  aiExtractedData Json?
+  aiConfidence    Json?
+  flaggedFields   String[] @default([])
+
+  submittedById String?
+  submittedAt   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  form        Form          @relation(fields: [formId], references: [id], onDelete: Cascade)
+  formVersion FormVersion   @relation(fields: [formVersionId], references: [id])
+  signatures  Signature[]
+  client      Client?       @relation(fields: [clientId], references: [id])
+  call        Call?         @relation(fields: [callId], references: [id])
+  submitter   User?         @relation(fields: [submittedById], references: [id])
+  editLogs    FormEditLog[]
+
+  @@index([formId])
+  @@index([formVersionId])
+  @@index([clientId])
+  @@index([callId])
+}
+
+model Signature {
+  id                String   @id @default(uuid())
+  submissionId      String
+  fieldId           String
+  imageData         Bytes
+  imageHash         String
+  timestamp         DateTime @default(now())
+  signerIp          String
+  signerUserAgent   String
+  signerSessionId   String
+  geolocation       Json?
+  deviceFingerprint String?
+  consentRecorded   Boolean  @default(true)
+  consentText       String?
+  documentHash      String?
+
+  // Relations
+  submission FormSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+
+  @@index([submissionId])
+}
+
+// ============================================
+// FILE HANDLING
+// ============================================
+
+model FileUpload {
+  id            String     @id @default(uuid())
+  orgId         String
+  originalName  String
+  storagePath   String
+  mimeType      String
+  sizeBytes     Int
+  scanStatus    ScanStatus @default(PENDING)
+  scanResult    Json?
+  scannedAt     DateTime?
+  extractedText String?    @db.Text
+  uploadedById  String
+  uploadedAt    DateTime   @default(now())
+
+  // Relations
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@index([orgId])
+  @@index([scanStatus])
+}
+
+// ============================================
+// AUDIT & COMPLIANCE
+// ============================================
+
+model AuditLog {
+  id           String  @id @default(uuid())
+  orgId        String
+  userId       String?
+  action       String // CREATE, UPDATE, DELETE, VIEW, EXPORT, PUBLISH, etc.
+  resource     String // FORM, SUBMISSION, CLIENT, USER, FILE, etc.
+  resourceId   String
+  resourceName String?
+  details      Json    @default("{}")
+  ipAddress    String?
+  userAgent    String?
+
+  // Hash chain for immutability
+  previousHash String
+  hash         String
+
+  timestamp DateTime @default(now())
+
+  // Relations
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@index([orgId, timestamp])
+  @@index([resource, resourceId])
+  @@index([userId])
+  @@index([action])
+}
+
+model ComplianceReport {
+  id            String   @id @default(uuid())
+  orgId         String
+  reportType    String // ACTIVITY_SUMMARY, DATA_ACCESS, USER_ACTIVITY, etc.
+  startDate     DateTime
+  endDate       DateTime
+  generatedAt   DateTime @default(now())
+  generatedById String
+  data          Json
+  hash          String // For integrity verification
+
+  @@index([orgId, reportType])
+  @@index([orgId, generatedAt])
+}
+
+// ============================================
+// BILLING & SUBSCRIPTIONS
+// ============================================
+
+model Subscription {
+  id                   String   @id @default(uuid())
+  orgId                String
+  stripeSubscriptionId String   @unique
+  stripeCustomerId     String
+  tier                 String // FREE, STARTER, PROFESSIONAL, ENTERPRISE
+  status               String // active, past_due, canceled, etc.
+  currentPeriodStart   DateTime
+  currentPeriodEnd     DateTime
+  cancelAtPeriodEnd    Boolean  @default(false)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  @@index([orgId])
+  @@index([stripeCustomerId])
+  @@index([status])
+}
+
+model PaymentHistory {
+  id              String   @id @default(uuid())
+  orgId           String
+  stripePaymentId String   @unique
+  amount          Int // Amount in cents
+  currency        String   @default("usd")
+  status          String // succeeded, pending, failed
+  description     String?
+  type            String // subscription, form_pack, etc.
+  metadata        Json?
+  createdAt       DateTime @default(now())
+
+  @@index([orgId])
+  @@index([createdAt])
+}
+
+// ============================================
+// CLIENT MANAGEMENT (Spec-2)
+// ============================================
+
+model Client {
+  id               String       @id @default(uuid())
+  orgId            String
+  firstName        String
+  lastName         String
+  phone            String // Primary phone (10 digits)
+  additionalPhones Json? // Array of { number, label }
+  email            String?
+  address          Json? // { street, city, state, zip, formatted, coordinates }
+  internalId       String? // Org-specific ID for external system sync
+  status           ClientStatus @default(ACTIVE)
+  assignedTo       String // Case manager user ID
+  createdBy        String
+
+  // Email Bounce Tracking (PX-705)
+  emailBounced   Boolean   @default(false)
+  emailBouncedAt DateTime?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime? // Soft delete
+
+  // Relations
+  organization       Organization        @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  assignedUser       User                @relation("AssignedClients", fields: [assignedTo], references: [id])
+  creator            User                @relation("CreatedClients", fields: [createdBy], references: [id])
+  calls              Call[]
+  notes              Note[]
+  formSubmissions    FormSubmission[]
+  programEnrollments ProgramEnrollment[]
+
+  // Messaging Relations (Spec-3)
+  messages      Message[]
+  smsPreference SmsPreference?
+  portalTokens  PortalToken[]
+
+  // Portal Session Relations
+  portalSessions     PortalSession[]
+  clientPIN          ClientPIN?
+  phoneVerifications PhoneVerification[]
+
+  // Import Relations
+  importRecordsCreated ImportRecord[] @relation("ImportCreatedClient")
+  importRecordsUpdated ImportRecord[] @relation("ImportUpdatedClient")
+
+  // Reminder Relations (PX-688)
+  reminders Reminder[]
+
+  // Client Matching Relations
+  matchPreference ClientMatchPreference?
+
+  // Client Sharing Relations
+  shares ClientShare[] @relation("ClientShares")
+
+  // Real-Time Chat Relations (PX-713)
+  chatRoom ChatRoom?
+
+  // Chatbot Intake Relations (PX-702)
+  chatbotCreatedSessions ChatSession[] @relation("ChatSessionCreatedClient")
+
+  // Workforce Development Relations (PX-711)
+  jobPlacements JobPlacement[]
+  credentials   Credential[]
+
+  // Insurance Eligibility Relations (PX-712)
+  insurancePlans    ClientInsurance[]
+  eligibilityChecks EligibilityCheck[]
+
+  // In-Person Recording Relations (PX-703)
+  inPersonRecordings InPersonRecording[]
+
+  // Goals Hub Relations (PX-734)
+  clientGoals ClientGoal[]
+
+  // Recording Consent (PX-735)
+  consentRecords      ConsentRecord[]
+  interactionMetadata InteractionMetadata[]
+
+  // Activity Feed (PX-728)
+  activities ClientActivity[]
+
+  // Calendar Integration (PX-822)
+  calendarEvents         CalendarEvent[]
+  pendingSchedulingItems PendingSchedulingItem[]
+
+  // Conversation Capture System (PX-865)
+  conversationLinks ConversationClient[] @relation("ConversationClients")
+
+  @@index([orgId, status])
+  @@index([orgId, phone])
+  @@index([assignedTo])
+}
+
+// ============================================
+// CLIENT SHARING
+// ============================================
+
+enum ClientSharePermission {
+  VIEW // Can view client data
+  EDIT // Can view and edit client data
+  FULL // Full access including notes, calls, submissions
+}
+
+model ClientShare {
+  id               String                @id @default(uuid())
+  clientId         String
+  sharedWithUserId String
+  sharedByUserId   String
+  orgId            String
+  permission       ClientSharePermission @default(VIEW)
+  expiresAt        DateTime? // Optional expiration
+  notes            String? // Reason for sharing
+  createdAt        DateTime              @default(now())
+  updatedAt        DateTime              @updatedAt
+  revokedAt        DateTime? // Soft revoke
+
+  // Relations
+  client         Client @relation("ClientShares", fields: [clientId], references: [id], onDelete: Cascade)
+  sharedWithUser User   @relation("ClientSharedWith", fields: [sharedWithUserId], references: [id])
+  sharedByUser   User   @relation("ClientSharedBy", fields: [sharedByUserId], references: [id])
+
+  @@unique([clientId, sharedWithUserId]) // Only one active share per user per client
+  @@index([clientId])
+  @@index([sharedWithUserId])
+  @@index([orgId])
+  @@index([expiresAt])
+}
+
+// ============================================
+// CALL MANAGEMENT (Spec-2)
+// ============================================
+
+model Call {
+  id              String     @id @default(uuid())
+  clientId        String
+  caseManagerId   String
+  formIds         String[] // Forms selected for this call
+  status          CallStatus @default(INITIATING)
+  startedAt       DateTime
+  endedAt         DateTime?
+  durationSeconds Int?
+
+  // Recording
+  twilioCallSid      String?   @unique
+  recordingUrl       String? // S3 URL
+  recordingRetention DateTime? // When to delete based on org policy
+
+  // Consent tracking (PX-735)
+  isRecorded       Boolean                  @default(true)
+  consentGrantedAt DateTime?
+  consentMethod    ConsentCollectionMethod?
+
+  // Transcript
+  transcriptRaw  String? @db.Text
+  transcriptJson Json? // Array of TranscriptSegment
+
+  // AI Processing
+  aiSummary         Json? // CallSummary structure
+  extractedFields   Json? // Field slug -> value
+  confidenceScores  Json? // Field slug -> ExtractionConfidence
+  manualCorrections Json? // Array of FieldCorrection
+
+  // ML Service Integration
+  mlMatchedForms      Json?     // Array of FormMatch with confidence scores
+  mlMatchingTimestamp DateTime? // When form matching was run
+  mlServiceUsed       Boolean   @default(false) // Whether ML service was available
+
+  // Queue for retry
+  aiProcessingStatus  ProcessingStatus @default(PENDING)
+  aiProcessingError   String?
+  aiProcessingRetries Int              @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  client          Client           @relation(fields: [clientId], references: [id])
+  caseManager     User             @relation(fields: [caseManagerId], references: [id])
+  notes           Note[]
+  formSubmissions FormSubmission[]
+
+  // Action Items Relations (PX-689)
+  actionItems CallActionItem[]
+
+  // Calendar Integration (PX-822)
+  calendarEvents         CalendarEvent[]
+  pendingSchedulingItems PendingSchedulingItem[]
+
+  // Goal Draft Relations (Rich Call Context)
+  goalDrafts CallGoalDraft[]
+
+  @@index([clientId])
+  @@index([caseManagerId])
+  @@index([status])
+  @@index([aiProcessingStatus])
+}
+
+// ============================================
+// NOTES (Spec-2)
+// ============================================
+
+model Note {
+  id         String     @id @default(uuid())
+  orgId      String
+  clientId   String
+  callId     String? // Optional link to call
+  sessionId  String? // Optional link to program session (for mass notes)
+  authorId   String
+  type       NoteType   @default(INTERNAL)
+  status     NoteStatus @default(DRAFT)
+  content    String     @db.Text // Rich text HTML, max 10000 chars
+  tags       String[] // Flexible tagging
+  isMassNote Boolean    @default(false) // Flag for mass-created notes
+  isDraft    Boolean    @default(false)
+
+  // Approval workflow fields
+  approvedById    String?
+  approvedAt      DateTime?
+  rejectionReason String?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime? // Soft delete
+
+  // Relations
+  organization Organization    @relation(fields: [orgId], references: [id])
+  client       Client          @relation(fields: [clientId], references: [id])
+  call         Call?           @relation(fields: [callId], references: [id])
+  session      ProgramSession? @relation(fields: [sessionId], references: [id])
+  author       User            @relation("NoteAuthor", fields: [authorId], references: [id])
+  approvedBy   User?           @relation("NoteApprover", fields: [approvedById], references: [id])
+
+  // Version history and mentions
+  versions NoteVersion[]
+  mentions NoteMention[]
+
+  @@index([clientId])
+  @@index([callId])
+  @@index([sessionId])
+  @@index([authorId])
+  @@index([orgId, status])
+  @@index([orgId, createdAt])
+}
+
+// ============================================
+// NOTE VERSION HISTORY (HIPAA Compliance)
+// ============================================
+
+model NoteVersion {
+  id         String   @id @default(uuid())
+  noteId     String
+  editedById String
+  content    String   @db.Text
+  createdAt  DateTime @default(now())
+
+  // Relations
+  note     Note @relation(fields: [noteId], references: [id], onDelete: Cascade)
+  editedBy User @relation("NoteVersionEditor", fields: [editedById], references: [id])
+
+  @@index([noteId])
+  @@index([editedById])
+}
+
+// ============================================
+// NOTE MENTIONS (@mentions)
+// ============================================
+
+model NoteMention {
+  id              String   @id @default(uuid())
+  noteId          String
+  mentionedUserId String
+  notified        Boolean  @default(false)
+  createdAt       DateTime @default(now())
+
+  // Relations
+  note          Note @relation(fields: [noteId], references: [id], onDelete: Cascade)
+  mentionedUser User @relation("NoteMentionedUser", fields: [mentionedUserId], references: [id])
+
+  @@unique([noteId, mentionedUserId])
+  @@index([mentionedUserId])
+}
+
+// ============================================
+// NOTE TAGS (Predefined Tags)
+// ============================================
+
+model NoteTag {
+  id           String   @id @default(uuid())
+  orgId        String
+  programId    String?
+  name         String
+  colorHash    String // Auto-generated from name
+  isRestricted Boolean  @default(false) // Cannot use on shareable notes
+  sortOrder    Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  program      Program?     @relation(fields: [programId], references: [id])
+
+  @@unique([orgId, programId, name])
+  @@index([orgId])
+  @@index([programId])
+}
+
+// ============================================
+// TWILIO PHONE NUMBERS (Spec-2)
+// ============================================
+
+model TwilioNumber {
+  id            String   @id @default(uuid())
+  userId        String   @unique
+  phoneNumber   String   @unique // E.164 format
+  twilioSid     String   @unique
+  areaCode      String // For org preference tracking
+  provisionedAt DateTime @default(now())
+
+  // Relations
+  user User @relation(fields: [userId], references: [id])
+}
+
+// ============================================
+// PHONE NUMBER POOL (Admin-managed numbers)
+// ============================================
+
+model PhoneNumberPool {
+  id          String   @id @default(uuid())
+  orgId       String
+  phoneNumber String   @unique // E.164 format
+  twilioSid   String   @unique
+  areaCode    String
+  purchasedAt DateTime @default(now())
+  monthlyCost Decimal  @default(5.00) @db.Decimal(10, 2)
+
+  // Relations
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@index([orgId])
+}
+
+// ============================================
+// PHONE NUMBER REQUESTS (Case manager requests)
+// ============================================
+
+model PhoneNumberRequest {
+  id              String                   @id @default(uuid())
+  userId          String
+  orgId           String
+  status          PhoneNumberRequestStatus @default(PENDING)
+  requestedAt     DateTime                 @default(now())
+  resolvedAt      DateTime?
+  resolvedBy      String?
+  rejectionReason String?
+
+  // Relations
+  user         User         @relation("PhoneRequests", fields: [userId], references: [id])
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  resolver     User?        @relation("ResolvedRequests", fields: [resolvedBy], references: [id])
+
+  @@index([orgId, status])
+  @@index([userId])
+}
+
+// ============================================
+// FORM EDIT LOGS (Spec-2)
+// ============================================
+
+model FormEditLog {
+  id            String   @id @default(uuid())
+  submissionId  String
+  fieldId       String
+  previousValue Json?
+  newValue      Json?
+  editedBy      String
+  editedAt      DateTime @default(now())
+  editReason    String?
+
+  // Relations
+  submission FormSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  editor     User           @relation(fields: [editedBy], references: [id])
+
+  @@index([submissionId])
+  @@index([editedBy])
+}
+
+// ============================================
+// RESOURCE LOCKING (Spec-2)
+// ============================================
+
+model ResourceLock {
+  id           String   @id @default(uuid())
+  resourceType String // 'form_submission', 'client', etc.
+  resourceId   String
+  lockedBy     String // User ID
+  lockedAt     DateTime @default(now())
+  expiresAt    DateTime // Auto-expire after 5 minutes of inactivity
+
+  @@unique([resourceType, resourceId])
+  @@index([expiresAt])
+}
+
+// ============================================
+// USER INVITATIONS
+// ============================================
+
+model UserInvitation {
+  id          String   @id @default(uuid())
+  email       String
+  name        String
+  role        UserRole
+  teamId      String?
+  maxCaseload Int?
+
+  // Invitation token and status
+  token     String           @unique
+  status    InvitationStatus @default(PENDING)
+  expiresAt DateTime
+
+  // Tracking timestamps
+  acceptedAt     DateTime?
+  revokedAt      DateTime?
+  reminderSentAt DateTime?
+
+  // Who sent the invitation
+  invitedById String
+  invitedBy   User   @relation("InvitedBy", fields: [invitedById], references: [id])
+
+  // Organization
+  orgId        String
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([orgId])
+  @@index([token])
+  @@index([email, orgId])
+  @@index([status])
+}
+
+// ============================================
+// WAITLIST (PX-901: Account Gating)
+// ============================================
+
+model Waitlist {
+  id             String         @id @default(uuid())
+  email          String         @unique
+  firstName      String
+  lastName       String
+  organization   String
+  role           String
+  teamSize       String
+  industry       String
+  status         WaitlistStatus @default(PENDING)
+
+  // Approval token for account creation
+  approvalToken  String?        @unique
+  tokenExpiresAt DateTime?
+
+  // Timestamps
+  submittedAt    DateTime       @default(now())
+  approvedAt     DateTime?
+  completedAt    DateTime?      // When user created account
+
+  // Who approved (nullable - admin user)
+  approvedById   String?
+  approvedBy     User?          @relation("WaitlistApprover", fields: [approvedById], references: [id])
+
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  @@index([status])
+  @@index([submittedAt])
+  @@index([email])
+  @@index([approvalToken])
+}
+
+// ============================================
+// PROGRAM MANAGEMENT
+// ============================================
+
+model Program {
+  id            String           @id @default(uuid())
+  orgId         String
+  name          String
+  labelType     ProgramLabelType @default(PROGRAM)
+  description   String?          @db.Text
+  requiredHours Int? // Total hours needed for completion
+  startDate     DateTime?
+  endDate       DateTime?
+  schedule      Json? // Flexible schedule info (e.g., days of week, time, frequency)
+  location      String?
+  maxEnrollment Int? // Maximum number of participants
+  facilitatorId String?
+  status        ProgramStatus    @default(DRAFT)
+  createdById   String
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+  archivedAt    DateTime?
+
+  // Relations
+  organization          Organization           @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  facilitator           User?                  @relation("ProgramFacilitator", fields: [facilitatorId], references: [id])
+  createdBy             User                   @relation("ProgramCreator", fields: [createdById], references: [id])
+  sessions              ProgramSession[]
+  enrollments           ProgramEnrollment[]
+  materials             ProgramMaterial[]
+  attendanceSheetConfig AttendanceSheetConfig?
+  noteTemplates         NoteTemplate[]
+
+  // Note Tags scoped to this program
+  noteTags NoteTag[]
+
+  // Grant Tracking Relations (PX-697)
+  grantLinks GrantProgramLink[]
+
+  // Goals Hub Relations (PX-734)
+  goalLinks   GoalProgramLink[]
+  kpiLinks    KpiProgramLink[]
+  clientGoals ClientGoal[]
+
+  // RBAC Relations
+  members ProgramMember[]
+
+  @@index([orgId, status])
+  @@index([facilitatorId])
+  @@index([createdById])
+}
+
+model ProgramSession {
+  id              String        @id @default(uuid())
+  programId       String
+  sessionNumber   Int // Order/sequence number
+  title           String
+  topic           String?       @db.Text
+  date            DateTime?
+  durationMinutes Int?
+  notes           String?       @db.Text
+  status          SessionStatus @default(DRAFT)
+  rescheduledToId String? // Link to new session if rescheduled
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  // Relations
+  program           Program                @relation(fields: [programId], references: [id], onDelete: Cascade)
+  attendance        SessionAttendance[]
+  materials         ProgramMaterial[]
+  attendanceUploads AttendanceUpload[]
+  massNotes         Note[] // Mass notes for session
+  statusHistory     SessionStatusHistory[] // PX-723: Session status change history
+  rescheduledTo     ProgramSession?        @relation("SessionReschedule", fields: [rescheduledToId], references: [id])
+  rescheduledFrom   ProgramSession[]       @relation("SessionReschedule")
+
+  @@unique([programId, sessionNumber])
+  @@index([programId])
+  @@index([date])
+  @@index([status])
+}
+
+// PX-723: Session Status History Tracking
+model SessionStatusHistory {
+  id              String         @id @default(cuid())
+  sessionId       String
+  session         ProgramSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  oldStatus       SessionStatus?
+  newStatus       SessionStatus
+  changedById     String
+  changedBy       User           @relation("SessionStatusChanger", fields: [changedById], references: [id])
+  changedAt       DateTime       @default(now())
+  reason          String? // Optional reason for change
+  rescheduledToId String? // If rescheduled, link to new session
+
+  @@index([sessionId])
+  @@index([changedAt])
+  @@index([changedById])
+}
+
+model ProgramEnrollment {
+  id               String           @id @default(uuid())
+  programId        String
+  clientId         String
+  enrolledDate     DateTime         @default(now())
+  status           EnrollmentStatus @default(ENROLLED)
+  hoursOverride    Decimal?         @db.Decimal(6, 2) // Manual override for completed hours
+  completionDate   DateTime?
+  withdrawalDate   DateTime?
+  withdrawalReason String?
+  enrolledById     String
+  notes            String?          @db.Text
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  // Relations
+  program          Program                     @relation(fields: [programId], references: [id], onDelete: Cascade)
+  client           Client                      @relation(fields: [clientId], references: [id])
+  enrolledBy       User                        @relation("EnrolledBy", fields: [enrolledById], references: [id])
+  attendance       SessionAttendance[]
+  attendanceCode   AttendanceCode?
+  extractedRecords AttendanceExtractedRecord[]
+
+  @@unique([programId, clientId])
+  @@index([programId, status])
+  @@index([clientId])
+  @@index([enrolledById])
+}
+
+model SessionAttendance {
+  id            String   @id @default(uuid())
+  sessionId     String
+  enrollmentId  String
+  attended      Boolean  @default(false)
+  hoursAttended Decimal? @db.Decimal(4, 2) // Actual hours (can differ from session duration)
+  notes         String?
+  recordedById  String
+  recordedAt    DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Extended fields for photo-based attendance tracking
+  attendanceType    AttendanceType? // PRESENT, EXCUSED, ABSENT
+  uploadSourceId    String? // Link to AttendanceUpload
+  timeIn            DateTime?
+  timeOut           DateTime?
+  signatureVerified Boolean         @default(false)
+
+  // Relations
+  session    ProgramSession    @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  enrollment ProgramEnrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+  recordedBy User              @relation("AttendanceRecordedBy", fields: [recordedById], references: [id])
+
+  @@unique([sessionId, enrollmentId])
+  @@index([sessionId])
+  @@index([enrollmentId])
+  @@index([uploadSourceId])
+}
+
+model ProgramMaterial {
+  id               String           @id @default(uuid())
+  programId        String
+  sessionId        String? // Optional - can be program-level or session-specific
+  filename         String
+  fileUrl          String // S3 URL
+  mimeType         String
+  sizeBytes        Int
+  materialType     MaterialType     @default(OTHER)
+  extractionStatus ExtractionStatus @default(PENDING)
+  extractedData    Json? // AI-extracted syllabus data
+  extractionError  String?
+  uploadedById     String
+  uploadedAt       DateTime         @default(now())
+
+  // Relations
+  program    Program         @relation(fields: [programId], references: [id], onDelete: Cascade)
+  session    ProgramSession? @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+  uploadedBy User            @relation("MaterialUploadedBy", fields: [uploadedById], references: [id])
+
+  @@index([programId])
+  @@index([sessionId])
+  @@index([materialType])
+  @@index([extractionStatus])
+}
+
+// ============================================
+// ATTENDANCE TRACKING (Photo-based AI Recognition)
+// ============================================
+
+model AttendanceSheetConfig {
+  id                     String   @id @default(uuid())
+  programId              String   @unique
+  includeTimeInOut       Boolean  @default(true)
+  includeClientSignature Boolean  @default(true)
+  includeNotes           Boolean  @default(true)
+  customInstructions     String?  @db.Text
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  // Relations
+  program Program @relation(fields: [programId], references: [id], onDelete: Cascade)
+}
+
+model AttendanceCode {
+  id           String   @id @default(uuid())
+  enrollmentId String   @unique
+  code         String // Format: BK2847 (consonants + numbers)
+  createdAt    DateTime @default(now())
+
+  // Relations
+  enrollment ProgramEnrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+
+  @@index([code])
+}
+
+model AttendanceUpload {
+  id        String                 @id @default(uuid())
+  sessionId String
+  orgId     String
+  status    AttendanceUploadStatus @default(SHEET_GENERATED)
+
+  // Sheet generation tracking
+  sheetPath        String? // S3 path to generated PDF
+  sheetGeneratedAt DateTime?
+
+  // Photo upload tracking
+  photoPath         String? // S3 path to uploaded photo
+  photoUploadedAt   DateTime?
+  photoMimeType     String?
+  photoSizeBytes    Int?
+  enhancedPhotoPath String? // S3 path to enhanced photo
+
+  // AI processing tracking
+  aiProcessingStartedAt DateTime?
+  aiProcessingEndedAt   DateTime?
+  aiRawResponse         Json?
+  aiExtractedData       Json? // Structured extraction results
+  aiConfidence          Float?
+  aiError               String?
+  aiRetryCount          Int       @default(0)
+
+  // Review tracking
+  reviewedAt   DateTime?
+  reviewedById String?
+  reviewNotes  String?   @db.Text
+
+  // Override handling
+  isOverride           Boolean   @default(false)
+  overrideReason       String?   @db.Text
+  overrideApprovedById String?
+  overrideApprovedAt   DateTime?
+
+  // User tracking
+  uploadedById String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  session            ProgramSession              @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  uploadedBy         User                        @relation("AttendanceUploadedBy", fields: [uploadedById], references: [id])
+  reviewedBy         User?                       @relation("AttendanceReviewedBy", fields: [reviewedById], references: [id])
+  overrideApprovedBy User?                       @relation("AttendanceOverrideApprovedBy", fields: [overrideApprovedById], references: [id])
+  extractedRecords   AttendanceExtractedRecord[]
+
+  @@index([sessionId])
+  @@index([orgId, status])
+  @@index([uploadedById])
+  @@index([status])
+}
+
+model AttendanceExtractedRecord {
+  id           String  @id @default(uuid())
+  uploadId     String
+  enrollmentId String? // Nullable for walk-ins
+
+  // Extracted data
+  attendanceType      AttendanceType?
+  qrCodeDetected      Boolean         @default(false)
+  qrCodeValue         String?
+  printedCodeDetected Boolean         @default(false)
+  printedCodeValue    String?
+  timeIn              DateTime?
+  timeOut             DateTime?
+  signatureDetected   Boolean         @default(false)
+  notes               String?         @db.Text
+
+  // Confidence and review
+  confidence  Float?
+  needsReview Boolean @default(false)
+  reviewFlag  String? // Reason for flag (e.g., "low_confidence", "no_match", "missing_signature")
+
+  // Manual verification
+  isManuallyVerified   Boolean   @default(false)
+  manuallyVerifiedById String?
+  manuallyVerifiedAt   DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  upload             AttendanceUpload   @relation(fields: [uploadId], references: [id], onDelete: Cascade)
+  enrollment         ProgramEnrollment? @relation(fields: [enrollmentId], references: [id])
+  manuallyVerifiedBy User?              @relation("AttendanceManuallyVerifiedBy", fields: [manuallyVerifiedById], references: [id])
+
+  @@index([uploadId])
+  @@index([enrollmentId])
+}
+
+model AttendanceUploadRateLimit {
+  id          String   @id @default(uuid())
+  userId      String
+  sessionId   String
+  uploadCount Int      @default(1)
+  windowStart DateTime @default(now())
+
+  @@unique([userId, sessionId])
+  @@index([windowStart])
+}
+
+// ============================================
+// SMS/MESSAGING SYSTEM (Spec-3)
+// ============================================
+
+enum MessageSenderType {
+  CASE_MANAGER
+  CLIENT
+}
+
+enum MessageStatus {
+  DRAFT
+  SENT
+  DELIVERED
+  READ
+  FAILED
+}
+
+enum SmsDeliveryStatus {
+  QUEUED
+  SENT
+  DELIVERED
+  UNDELIVERED
+  FAILED
+}
+
+// ============================================
+// EMAIL INTEGRATION ENUMS (PX-705)
+// ============================================
+
+enum EmailStatus {
+  QUEUED
+  SENT
+  DELIVERED
+  BOUNCED
+  FAILED
+}
+
+model Message {
+  id          String            @id @default(uuid())
+  orgId       String
+  clientId    String
+  senderId    String? // User ID (case manager) or null for client replies
+  senderType  MessageSenderType
+  content     String            @db.Text
+  contentHash String? // SHA-256 for integrity verification
+  status      MessageStatus     @default(SENT)
+  sentAt      DateTime          @default(now())
+  deliveredAt DateTime?
+  readAt      DateTime?
+  expiresAt   DateTime? // For 7-year retention policy
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  deletedAt   DateTime? // Soft delete
+
+  // Relations
+  organization    Organization        @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  client          Client              @relation(fields: [clientId], references: [id])
+  sender          User?               @relation("MessageSender", fields: [senderId], references: [id])
+  attachments     MessageAttachment[]
+  smsNotification SmsNotification?
+
+  // Email Integration Relations (PX-705)
+  emailLogs EmailLog[]
+
+  @@index([clientId, sentAt])
+  @@index([orgId, clientId])
+  @@index([senderId])
+  @@index([status])
+}
+
+model MessageAttachment {
+  id         String   @id @default(uuid())
+  messageId  String
+  filename   String
+  fileUrl    String // S3 URL (encrypted at rest with AES-256)
+  mimeType   String
+  fileSize   Int // bytes
+  uploadedAt DateTime @default(now())
+
+  message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@index([messageId])
+}
+
+model SmsNotification {
+  id             String            @id @default(uuid())
+  messageId      String            @unique
+  phoneNumber    String // E.164 format
+  twilioSid      String?           @unique
+  deliveryStatus SmsDeliveryStatus @default(QUEUED)
+  sentAt         DateTime?
+  deliveredAt    DateTime?
+  errorCode      String?
+  errorMessage   String?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@index([twilioSid])
+  @@index([deliveryStatus])
+}
+
+model SmsPreference {
+  id          String    @id @default(uuid())
+  clientId    String    @unique
+  optedIn     Boolean   @default(false)
+  phoneNumber String // E.164 format
+  optedInAt   DateTime?
+  optedOutAt  DateTime?
+  optInMethod String? // "portal", "verbal", "written"
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  client Client @relation(fields: [clientId], references: [id])
+
+  @@index([clientId])
+}
+
+// ============================================
+// EMAIL LOGGING (PX-705)
+// ============================================
+
+model EmailLog {
+  id             String      @id @default(uuid())
+  organizationId String
+  messageId      String? // Link to Message if applicable
+  clientId       String? // Link to Client if applicable
+  recipientEmail String
+  subject        String
+  templateId     String? // Template used (e.g., "client_message", "appointment_reminder")
+  body           String?     @db.Text // Email body content
+  status         EmailStatus @default(QUEUED)
+  sesMessageId   String?     @unique // AWS SES Message ID for tracking
+  sentAt         DateTime?
+  deliveredAt    DateTime?
+  bouncedAt      DateTime?
+  bounceType     String? // "permanent" or "transient"
+  bounceReason   String?
+  retryCount     Int         @default(0)
+  nextRetryAt    DateTime? // For retry scheduling
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  message      Message?     @relation(fields: [messageId], references: [id])
+
+  @@index([organizationId, status])
+  @@index([organizationId, createdAt])
+  @@index([sesMessageId])
+  @@index([clientId])
+  @@index([status, nextRetryAt])
+}
+
+model PortalToken {
+  id        String    @id @default(uuid())
+  clientId  String
+  token     String    @unique
+  messageId String? // Optional: link to specific message
+  expiresAt DateTime // 24-hour expiry
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  client Client @relation(fields: [clientId], references: [id])
+
+  @@index([token])
+  @@index([clientId])
+  @@index([expiresAt])
+}
+
+// Admin-configurable SMS templates (P1)
+model SmsTemplate {
+  id        String   @id @default(uuid())
+  orgId     String
+  name      String
+  content   String // Template with placeholders like {{portal_link}}
+  isDefault Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@unique([orgId, name])
+  @@index([orgId])
+}
+
+// ============================================
+// CLIENT PORTAL SESSION MANAGEMENT
+// ============================================
+
+model PortalSession {
+  id           String   @id @default(uuid())
+  clientId     String
+  sessionToken String   @unique
+  createdAt    DateTime @default(now())
+  expiresAt    DateTime
+  ipAddress    String?
+  userAgent    String?
+  csrfToken    String
+
+  client Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@index([sessionToken])
+  @@index([clientId])
+  @@index([expiresAt])
+}
+
+model ClientPIN {
+  id             String    @id @default(uuid())
+  clientId       String    @unique
+  pinHash        String
+  failedAttempts Int       @default(0)
+  lockedUntil    DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  client Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+}
+
+model PhoneVerification {
+  id          String    @id @default(uuid())
+  clientId    String
+  phoneNumber String
+  codeHash    String
+  sentAt      DateTime  @default(now())
+  expiresAt   DateTime
+  verifiedAt  DateTime?
+  attempts    Int       @default(0)
+
+  client Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@index([clientId])
+  @@index([expiresAt])
+}
+
+// ============================================
+// JOB INFRASTRUCTURE (Phase 1)
+// ============================================
+
+enum JobStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+model JobProgress {
+  id        String    @id @default(uuid())
+  type      String // mass-note-batch, form-conversion, report-generation
+  userId    String
+  orgId     String
+  status    JobStatus @default(PENDING)
+  progress  Int       @default(0)
+  total     Int       @default(0)
+  completed Int       @default(0)
+  failed    Int       @default(0)
+  result    Json?
+  error     String?
+  metadata  Json?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  user         User         @relation(fields: [userId], references: [id])
+  organization Organization @relation(fields: [orgId], references: [id])
+
+  @@index([userId, status])
+  @@index([orgId, type])
+}
+
+model Notification {
+  id        String           @id @default(uuid())
+  orgId     String
+  userId    String
+  type      NotificationType
+  title     String // MUST NOT contain PHI
+  body      String?          @db.Text // MUST NOT contain PHI
+  actionUrl String?
+  metadata  Json? // IDs only, no PHI
+  isRead    Boolean          @default(false)
+  readAt    DateTime?
+  expiresAt DateTime? // 90-day retention: createdAt + 90 days (PX-734)
+  createdAt DateTime         @default(now())
+
+  // Relations
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id])
+
+  @@index([userId, isRead])
+  @@index([orgId, createdAt])
+  @@index([expiresAt])
+}
+
+// ============================================
+// NOTE TEMPLATES (Phase 2 - Mass Notes)
+// ============================================
+
+enum NoteTemplateScope {
+  ORG
+  PROGRAM
+  USER
+}
+
+model NoteTemplate {
+  id                 String            @id @default(uuid())
+  orgId              String
+  programId          String?
+  userId             String?
+  scope              NoteTemplateScope
+  name               String
+  content            String            @db.Text
+  availableVariables String[]
+  sessionType        String?
+  isDefault          Boolean           @default(false)
+  createdById        String
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+
+  organization Organization @relation(fields: [orgId], references: [id])
+  program      Program?     @relation(fields: [programId], references: [id])
+  user         User?        @relation("NoteTemplateOwner", fields: [userId], references: [id])
+  createdBy    User         @relation("NoteTemplateCreator", fields: [createdById], references: [id])
+
+  @@index([orgId, scope])
+  @@index([programId])
+  @@index([sessionType])
+}
+
+// ============================================
+// FORM CONVERSION (Phase 3 - Photo/PDF to Form)
+// ============================================
+
+enum ConversionSourceType {
+  PHOTO
+  PDF_CLEAN
+  PDF_SCANNED
+}
+
+enum ConversionStatus {
+  PENDING
+  PROCESSING
+  REVIEW_REQUIRED
+  COMPLETED
+  FAILED
+}
+
+model FormConversion {
+  id                     String               @id @default(uuid())
+  orgId                  String
+  sourceType             ConversionSourceType
+  sourcePath             String // S3 path to original document
+  status                 ConversionStatus     @default(PENDING)
+  detectedFields         Json? // Array of detected field definitions
+  fieldPositions         Json? // Field positions for PDF overlay
+  confidence             Float? // Overall confidence score (0-1)
+  warnings               String[] // Array of warning messages
+  requiresOriginalExport Boolean              @default(false)
+  resultFormId           String? // Created form ID after completion
+  createdById            String
+  createdAt              DateTime             @default(now())
+  updatedAt              DateTime             @updatedAt
+  expiresAt              DateTime? // For source document retention
+
+  organization Organization @relation(fields: [orgId], references: [id])
+  resultForm   Form?        @relation(fields: [resultFormId], references: [id])
+  createdBy    User         @relation(fields: [createdById], references: [id])
+
+  @@index([orgId, status])
+  @@index([createdById])
+}
+
+// ============================================
+// AUTOMATED REPORTING (Phase 4)
+// ============================================
+
+enum ReportType {
+  HUD_APR
+  DOL_WORKFORCE
+  CALI_GRANTS
+  BOARD_REPORT
+  IMPACT_REPORT
+  CUSTOM
+}
+
+enum ReportTemplateStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum ReportStatus {
+  GENERATING
+  REVIEW_REQUIRED
+  COMPLETED
+  FAILED
+}
+
+enum StorageTier {
+  FULL
+  COMPRESSED
+}
+
+model ReportTemplate {
+  id                   String               @id @default(uuid())
+  orgId                String
+  name                 String
+  description          String?
+  type                 ReportType
+  status               ReportTemplateStatus @default(DRAFT)
+  questionnaireAnswers Json // Answers to guided questionnaire
+  metrics              Json // Selected/configured metrics
+  sections             Json // Report section definitions
+  funderRequirements   Json? // Extracted funder requirements
+  aiGeneratedAt        DateTime?
+  createdById          String
+  publishedById        String?
+  publishedAt          DateTime?
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @updatedAt
+
+  organization Organization @relation(fields: [orgId], references: [id])
+  createdBy    User         @relation("ReportTemplateCreator", fields: [createdById], references: [id])
+  publishedBy  User?        @relation("ReportTemplatePublisher", fields: [publishedById], references: [id])
+  reports      Report[]
+
+  @@index([orgId, status])
+  @@index([type])
+}
+
+model Report {
+  id                   String       @id @default(uuid())
+  templateId           String
+  orgId                String
+  reportingPeriodStart DateTime
+  reportingPeriodEnd   DateTime
+  status               ReportStatus @default(GENERATING)
+  storageTier          StorageTier  @default(FULL)
+  pdfPath              String? // S3 path to generated PDF
+  generatedData        Json? // All calculated metrics data
+  narrativeSections    Json? // AI-generated narrative content
+  generatedById        String
+  generatedAt          DateTime?
+  createdAt            DateTime     @default(now())
+  updatedAt            DateTime     @updatedAt
+
+  template     ReportTemplate   @relation(fields: [templateId], references: [id])
+  organization Organization     @relation(fields: [orgId], references: [id])
+  generatedBy  User             @relation(fields: [generatedById], references: [id])
+  snapshots    ReportSnapshot[]
+
+  @@index([orgId, status])
+  @@index([templateId])
+}
+
+model ReportSnapshot {
+  id             String   @id @default(uuid())
+  reportId       String
+  dataSnapshot   Json // Complete metric snapshot at generation time
+  metricsVersion String // Version of metrics used
+  generatedAt    DateTime @default(now())
+
+  report Report @relation(fields: [reportId], references: [id])
+
+  @@index([reportId])
+}
+
+model CustomMetric {
+  id           String   @id @default(uuid())
+  orgId        String
+  baseMetricId String? // If cloned from pre-built metric
+  name         String
+  description  String
+  calculation  Json // Metric calculation definition
+  version      String
+  createdById  String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  organization Organization @relation(fields: [orgId], references: [id])
+  createdBy    User         @relation(fields: [createdById], references: [id])
+
+  @@index([orgId])
+}
+
+model FunderDocumentLibrary {
+  id                    String   @id @default(uuid())
+  name                  String
+  funderName            String
+  documentType          String // e.g., "APR Instructions", "Data Standards"
+  sourcePath            String // S3 path to original document
+  extractedText         String   @db.Text
+  extractedRequirements Json // Structured requirements
+  lastUpdated           DateTime
+  curatedById           String
+  createdAt             DateTime @default(now())
+
+  curatedBy User @relation(fields: [curatedById], references: [id])
+
+  @@index([funderName])
+}
+
+// ============================================
+// FUNDER DATA EXPORTS (Spec - Data Integration)
+// ============================================
+
+enum ExportType {
+  CAP60
+  DOL_WIPS
+  CALI_GRANTS
+  HUD_HMIS
+  CUSTOM
+}
+
+enum ExportTemplateStatus {
+  DRAFT
+  ACTIVE
+  ARCHIVED
+}
+
+enum ExportStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  VALIDATION_REQUIRED
+}
+
+model ExportTemplate {
+  id                   String               @id @default(uuid())
+  orgId                String
+  name                 String
+  description          String?
+  exportType           ExportType
+  status               ExportTemplateStatus @default(DRAFT)
+  fieldMappings        Json // Array of field mapping definitions
+  sourceFormIds        String[] // Forms to extract data from
+  validationRules      Json?
+  outputFormat         String               @default("CSV")
+  outputConfig         Json? // delimiter, encoding, headers
+  scheduleEnabled      Boolean              @default(false)
+  scheduleCron         String?
+  scheduleTimezone     String               @default("America/Los_Angeles")
+  lastScheduledRunAt   DateTime?
+  nextScheduledRunAt   DateTime?
+  scheduleFailureCount Int                  @default(0)
+  createdById          String
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @updatedAt
+
+  organization Organization   @relation(fields: [orgId], references: [id])
+  createdBy    User           @relation("ExportTemplateCreator", fields: [createdById], references: [id])
+  exports      FunderExport[]
+
+  // Grant Relations (PX-697)
+  grants Grant[]
+
+  @@index([orgId, status])
+  @@index([exportType])
+}
+
+model FunderExport {
+  id               String       @id @default(uuid())
+  orgId            String
+  templateId       String
+  status           ExportStatus @default(PENDING)
+  periodStart      DateTime
+  periodEnd        DateTime
+  programIds       String[]
+  clientIds        String[]
+  filePath         String?
+  recordCount      Int?
+  validationErrors Json?
+  warnings         Json?
+  generatedById    String
+  generatedAt      DateTime?
+  processingTimeMs Int?
+  createdAt        DateTime     @default(now())
+
+  organization Organization   @relation(fields: [orgId], references: [id])
+  template     ExportTemplate @relation(fields: [templateId], references: [id])
+  generatedBy  User           @relation("FunderExportGenerator", fields: [generatedById], references: [id])
+
+  @@index([orgId, status])
+  @@index([templateId])
+}
+
+// ============================================
+// IMPORT MODELS (Phase 3: Smart Import)
+// ============================================
+
+enum ImportStatus {
+  PENDING
+  PARSING
+  MAPPING
+  READY
+  PROCESSING
+  COMPLETED
+  FAILED
+  ROLLED_BACK
+}
+
+enum ImportRecordStatus {
+  PENDING
+  CREATED
+  UPDATED
+  SKIPPED
+  FAILED
+  ROLLED_BACK
+}
+
+enum DuplicateAction {
+  SKIP
+  UPDATE
+  CREATE_NEW
+  MERGE
+}
+
+model ImportTemplate {
+  id                String          @id @default(uuid())
+  orgId             String
+  name              String
+  description       String?
+  sourceSystem      String? // e.g., "CAP60", "Excel", "Apricot"
+  fileFormat        String          @default("CSV") // CSV, XLSX, JSON
+  fieldMappings     Json // Array of field mapping definitions
+  duplicateSettings Json? // Duplicate detection configuration
+  defaultAction     DuplicateAction @default(SKIP)
+  isActive          Boolean         @default(true)
+  createdById       String
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+
+  organization Organization  @relation(fields: [orgId], references: [id])
+  createdBy    User          @relation("ImportTemplateCreator", fields: [createdById], references: [id])
+  batches      ImportBatch[]
+
+  @@index([orgId, isActive])
+}
+
+model ImportBatch {
+  id                     String       @id @default(uuid())
+  orgId                  String
+  templateId             String?
+  status                 ImportStatus @default(PENDING)
+  fileName               String
+  filePath               String // S3 path to uploaded file
+  fileSize               Int
+  totalRows              Int?
+  processedRows          Int          @default(0)
+  createdCount           Int          @default(0)
+  updatedCount           Int          @default(0)
+  skippedCount           Int          @default(0)
+  failedCount            Int          @default(0)
+  fieldMappings          Json? // Mappings used for this batch
+  duplicateSettings      Json? // Duplicate settings used
+  previewData            Json? // First N rows for preview
+  detectedColumns        String[] // Column headers from file
+  suggestedMappings      Json? // AI-suggested mappings
+  validationErrors       Json? // Batch-level validation errors
+  rollbackAvailableUntil DateTime? // 24 hours after completion
+  rollbackExecutedAt     DateTime?
+  uploadedById           String
+  startedAt              DateTime?
+  completedAt            DateTime?
+  createdAt              DateTime     @default(now())
+
+  organization Organization    @relation(fields: [orgId], references: [id])
+  template     ImportTemplate? @relation(fields: [templateId], references: [id])
+  uploadedBy   User            @relation("ImportBatchUploader", fields: [uploadedById], references: [id])
+  records      ImportRecord[]
+
+  @@index([orgId, status])
+  @@index([templateId])
+}
+
+model ImportRecord {
+  id               String             @id @default(uuid())
+  batchId          String
+  rowNumber        Int
+  status           ImportRecordStatus @default(PENDING)
+  action           DuplicateAction?
+  sourceData       Json // Original row data
+  mappedData       Json? // Data after field mapping
+  duplicateMatches Json? // Matched existing records
+  selectedMatchId  String? // Which duplicate was selected for update/merge
+  createdClientId  String? // If new client was created
+  updatedClientId  String? // If existing client was updated
+  validationErrors Json? // Row-level validation errors
+  processingNotes  String?
+  processedAt      DateTime?
+
+  batch         ImportBatch @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  createdClient Client?     @relation("ImportCreatedClient", fields: [createdClientId], references: [id])
+  updatedClient Client?     @relation("ImportUpdatedClient", fields: [updatedClientId], references: [id])
+
+  @@index([batchId, status])
+  @@index([createdClientId])
+  @@index([updatedClientId])
+}
+
+// ============================================
+// LOCATION HIERARCHY (For Access Control)
+// ============================================
+
+enum LocationType {
+  STORE
+  DISTRICT
+  REGION
+  HEADQUARTERS
+}
+
+enum LocationAccessLevel {
+  VIEW // Can view meetings/data at this location
+  EDIT // Can view and edit meetings/data at this location
+  MANAGE // Full control including assigning access to others
+}
+
+model Location {
+  id    String       @id @default(uuid())
+  orgId String
+  name  String
+  type  LocationType
+  code  String? // Store number, district code, etc.
+
+  // Hierarchy
+  parentId String? // Parent location (e.g., district -> region)
+
+  // Address
+  address Json? // { street, city, state, zip }
+
+  // Metadata
+  isActive Boolean @default(true)
+  timezone String  @default("America/Los_Angeles")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  organization Organization   @relation(fields: [orgId], references: [id])
+  parent       Location?      @relation("LocationHierarchy", fields: [parentId], references: [id])
+  children     Location[]     @relation("LocationHierarchy")
+  meetings     Meeting[]
+  userAccess   UserLocation[]
+
+  @@unique([orgId, code])
+  @@index([orgId, type])
+  @@index([parentId])
+}
+
+// User-Location access assignment (join table)
+model UserLocation {
+  id          String              @id @default(uuid())
+  userId      String
+  locationId  String
+  accessLevel LocationAccessLevel @default(VIEW)
+
+  // Who granted access and when
+  grantedById String?
+  grantedAt   DateTime @default(now())
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  location  Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  grantedBy User?    @relation("LocationAccessGranter", fields: [grantedById], references: [id])
+
+  @@unique([userId, locationId])
+  @@index([userId])
+  @@index([locationId])
+}
+
+// ============================================
+// MEETING INTELLIGENCE (Knowledge Base Phase 1)
+// ============================================
+
+enum MeetingStatus {
+  SCHEDULED
+  JOINING
+  RECORDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum MeetingSource {
+  TEAMS
+  ZOOM
+  UPLOAD // Manual audio/video upload
+  GOOGLE_MEET
+}
+
+enum ActionItemStatus {
+  OPEN
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+model Meeting {
+  id          String        @id @default(uuid())
+  orgId       String
+  title       String
+  description String?
+  status      MeetingStatus @default(SCHEDULED)
+  source      MeetingSource @default(UPLOAD)
+
+  // External meeting info
+  externalMeetingId String? // Teams/Zoom meeting ID
+  externalJoinUrl   String?
+
+  // Scheduling
+  scheduledStartAt DateTime?
+  scheduledEndAt   DateTime?
+  actualStartAt    DateTime?
+  actualEndAt      DateTime?
+  durationSeconds  Int?
+
+  // Recording
+  recordingPath String? // S3 path to recording
+  recordingSize Int?
+
+  // Processing
+  processingStartedAt   DateTime?
+  processingCompletedAt DateTime?
+  processingError       String?
+
+  // Participants (stored as JSON for flexibility with external systems)
+  participants     Json? // Array of { email, name, role, speakerId? }
+  participantCount Int?
+
+  // Distribution
+  summaryEmailSentAt DateTime?
+  emailRecipients    String[] // Email addresses that received summary
+
+  // Metadata
+  locationId String? // For location-based access control
+  tags       String[]
+
+  createdById String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  organization     Organization        @relation(fields: [orgId], references: [id])
+  createdBy        User                @relation("MeetingCreator", fields: [createdById], references: [id])
+  location         Location?           @relation(fields: [locationId], references: [id])
+  transcript       MeetingTranscript?
+  summary          MeetingSummary?
+  actionItems      MeetingActionItem[]
+  questions        MeetingQuestion[]
+  knowledgeEntries KnowledgeEntry[]
+
+  @@index([orgId, status])
+  @@index([orgId, scheduledStartAt])
+  @@index([locationId])
+}
+
+model MeetingTranscript {
+  id        String @id @default(uuid())
+  meetingId String @unique
+
+  // Full transcript
+  fullText  String // Complete transcript text
+  wordCount Int?
+
+  // Speaker-diarized segments
+  segments Json // Array of { speakerId, speakerName, startTime, endTime, text, confidence }
+
+  // Processing metadata
+  language           String  @default("en")
+  transcriptionModel String? // e.g., "deepgram-nova-2", "whisper-large-v3"
+  wordErrorRate      Float? // Estimated WER if available
+  processingTimeMs   Int?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  meeting Meeting @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+}
+
+model MeetingSummary {
+  id        String @id @default(uuid())
+  meetingId String @unique
+
+  // Executive summary
+  executiveSummary String // 2-3 paragraph overview
+
+  // Structured extractions
+  keyPoints       Json // Array of { point, context?, speakerName? }
+  decisions       Json // Array of { decision, context?, participants? }
+  topicsDiscussed String[] // Topic tags/categories
+
+  // AI metadata
+  summaryModel     String? // e.g., "claude-sonnet-4"
+  tokensUsed       Int?
+  processingTimeMs Int?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  meeting Meeting @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+}
+
+model MeetingActionItem {
+  id        String @id @default(uuid())
+  meetingId String
+
+  description    String
+  assigneeName   String? // Name mentioned in meeting
+  assigneeEmail  String? // Resolved email if found
+  assigneeUserId String? // Linked user if matched
+  dueDate        DateTime?
+  status         ActionItemStatus @default(OPEN)
+
+  // Context from transcript
+  contextSnippet   String? // Transcript excerpt where this was mentioned
+  timestampSeconds Int? // When in meeting this was discussed
+
+  // Tracking
+  completedAt   DateTime?
+  completedById String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  meeting      Meeting @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  assigneeUser User?   @relation("ActionItemAssignee", fields: [assigneeUserId], references: [id])
+  completedBy  User?   @relation("ActionItemCompleter", fields: [completedById], references: [id])
+
+  @@index([meetingId])
+  @@index([assigneeUserId, status])
+  @@index([status])
+}
+
+model MeetingQuestion {
+  id        String @id @default(uuid())
+  meetingId String
+
+  question      String
+  askedByName   String? // Speaker who asked
+  askedByUserId String?
+
+  // Answer tracking
+  isAnswered       Boolean   @default(false)
+  answer           String?
+  answeredByName   String?
+  answeredByUserId String?
+  answeredAt       DateTime?
+
+  // Context
+  contextSnippet   String?
+  timestampSeconds Int?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  meeting    Meeting @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  askedBy    User?   @relation("QuestionAsker", fields: [askedByUserId], references: [id])
+  answeredBy User?   @relation("QuestionAnswerer", fields: [answeredByUserId], references: [id])
+
+  @@index([meetingId])
+  @@index([isAnswered])
+}
+
+// ============================================
+// KNOWLEDGE BASE / INSTITUTIONAL MEMORY
+// ============================================
+
+enum KnowledgeSource {
+  MEETING // Extracted from meeting summaries
+  DOCUMENT // From uploaded documents
+  MANUAL // Manually entered by users
+}
+
+model KnowledgeEntry {
+  id      String          @id @default(uuid())
+  orgId   String
+  title   String
+  content String          @db.Text
+  summary String? // AI-generated summary
+  source  KnowledgeSource @default(MANUAL)
+
+  // Source references
+  meetingId    String? // Link to source meeting
+  documentPath String? // S3 path if from document
+
+  // Categorization
+  tags     String[]
+  category String? // e.g., "Policy", "Decision", "Process"
+
+  // Vector embedding for semantic search (stored reference)
+  embeddingId     String? // External embedding ID (e.g., from vector DB)
+  embeddingVector Float[] // Stored embedding vector for local search
+
+  // Metadata
+  createdById     String
+  lastUpdatedById String?
+  isArchived      Boolean   @default(false)
+  archivedAt      DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  organization  Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  meeting       Meeting?     @relation(fields: [meetingId], references: [id], onDelete: SetNull)
+  createdBy     User         @relation("KnowledgeCreator", fields: [createdById], references: [id])
+  lastUpdatedBy User?        @relation("KnowledgeUpdater", fields: [lastUpdatedById], references: [id])
+
+  @@index([orgId, source])
+  @@index([orgId, category])
+  @@index([createdById])
+  @@index([meetingId])
+  @@index([tags])
+}
+
+// ============================================
+// MEETING PLATFORM INTEGRATIONS
+// ============================================
+
+enum MeetingPlatform {
+  TEAMS
+  ZOOM
+  GOOGLE_MEET
+}
+
+enum IntegrationStatus {
+  PENDING // OAuth flow initiated
+  ACTIVE // Successfully connected
+  EXPIRED // Token expired, needs refresh
+  ERROR // Connection error
+  DISCONNECTED // User disconnected
+}
+
+model MeetingIntegration {
+  id       String          @id @default(uuid())
+  orgId    String
+  platform MeetingPlatform
+
+  // OAuth credentials (encrypted in production)
+  accessToken    String? // Encrypted access token
+  refreshToken   String? // Encrypted refresh token
+  tokenExpiresAt DateTime?
+
+  // Platform-specific identifiers
+  externalUserId   String? // User ID on the platform
+  externalTenantId String? // For Teams: tenant ID
+
+  // Webhook configuration
+  webhookId        String? // Platform webhook subscription ID
+  webhookSecret    String? // Webhook verification secret
+  webhookExpiresAt DateTime? // When webhook subscription expires
+
+  // Connection status
+  status     IntegrationStatus @default(PENDING)
+  lastSyncAt DateTime?
+  lastError  String?
+  errorCount Int               @default(0)
+
+  // Settings
+  settings            Json    @default("{}") // Platform-specific settings
+  autoRecordEnabled   Boolean @default(true) // Auto-capture recordings
+  syncCalendarEnabled Boolean @default(false) // Sync calendar events
+
+  // Audit
+  connectedById String // User who set up the integration
+  connectedAt   DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  organization     Organization      @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  integrationToken IntegrationToken?
+
+  @@unique([orgId, platform])
+  @@index([orgId, status])
+  @@index([platform])
+}
+
+// ============================================
+// CALENDAR INTEGRATION (PX-822)
+// ============================================
+
+enum CalendarProvider {
+  GOOGLE
+  OUTLOOK
+  APPLE
+}
+
+enum CalendarIntegrationStatus {
+  PENDING // OAuth flow initiated
+  ACTIVE // Successfully connected
+  ERROR // Token refresh failed or other error
+  DISCONNECTED // User disconnected
+}
+
+model CalendarIntegration {
+  id       String                    @id @default(uuid())
+  userId   String                    @unique // One calendar per user
+  orgId    String
+  provider CalendarProvider
+
+  // External account info
+  externalEmail String? // Email of the connected calendar account
+
+  // Connection status
+  status    CalendarIntegrationStatus @default(PENDING)
+  lastError String?
+
+  // Settings
+  clientAutoInvite Boolean @default(true) // Auto-invite client if email on file
+
+  // Audit
+  connectedAt DateTime?
+  lastSyncAt  DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Relations
+  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization     Organization      @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  integrationToken IntegrationToken?
+  calendarEvents   CalendarEvent[]
+
+  @@index([orgId])
+  @@index([userId, status])
+}
+
+enum CalendarEventStatus {
+  CREATED // Event created on external calendar
+  UPDATED // Event was updated
+  DELETED // Event was deleted
+  FAILED // Failed to sync to calendar
+}
+
+model CalendarEvent {
+  id     String               @id @default(uuid())
+  userId String
+  orgId  String
+
+  // External calendar reference
+  externalEventId String // The event ID from the calendar provider
+  provider        CalendarProvider
+
+  // Event details
+  title     String
+  startTime DateTime
+  endTime   DateTime
+
+  // Recurrence
+  isRecurring Boolean @default(false)
+  rrule       String? // iCal RRULE format
+
+  // Linked entities
+  callId                 String? // Call that generated this event
+  clientId               String? // Client this event is about
+  calendarIntegrationId  String?
+  pendingSchedulingItemId String? @unique
+  actionItemId           String?
+
+  // Invite tracking
+  clientInvited Boolean @default(false)
+
+  // Status
+  status CalendarEventStatus @default(CREATED)
+
+  // Audit
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  user                 User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization         Organization           @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  calendarIntegration  CalendarIntegration?   @relation(fields: [calendarIntegrationId], references: [id])
+  call                 Call?                  @relation(fields: [callId], references: [id])
+  client               Client?                @relation(fields: [clientId], references: [id])
+  pendingSchedulingItem PendingSchedulingItem? @relation(fields: [pendingSchedulingItemId], references: [id])
+
+  @@index([userId])
+  @@index([orgId])
+  @@index([externalEventId, provider])
+  @@index([callId])
+}
+
+// ============================================
+// PENDING SCHEDULING ITEMS
+// ============================================
+
+enum PendingSchedulingTier {
+  TIER_1_CONFLICT // Explicit date+time but has conflict
+  TIER_2_VAGUE // Vague scheduling reference
+}
+
+enum PendingSchedulingStatus {
+  PENDING // Awaiting user action
+  APPROVED // User approved, event created
+  DISMISSED // User dismissed
+}
+
+model PendingSchedulingItem {
+  id     String @id @default(uuid())
+  callId String
+  userId String
+  orgId  String
+
+  // Client context
+  clientId   String?
+  clientName String // Denormalized for quick display
+
+  // Extracted scheduling info
+  extractedContext  String // The scheduling context from transcript
+  extractedDateHint String? // Partial date info if available
+  hasRecurrence     Boolean @default(false)
+  recurrencePattern String? // e.g., "weekly", "every Monday"
+
+  // Classification
+  tier            PendingSchedulingTier
+  conflictDetails Json? // For TIER_1_CONFLICT: { eventTitle, eventTime }
+
+  // Status
+  status     PendingSchedulingStatus @default(PENDING)
+  resolvedAt DateTime?
+
+  // Audit
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  call          Call          @relation(fields: [callId], references: [id], onDelete: Cascade)
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization  Organization  @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  client        Client?       @relation(fields: [clientId], references: [id])
+  calendarEvent CalendarEvent?
+
+  @@index([userId, status])
+  @@index([callId])
+  @@index([orgId])
+}
+
+// ============================================
+// UNIFIED INTEGRATION TOKEN MANAGEMENT
+// ============================================
+
+enum IntegrationTokenType {
+  // Meeting platforms
+  ZOOM
+  TEAMS
+  GOOGLE_MEET
+  // Calendar providers
+  GOOGLE_CALENDAR
+  OUTLOOK_CALENDAR
+  APPLE_CALENDAR
+}
+
+model IntegrationToken {
+  id   String               @id @default(uuid())
+  type IntegrationTokenType
+
+  // Encrypted OAuth credentials
+  accessToken  String  // Encrypted at rest via AES-256-GCM
+  refreshToken String? // Encrypted at rest, may be null for some providers
+
+  // Token lifecycle
+  expiresAt DateTime? // When the access token expires
+  issuedAt  DateTime  @default(now())
+
+  // Optional relations - only one should be set
+  meetingIntegrationId  String?              @unique
+  meetingIntegration    MeetingIntegration?  @relation(fields: [meetingIntegrationId], references: [id], onDelete: Cascade)
+  calendarIntegrationId String?              @unique
+  calendarIntegration   CalendarIntegration? @relation(fields: [calendarIntegrationId], references: [id], onDelete: Cascade)
+
+  // Audit
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([type])
+  @@index([expiresAt])
+  @@index([type, expiresAt])
+}
+
+// ============================================
+// ENCRYPTION KEY MANAGEMENT (PHI Protection)
+// ============================================
+
+model EncryptionKey {
+  id             String @id @default(uuid())
+  organizationId String
+
+  // Encrypted DEK (Data Encryption Key)
+  // Encrypted by AWS KMS master key
+  encryptedDek String @db.Text
+
+  // Key versioning for rotation support
+  keyVersion Int     @default(1)
+  isActive   Boolean @default(true)
+
+  // Timestamps
+  createdAt DateTime  @default(now())
+  rotatedAt DateTime? // When this key was rotated out
+
+  @@index([organizationId, isActive])
+  @@index([organizationId, keyVersion])
+}
+
+// ============================================
+// USER SESSION MANAGEMENT
+// ============================================
+
+model UserSession {
+  id           String   @id @default(uuid())
+  userId       String
+  token        String   @unique // Secure session token
+  deviceInfo   Json // { browser, os, device, isMobile, userAgent }
+  ipAddress    String
+  lastActivity DateTime @default(now())
+  createdAt    DateTime @default(now())
+  expiresAt    DateTime // Session expiration time
+  isActive     Boolean  @default(true)
+
+  // Termination tracking
+  terminatedAt      DateTime?
+  terminationReason String? // TIMEOUT, USER_LOGOUT, PASSWORD_CHANGE, MFA_CHANGE, ADMIN_REVOKED, etc.
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isActive])
+  @@index([token])
+  @@index([expiresAt])
+  @@index([userId, lastActivity])
+}
+
+// ============================================
+// TRUSTED DEVICE MANAGEMENT (MFA Remember Device)
+// ============================================
+
+model TrustedDevice {
+  id         String    @id @default(uuid())
+  userId     String
+  tokenHash  String    @unique // HMAC-SHA256 hash of the device token
+  deviceInfo Json // { browser, os, device, isMobile, userAgent }
+  ipAddress  String
+  createdAt  DateTime  @default(now())
+  expiresAt  DateTime // 30-day trust expiration
+  lastUsedAt DateTime  @default(now())
+  revokedAt  DateTime?
+  revokedBy  String? // User ID who revoked (self or admin)
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, expiresAt])
+  @@index([tokenHash])
+}
+
+// ============================================
+// GRANT TRACKING (PX-697)
+// ============================================
+
+model Grant {
+  id          String      @id @default(uuid())
+  orgId       String
+  name        String
+  funderName  String? // e.g., "HUD", "DOL", "CalGrants"
+  grantNumber String? // External grant reference number
+  description String?     @db.Text
+  status      GrantStatus @default(DRAFT)
+
+  // Grant Period
+  startDate DateTime
+  endDate   DateTime
+
+  // Reporting Configuration
+  reportingFrequency String? // "monthly", "quarterly", "annually"
+  exportTemplateId   String? // Link to ExportTemplate for auto-reports
+
+  // Notification Settings (JSON for flexibility)
+  notificationSettings Json @default("{}")
+  // Structure: { progressAlerts: [25, 50, 75, 100], daysBeforeDeadline: [30, 7, 1], recipients: [] }
+
+  createdById String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  archivedAt  DateTime?
+
+  // Relations
+  organization   Organization       @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  createdBy      User               @relation("GrantCreator", fields: [createdById], references: [id])
+  exportTemplate ExportTemplate?    @relation(fields: [exportTemplateId], references: [id])
+  deliverables   GrantDeliverable[]
+  programLinks   GrantProgramLink[]
+  reports        GrantReport[]
+
+  // Goals Hub Relations (PX-734)
+  goalLinks GoalGrant[]
+
+  @@index([orgId, status])
+  @@index([endDate])
+}
+
+model GrantDeliverable {
+  id          String     @id @default(uuid())
+  grantId     String
+  name        String // e.g., "Enroll 50 clients in workforce training"
+  description String?    @db.Text
+  metricType  MetricType
+
+  // Target & Progress
+  targetValue  Int
+  currentValue Int @default(0)
+
+  // Custom metric configuration (for CUSTOM type)
+  customConfig Json? // { formFieldSlug: "employed", countCondition: "equals:true" }
+
+  // Deadline (can differ from grant end date)
+  dueDate DateTime?
+
+  // Status (computed but cached for performance)
+  status      DeliverableStatus @default(NOT_STARTED)
+  completedAt DateTime?
+
+  // Auto-report generation
+  autoReportOnComplete Boolean @default(true)
+  reportTemplateId     String? // Optional: specific template for this deliverable
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  grant          Grant                 @relation(fields: [grantId], references: [id], onDelete: Cascade)
+  progressEvents DeliverableProgress[]
+
+  @@index([grantId])
+  @@index([status])
+  @@index([metricType])
+}
+
+model GrantProgramLink {
+  id        String   @id @default(uuid())
+  grantId   String
+  programId String
+  createdAt DateTime @default(now())
+
+  // Relations
+  grant   Grant   @relation(fields: [grantId], references: [id], onDelete: Cascade)
+  program Program @relation(fields: [programId], references: [id], onDelete: Cascade)
+
+  @@unique([grantId, programId])
+  @@index([grantId])
+  @@index([programId])
+}
+
+model DeliverableProgress {
+  id            String            @id @default(uuid())
+  deliverableId String
+  eventType     ProgressEventType
+  delta         Int // +1 for increment, -1 for decrement, etc.
+  previousValue Int
+  newValue      Int
+
+  // Source tracking (what triggered this event)
+  sourceType String // "enrollment", "session", "call", "form_submission", "manual"
+  sourceId   String? // ID of the source record
+
+  // Context
+  notes        String?
+  recordedById String?
+  recordedAt   DateTime @default(now())
+
+  // Relations
+  deliverable GrantDeliverable @relation(fields: [deliverableId], references: [id], onDelete: Cascade)
+  recordedBy  User?            @relation("DeliverableProgressRecorder", fields: [recordedById], references: [id])
+
+  @@index([deliverableId, recordedAt])
+  @@index([sourceType, sourceId])
+}
+
+model GrantReport {
+  id      String @id @default(uuid())
+  grantId String
+  orgId   String
+
+  // Report Period
+  periodStart DateTime
+  periodEnd   DateTime
+
+  // Generated Content
+  reportType       String // "progress", "completion", "scheduled"
+  dataSnapshot     Json // Snapshot of all deliverable values at generation time
+  narrativeSummary String? @db.Text // AI-generated narrative
+  pdfPath          String? // S3 path to PDF
+
+  generatedById String
+  generatedAt   DateTime @default(now())
+
+  // Relations
+  grant       Grant @relation(fields: [grantId], references: [id], onDelete: Cascade)
+  generatedBy User  @relation("GrantReportGenerator", fields: [generatedById], references: [id])
+
+  @@index([grantId, periodEnd])
+  @@index([orgId])
+}
+
+// ============================================
+// WORKFLOW RULES & REMINDERS (PX-688)
+// ============================================
+
+model WorkflowRule {
+  id           String       @id @default(uuid())
+  orgId        String
+  name         String
+  description  String?
+  triggerEvent TriggerEvent
+  conditions   Json? // Optional conditions as JSON
+  delayDays    Int // Days after trigger to create reminder
+  reminderType ReminderType
+  assignToRole UserRole? // Role to assign reminder to
+  isActive     Boolean      @default(true)
+
+  createdById String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  createdBy    User         @relation("WorkflowRuleCreator", fields: [createdById], references: [id])
+  reminders    Reminder[]
+
+  @@index([orgId, isActive])
+  @@index([triggerEvent])
+}
+
+model Reminder {
+  id             String         @id @default(uuid())
+  orgId          String
+  workflowRuleId String? // Null if manually created
+  clientId       String
+  assignedToId   String
+  title          String
+  description    String?
+  dueDate        DateTime
+  status         ReminderStatus @default(PENDING)
+  priority       Int            @default(2) // 1=High, 2=Normal, 3=Low
+
+  sentAt         DateTime?
+  acknowledgedAt DateTime?
+  completedAt    DateTime?
+  completedById  String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  organization Organization  @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  workflowRule WorkflowRule? @relation(fields: [workflowRuleId], references: [id])
+  client       Client        @relation(fields: [clientId], references: [id])
+  assignedTo   User          @relation("ReminderAssignee", fields: [assignedToId], references: [id])
+  completedBy  User?         @relation("ReminderCompleter", fields: [completedById], references: [id])
+
+  @@index([orgId, status])
+  @@index([assignedToId, status])
+  @@index([clientId])
+  @@index([dueDate])
+}
+
+// ============================================
+// CALL ACTION ITEMS (PX-689)
+// ============================================
+
+model CallActionItem {
+  id             String           @id @default(uuid())
+  callId         String
+  orgId          String
+  description    String
+  assigneeName   String? // Name mentioned in transcript
+  assigneeUserId String? // Matched to user if possible
+  assigneeRole   String? // "CASE_MANAGER", "CLIENT", "OTHER"
+  dueDate        DateTime?
+  status         ActionItemStatus @default(OPEN)
+  source         ActionItemSource @default(CALL_TRANSCRIPT)
+  priority       String? // "HIGH", "NORMAL", "LOW"
+
+  // AI extraction metadata
+  contextSnippet   String? // Quote from transcript
+  timestampSeconds Int? // Position in call
+  aiConfidence     Float? // 0-1 confidence score
+
+  completedAt   DateTime?
+  completedById String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  call         Call         @relation(fields: [callId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  assigneeUser User?        @relation("CallActionItemAssignee", fields: [assigneeUserId], references: [id])
+  completedBy  User?        @relation("CallActionItemCompleter", fields: [completedById], references: [id])
+
+  @@index([callId])
+  @@index([orgId, status])
+  @@index([assigneeUserId, status])
+}
+
+// ============================================
+// OKR TRACKING (Objectives & Key Results)
+// ============================================
+
+enum ObjectiveStatus {
+  DRAFT
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+enum KeyResultStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  AT_RISK
+  COMPLETED
+}
+
+model Objective {
+  id          String          @id @default(uuid())
+  orgId       String
+  title       String
+  description String?         @db.Text
+  ownerId     String // User who owns this objective
+  parentId    String? // For hierarchical objectives
+  status      ObjectiveStatus @default(DRAFT)
+
+  // Time period
+  startDate DateTime?
+  endDate   DateTime?
+
+  // Progress (calculated from key results, cached for performance)
+  progress Int @default(0) // 0-100
+
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  archivedAt DateTime?
+
+  // Relations
+  organization Organization      @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  owner        User              @relation("ObjectiveOwner", fields: [ownerId], references: [id])
+  parent       Objective?        @relation("ObjectiveHierarchy", fields: [parentId], references: [id])
+  children     Objective[]       @relation("ObjectiveHierarchy")
+  keyResults   KeyResult[]
+  updates      ObjectiveUpdate[]
+
+  // Goals Hub Relations (PX-734)
+  goalLinks GoalObjective[]
+
+  // Conversation Capture System (PX-865)
+  conversationLinks ConversationObjectiveLink[] @relation("ConversationObjectiveLinks")
+
+  @@index([orgId, status])
+  @@index([ownerId])
+  @@index([parentId])
+  @@index([endDate])
+}
+
+model KeyResult {
+  id          String  @id @default(uuid())
+  objectiveId String
+  title       String
+  description String? @db.Text
+
+  // Measurement
+  targetValue  Float // Target value (e.g., 100)
+  currentValue Float   @default(0) // Current value
+  startValue   Float   @default(0) // Starting value for delta calculations
+  unit         String? // e.g., "%", "users", "$"
+
+  // Weighting for progress calculation
+  weight Float @default(1.0) // Relative importance
+
+  // Status
+  status KeyResultStatus @default(NOT_STARTED)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  objective       Objective           @relation(fields: [objectiveId], references: [id], onDelete: Cascade)
+  progressHistory KeyResultProgress[]
+
+  @@index([objectiveId])
+  @@index([status])
+}
+
+model KeyResultProgress {
+  id            String  @id @default(uuid())
+  keyResultId   String
+  previousValue Float
+  newValue      Float
+  notes         String? @db.Text
+
+  recordedById String
+  recordedAt   DateTime @default(now())
+
+  // Relations
+  keyResult  KeyResult @relation(fields: [keyResultId], references: [id], onDelete: Cascade)
+  recordedBy User      @relation("KeyResultProgressRecorder", fields: [recordedById], references: [id])
+
+  @@index([keyResultId, recordedAt])
+}
+
+model ObjectiveUpdate {
+  id          String @id @default(uuid())
+  objectiveId String
+  content     String @db.Text // Check-in content (markdown supported)
+
+  // Snapshot at time of update
+  progressSnapshot Int? // Objective progress at time of update
+
+  createdById String
+  createdAt   DateTime @default(now())
+
+  // Relations
+  objective Objective @relation(fields: [objectiveId], references: [id], onDelete: Cascade)
+  createdBy User      @relation("ObjectiveUpdateCreator", fields: [createdById], references: [id])
+
+  @@index([objectiveId, createdAt])
+  @@index([createdById])
+}
+
+// ============================================
+// GOALS HUB (PX-734)
+// Unified goal tracking for Grants, OKRs, KPIs, and Initiatives
+// ============================================
+
+enum GoalType {
+  GRANT
+  KPI
+  OKR
+  PROGRAM_INITIATIVE
+  TEAM_INITIATIVE
+  INDIVIDUAL
+}
+
+enum GoalStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  ON_TRACK
+  AT_RISK
+  BEHIND
+  COMPLETED
+}
+
+enum ClientOutcomeType {
+  EMPLOYMENT
+  HOUSING
+  EDUCATION
+  CERTIFICATION
+  OTHER
+}
+
+enum ClientGoalStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  ACHIEVED
+  ABANDONED
+}
+
+enum KpiMetricType {
+  COUNT
+  PERCENTAGE
+  CURRENCY
+  DURATION
+  RATING
+  CUSTOM
+}
+
+model Goal {
+  id                     String     @id @default(uuid())
+  orgId                  String
+  name                   String
+  description            String?    @db.Text
+  type                   GoalType
+  status                 GoalStatus @default(NOT_STARTED)
+  startDate              DateTime?
+  endDate                DateTime?
+  progress               Int        @default(0) // 0-100, cached from children
+  ownerId                String?
+  teamId                 String?
+  autoCompleteOnProgress Boolean    @default(true) // Auto-complete when 100%
+  createdById            String
+  createdAt              DateTime   @default(now())
+  updatedAt              DateTime   @updatedAt
+  archivedAt             DateTime?
+
+  // Relations
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  owner        User?        @relation("GoalOwner", fields: [ownerId], references: [id])
+  team         Team?        @relation(fields: [teamId], references: [id])
+  createdBy    User         @relation("GoalCreator", fields: [createdById], references: [id])
+
+  // Junction tables for child items
+  grantLinks     GoalGrant[]
+  objectiveLinks GoalObjective[]
+  kpiLinks       GoalKpi[]
+
+  // Program linking
+  programLinks GoalProgramLink[]
+
+  // Progress history
+  progressHistory GoalProgress[]
+
+  // Updates/Check-ins
+  updates GoalUpdate[]
+
+  // Call goal drafts (pending review)
+  callDrafts CallGoalDraft[]
+
+  @@index([orgId, status])
+  @@index([orgId, type])
+  @@index([ownerId])
+  @@index([teamId])
+  @@index([endDate])
+  @@index([archivedAt])
+}
+
+model GoalGrant {
+  id        String   @id @default(uuid())
+  goalId    String
+  grantId   String
+  weight    Float    @default(1.0) // For weighted progress calculation
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+
+  // Relations
+  goal  Goal  @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  grant Grant @relation(fields: [grantId], references: [id], onDelete: Cascade)
+
+  @@unique([goalId, grantId])
+  @@index([goalId])
+  @@index([grantId])
+}
+
+model GoalObjective {
+  id          String   @id @default(uuid())
+  goalId      String
+  objectiveId String
+  weight      Float    @default(1.0)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  // Relations
+  goal      Goal      @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  objective Objective @relation(fields: [objectiveId], references: [id], onDelete: Cascade)
+
+  @@unique([goalId, objectiveId])
+  @@index([goalId])
+  @@index([objectiveId])
+}
+
+model GoalKpi {
+  id        String   @id @default(uuid())
+  goalId    String
+  kpiId     String
+  weight    Float    @default(1.0)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+
+  // Relations
+  goal Goal @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  kpi  Kpi  @relation(fields: [kpiId], references: [id], onDelete: Cascade)
+
+  @@unique([goalId, kpiId])
+  @@index([goalId])
+  @@index([kpiId])
+}
+
+model GoalProgramLink {
+  id          String   @id @default(uuid())
+  goalId      String
+  programId   String
+  isInherited Boolean  @default(true) // If true, children inherit this link
+  createdAt   DateTime @default(now())
+
+  // Relations
+  goal    Goal    @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  program Program @relation(fields: [programId], references: [id], onDelete: Cascade)
+
+  @@unique([goalId, programId])
+  @@index([goalId])
+  @@index([programId])
+}
+
+model GoalProgress {
+  id             String     @id @default(uuid())
+  goalId         String
+  previousValue  Int // 0-100
+  newValue       Int // 0-100
+  previousStatus GoalStatus
+  newStatus      GoalStatus
+  triggerType    String // "child_update", "manual", "auto_calculation"
+  triggerSource  String? // ID of the child item that changed
+  notes          String?
+  recordedById   String?
+  recordedAt     DateTime   @default(now())
+
+  // Relations
+  goal       Goal  @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  recordedBy User? @relation("GoalProgressRecorder", fields: [recordedById], references: [id])
+
+  @@index([goalId, recordedAt])
+}
+
+model GoalUpdate {
+  id               String      @id @default(uuid())
+  goalId           String
+  content          String      @db.Text // Markdown-supported check-in content
+  progressSnapshot Int? // Goal progress at time of update
+  statusSnapshot   GoalStatus?
+  createdById      String
+  createdAt        DateTime    @default(now())
+
+  // Relations
+  goal      Goal @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  createdBy User @relation("GoalUpdateCreator", fields: [createdById], references: [id])
+
+  @@index([goalId, createdAt])
+}
+
+// Call Goal Draft - Draft goal updates created from call AI processing
+// Supports review workflow: PENDING -> APPROVED/REJECTED/EDITED
+model CallGoalDraft {
+  id     String @id @default(uuid())
+  callId String
+  goalId String
+
+  // Draft content
+  narrative   String  @db.Text // AI-generated natural language update
+  actionItems Json // Array of action items relevant to this goal
+  keyPoints   Json // Key points relevant to this goal
+  sentiment   String? // Call sentiment (positive/neutral/negative/mixed)
+  topics      Json // Topics discussed
+
+  // Mapping metadata
+  mappingType String // "client_linked" | "topic_matched" | "manual"
+  confidence  Float // AI confidence in goal relevance (0-1)
+
+  // Review workflow
+  status        String    @default("PENDING") // PENDING | APPROVED | REJECTED | EDITED
+  reviewedById  String?
+  reviewedAt    DateTime?
+  editedContent String?   @db.Text // If case manager edited the narrative
+
+  createdAt DateTime @default(now())
+
+  // Relations
+  call       Call  @relation(fields: [callId], references: [id], onDelete: Cascade)
+  goal       Goal  @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  reviewedBy User? @relation("CallGoalDraftReviewer", fields: [reviewedById], references: [id])
+
+  @@unique([callId, goalId])
+  @@index([goalId, status])
+  @@index([callId])
+}
+
+// ============================================
+// KPI MODEL (PX-734)
+// Standalone KPIs with optional nesting
+// ============================================
+
+model Kpi {
+  id                 String        @id @default(uuid())
+  orgId              String
+  name               String
+  description        String?       @db.Text
+  parentKpiId        String? // For nested KPIs
+  metricType         KpiMetricType
+  targetValue        Float
+  currentValue       Float         @default(0)
+  startValue         Float         @default(0) // For delta calculations
+  unit               String? // e.g., "%", "$", "clients", "hours"
+  startDate          DateTime?
+  endDate            DateTime?
+  trackingFrequency  String? // "daily", "weekly", "monthly", "quarterly"
+  progressPercentage Int           @default(0) // 0-100, cached
+  ownerId            String?
+  teamId             String?
+  dataSourceConfig   Json? // { type: "form_field", formId, fieldSlug, aggregation }
+  createdById        String
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+  archivedAt         DateTime?
+
+  // Relations
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  owner        User?        @relation("KpiOwner", fields: [ownerId], references: [id])
+  team         Team?        @relation(fields: [teamId], references: [id])
+  parentKpi    Kpi?         @relation("KpiHierarchy", fields: [parentKpiId], references: [id])
+  childKpis    Kpi[]        @relation("KpiHierarchy")
+  createdBy    User         @relation("KpiCreator", fields: [createdById], references: [id])
+
+  // Goal junction
+  goalLinks GoalKpi[]
+
+  // Progress history
+  progressHistory KpiProgress[]
+
+  // Program linking
+  programLinks KpiProgramLink[]
+
+  @@index([orgId, archivedAt])
+  @@index([parentKpiId])
+  @@index([ownerId])
+  @@index([teamId])
+  @@index([endDate])
+}
+
+model KpiProgress {
+  id            String   @id @default(uuid())
+  kpiId         String
+  previousValue Float
+  newValue      Float
+  notes         String?  @db.Text
+  sourceType    String? // "manual", "form_submission", "api", "scheduled"
+  sourceId      String?
+  recordedById  String?
+  recordedAt    DateTime @default(now())
+
+  // Relations
+  kpi        Kpi   @relation(fields: [kpiId], references: [id], onDelete: Cascade)
+  recordedBy User? @relation("KpiProgressRecorder", fields: [recordedById], references: [id])
+
+  @@index([kpiId, recordedAt])
+}
+
+model KpiProgramLink {
+  id        String   @id @default(uuid())
+  kpiId     String
+  programId String
+  createdAt DateTime @default(now())
+
+  // Relations
+  kpi     Kpi     @relation(fields: [kpiId], references: [id], onDelete: Cascade)
+  program Program @relation(fields: [programId], references: [id], onDelete: Cascade)
+
+  @@unique([kpiId, programId])
+  @@index([kpiId])
+  @@index([programId])
+}
+
+// ============================================
+// CLIENT GOALS (PX-734)
+// Individual client aspirations
+// ============================================
+
+model ClientGoal {
+  id          String            @id @default(uuid())
+  orgId       String
+  clientId    String
+  title       String
+  description String?           @db.Text
+  outcomeType ClientOutcomeType
+  status      ClientGoalStatus  @default(NOT_STARTED)
+
+  // Measurement (optional - not all client goals are quantifiable)
+  metricType   KpiMetricType?
+  targetValue  Float?
+  currentValue Float?         @default(0)
+  unit         String?
+
+  // Timeline
+  startDate     DateTime?
+  deadline      DateTime?
+  achievedAt    DateTime?
+  achievedNotes String?   @db.Text
+
+  // Progress (0-100, calculated or manually set)
+  progress Int @default(0)
+
+  // Client self-service fields (for future portal integration)
+  createdByClientId String? // If client created it themselves
+  clientVisibility  Boolean @default(true) // Visible to client in portal
+  clientCanEdit     Boolean @default(false) // Client can modify
+  clientNotes       String? @db.Text // Client's private notes
+
+  // Staff fields
+  staffNotes   String? @db.Text // Internal case manager notes (NOT visible to client)
+  assignedToId String? // Case manager responsible
+
+  // Link to program (if goal is related to a program)
+  programId String?
+
+  createdById String // Staff or system user who created
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  archivedAt  DateTime?
+
+  // Relations
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  client       Client       @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  assignedTo   User?        @relation("ClientGoalAssignee", fields: [assignedToId], references: [id])
+  program      Program?     @relation(fields: [programId], references: [id])
+  createdBy    User         @relation("ClientGoalCreator", fields: [createdById], references: [id])
+
+  // Progress history
+  progressHistory ClientGoalProgress[]
+
+  @@index([orgId, clientId])
+  @@index([clientId, status])
+  @@index([assignedToId])
+  @@index([outcomeType])
+  @@index([deadline])
+  @@index([archivedAt])
+}
+
+model ClientGoalProgress {
+  id               String           @id @default(uuid())
+  clientGoalId     String
+  previousValue    Float?
+  newValue         Float?
+  previousStatus   ClientGoalStatus
+  newStatus        ClientGoalStatus
+  notes            String?          @db.Text
+  recordedById     String? // Null if automated
+  recordedByClient Boolean          @default(false) // True if client updated via portal
+  recordedAt       DateTime         @default(now())
+
+  // Relations
+  clientGoal ClientGoal @relation(fields: [clientGoalId], references: [id], onDelete: Cascade)
+  recordedBy User?      @relation("ClientGoalProgressRecorder", fields: [recordedById], references: [id])
+
+  @@index([clientGoalId, recordedAt])
+}
+
+// ============================================
+// REAL-TIME CHAT (PX-713)
+// ============================================
+
+model ChatRoom {
+  id             String   @id @default(uuid())
+  organizationId String
+  clientId       String   @unique // One chat room per client
+  isActive       Boolean  @default(true)
+  lastActivityAt DateTime @default(now())
+  createdAt      DateTime @default(now())
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  client       Client       @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, clientId])
+  @@index([isActive, lastActivityAt])
+  @@index([organizationId, isActive])
+}
+
+// ============================================
+// STAFF TRAINING & QUIZZES (PX-704, PX-707)
+// ============================================
+
+enum QuizQuestionType {
+  SINGLE_CHOICE // Select one answer
+  MULTIPLE_CHOICE // Select all that apply
+  FREE_TEXT // Open-ended response
+  SCALE // 1-10 rating (self-assessment)
+  MATCHING // Match items to categories
+  ORDERING // Put items in sequence
+  FILE_UPLOAD // Upload document/image
+}
+
+enum QuizAttemptStatus {
+  IN_PROGRESS
+  PASSED
+  FAILED
+}
+
+enum QuizAudience {
+  STAFF // Only for staff training
+  CLIENT // Only for client learning
+  BOTH // Available to both
+}
+
+model Quiz {
+  id             String       @id @default(uuid())
+  organizationId String
+  title          String
+  description    String?      @db.Text
+  audience       QuizAudience @default(BOTH)
+  passingScore   Int          @default(80) // Percentage required to pass
+  maxAttempts    Int? // Null = unlimited attempts
+  isActive       Boolean      @default(true)
+  createdById    String
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  archivedAt     DateTime? // Soft delete
+
+  // Relations
+  organization Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdBy    User           @relation("QuizCreator", fields: [createdById], references: [id])
+  questions    QuizQuestion[]
+  attempts     QuizAttempt[]
+
+  @@index([organizationId, isActive])
+  @@index([audience])
+  @@index([createdById])
+}
+
+model QuizQuestion {
+  id            String           @id @default(uuid())
+  quizId        String
+  type          QuizQuestionType
+  question      String           @db.Text
+  options       Json? // For choice/matching questions: { choices: [...], pairs?: [...] }
+  correctAnswer Json // Correct answer(s) - format depends on type
+  points        Int              @default(1) // Points for correct answer
+  order         Int // Fixed question order
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  // Relations
+  quiz    Quiz         @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  answers QuizAnswer[]
+
+  @@index([quizId, order])
+}
+
+model QuizAttempt {
+  id          String            @id @default(uuid())
+  quizId      String
+  userId      String
+  score       Int? // Final score percentage (0-100)
+  totalPoints Int? // Total points earned
+  maxPoints   Int? // Maximum possible points
+  status      QuizAttemptStatus @default(IN_PROGRESS)
+  startedAt   DateTime          @default(now())
+  completedAt DateTime?
+
+  // Relations
+  quiz    Quiz         @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  user    User         @relation("QuizAttemptUser", fields: [userId], references: [id])
+  answers QuizAnswer[]
+
+  @@index([quizId, userId])
+  @@index([userId, status])
+  @@index([startedAt])
+}
+
+model QuizAnswer {
+  id           String    @id @default(uuid())
+  attemptId    String
+  questionId   String
+  answer       Json // User's answer - format depends on question type
+  isCorrect    Boolean? // Null for FREE_TEXT/FILE_UPLOAD pending review
+  pointsEarned Int? // Points awarded (null if not yet graded)
+  fileUrl      String? // S3 URL for FILE_UPLOAD answers
+  reviewedAt   DateTime? // When manual review was completed
+  reviewedById String? // Who reviewed (for FREE_TEXT/FILE_UPLOAD)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  // Relations
+  attempt    QuizAttempt  @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  question   QuizQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  reviewedBy User?        @relation("QuizAnswerReviewer", fields: [reviewedById], references: [id])
+
+  @@unique([attemptId, questionId]) // One answer per question per attempt
+  @@index([attemptId])
+  @@index([questionId])
+}
+
+// ============================================
+// AUTOMATED CHATBOT INTAKE (PX-702)
+// ============================================
+
+enum ChatSessionStatus {
+  ACTIVE // Session in progress
+  COMPLETED // Intake successfully completed
+  ABANDONED // Session abandoned (no activity)
+  ESCALATED // Escalated due to crisis detection
+}
+
+model ChatSession {
+  id             String            @id @default(uuid())
+  organizationId String
+  formId         String
+  status         ChatSessionStatus @default(ACTIVE)
+
+  // Client identification (collected during conversation)
+  clientPhone String?
+  clientEmail String?
+
+  // Extracted data from conversation
+  extractedData     Json? // Field slug -> extracted value
+  lastQuestionIndex Int   @default(0) // Track progress through form
+
+  // Handoff tracking
+  handoffRequested   Boolean   @default(false)
+  handoffUserId      String? // Case manager who accepted handoff
+  handoffRequestedAt DateTime?
+
+  // Crisis detection
+  crisisDetected   Boolean   @default(false)
+  crisisDetectedAt DateTime?
+
+  // Session cookie for resume (hashed)
+  resumeToken String? @unique
+
+  // Completion
+  completedAt DateTime?
+  clientId    String? // Created client after completion
+
+  // Analytics
+  dropOffField String? // Last field answered before abandonment
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  organization  Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  form          Form          @relation(fields: [formId], references: [id])
+  handoffUser   User?         @relation("ChatSessionHandoff", fields: [handoffUserId], references: [id])
+  createdClient Client?       @relation("ChatSessionCreatedClient", fields: [clientId], references: [id])
+  messages      ChatMessage[]
+
+  @@index([organizationId, status])
+  @@index([organizationId, createdAt])
+  @@index([resumeToken])
+}
+
+model ChatMessage {
+  id        String   @id @default(uuid())
+  sessionId String
+  role      String // "user" | "assistant" | "system"
+  content   String   @db.Text
+  metadata  Json? // Additional context (e.g., field being asked, crisis flags)
+  createdAt DateTime @default(now())
+
+  // Relations
+  session ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId, createdAt])
+}
+
+// ============================================
+// WORKFORCE DEVELOPMENT ADD-ON (PX-711)
+// ============================================
+
+enum CredentialStatus {
+  ACTIVE // Credential is valid and current
+  EXPIRING // Within 30 days of expiry
+  EXPIRED // Past expiry date
+}
+
+enum PlacementStatus {
+  ACTIVE // Currently employed
+  ENDED // Employment ended normally
+  TERMINATED // Employment terminated
+}
+
+model JobPlacement {
+  id           String          @id @default(uuid())
+  clientId     String
+  employerName String
+  jobTitle     String
+  hourlyWage   Decimal?        @db.Decimal(10, 2)
+  startDate    DateTime
+  endDate      DateTime?
+  status       PlacementStatus @default(ACTIVE)
+  notes        String?         @db.Text
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+
+  // Relations
+  client Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@index([clientId])
+  @@index([clientId, status])
+  @@index([startDate])
+}
+
+model Credential {
+  id          String           @id @default(uuid())
+  clientId    String
+  name        String
+  issuingOrg  String?
+  issueDate   DateTime?
+  expiryDate  DateTime?
+  status      CredentialStatus @default(ACTIVE)
+  documentUrl String? // S3 path to credential document
+  notes       String?          @db.Text
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  // Relations
+  client Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@index([clientId])
+  @@index([expiryDate, status])
+  @@index([status])
+}
+
+// ============================================
+// INSURANCE ELIGIBILITY VERIFICATION (PX-712)
+// ============================================
+
+model ClientInsurance {
+  id              String    @id @default(uuid())
+  clientId        String
+  planName        String
+  memberId        String
+  groupNumber     String?
+  payerCode       String? // Standard payer ID for clearinghouse
+  payerName       String? // Human-readable payer name
+  effectiveDate   DateTime
+  terminationDate DateTime?
+  isPrimary       Boolean   @default(true)
+
+  // Subscriber information (if different from client)
+  subscriberName     String?
+  subscriberDob      DateTime?
+  subscriberRelation String? // "self", "spouse", "child", "other"
+
+  // Additional plan details
+  planType  String? // "PPO", "HMO", "EPO", "POS", etc.
+  planPhone String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  client            Client             @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  eligibilityChecks EligibilityCheck[]
+
+  @@index([clientId])
+  @@index([clientId, isPrimary])
+  @@index([memberId, payerCode])
+}
+
+model EligibilityCheck {
+  id              String  @id @default(uuid())
+  clientId        String
+  insurancePlanId String? // Link to ClientInsurance if used
+  serviceCode     String // CPT code or service type code
+  serviceName     String? // Human-readable service name
+
+  // Eligibility result
+  isEligible Boolean
+
+  // Full response data from clearinghouse
+  responseData Json // Parsed 271 response
+  // Structure: {
+  //   planName, memberId, groupNumber,
+  //   effectiveDate, terminationDate,
+  //   copay, deductible, deductibleRemaining,
+  //   coinsurance, outOfPocketMax, outOfPocketRemaining,
+  //   priorAuthRequired, limitations, exclusions,
+  //   rawResponse?: string
+  // }
+
+  // Generated documents
+  documentUrls String[] // S3 URLs to generated PDFs
+
+  // Caching
+  checkedAt DateTime @default(now())
+  expiresAt DateTime // 7 days from checkedAt by default
+
+  // API metadata
+  requestId   String? // External API request ID
+  providerNpi String? // NPI of the checking provider
+
+  createdAt DateTime @default(now())
+
+  // Relations
+  client        Client           @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  insurancePlan ClientInsurance? @relation(fields: [insurancePlanId], references: [id])
+
+  @@index([clientId, serviceCode])
+  @@index([expiresAt])
+  @@index([clientId, checkedAt])
+  @@index([insurancePlanId])
+}
+
+// ============================================
+// IN-PERSON RECORDING (PX-703)
+// ============================================
+
+enum ConsentMethod {
+  DIGITAL // Client signs on device
+  VERBAL // First 10 seconds of recording captures verbal consent
+  PRE_SIGNED // Reference to existing consent document
+}
+
+model InPersonRecording {
+  id             String @id @default(uuid())
+  organizationId String
+  clientId       String
+  userId         String // Case manager who recorded
+
+  // Recording storage
+  recordingUrl String? // S3 key: in-person/{orgId}/{recordingId}.webm
+  duration     Int? // Duration in seconds
+
+  // Transcription and extraction
+  transcriptText   String? @db.Text
+  extractedData    Json? // Field slug -> extracted value (same as Call)
+  confidenceScores Json? // Field slug -> confidence score
+
+  // Processing status
+  processingStatus ProcessingStatus @default(PENDING)
+  processingError  String?
+  processedAt      DateTime?
+
+  // Consent tracking
+  consentMethod     ConsentMethod
+  consentRecordedAt DateTime // When consent was captured
+  consentSignature  String? // S3 key to signature image (for DIGITAL)
+  consentDocumentId String? // Reference to consent document (for PRE_SIGNED)
+
+  // Form linkage (optional - for extraction)
+  formIds String[] @default([])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  client       Client       @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id])
+
+  @@index([organizationId])
+  @@index([clientId])
+  @@index([userId])
+  @@index([processingStatus])
+  @@index([createdAt])
+}
+
+// ============================================
+// RECORDING CONSENT & STATE REGISTRY (PX-735, PX-736)
+// ============================================
+
+enum ConsentType {
+  RECORDING
+  TRANSCRIPTION
+  DATA_STORAGE
+}
+
+enum ConsentStatus {
+  GRANTED
+  REVOKED
+  PENDING
+}
+
+enum ConsentCollectionMethod {
+  KEYPRESS // User pressed a key (DTMF)
+  VERBAL // Recorded verbal consent
+  WRITTEN // Paper consent on file
+  SILENCE_TIMEOUT // Stayed on line (implied consent)
+}
+
+enum StateConsentType {
+  ONE_PARTY
+  TWO_PARTY
+}
+
+// PX-735: Client consent records for recording/transcription
+model ConsentRecord {
+  id             String                   @id @default(cuid())
+  clientId       String
+  client         Client                   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  consentType    ConsentType
+  status         ConsentStatus            @default(PENDING)
+  grantedAt      DateTime?
+  revokedAt      DateTime?
+  method         ConsentCollectionMethod?
+  callId         String? // Which call this consent was granted on
+  revokedById    String? // User who processed revocation
+  revokedBy      User?                    @relation("ConsentRevoker", fields: [revokedById], references: [id])
+  retentionUntil DateTime? // For soft-delete (30 days from revocation)
+  createdAt      DateTime                 @default(now())
+  updatedAt      DateTime                 @updatedAt
+
+  @@unique([clientId, consentType])
+  @@index([clientId])
+  @@index([status])
+  @@index([retentionUntil])
+}
+
+// PX-736: State-by-state consent rules registry
+model StateConsentRule {
+  id                    String           @id @default(cuid())
+  stateCode             String           @unique // "CA", "NY", "TX", etc.
+  stateName             String // "California", "New York", "Texas"
+  consentType           StateConsentType // ONE_PARTY or TWO_PARTY
+  requiresExplicitOptIn Boolean          @default(true)
+  silenceImpliesConsent Boolean          @default(false)
+  minorAgeThreshold     Int              @default(18)
+  additionalRules       Json? // Any state-specific nuances
+  effectiveDate         DateTime // When this rule became effective
+  lastReviewedAt        DateTime? // Last legal review date
+  notes                 String?          @db.Text // Legal notes
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
+
+  @@index([stateCode])
+}
+
+// PX-735: Interaction metadata for unrecorded calls
+// Logs call metadata (date, time, duration, participants) without content
+model InteractionMetadata {
+  id              String           @id @default(cuid())
+  clientId        String
+  caseManagerId   String
+  orgId           String
+
+  interactionType InteractionType  @default(VOIP_CALL)
+  direction       CallDirection    @default(OUTBOUND)
+
+  startedAt       DateTime
+  endedAt         DateTime?
+  durationSeconds Int?
+
+  // Why was it unrecorded?
+  reason          UnrecordedReason
+
+  // Optional reference to call if it started as a Call record
+  callId          String?
+
+  createdAt       DateTime         @default(now())
+
+  // Relations
+  client          Client           @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  caseManager     User             @relation("InteractionCaseManager", fields: [caseManagerId], references: [id])
+  organization    Organization     @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@index([clientId])
+  @@index([caseManagerId])
+  @@index([orgId, startedAt])
+}
+
+// PX-728: Unified Client Activity Feed
+enum ActivityType {
+  CALL_COMPLETED
+  CALL_MISSED
+  NOTE_ADDED
+  FORM_SUBMITTED
+  FORM_UPDATED
+  ATTENDANCE_RECORDED
+  ENROLLMENT_CREATED
+  ENROLLMENT_UPDATED
+  ACTION_ITEM_CREATED
+  ACTION_ITEM_COMPLETED
+  CONSENT_GRANTED
+  CONSENT_REVOKED
+}
+
+model ClientActivity {
+  id           String       @id @default(cuid())
+  clientId     String
+  client       Client       @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  actorId      String
+  actor        User         @relation("ActivityActor", fields: [actorId], references: [id])
+  actorRole    UserRole // Role of the actor at time of action
+  activityType ActivityType
+  summary      String // Pre-computed human-readable summary
+  rawData      Json // Structured data for UI flexibility
+  sourceType   String // 'call', 'note', 'form_submission', 'attendance', etc.
+  sourceId     String // ID of the source entity
+  createdAt    DateTime     @default(now())
+
+  @@index([clientId, createdAt])
+  @@index([actorId])
+  @@index([sourceType, sourceId])
+  @@index([activityType])
+}
+
+// ============================================
+// ROLE-BASED ACCESS CONTROL (RBAC)
+// ============================================
+
+// Multi-user program assignment with program-specific roles
+model ProgramMember {
+  id                 String            @id @default(uuid())
+  programId          String
+  userId             String
+  role               ProgramMemberRole @default(CASE_MANAGER)
+  canEditEnrollments Boolean           @default(false)
+  canEditAttendance  Boolean           @default(true)
+  canViewAllClients  Boolean           @default(false) // vs only session attendees
+  assignedAt         DateTime          @default(now())
+  assignedBy         String?
+  notes              String?
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+
+  // Relations
+  program  Program @relation(fields: [programId], references: [id], onDelete: Cascade)
+  user     User    @relation("ProgramMembership", fields: [userId], references: [id], onDelete: Cascade)
+  assigner User?   @relation("ProgramMemberAssigner", fields: [assignedBy], references: [id])
+
+  @@unique([programId, userId])
+  @@index([programId])
+  @@index([userId])
+  @@index([role])
+}
+
+// Admin can delegate specific settings access to non-admin users
+model SettingsDelegation {
+  id                    String    @id @default(uuid())
+  orgId                 String
+  userId                String
+  canManageBilling      Boolean   @default(false)
+  canManageTeam         Boolean   @default(false)
+  canManageIntegrations Boolean   @default(false)
+  canManageBranding     Boolean   @default(false)
+  delegatedBy           String
+  delegatedAt           DateTime  @default(now())
+  expiresAt             DateTime? // Optional expiration
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  // Relations
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  user         User         @relation("DelegatedSettings", fields: [userId], references: [id], onDelete: Cascade)
+  delegator    User         @relation("SettingsDelegator", fields: [delegatedBy], references: [id])
+
+  @@unique([orgId, userId])
+  @@index([orgId])
+  @@index([userId])
+}
+
+// Log repeated permission denials for security monitoring
+model PermissionDenialLog {
+  id         String   @id @default(uuid())
+  orgId      String
+  userId     String
+  resource   String // e.g., "clients", "forms", "admin"
+  action     String // e.g., "create", "read", "update", "delete"
+  resourceId String? // Specific resource ID if applicable
+  reason     String // Why access was denied
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+
+  // Relations
+  user User @relation("PermissionDenials", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([orgId, userId])
+  @@index([orgId, resource, action])
+  @@index([createdAt])
+}
+
+// ============================================
+// CONVERSATION CAPTURE SYSTEM (PX-865)
+// ============================================
+// Unified conversation abstraction supporting phone calls, in-person meetings, and video meetings.
+// Uses joined table inheritance pattern with type-specific detail models.
+
+enum ConversationType {
+  PHONE_CALL
+  IN_PERSON
+  VIDEO_MEETING
+}
+
+enum ConversationStatus {
+  SCHEDULED // Future meeting
+  RECORDING // Currently being recorded
+  PROCESSING // Transcription/AI in progress
+  REVIEW // Awaiting human review (flagged content or outputs)
+  COMPLETED // Fully processed
+  FAILED // Processing failed
+}
+
+enum SensitivityTier {
+  STANDARD // Tier 3 - normal workflow, no restrictions
+  RESTRICTED // Tier 2 - RBAC limited, participants + granted only
+  REDACTED // Tier 1 - content permanently removed
+}
+
+enum SensitivityCategory {
+  PERSONAL_OFF_TOPIC // Gossip, personal struggles, non-work banter
+  HR_SENSITIVE // Layoffs, terminations, personnel changes
+  LEGAL_SENSITIVE // Legal discussions, compliance issues
+  HEALTH_SENSITIVE // Medical info, health conditions
+  FINANCIAL_SENSITIVE // Salary, M&A, financial projections
+}
+
+enum VideoPlatform {
+  ZOOM
+  GOOGLE_MEET
+  MICROSOFT_TEAMS
+}
+
+enum FlagReviewStatus {
+  PENDING // Awaiting human review
+  APPROVED // User agreed with AI suggestion
+  OVERRIDDEN // User chose different tier
+  DISMISSED // User said not sensitive
+}
+
+enum ConversationAccessType {
+  PARTICIPANT // Was in the meeting
+  GRANTED // Explicitly granted by owner
+  INHERITED // Via team/role
+}
+
+enum WorkflowOutputType {
+  ACTION_ITEM // Task for Linear/Jira
+  MEETING_NOTES // Document for Docs/Notion
+  DOCUMENT // Standalone document
+  CALENDAR_EVENT // Calendar event
+  GOAL_UPDATE // Update to OKR/Goal
+  DELAY_SIGNAL // Timeline impact signal (PX-875)
+}
+
+enum IntegrationPlatform {
+  LINEAR
+  JIRA
+  GOOGLE_DOCS
+  NOTION
+  GOOGLE_CALENDAR
+  OUTLOOK_CALENDAR
+}
+
+enum DraftStatus {
+  PENDING // Awaiting review
+  APPROVED // User approved
+  REJECTED // User rejected
+  PUSHED // Successfully pushed to destination
+  FAILED // Push failed
+}
+
+enum ConversationLinkStatus {
+  SUGGESTED // AI suggested link
+  CONFIRMED // User confirmed
+  REJECTED // User rejected
+}
+
+// Base conversation model - all shared fields
+model Conversation {
+  id    String           @id @default(uuid())
+  orgId String
+  type  ConversationType
+
+  // Basic metadata
+  title           String?
+  status          ConversationStatus @default(RECORDING)
+  startedAt       DateTime           @default(now())
+  endedAt         DateTime?
+  durationSeconds Int?
+
+  // Recording storage
+  recordingUrl       String? // S3 URL: recordings/{orgId}/{conversationId}.webm
+  recordingRetention DateTime? // When to delete based on org policy
+  isRecorded         Boolean  @default(true)
+
+  // Consent tracking (compatible with PX-735)
+  consentStatus    String? // JSON: consent status per participant
+  consentGrantedAt DateTime?
+  consentMethod    ConsentCollectionMethod?
+
+  // Transcript
+  transcriptRaw  String? @db.Text
+  transcriptJson Json? // Array of TranscriptSegment with speaker labels
+
+  // AI Processing
+  aiSummary        Json? // Conversation summary structure
+  extractedFields  Json? // Field slug -> value
+  confidenceScores Json? // Field slug -> confidence
+  formIds          String[] @default([]) // Forms for extraction
+
+  // Processing status
+  aiProcessingStatus  ProcessingStatus @default(PENDING)
+  aiProcessingError   String?
+  aiProcessingRetries Int              @default(0)
+
+  // Sensitivity classification
+  sensitivityTier    SensitivityTier @default(STANDARD)
+  flaggedSegments    FlaggedSegment[]
+  redactedSegments   Json? // Segments permanently removed
+
+  // Creator
+  createdById String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Migration: link to legacy Call record
+  legacyCallId String? @unique
+
+  // Relations
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  createdBy    User         @relation("ConversationCreator", fields: [createdById], references: [id])
+
+  // Type-specific details (one of these will be populated)
+  phoneCallDetails    PhoneCallDetails?
+  inPersonDetails     InPersonDetails?
+  videoMeetingDetails VideoMeetingDetails?
+
+  // Access control
+  accessList ConversationAccess[]
+
+  // Workflow outputs
+  draftedOutputs DraftedOutput[]
+
+  // Goal/OKR links
+  objectiveLinks ConversationObjectiveLink[]
+
+  // Participant links (for client tracking)
+  clientLinks ConversationClient[]
+
+  @@index([orgId, status])
+  @@index([orgId, type])
+  @@index([createdById])
+  @@index([startedAt])
+  @@index([sensitivityTier])
+  @@index([legacyCallId])
+}
+
+// Phone call specific details (Twilio VoIP)
+model PhoneCallDetails {
+  id             String @id @default(uuid())
+  conversationId String @unique
+
+  // Twilio integration
+  twilioCallSid String? @unique
+  direction     CallDirection @default(OUTBOUND)
+
+  // Primary participants
+  clientId      String? // Primary client on call
+  caseManagerId String? // Case manager who made/received call
+
+  // Relations
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([twilioCallSid])
+  @@index([clientId])
+  @@index([caseManagerId])
+}
+
+// In-person recording details
+model InPersonDetails {
+  id             String @id @default(uuid())
+  conversationId String @unique
+
+  // Participants (names or user IDs)
+  participants Json? // Array of { name?: string, userId?: string, email?: string }
+
+  // Client links (can be multiple clients in meeting)
+  clientIds String[] @default([])
+
+  // Location/device info
+  location   String?
+  deviceInfo Json? // { browser, os, deviceType }
+
+  // Offline upload support
+  offlineUploadAt DateTime? // If uploaded later from offline cache
+
+  // Relations
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+}
+
+// Video meeting details (Zoom, Meet, Teams)
+model VideoMeetingDetails {
+  id             String @id @default(uuid())
+  conversationId String @unique
+
+  // Platform info
+  platform          VideoPlatform
+  externalMeetingId String? // Platform's meeting ID
+  meetingUrl        String?
+
+  // Participants
+  participants Json? // Array of { name, email?, userId? }
+  clientIds    String[] @default([])
+
+  // Bot info (if using meeting bot)
+  botId        String? // Our bot instance ID
+  botStatus    String? // Bot status: idle, joining, in_meeting, recording, etc.
+  botJoinedAt  DateTime?
+  botLeftAt    DateTime?
+  recordingUrl String? // S3 key for the recording
+
+  // Relations
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([platform])
+  @@index([externalMeetingId])
+}
+
+// Flagged content segments for sensitivity review
+model FlaggedSegment {
+  id             String   @id @default(uuid())
+  conversationId String
+
+  // Time markers in transcript
+  startTime Float // seconds
+  endTime   Float // seconds
+  text      String @db.Text
+
+  // AI classification
+  category      SensitivityCategory
+  confidence    Float // 0.0-1.0
+  suggestedTier SensitivityTier
+
+  // Review workflow
+  status       FlagReviewStatus @default(PENDING)
+  reviewedById String?
+  reviewedAt   DateTime?
+  finalTier    SensitivityTier?
+  reviewNotes  String?
+
+  createdAt DateTime @default(now())
+
+  // Relations
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  reviewedBy   User?        @relation("FlaggedSegmentReviewer", fields: [reviewedById], references: [id])
+
+  @@index([conversationId])
+  @@index([status])
+  @@index([category])
+}
+
+// ML training data for sensitivity detection (anonymized)
+model SensitivityDecision {
+  id                String              @id @default(uuid())
+  orgId             String
+  segmentText       String              @db.Text // Anonymized for global model
+  predictedCategory SensitivityCategory
+  predictedTier     SensitivityTier
+  actualTier        SensitivityTier
+  isCorrect         Boolean
+  isLocalModel      Boolean             @default(true) // If true, not shared globally
+  createdAt         DateTime            @default(now())
+
+  @@index([orgId])
+  @@index([predictedCategory])
+  @@index([isCorrect])
+}
+
+// Access control for conversations (especially Tier 2)
+model ConversationAccess {
+  id             String                 @id @default(uuid())
+  conversationId String
+  userId         String
+  grantedById    String?
+  accessType     ConversationAccessType
+  grantedAt      DateTime               @default(now())
+  revokedAt      DateTime? // Soft revoke
+
+  // Relations
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user         User         @relation("ConversationAccessUser", fields: [userId], references: [id])
+  grantedBy    User?        @relation("ConversationAccessGranter", fields: [grantedById], references: [id])
+
+  @@unique([conversationId, userId])
+  @@index([userId])
+}
+
+// Drafted workflow outputs from conversation processing
+model DraftedOutput {
+  id             String             @id @default(uuid())
+  conversationId String
+  outputType     WorkflowOutputType
+
+  // Draft content
+  title    String?
+  content  String  @db.Text // Markdown or plain text
+  metadata Json? // Type-specific fields (assignee, dueDate, priority, etc.)
+
+  // Source reference
+  sourceSnippet String? @db.Text // Transcript excerpt that generated this
+
+  // Destination
+  destinationPlatform IntegrationPlatform?
+  destinationConfig   Json? // Project ID, calendar ID, board ID, etc.
+
+  // Review workflow
+  status        DraftStatus @default(PENDING)
+  reviewedById  String?
+  reviewedAt    DateTime?
+  editedContent String?     @db.Text // User-edited version
+
+  // Push status
+  pushedAt   DateTime?
+  externalId String? // ID in destination system (Linear issue ID, etc.)
+  pushError  String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  reviewedBy   User?        @relation("DraftedOutputReviewer", fields: [reviewedById], references: [id])
+
+  @@index([conversationId])
+  @@index([outputType])
+  @@index([status])
+}
+
+// Link conversations to objectives/goals
+model ConversationObjectiveLink {
+  id             String                 @id @default(uuid())
+  conversationId String
+  objectiveId    String
+  confidence     Float // AI match confidence 0.0-1.0
+  status         ConversationLinkStatus @default(SUGGESTED)
+  confirmedById  String?
+  confirmedAt    DateTime?
+
+  // Delay signal data (PX-875)
+  delaySignalType String? // e.g., "resource_constraint", "dependency_blocked"
+  delayDays       Int? // Estimated delay in days
+  impactNotes     String?
+
+  createdAt DateTime @default(now())
+
+  // Relations
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  objective    Objective    @relation("ConversationObjectiveLinks", fields: [objectiveId], references: [id])
+  confirmedBy  User?        @relation("ObjectiveLinkConfirmer", fields: [confirmedById], references: [id])
+
+  @@unique([conversationId, objectiveId])
+  @@index([objectiveId])
+  @@index([status])
+}
+
+// Link conversations to clients (many-to-many)
+model ConversationClient {
+  id             String @id @default(uuid())
+  conversationId String
+  clientId       String
+  isPrimary      Boolean @default(false) // Primary client for this conversation
+  addedAt        DateTime @default(now())
+
+  // Relations
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  client       Client       @relation("ConversationClients", fields: [clientId], references: [id])
+
+  @@unique([conversationId, clientId])
+  @@index([clientId])
+}
+
+// Integration connection for workflow outputs
+model IntegrationConnection {
+  id       String              @id @default(uuid())
+  orgId    String
+  platform IntegrationPlatform
+  name     String // Display name (e.g., "Production Linear", "Notion Workspace")
+
+  // OAuth tokens (encrypted)
+  accessToken  String @db.Text
+  refreshToken String? @db.Text
+  expiresAt    DateTime?
+
+  // Platform-specific config
+  config Json? // Workspace ID, default project, etc.
+
+  // Status
+  isActive  Boolean  @default(true)
+  lastUsedAt DateTime?
+  lastError  String?
+
+  // Connected by
+  connectedById String
+  connectedAt   DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  connectedBy  User         @relation("IntegrationConnector", fields: [connectedById], references: [id])
+
+  @@unique([orgId, platform, name])
+  @@index([orgId, platform])
+  @@index([isActive])
+}

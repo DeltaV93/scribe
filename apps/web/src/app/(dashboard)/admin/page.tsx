@@ -1,0 +1,263 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { PhoneNumbersTab } from "@/components/admin/phone-numbers-tab";
+import { UsersTab } from "@/components/admin/users-tab";
+import { TeamManagementTab } from "@/components/admin/team-management-tab";
+import { SettingsTab } from "@/components/admin/settings-tab";
+import { SettingsDelegationTab } from "@/components/admin/settings-delegation-tab";
+import { PhoneCostCard } from "@/components/admin/phone-cost-card";
+import { NoteApprovalsTab } from "@/components/admin/note-approvals-tab";
+import { MLSettingsTab } from "@/components/admin/ml-settings-tab";
+import { WaitlistTab } from "@/components/admin/waitlist-tab";
+import { Button } from "@/components/ui/button";
+import { Loader2, Shield, FileText, Brain, UserPlus } from "lucide-react";
+import Link from "next/link";
+
+interface PhoneStats {
+  poolCount: number;
+  assignedCount: number;
+  totalCount: number;
+  poolCost: number;
+  assignedCost: number;
+  totalMonthlyCost: number;
+}
+
+interface PhonePricing {
+  monthlyCost: number;
+  currency: string;
+}
+
+export default function AdminPage() {
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(true);
+  const [isAuthorized, setIsAuthorized] = useState(false);
+  const [stats, setStats] = useState<PhoneStats | null>(null);
+  const [pricing, setPricing] = useState<PhonePricing | null>(null);
+  const [pendingRequestCount, setPendingRequestCount] = useState(0);
+  const [pendingNoteApprovalCount, setPendingNoteApprovalCount] = useState(0);
+  const [pendingWaitlistCount, setPendingWaitlistCount] = useState(0);
+  const [canAccessWaitlist, setCanAccessWaitlist] = useState(false);
+
+  useEffect(() => {
+    checkAuth();
+    fetchStats();
+    fetchPendingCount();
+    fetchPendingNoteApprovalCount();
+    checkWaitlistAccess();
+  }, []);
+
+  const checkAuth = async () => {
+    try {
+      const response = await fetch("/api/admin/settings");
+      if (response.status === 403) {
+        router.push("/dashboard?error=unauthorized");
+        return;
+      }
+      if (response.ok) {
+        setIsAuthorized(true);
+      }
+    } catch (error) {
+      console.error("Auth check failed:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const fetchStats = async () => {
+    try {
+      const response = await fetch("/api/admin/phone-numbers/stats");
+      if (response.ok) {
+        const data = await response.json();
+        setStats(data.data.stats);
+        setPricing(data.data.pricing);
+      }
+    } catch (error) {
+      console.error("Failed to fetch stats:", error);
+    }
+  };
+
+  const fetchPendingCount = async () => {
+    try {
+      const response = await fetch("/api/admin/phone-requests?countOnly=true");
+      if (response.ok) {
+        const data = await response.json();
+        setPendingRequestCount(data.data.count);
+      }
+    } catch (error) {
+      console.error("Failed to fetch pending count:", error);
+    }
+  };
+
+  const fetchPendingNoteApprovalCount = async () => {
+    try {
+      const response = await fetch("/api/admin/note-approvals?countOnly=true");
+      if (response.ok) {
+        const data = await response.json();
+        setPendingNoteApprovalCount(data.data.count);
+      }
+    } catch (error) {
+      console.error("Failed to fetch note approval count:", error);
+    }
+  };
+
+  const checkWaitlistAccess = async () => {
+    try {
+      const response = await fetch("/api/admin/waitlist/check-access");
+      if (response.ok) {
+        const data = await response.json();
+        setCanAccessWaitlist(data.hasAccess);
+        if (data.hasAccess) {
+          fetchPendingWaitlistCount();
+        }
+      }
+    } catch (error) {
+      console.error("Failed to check waitlist access:", error);
+    }
+  };
+
+  const fetchPendingWaitlistCount = async () => {
+    try {
+      const response = await fetch("/api/admin/waitlist?status=PENDING&limit=1");
+      if (response.ok) {
+        const data = await response.json();
+        setPendingWaitlistCount(data.counts?.pending || 0);
+      }
+    } catch (error) {
+      console.error("Failed to fetch waitlist count:", error);
+    }
+  };
+
+  const refreshData = () => {
+    fetchStats();
+    fetchPendingCount();
+    fetchPendingNoteApprovalCount();
+    if (canAccessWaitlist) {
+      fetchPendingWaitlistCount();
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
+
+  if (!isAuthorized) {
+    return null;
+  }
+
+  return (
+    <div className="p-6 space-y-6 max-w-6xl mx-auto">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+            <Shield className="h-5 w-5 text-primary" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold">Admin</h1>
+            <p className="text-sm text-muted-foreground">
+              Manage phone numbers, users, and organization settings
+            </p>
+          </div>
+        </div>
+        <Link href="/admin/audit-logs">
+          <Button variant="outline">
+            <FileText className="h-4 w-4 mr-2" />
+            Audit Logs
+          </Button>
+        </Link>
+      </div>
+
+      {/* Cost Summary */}
+      {stats && <PhoneCostCard stats={stats} pricePerNumber={pricing?.monthlyCost} />}
+
+      {/* Tabs */}
+      <Tabs defaultValue="team" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="team">Team</TabsTrigger>
+          <TabsTrigger value="phone-numbers">Phone Numbers</TabsTrigger>
+          <TabsTrigger value="phone-requests" className="relative">
+            Phone Requests
+            {pendingRequestCount > 0 && (
+              <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-destructive text-destructive-foreground text-xs flex items-center justify-center">
+                {pendingRequestCount}
+              </span>
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="note-approvals" className="relative">
+            Note Approvals
+            {pendingNoteApprovalCount > 0 && (
+              <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-destructive text-destructive-foreground text-xs flex items-center justify-center">
+                {pendingNoteApprovalCount}
+              </span>
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="settings">Settings</TabsTrigger>
+          <TabsTrigger value="delegation">Delegation</TabsTrigger>
+          <TabsTrigger value="ml-settings" className="flex items-center gap-1">
+            <Brain className="h-3.5 w-3.5" />
+            ML Settings
+          </TabsTrigger>
+          {canAccessWaitlist && (
+            <TabsTrigger value="waitlist" className="relative flex items-center gap-1">
+              <UserPlus className="h-3.5 w-3.5" />
+              Waitlist
+              {pendingWaitlistCount > 0 && (
+                <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-destructive text-destructive-foreground text-xs flex items-center justify-center">
+                  {pendingWaitlistCount}
+                </span>
+              )}
+            </TabsTrigger>
+          )}
+        </TabsList>
+
+        <TabsContent value="team">
+          <TeamManagementTab />
+        </TabsContent>
+
+        <TabsContent value="phone-numbers">
+          <PhoneNumbersTab onDataChange={refreshData} pricePerNumber={pricing?.monthlyCost} />
+        </TabsContent>
+
+        <TabsContent value="phone-requests">
+          <UsersTab
+            pendingRequestCount={pendingRequestCount}
+            onDataChange={refreshData}
+            pricePerNumber={pricing?.monthlyCost}
+          />
+        </TabsContent>
+
+        <TabsContent value="note-approvals">
+          <NoteApprovalsTab
+            pendingCount={pendingNoteApprovalCount}
+            onDataChange={refreshData}
+          />
+        </TabsContent>
+
+        <TabsContent value="settings">
+          <SettingsTab />
+        </TabsContent>
+
+        <TabsContent value="delegation">
+          <SettingsDelegationTab />
+        </TabsContent>
+
+        <TabsContent value="ml-settings">
+          <MLSettingsTab onDataChange={refreshData} />
+        </TabsContent>
+
+        {canAccessWaitlist && (
+          <TabsContent value="waitlist">
+            <WaitlistTab onDataChange={refreshData} />
+          </TabsContent>
+        )}
+      </Tabs>
+    </div>
+  );
+}

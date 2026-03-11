@@ -16,6 +16,7 @@ on:
 
 env:
   NODE_VERSION: '20'
+  PNPM_VERSION: '9'
   VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
   VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
@@ -27,20 +28,25 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+          cache: 'pnpm'
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: Run ESLint
-        run: npm run lint
+        run: pnpm turbo run lint
 
       - name: Run TypeScript check
-        run: npx tsc --noEmit
+        run: pnpm turbo run build --filter=@inkra/web -- --no-emit 2>/dev/null || pnpm --filter @inkra/web exec tsc --noEmit
 
   test-unit:
     name: Unit Tests
@@ -49,24 +55,29 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+          cache: 'pnpm'
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: Run unit tests
-        run: npm test -- --coverage
+        run: pnpm turbo run test --filter=@inkra/web -- --coverage
         env:
           CI: true
 
       - name: Upload coverage
         uses: codecov/codecov-action@v4
         with:
-          files: coverage/lcov.info
+          files: apps/web/coverage/lcov.info
           flags: unit-tests
 
   test-e2e:
@@ -102,28 +113,33 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+          cache: 'pnpm'
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: Install Playwright browsers
-        run: npx playwright install --with-deps chromium
+        run: pnpm --filter @inkra/web exec playwright install --with-deps chromium
 
       - name: Generate Prisma client
-        run: npm run db:generate
+        run: pnpm turbo run db:generate --filter=@inkra/web
 
       - name: Run database migrations
-        run: npx prisma db push
+        run: pnpm --filter @inkra/web exec prisma db push
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/inkra_test
 
       - name: Build application
-        run: npm run build
+        run: pnpm turbo run build --filter=@inkra/web
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/inkra_test
           NEXT_PUBLIC_SUPABASE_URL: https://test.supabase.co
@@ -131,7 +147,7 @@ jobs:
           NEXT_PUBLIC_APP_URL: http://localhost:3000
 
       - name: Run E2E tests
-        run: npm run test:e2e
+        run: pnpm turbo run test:e2e --filter=@inkra/web
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/inkra_test
           REDIS_URL: redis://localhost:6379
@@ -148,7 +164,7 @@ jobs:
         if: always()
         with:
           name: playwright-report
-          path: playwright-report/
+          path: apps/web/playwright-report/
           retention-days: 7
 
   build:
@@ -159,28 +175,33 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+          cache: 'pnpm'
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: Generate Prisma client
-        run: npm run db:generate
+        run: pnpm turbo run db:generate --filter=@inkra/web
 
-      - name: Build application
-        run: npm run build
+      - name: Build all apps
+        run: pnpm turbo run build
         env:
           DATABASE_URL: postgresql://user:pass@localhost:5432/inkra
           NEXT_PUBLIC_SUPABASE_URL: https://test.supabase.co
           NEXT_PUBLIC_SUPABASE_ANON_KEY: test-anon-key
-          NEXT_PUBLIC_APP_URL: https://app.inkra.app
+          NEXT_PUBLIC_APP_URL: https://app.oninkra.com
 
-  deploy-preview:
-    name: Deploy Preview
+  deploy-marketing-preview:
+    name: Deploy Marketing Preview
     runs-on: ubuntu-latest
     needs: [lint, build]
     if: github.event_name == 'pull_request'
@@ -188,26 +209,35 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+          cache: 'pnpm'
 
       - name: Install Vercel CLI
         run: npm install -g vercel@latest
 
-      - name: Pull Vercel environment
-        run: vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
 
-      - name: Build with Vercel
-        run: vercel build --token=${{ secrets.VERCEL_TOKEN }}
+      - name: Build marketing site
+        run: pnpm turbo run build --filter=@inkra/marketing
 
-      - name: Deploy to Preview
-        id: deploy
+      - name: Deploy Marketing to Preview
+        id: deploy-marketing
         run: |
-          URL=$(vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }})
+          cd apps/marketing
+          URL=$(vercel deploy --token=${{ secrets.VERCEL_TOKEN }})
           echo "url=$URL" >> $GITHUB_OUTPUT
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_MARKETING_PROJECT_ID }}
 
       - name: Comment preview URL
         uses: actions/github-script@v7
@@ -217,11 +247,48 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: `🚀 Preview deployed: ${{ steps.deploy.outputs.url }}`
+              body: `🚀 Marketing preview deployed: ${{ steps.deploy-marketing.outputs.url }}`
             })
 
-  deploy-production:
-    name: Deploy Production
+  deploy-marketing-production:
+    name: Deploy Marketing Production
+    runs-on: ubuntu-latest
+    needs: [lint, build]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Install Vercel CLI
+        run: npm install -g vercel@latest
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build marketing site
+        run: pnpm turbo run build --filter=@inkra/marketing
+
+      - name: Deploy Marketing to Production
+        run: |
+          cd apps/marketing
+          vercel deploy --prod --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_MARKETING_PROJECT_ID }}
+
+  deploy-app-production:
+    name: Deploy App Production
     runs-on: ubuntu-latest
     needs: [lint, build, test-unit, test-e2e]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
@@ -229,28 +296,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-
-      - name: Install Vercel CLI
-        run: npm install -g vercel@latest
-
-      - name: Pull Vercel environment
-        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
-
-      - name: Build with Vercel
-        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
-
-      - name: Deploy to Production
-        run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
+      # Railway auto-deploys from Dockerfile on push to main
+      # This job just tracks that the deployment should happen
+      - name: Trigger Railway deployment
+        run: |
+          echo "Railway will auto-deploy from Dockerfile"
+          echo "Web app deployed to app.oninkra.com"
 
   migrate-production:
     name: Run Production Migrations
     runs-on: ubuntu-latest
-    needs: [deploy-production]
+    needs: [deploy-app-production]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
 
     permissions:
@@ -260,17 +316,22 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+          cache: 'pnpm'
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: Generate Prisma client
-        run: npm run db:generate
+        run: pnpm turbo run db:generate --filter=@inkra/web
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -289,26 +350,26 @@ jobs:
           echo "DATABASE_URL=postgresql://$(echo $SECRET | jq -r '.username'):$(echo $SECRET | jq -r '.password')@$(echo $SECRET | jq -r '.host'):5432/$(echo $SECRET | jq -r '.dbname')?sslmode=require" >> $GITHUB_OUTPUT
 
       - name: Run migrations
-        run: npx prisma migrate deploy
+        run: pnpm --filter @inkra/web exec prisma migrate deploy
         env:
           DATABASE_URL: ${{ steps.db-creds.outputs.DATABASE_URL }}
 
   notify:
     name: Notify
     runs-on: ubuntu-latest
-    needs: [deploy-production, migrate-production]
+    needs: [deploy-marketing-production, deploy-app-production, migrate-production]
     if: always() && github.ref == 'refs/heads/main' && github.event_name == 'push'
 
     steps:
       - name: Notify on success
-        if: needs.deploy-production.result == 'success'
+        if: needs.deploy-app-production.result == 'success' && needs.deploy-marketing-production.result == 'success'
         run: |
           echo "Deployment successful! 🎉"
-          # Add Slack/Discord notification here if needed
+          echo "Marketing: https://oninkra.com"
+          echo "App: https://app.oninkra.com"
 
       - name: Notify on failure
-        if: needs.deploy-production.result == 'failure'
+        if: needs.deploy-app-production.result == 'failure' || needs.deploy-marketing-production.result == 'failure'
         run: |
           echo "Deployment failed! ❌"
-          # Add Slack/Discord notification here if needed
           exit 1

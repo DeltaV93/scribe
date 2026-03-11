@@ -1,0 +1,529 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * INKRA Design System — 4-Color Pen System
+ * "If it's not clear, it's not premium. If it's not consistent, it's not trustworthy."
+ *
+ * Core Palette:
+ * - Paper (#FAFAF8, #F5F4F0, #EEEDEA): Backgrounds, surfaces
+ * - Ink (#111111, #3A3A3A, #6B6B6B, #A1A1A1): Text hierarchy
+ * - Border (#DADAD7, #E8E8E5): Dividers, panels
+ *
+ * 4-Color Pen (semantic):
+ * - Ink Blue (#1B2A4A): Primary accent, actions, links, focus
+ * - Ink Green (#3F6F5A): Success, complete
+ * - Ink Red (#B34747): Errors, alerts
+ * - Ink Amber (#B26A00): Warnings, review
+ *
+ * Typography:
+ * - Tiempos Text (serif): Headlines, display text
+ * - Soehne (sans-serif): Body text, UI
+ */
+
+/* =============================================================================
+   CUSTOM FONTS
+   ============================================================================= */
+
+/* Tiempos Text - Serif for headings */
+@font-face {
+  font-family: 'Tiempos Text';
+  src: url('/fonts/tiempos-text-regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Tiempos Text';
+  src: url('/fonts/tiempos-text-semibold.woff2') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Soehne - Sans-serif for body */
+@font-face {
+  font-family: 'Soehne';
+  src: url('/fonts/soehne-light.woff2') format('woff2');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Soehne';
+  src: url('/fonts/soehne-medium.woff') format('woff');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Soehne Breit (wide) - For special display use */
+@font-face {
+  font-family: 'Soehne Breit';
+  src: url('/fonts/soehne-breit-extrabold.woff') format('woff');
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* =============================================================================
+   TYPOGRAPHY BASE STYLES
+   ============================================================================= */
+
+/* Headings use Tiempos (serif) */
+h1, h2, h3, h4, h5, h6,
+.font-serif {
+  font-family: 'Tiempos Text', Georgia, 'Times New Roman', serif;
+}
+
+/* Body uses Soehne (sans-serif) - set via Tailwind's font-sans */
+body {
+  font-family: 'Soehne', var(--font-inter), system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-weight: 300; /* Soehne Light as default */
+}
+
+/* Medium weight for emphasis */
+strong, b, .font-medium {
+  font-weight: 500;
+}
+
+@layer base {
+  :root {
+    /* INKRA Core Palette */
+    --paper: #FAFAF8;
+    --paper-warm: #F5F4F0;
+    --paper-dim: #EEEDEA;
+    --ink: #111111;
+    --ink-soft: #3A3A3A;
+    --ink-muted: #6B6B6B;
+    --ink-faint: #A1A1A1;
+    --border: #DADAD7;
+    --border-light: #E8E8E5;
+
+    /* Ink Blue - Two-Register System for A11y */
+    /* --ink-blue: Surfaces (nav bg, CTA sections, large fills) */
+    /* --ink-blue-accent: Text & buttons (headlines, links, labels, btn fills) - lighter for a11y */
+    --ink-blue: #1B2A4A;
+    --ink-blue-accent: #2B4C8C;
+    --ink-blue-mid: #244280;
+    --ink-blue-light: #4A5A7A;
+    --ink-blue-wash: rgba(43, 76, 140, 0.08);
+    --ink-blue-ghost: rgba(43, 76, 140, 0.04);
+
+    /* Functional Inks (4-Color Pen) */
+    --ink-red: #B34747;
+    --ink-red-wash: rgba(179, 71, 71, 0.08);
+    --ink-green: #3F6F5A;
+    --ink-green-wash: rgba(63, 111, 90, 0.08);
+    --ink-amber: #B26A00;
+    --ink-amber-wash: rgba(178, 106, 0, 0.08);
+
+    /* Ink opacity variants */
+    --ink-90: rgba(17, 17, 17, 0.90);
+    --ink-80: rgba(17, 17, 17, 0.80);
+    --ink-70: rgba(17, 17, 17, 0.70);
+    --ink-60: rgba(17, 17, 17, 0.60);
+    --ink-50: rgba(17, 17, 17, 0.50);
+    --ink-20: rgba(17, 17, 17, 0.20);
+    --ink-12: rgba(17, 17, 17, 0.12);
+    --ink-08: rgba(17, 17, 17, 0.08);
+
+    /* Motion */
+    --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-soft: cubic-bezier(0.2, 0.8, 0.2, 1);
+    --duration-fast: 120ms;
+    --duration-normal: 240ms;
+    --duration-slow: 600ms;
+
+    /* shadcn/ui compatible tokens - Light mode */
+    --background: 48 20% 98%; /* Paper #FAFAF8 */
+    --foreground: 0 0% 7%; /* Ink #111111 */
+
+    --card: 40 20% 96%; /* Paper Warm #F5F4F0 */
+    --card-foreground: 0 0% 7%;
+
+    --popover: 40 20% 96%;
+    --popover-foreground: 0 0% 7%;
+
+    /* Primary = Ink (black buttons) */
+    --primary: 0 0% 7%;
+    --primary-foreground: 48 20% 98%;
+
+    /* Secondary = Border area */
+    --secondary: 40 8% 91%; /* Border #DADAD7 */
+    --secondary-foreground: 0 0% 7%;
+
+    /* Muted = Paper Dim */
+    --muted: 40 10% 93%; /* #EEEDEA */
+    --muted-foreground: 0 0% 42%; /* Ink Muted #6B6B6B */
+
+    /* Accent = Ink Blue */
+    --accent: 220 47% 20%; /* #1B2A4A */
+    --accent-foreground: 48 20% 98%;
+
+    /* Destructive = Ink Red */
+    --destructive: 0 43% 49%; /* #B34747 */
+    --destructive-foreground: 48 20% 98%;
+
+    /* Success = Ink Green */
+    --success: 154 28% 34%; /* #3F6F5A */
+    --success-foreground: 48 20% 98%;
+
+    /* Warning = Ink Amber */
+    --warning: 38 100% 35%; /* #B26A00 */
+    --warning-foreground: 0 0% 7%;
+
+    /* Info = Ink Blue Light */
+    --info: 220 26% 38%; /* #4A5A7A */
+    --info-foreground: 48 20% 98%;
+
+    --border: 40 8% 85%; /* #DADAD7 */
+    --input: 40 8% 91%;
+    --ring: 220 47% 20%; /* Ink Blue for focus */
+
+    /* Radius */
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 14px;
+    --radius: 10px;
+
+    /* Shadows */
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.06);
+    --shadow-lg: 0 12px 40px rgba(0,0,0,0.08);
+
+    /* Focus */
+    --focus: 0 0 0 3px var(--ink-blue-wash);
+  }
+
+  .dark {
+    /* Dark mode - Inkra dark palette (from brand system v6) */
+    --paper: #0F1014;
+    --paper-warm: #151619;
+    --paper-dim: #1C1D22;
+    --ink: #E8E8E5;
+    --ink-soft: #C4C4C0;
+    --ink-muted: #8A8A86;
+    --ink-faint: #6E6E6B;
+    --border: #3A3B42;
+    --border-light: #2F3034;
+
+    /* Ink Blue - Two-Register System (Dark Mode) */
+    --ink-blue: #3D5A94;
+    --ink-blue-accent: #A8B8D8;
+    --ink-blue-mid: #344F88;
+    --ink-blue-light: #A8B8D8;
+    --ink-blue-wash: rgba(138, 158, 200, 0.10);
+    --ink-blue-ghost: rgba(138, 158, 200, 0.05);
+
+    --ink-red: #E07070;
+    --ink-red-wash: rgba(224, 112, 112, 0.10);
+    --ink-green: #6BAA90;
+    --ink-green-wash: rgba(107, 170, 144, 0.10);
+    --ink-amber: #D4A24C;
+    --ink-amber-wash: rgba(212, 162, 76, 0.10);
+
+    --background: 240 7% 5%; /* #0F1014 */
+    --foreground: 40 10% 91%; /* #E8E8E5 */
+
+    --card: 240 6% 8%; /* #151619 */
+    --card-foreground: 40 10% 91%;
+
+    --popover: 240 6% 8%;
+    --popover-foreground: 40 10% 91%;
+
+    /* Primary = Paper (light buttons on dark) */
+    --primary: 40 10% 91%;
+    --primary-foreground: 240 7% 5%;
+
+    /* Secondary */
+    --secondary: 240 5% 11%; /* #1C1D22 */
+    --secondary-foreground: 40 10% 91%;
+
+    /* Muted */
+    --muted: 240 4% 14%;
+    --muted-foreground: 40 2% 54%; /* #8A8A86 */
+
+    /* Accent = Ink Blue Accent (dark mode) */
+    --accent: 220 40% 75%; /* #A8B8D8 */
+    --accent-foreground: 240 7% 5%;
+
+    --destructive: 0 63% 66%; /* #E07070 */
+    --destructive-foreground: 240 7% 5%;
+
+    --success: 154 31% 55%; /* #6BAA90 */
+    --success-foreground: 240 7% 5%;
+
+    --warning: 38 60% 56%; /* #D4A24C */
+    --warning-foreground: 240 7% 5%;
+
+    --info: 220 35% 76%; /* #A8B8D8 */
+    --info-foreground: 240 7% 5%;
+
+    --border: 240 5% 24%; /* #3A3B42 */
+    --input: 240 5% 24%;
+    --ring: 220 40% 75%;
+
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.20);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.30);
+    --shadow-lg: 0 12px 40px rgba(0,0,0,0.40);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-inter), "Inter", system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Inter-only typography - hierarchy from weight, size, spacing (not font switching) */
+  h1 {
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+  }
+  h2 {
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    line-height: 1.2;
+  }
+  h3 {
+    font-weight: 700;
+    letter-spacing: -0.015em;
+    line-height: 1.3;
+  }
+  h4 {
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    line-height: 1.25;
+  }
+  h5, h6 {
+    font-weight: 600;
+    line-height: 1.3;
+  }
+
+  /* Use system monospace for code elements */
+  code, pre, kbd, samp {
+    font-family: 'SF Mono', 'Fira Code', Consolas, ui-monospace, SFMono-Regular, Menlo, Monaco, "Liberation Mono", monospace;
+  }
+}
+
+/* Custom scrollbar with brand colors */
+@layer utilities {
+  .scrollbar-thin {
+    scrollbar-width: thin;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    @apply bg-muted rounded-full;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    @apply bg-muted-foreground/30 rounded-full hover:bg-muted-foreground/50;
+  }
+}
+
+/* Focus visible styles for accessibility */
+@layer base {
+  :focus-visible {
+    outline: none;
+    box-shadow: var(--focus);
+  }
+}
+
+/* Skip link for accessibility */
+.skip-link {
+  @apply absolute -top-10 left-0 bg-primary text-primary-foreground px-4 py-2 z-50 transition-all focus:top-0;
+}
+
+/* INKRA Brand utility classes */
+@layer utilities {
+  /* Ink text variants */
+  .text-ink {
+    color: var(--ink);
+  }
+  .text-ink-soft {
+    color: var(--ink-soft);
+  }
+  .text-ink-muted {
+    color: var(--ink-muted);
+  }
+  .text-ink-faint {
+    color: var(--ink-faint);
+  }
+  .text-ink-70 {
+    color: var(--ink-70);
+  }
+  .text-ink-60 {
+    color: var(--ink-60);
+  }
+
+  /* Ink backgrounds */
+  .bg-ink {
+    background-color: var(--ink);
+  }
+
+  /* Paper variants */
+  .bg-paper {
+    background-color: var(--paper);
+  }
+  .bg-paper-warm {
+    background-color: var(--paper-warm);
+  }
+  .bg-paper-dim {
+    background-color: var(--paper-dim);
+  }
+
+  /* Ink Blue - Two Register System */
+  /* --ink-blue: surfaces (nav bg, CTA sections) */
+  /* --ink-blue-accent: text & buttons (a11y compliant) */
+  .text-ink-blue {
+    color: var(--ink-blue);
+  }
+  .text-ink-blue-accent {
+    color: var(--ink-blue-accent);
+  }
+  .bg-ink-blue {
+    background-color: var(--ink-blue);
+  }
+  .bg-ink-blue-accent {
+    background-color: var(--ink-blue-accent);
+  }
+  .bg-ink-blue-wash {
+    background-color: var(--ink-blue-wash);
+  }
+  .bg-ink-blue-ghost {
+    background-color: var(--ink-blue-ghost);
+  }
+  .border-ink-blue {
+    border-color: var(--ink-blue);
+  }
+  .border-ink-blue-accent {
+    border-color: var(--ink-blue-accent);
+  }
+  .hover\:text-ink-blue-accent:hover {
+    color: var(--ink-blue-accent);
+  }
+  .hover\:bg-ink-blue-ghost:hover {
+    background-color: var(--ink-blue-ghost);
+  }
+
+  /* Ink Green (success) */
+  .text-ink-green {
+    color: var(--ink-green);
+  }
+  .bg-ink-green {
+    background-color: var(--ink-green);
+  }
+  .bg-ink-green-wash {
+    background-color: var(--ink-green-wash);
+  }
+
+  /* Ink Red (error) */
+  .text-ink-red {
+    color: var(--ink-red);
+  }
+  .bg-ink-red {
+    background-color: var(--ink-red);
+  }
+  .bg-ink-red-wash {
+    background-color: var(--ink-red-wash);
+  }
+
+  /* Ink Amber (warning) */
+  .text-ink-amber {
+    color: var(--ink-amber);
+  }
+  .bg-ink-amber {
+    background-color: var(--ink-amber);
+  }
+  .bg-ink-amber-wash {
+    background-color: var(--ink-amber-wash);
+  }
+
+  /* Border utilities */
+  .border-ink-12 {
+    border-color: var(--ink-12);
+  }
+  .border-ink-08 {
+    border-color: var(--ink-08);
+  }
+  .border-border-light {
+    border-color: var(--border-light);
+  }
+}
+
+/* TipTap Editor Styles */
+@layer components {
+  /* Editor prose styles */
+  .ProseMirror {
+    @apply outline-none;
+  }
+
+  .ProseMirror p {
+    @apply my-1;
+  }
+
+  .ProseMirror p:first-child {
+    @apply mt-0;
+  }
+
+  .ProseMirror p:last-child {
+    @apply mb-0;
+  }
+
+  .ProseMirror ul,
+  .ProseMirror ol {
+    @apply my-2;
+  }
+
+  .ProseMirror li {
+    @apply my-0.5;
+  }
+
+  .ProseMirror a {
+    color: var(--ink-blue);
+    text-decoration: none;
+  }
+  .ProseMirror a:hover {
+    text-decoration: underline;
+  }
+
+  /* Mention styles */
+  .ProseMirror .mention {
+    @apply bg-primary/10 text-primary rounded px-1 py-0.5 font-medium;
+  }
+
+  /* Placeholder styles */
+  .ProseMirror p.is-editor-empty:first-child::before {
+    @apply text-muted-foreground pointer-events-none float-left h-0;
+    content: attr(data-placeholder);
+  }
+}
+
+/* Tippy.js popup styles for mention suggestions */
+.tippy-box[data-theme~='light-border'] {
+  @apply bg-popover text-popover-foreground border border-border rounded-md shadow-md;
+}
+
+.tippy-box[data-theme~='light-border'] .tippy-content {
+  @apply p-0;
+}
+
+.tippy-box[data-theme~='light-border'] .tippy-arrow::before {
+  @apply border-b-border;
+}

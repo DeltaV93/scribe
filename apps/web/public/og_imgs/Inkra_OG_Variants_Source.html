@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400&family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet"/>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+/* ═══ SHARED ═══ */
+.og {
+  width: 1200px; height: 630px;
+  position: relative; overflow: hidden;
+  display: flex; font-family: 'DM Sans', sans-serif;
+}
+.og + .og { margin-top: 40px; }
+
+/* ═══════════════════════════════════════════════ */
+/* VARIANT A — "Your team does every job twice"   */
+/* The Hormozi Pain Headline                      */
+/* ═══════════════════════════════════════════════ */
+.og-a {
+  background: #0C0C0C;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0 80px;
+}
+.og-a::before {
+  content: ''; position: absolute; inset: 0;
+  background-image: radial-gradient(circle, rgba(255,255,255,0.02) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+.og-a .top-bar {
+  position: absolute; top: 0; left: 0; right: 0; height: 4px;
+  background: linear-gradient(90deg, #1B2A4A, #2B4C8C, #1B2A4A);
+}
+.og-a .logo-row {
+  position: relative; display: flex; align-items: center; gap: 10px;
+  margin-bottom: 32px;
+}
+.og-a .logo-name {
+  font-size: 18px; font-weight: 700; color: rgba(255,255,255,0.4);
+  letter-spacing: -0.02em;
+}
+.og-a h1 {
+  position: relative;
+  font-family: 'Lora', Georgia, serif;
+  font-size: 62px; font-weight: 700; color: #fff;
+  line-height: 1.05; letter-spacing: -0.025em;
+  max-width: 900px; margin-bottom: 20px;
+}
+.og-a h1 .highlight {
+  color: #B34747;
+}
+.og-a .proof {
+  position: relative;
+  display: flex; gap: 32px; margin-bottom: 36px;
+}
+.og-a .proof-item {
+  display: flex; align-items: baseline; gap: 8px;
+}
+.og-a .proof-num {
+  font-family: 'Lora', Georgia, serif;
+  font-size: 32px; font-weight: 500; color: #fff;
+  letter-spacing: -0.02em;
+}
+.og-a .proof-label {
+  font-size: 14px; color: rgba(255,255,255,0.4);
+  max-width: 140px; line-height: 1.3;
+}
+.og-a .divider {
+  width: 1px; height: 40px; background: rgba(255,255,255,0.1);
+  align-self: center;
+}
+.og-a .cta-row {
+  position: relative;
+  display: flex; align-items: center; gap: 16px;
+}
+.og-a .cta-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: #2B4C8C; padding: 12px 24px;
+  border-radius: 10px; font-size: 15px; font-weight: 700;
+  color: #fff; letter-spacing: 0.01em;
+}
+.og-a .cta-badge::before {
+  content: ''; width: 8px; height: 8px; border-radius: 50%;
+  background: #3F6F5A;
+  box-shadow: 0 0 0 3px rgba(63,111,90,0.3);
+}
+.og-a .cta-scarcity {
+  font-size: 14px; color: rgba(255,255,255,0.3);
+}
+
+/* ═══════════════════════════════════════════════ */
+/* VARIANT B — "16 hours a week" number-forward   */
+/* The Hormozi Specific Number                    */
+/* ═══════════════════════════════════════════════ */
+.og-b {
+  background: #1B2A4A;
+  align-items: center;
+}
+.og-b::before {
+  content: ''; position: absolute; inset: 0;
+  background-image: repeating-linear-gradient(52deg, rgba(255,255,255,0.015) 0 1px, transparent 1px 20px);
+}
+.og-b .left {
+  position: relative; flex: 0 0 380px;
+  display: flex; align-items: center; justify-content: center;
+  height: 100%;
+  border-right: 1px solid rgba(255,255,255,0.08);
+}
+.og-b .big-num {
+  font-family: 'Lora', Georgia, serif;
+  font-size: 160px; font-weight: 700; color: #fff;
+  line-height: 0.85; letter-spacing: -0.04em;
+}
+.og-b .big-unit {
+  font-size: 48px; font-weight: 400; color: rgba(255,255,255,0.4);
+  display: block; margin-top: 4px;
+  font-family: 'Lora', Georgia, serif; font-style: italic;
+}
+.og-b .right {
+  position: relative; flex: 1;
+  display: flex; flex-direction: column; justify-content: center;
+  padding: 0 60px;
+}
+.og-b .logo-row {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 24px;
+}
+.og-b .logo-name {
+  font-size: 16px; font-weight: 700; color: rgba(255,255,255,0.4);
+  letter-spacing: -0.02em;
+}
+.og-b h1 {
+  font-family: 'Lora', Georgia, serif;
+  font-size: 40px; font-weight: 500; color: #fff;
+  line-height: 1.15; letter-spacing: -0.02em;
+  margin-bottom: 16px;
+}
+.og-b .sub {
+  font-size: 16px; color: rgba(255,255,255,0.45);
+  line-height: 1.55; margin-bottom: 32px;
+  max-width: 420px;
+}
+.og-b .sub strong { color: rgba(255,255,255,0.7); font-weight: 600; }
+.og-b .cta-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.12);
+  padding: 10px 20px; border-radius: 10px;
+  font-size: 14px; font-weight: 600; color: #fff;
+}
+.og-b .cta-badge::before {
+  content: ''; width: 7px; height: 7px; border-radius: 50%;
+  background: #3F6F5A;
+  box-shadow: 0 0 0 3px rgba(63,111,90,0.3);
+}
+
+/* ═══════════════════════════════════════════════ */
+/* VARIANT C — "One conversation. Six outputs."   */
+/* The Hormozi Value Stack                        */
+/* ═══════════════════════════════════════════════ */
+.og-c {
+  background: #0C0C0C;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0 80px;
+}
+.og-c::before {
+  content: ''; position: absolute; inset: 0;
+  background-image: radial-gradient(circle, rgba(27,42,74,0.15) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+.og-c .logo-row {
+  position: relative; display: flex; align-items: center; gap: 10px;
+  margin-bottom: 28px;
+}
+.og-c .logo-name {
+  font-size: 18px; font-weight: 700; color: rgba(255,255,255,0.35);
+}
+.og-c h1 {
+  position: relative;
+  font-family: 'Lora', Georgia, serif;
+  font-size: 64px; font-weight: 500; color: #fff;
+  line-height: 1.08; letter-spacing: -0.025em;
+  margin-bottom: 32px;
+}
+.og-c h1 em { font-style: italic; color: rgba(255,255,255,0.5); }
+.og-c .outputs {
+  position: relative;
+  display: flex; gap: 12px; margin-bottom: 36px;
+  flex-wrap: wrap;
+}
+.og-c .output-tag {
+  font-size: 13px; font-weight: 600;
+  padding: 8px 16px; border-radius: 8px;
+  letter-spacing: 0.01em;
+}
+.og-c .output-tag:nth-child(1) { background: rgba(27,42,74,0.5); color: rgba(255,255,255,0.85); }
+.og-c .output-tag:nth-child(2) { background: rgba(63,111,90,0.35); color: rgba(255,255,255,0.85); }
+.og-c .output-tag:nth-child(3) { background: rgba(178,106,0,0.3); color: rgba(255,255,255,0.85); }
+.og-c .output-tag:nth-child(4) { background: rgba(179,71,71,0.3); color: rgba(255,255,255,0.85); }
+.og-c .output-tag:nth-child(5) { background: rgba(27,42,74,0.35); color: rgba(255,255,255,0.7); }
+.og-c .output-tag:nth-child(6) { background: rgba(63,111,90,0.25); color: rgba(255,255,255,0.7); }
+.og-c .bottom-row {
+  position: relative;
+  display: flex; align-items: center; gap: 20px;
+}
+.og-c .replaces {
+  font-size: 15px; color: rgba(255,255,255,0.35);
+  line-height: 1.5;
+}
+.og-c .replaces strong { color: rgba(255,255,255,0.7); font-weight: 700; }
+.og-c .sep {
+  width: 1px; height: 36px; background: rgba(255,255,255,0.1);
+}
+.og-c .cta-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: #2B4C8C; padding: 10px 20px;
+  border-radius: 10px; font-size: 14px; font-weight: 600; color: #fff;
+}
+.og-c .cta-badge::before {
+  content: ''; width: 7px; height: 7px; border-radius: 50%;
+  background: #3F6F5A;
+  box-shadow: 0 0 0 3px rgba(63,111,90,0.3);
+}
+
+/* ═══ SHARED LOGO SVG ═══ */
+.mark svg { display: block; }
+</style>
+</head>
+<body style="background:#333; padding:40px;">
+
+<!-- ═══════════════════════════════ -->
+<!-- VARIANT A: PAIN HEADLINE       -->
+<!-- ═══════════════════════════════ -->
+<div class="og og-a" id="og-a">
+  <div class="top-bar"></div>
+  <div class="logo-row">
+    <div class="mark"><svg viewBox="0 0 280 60" width="48" height="10"><path d="M 12,32 C 18,32 24,31 32,29 C 40,27 46,24 52,20 C 56,17 58,15 62,13 C 66,11 70,12 74,17 C 78,22 80,30 84,36 C 88,42 90,45 94,46 C 98,47 100,42 104,35 C 108,28 110,19 114,13 C 118,7 122,6 126,11 C 130,16 132,26 136,34 C 140,42 142,47 146,48 C 150,49 152,44 156,37 C 160,30 162,22 166,17 C 170,12 174,12 178,16 C 182,20 184,28 188,34 C 192,40 196,43 202,43 C 208,43 214,42 222,41 C 232,40 244,40 260,40" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="3.5" stroke-linecap="round"/></svg></div>
+    <span class="logo-name">Inkra</span>
+  </div>
+  <h1>Your team does every job <span class="highlight">twice.</span><br/>We fixed that.</h1>
+  <div class="proof">
+    <div class="proof-item"><span class="proof-num">16 hrs</span><span class="proof-label">per week on paperwork</span></div>
+    <div class="divider"></div>
+    <div class="proof-item"><span class="proof-num">5×</span><span class="proof-label">same data re-entered</span></div>
+    <div class="divider"></div>
+    <div class="proof-item"><span class="proof-num">60%</span><span class="proof-label">of knowledge in someone's head</span></div>
+  </div>
+  <div class="cta-row">
+    <div class="cta-badge">Spring 2026 Pilot — Apply Now</div>
+    <span class="cta-scarcity">20 spots · Reviewed weekly</span>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ -->
+<!-- VARIANT B: BIG NUMBER          -->
+<!-- ═══════════════════════════════ -->
+<div class="og og-b" id="og-b">
+  <div class="left">
+    <div style="text-align:center;">
+      <div class="big-num">16</div>
+      <span class="big-unit">hours/week</span>
+    </div>
+  </div>
+  <div class="right">
+    <div class="logo-row">
+      <div class="mark"><svg viewBox="0 0 280 60" width="44" height="9"><path d="M 12,32 C 18,32 24,31 32,29 C 40,27 46,24 52,20 C 56,17 58,15 62,13 C 66,11 70,12 74,17 C 78,22 80,30 84,36 C 88,42 90,45 94,46 C 98,47 100,42 104,35 C 108,28 110,19 114,13 C 118,7 122,6 126,11 C 130,16 132,26 136,34 C 140,42 142,47 146,48 C 150,49 152,44 156,37 C 160,30 162,22 166,17 C 170,12 174,12 178,16 C 182,20 184,28 188,34 C 192,40 196,43 202,43 C 208,43 214,42 222,41 C 232,40 244,40 260,40" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="3.5" stroke-linecap="round"/></svg></div>
+      <span class="logo-name">Inkra</span>
+    </div>
+    <h1>That's how much your team spends documenting what they already said out loud.</h1>
+    <div class="sub">One conversation with Inkra generates <strong>case notes, forms, follow-ups, reports, calendar events, and team notifications</strong> — automatically.</div>
+    <div class="cta-badge">Spring 2026 Pilot — 20 Spots Open</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ -->
+<!-- VARIANT C: VALUE STACK          -->
+<!-- ═══════════════════════════════ -->
+<div class="og og-c" id="og-c">
+  <div class="logo-row">
+    <div class="mark"><svg viewBox="0 0 280 60" width="48" height="10"><path d="M 12,32 C 18,32 24,31 32,29 C 40,27 46,24 52,20 C 56,17 58,15 62,13 C 66,11 70,12 74,17 C 78,22 80,30 84,36 C 88,42 90,45 94,46 C 98,47 100,42 104,35 C 108,28 110,19 114,13 C 118,7 122,6 126,11 C 130,16 132,26 136,34 C 140,42 142,47 146,48 C 150,49 152,44 156,37 C 160,30 162,22 166,17 C 170,12 174,12 178,16 C 182,20 184,28 188,34 C 192,40 196,43 202,43 C 208,43 214,42 222,41 C 232,40 244,40 260,40" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="3.5" stroke-linecap="round"/></svg></div>
+    <span class="logo-name">Inkra</span>
+  </div>
+  <h1>One conversation.<br/><em>Six outputs.</em></h1>
+  <div class="outputs">
+    <span class="output-tag">Case Notes</span>
+    <span class="output-tag">Filled Forms</span>
+    <span class="output-tag">Follow-up Tasks</span>
+    <span class="output-tag">Compliance Reports</span>
+    <span class="output-tag">Calendar Events</span>
+    <span class="output-tag">Team Notifications</span>
+  </div>
+  <div class="bottom-row">
+    <div class="replaces">Replaces <strong>4–6 tools</strong> · Saves <strong>$200–500/mo</strong> per user</div>
+    <div class="sep"></div>
+    <div class="cta-badge">Join the Pilot — 20 Spots</div>
+  </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,16 @@
+{
+  "name": "@inkra/config",
+  "version": "0.0.0",
+  "private": true,
+  "exports": {
+    "./tailwind": "./tailwind.config.js",
+    "./eslint": "./eslint-config.js",
+    "./tsconfig/base": "./tsconfig.base.json",
+    "./tsconfig/nextjs": "./tsconfig.nextjs.json"
+  },
+  "devDependencies": {
+    "eslint-config-next": "14.2.18",
+    "tailwindcss": "^3.4.15",
+    "tailwindcss-animate": "^1.0.7"
+  }
+}

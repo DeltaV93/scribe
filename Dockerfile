@@ -1,7 +1,7 @@
 # =============================================================================
-# Inkra Next.js Production Dockerfile
+# Inkra Web App - Production Dockerfile
 # =============================================================================
-# Multi-stage build optimized for Next.js standalone output
+# Multi-stage build optimized for Turborepo monorepo with Next.js standalone output
 # Using Debian-slim for better Prisma OpenSSL compatibility
 # =============================================================================
 
@@ -10,42 +10,56 @@
 # -----------------------------------------------------------------------------
 FROM node:20-slim AS deps
 
-# Install OpenSSL for Prisma
+# Install OpenSSL for Prisma and pnpm
 RUN apt-get update && apt-get install -y openssl ca-certificates && rm -rf /var/lib/apt/lists/*
+RUN corepack enable && corepack prepare pnpm@9.0.0 --activate
 
 WORKDIR /app
 
-# Copy package files
-COPY package.json package-lock.json ./
-COPY prisma ./prisma/
+# Copy workspace configuration
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml* ./
+COPY turbo.json ./
+
+# Copy all package.json files for workspace packages
+COPY apps/web/package.json ./apps/web/
+COPY packages/ui/package.json ./packages/ui/
+COPY packages/config/package.json ./packages/config/
+COPY packages/types/package.json ./packages/types/
+
+# Copy prisma schema
+COPY apps/web/prisma ./apps/web/prisma/
 
 # Install dependencies
-RUN npm ci --ignore-scripts
+RUN pnpm install --frozen-lockfile
 
 # Generate Prisma client
-RUN npx prisma generate
+RUN cd apps/web && pnpm db:generate
 
 # -----------------------------------------------------------------------------
 # Stage 2: Builder
 # -----------------------------------------------------------------------------
 FROM node:20-slim AS builder
 
-# Install OpenSSL for Prisma
+# Install OpenSSL for Prisma and pnpm
 RUN apt-get update && apt-get install -y openssl ca-certificates && rm -rf /var/lib/apt/lists/*
+RUN corepack enable && corepack prepare pnpm@9.0.0 --activate
 
 WORKDIR /app
 
 # Copy dependencies from deps stage
 COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/apps/web/node_modules ./apps/web/node_modules
+COPY --from=deps /app/packages ./packages
+
+# Copy source files
 COPY . .
 
 # Environment variables needed for build
-# These are placeholders - actual values come from runtime
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
 
 # Build arguments for build-time configuration
-ARG NEXT_PUBLIC_APP_URL=https://app.inkra.app
+ARG NEXT_PUBLIC_APP_URL=https://app.oninkra.com
 ARG NEXT_PUBLIC_SUPABASE_URL
 ARG NEXT_PUBLIC_SUPABASE_ANON_KEY
 ARG NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
@@ -60,8 +74,8 @@ ENV NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=${NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY}
 ENV SKIP_DB_CHECK=true
 ENV DATABASE_URL=postgresql://placeholder:placeholder@localhost:5432/placeholder
 
-# Build the application
-RUN npm run build
+# Build the web app
+RUN pnpm turbo run build --filter=@inkra/web
 
 # -----------------------------------------------------------------------------
 # Stage 3: Production Runner
@@ -84,12 +98,12 @@ ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
 # Copy only necessary files for production
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/apps/web/public ./public
+COPY --from=builder /app/apps/web/prisma ./prisma
 
 # Copy Next.js standalone build
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/static ./apps/web/.next/static
 
 # Copy Prisma client
 COPY --from=deps /app/node_modules/.prisma ./node_modules/.prisma
@@ -117,17 +131,19 @@ CMD ["./start.sh"]
 # -----------------------------------------------------------------------------
 FROM node:20-slim AS migrator
 
-# Install OpenSSL for Prisma
+# Install OpenSSL for Prisma and pnpm
 RUN apt-get update && apt-get install -y openssl ca-certificates && rm -rf /var/lib/apt/lists/*
+RUN corepack enable && corepack prepare pnpm@9.0.0 --activate
 
 WORKDIR /app
 
-# Copy package files
-COPY package.json package-lock.json ./
-COPY prisma ./prisma/
+# Copy workspace configuration
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml* ./
+COPY apps/web/package.json ./apps/web/
+COPY apps/web/prisma ./apps/web/prisma/
 
 # Install dependencies
-RUN npm ci --ignore-scripts
+RUN pnpm install --frozen-lockfile
 
 # Run migrations
-CMD ["npx", "prisma", "migrate", "deploy"]
+CMD ["pnpm", "--filter", "@inkra/web", "db:migrate"]
