@@ -25,7 +25,6 @@
     "clean": "rm -rf .next .turbo node_modules"
   },
   "dependencies": {
-    "@inkra/ui": "workspace:*",
     "@anthropic-ai/sdk": "^0.32.1",
     "@aws-sdk/client-kms": "^3.967.0",
     "@aws-sdk/client-s3": "^3.967.0",
@@ -36,11 +35,13 @@
     "@dnd-kit/sortable": "^8.0.0",
     "@dnd-kit/utilities": "^3.2.2",
     "@hookform/resolvers": "^3.9.1",
+    "@inkra/ui": "workspace:*",
     "@prisma/client": "^5.22.0",
     "@radix-ui/react-accordion": "^1.2.12",
     "@radix-ui/react-alert-dialog": "^1.1.2",
     "@radix-ui/react-avatar": "^1.1.1",
     "@radix-ui/react-checkbox": "^1.1.2",
+    "@radix-ui/react-collapsible": "^1.1.12",
     "@radix-ui/react-dialog": "^1.1.2",
     "@radix-ui/react-dropdown-menu": "^2.1.16",
     "@radix-ui/react-label": "^2.1.0",
@@ -92,6 +93,7 @@
     "next-mdx-remote": "^6.0.0",
     "next-themes": "^0.4.3",
     "otplib": "^13.2.1",
+    "pako": "^2.1.0",
     "papaparse": "^5.5.3",
     "pdf-parse": "^1.1.1",
     "pdfmake": "^0.3.3",
@@ -120,8 +122,8 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
-    "@inkra/config": "workspace:*",
     "@faker-js/faker": "^10.3.0",
+    "@inkra/config": "workspace:*",
     "@playwright/test": "^1.58.1",
     "@types/ioredis": "^5.0.0",
     "@types/mailparser": "^3.4.6",
