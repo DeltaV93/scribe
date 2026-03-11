@@ -1466,22 +1466,30 @@ ls out/
 ```json
 // apps/marketing/vercel.json
 {
-  "framework": "nextjs",
-  "outputDirectory": "out",
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
   "buildCommand": "pnpm turbo run build --filter=@inkra/marketing",
+  "outputDirectory": "out",
   "installCommand": "pnpm install"
 }
 ```
+
+**Important Notes:**
+- `"framework": null` is **required** for static exports (`output: 'export'` in next.config.js)
+- Without this, Vercel auto-detects Next.js and expects `.next/routes-manifest.json`
+- Static export generates files to `out/` directory, not `.next/`
+- The `outputDirectory` is relative to where `vercel.json` is located
 
 ### Vercel Deployment Checklist
 
 - [ ] Repository connected
 - [ ] Root directory set to `apps/marketing`
+- [ ] Framework Preset: "Other" (auto-detected from vercel.json)
 - [ ] Environment variables configured
 - [ ] Custom domain added
 - [ ] SSL certificate active
-- [ ] Build succeeds
-- [ ] All pages render correctly
+- [ ] Build succeeds (~15 seconds)
+- [ ] All 16 pages render correctly
 
 ---
 
