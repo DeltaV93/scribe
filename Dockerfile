@@ -125,7 +125,8 @@ ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
 # Copy only necessary files for production
-COPY --from=builder /app/apps/web/public ./public
+# Public and prisma must be relative to where server.js runs (apps/web/)
+COPY --from=builder /app/apps/web/public ./apps/web/public
 COPY --from=builder /app/apps/web/prisma ./prisma
 
 # Copy Next.js standalone build
