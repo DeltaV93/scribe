@@ -1,6 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "buildCommand": "pnpm turbo run build --filter=@inkra/marketing",
-  "outputDirectory": "apps/marketing/out",
+  "outputDirectory": "out",
   "installCommand": "pnpm install"
 }
