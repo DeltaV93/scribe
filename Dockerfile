@@ -78,7 +78,29 @@ ENV DATABASE_URL=postgresql://placeholder:placeholder@localhost:5432/placeholder
 RUN pnpm turbo run build --filter=@inkra/web
 
 # -----------------------------------------------------------------------------
-# Stage 3: Production Runner
+# Stage 3: Database Migration Runner (for CI/CD)
+# -----------------------------------------------------------------------------
+FROM node:20-slim AS migrator
+
+# Install OpenSSL for Prisma and pnpm
+RUN apt-get update && apt-get install -y openssl ca-certificates && rm -rf /var/lib/apt/lists/*
+RUN corepack enable && corepack prepare pnpm@9.0.0 --activate
+
+WORKDIR /app
+
+# Copy workspace configuration
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml* ./
+COPY apps/web/package.json ./apps/web/
+COPY apps/web/prisma ./apps/web/prisma/
+
+# Install dependencies
+RUN pnpm install --frozen-lockfile
+
+# Run migrations
+CMD ["pnpm", "--filter", "@inkra/web", "db:migrate"]
+
+# -----------------------------------------------------------------------------
+# Stage 4: Production Runner (default target for Railway)
 # -----------------------------------------------------------------------------
 FROM node:20-slim AS runner
 
@@ -125,25 +147,3 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
 
 # Start the application with migration check
 CMD ["./start.sh"]
-
-# -----------------------------------------------------------------------------
-# Stage 4: Database Migration Runner (for CI/CD)
-# -----------------------------------------------------------------------------
-FROM node:20-slim AS migrator
-
-# Install OpenSSL for Prisma and pnpm
-RUN apt-get update && apt-get install -y openssl ca-certificates && rm -rf /var/lib/apt/lists/*
-RUN corepack enable && corepack prepare pnpm@9.0.0 --activate
-
-WORKDIR /app
-
-# Copy workspace configuration
-COPY package.json pnpm-workspace.yaml pnpm-lock.yaml* ./
-COPY apps/web/package.json ./apps/web/
-COPY apps/web/prisma ./apps/web/prisma/
-
-# Install dependencies
-RUN pnpm install --frozen-lockfile
-
-# Run migrations
-CMD ["pnpm", "--filter", "@inkra/web", "db:migrate"]
