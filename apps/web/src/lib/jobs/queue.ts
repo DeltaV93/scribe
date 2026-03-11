@@ -112,7 +112,8 @@ let jobQueue: Queue | null = null
  */
 function getQueueOptions(): QueueOptions {
   return {
-    connection: getRedisConnection(),
+    // Cast to avoid ioredis version mismatch between direct dep and BullMQ's dep
+    connection: getRedisConnection() as QueueOptions['connection'],
     defaultJobOptions: {
       removeOnComplete: {
         age: 24 * 60 * 60, // 24 hours
