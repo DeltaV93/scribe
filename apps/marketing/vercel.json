@@ -1,7 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "framework": "nextjs",
-  "outputDirectory": "out",
   "buildCommand": "pnpm turbo run build --filter=@inkra/marketing",
+  "outputDirectory": "apps/marketing/out",
   "installCommand": "pnpm install"
 }
