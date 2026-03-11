@@ -5,7 +5,7 @@
  * Includes progress tracking and error handling.
  */
 
-import { Worker, Job } from 'bullmq'
+import { Worker, Job, WorkerOptions } from 'bullmq'
 import { getRedisConnection } from './connection'
 import {
   JobData,
@@ -64,7 +64,8 @@ export function startWorker(options?: { concurrency?: number }): Worker {
   const concurrency = options?.concurrency ?? 5
 
   worker = new Worker('scrybe-jobs', processJob, {
-    connection: getRedisConnection(),
+    // Cast to avoid ioredis version mismatch between direct dep and BullMQ's dep
+    connection: getRedisConnection() as WorkerOptions['connection'],
     concurrency,
   })
 
