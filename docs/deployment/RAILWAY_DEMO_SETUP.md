@@ -271,6 +271,62 @@ railway logs
 
 ## Troubleshooting
 
+### Docker Build Fails: "executable start.sh not found"
+
+The Dockerfile has multiple stages. Railway builds the **last stage** by default. Ensure the `runner` stage is last in `Dockerfile`:
+
+```dockerfile
+# Order matters! runner must be LAST (default target)
+FROM ... AS deps
+FROM ... AS builder
+FROM ... AS migrator    # Database migrations (for CI/CD)
+FROM ... AS runner      # Production server (LAST = default)
+```
+
+### Cannot find module '/app/server.js'
+
+Next.js standalone output in a **monorepo preserves directory structure**. The server.js is at `apps/web/server.js`, not root:
+
+```bash
+# In scripts/start.sh
+exec node apps/web/server.js  # NOT server.js
+```
+
+### Missing Public Assets (logos, images)
+
+Public folder must be relative to where `server.js` runs:
+
+```dockerfile
+# In Dockerfile runner stage
+COPY --from=builder /app/apps/web/public ./apps/web/public  # NOT ./public
+```
+
+### Prisma: Module not found with pnpm
+
+pnpm stores packages in `.pnpm/` with symlinks. Docker COPY doesn't follow symlinks. Copy from the actual pnpm store path:
+
+```dockerfile
+# In deps stage, after prisma generate
+RUN mkdir -p /prisma-client && \
+    cp -r /app/node_modules/.pnpm/@prisma+client*/node_modules/@prisma/client /prisma-client/ && \
+    cp -r /app/node_modules/.pnpm/@prisma+client*/node_modules/.prisma /prisma-client/
+
+# In runner stage
+COPY --from=deps /prisma-client/.prisma ./node_modules/.prisma
+COPY --from=deps /prisma-client/client ./node_modules/@prisma/client
+```
+
+### TypeScript: ioredis version mismatch with BullMQ
+
+BullMQ bundles ioredis@5.9.x, but you may have ioredis@5.10.x. Cast connections to fix:
+
+```typescript
+import { Queue, QueueOptions } from 'bullmq'
+
+// Cast to avoid version mismatch
+connection: getRedisConnection() as QueueOptions['connection'],
+```
+
 ### Database Connection Issues
 ```bash
 # Verify DATABASE_URL is set correctly
@@ -296,6 +352,20 @@ CREATE EXTENSION vector;
 Railway free tier has memory limits. If you see OOM:
 1. Upgrade to Pro plan
 2. Or optimize memory usage in `next.config.js`
+
+---
+
+## Monorepo Docker Reference
+
+Key Dockerfile patterns for this monorepo:
+
+| Item | Path |
+|------|------|
+| Next.js server | `apps/web/server.js` |
+| Public assets | `apps/web/public/` |
+| Static files | `apps/web/.next/static/` |
+| Prisma schema | `apps/web/prisma/` |
+| Start script | `./start.sh` (runs from `/app`) |
 
 ---
 
