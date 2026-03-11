@@ -7,4 +7,5 @@ echo "Checking migrations..."
 npx prisma migrate resolve --applied 0_init 2>/dev/null || true
 
 echo "Starting server..."
-exec node server.js
+# In monorepo standalone output, server.js is in apps/web/
+exec node apps/web/server.js
