@@ -35,6 +35,11 @@ RUN pnpm install --frozen-lockfile
 # Generate Prisma client
 RUN cd apps/web && pnpm db:generate
 
+# Copy generated Prisma client to a predictable location (pnpm stores it in .pnpm)
+RUN mkdir -p /prisma-client && \
+    cp -r /app/node_modules/.pnpm/@prisma+client*/node_modules/@prisma/client /prisma-client/ && \
+    cp -r /app/node_modules/.pnpm/@prisma+client*/node_modules/.prisma /prisma-client/
+
 # -----------------------------------------------------------------------------
 # Stage 2: Builder
 # -----------------------------------------------------------------------------
@@ -127,9 +132,9 @@ COPY --from=builder /app/apps/web/prisma ./prisma
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/static ./apps/web/.next/static
 
-# Copy Prisma generated client (contains engine binaries)
-# Note: @prisma/client is a symlink in pnpm, but .prisma has the actual generated code
-COPY --from=deps /app/node_modules/.prisma ./node_modules/.prisma
+# Copy Prisma client from predictable location (pnpm stores in .pnpm, we copied it out)
+COPY --from=deps /prisma-client/.prisma ./node_modules/.prisma
+COPY --from=deps /prisma-client/client ./node_modules/@prisma/client
 
 # Copy startup script
 COPY --chown=nextjs:nodejs scripts/start.sh ./start.sh
