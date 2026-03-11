@@ -14,6 +14,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { AlertCircle, Loader2, Shield, Key } from "lucide-react";
 
 function MFAVerifyForm() {
@@ -27,6 +28,7 @@ function MFAVerifyForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showBackupCodeInput, setShowBackupCodeInput] = useState(false);
   const [warning, setWarning] = useState<string | null>(null);
+  const [rememberDevice, setRememberDevice] = useState(false);
 
   if (!userId) {
     return (
@@ -63,6 +65,7 @@ function MFAVerifyForm() {
         body: JSON.stringify({
           userId,
           code: code.replace(/[-\s]/g, ""), // Normalize code
+          rememberDevice,
         }),
       });
 
@@ -157,6 +160,20 @@ function MFAVerifyForm() {
               }
             }}
           />
+        </div>
+
+        <div className="flex items-center space-x-2">
+          <Checkbox
+            id="remember-device"
+            checked={rememberDevice}
+            onCheckedChange={(checked) => setRememberDevice(checked === true)}
+          />
+          <Label
+            htmlFor="remember-device"
+            className="text-sm font-normal text-muted-foreground cursor-pointer"
+          >
+            Remember this device for 30 days
+          </Label>
         </div>
 
         <Button

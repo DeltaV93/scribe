@@ -15,6 +15,7 @@ import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CalendarIntegrationSection } from "./integrations/components";
 import { ThemeToggle } from "@/components/settings/theme-toggle";
+import { TrustedDevicesList } from "@/components/settings/trusted-devices-list";
 
 export default async function SettingsPage() {
   const user = await getCurrentUser();
@@ -124,6 +125,9 @@ export default async function SettingsPage() {
           <Button>Update Password</Button>
         </CardContent>
       </Card>
+
+      {/* Trusted Devices */}
+      <TrustedDevicesList />
 
       {/* Calendar Integration */}
       <section>

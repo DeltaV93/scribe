@@ -4,10 +4,15 @@ import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/db";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
+import { cookies } from "next/headers";
 import { z } from "zod";
 import { UserRole } from "@/types";
 import { getDefaultPermissions } from "./index";
 import { generateSlug } from "@/lib/utils";
+import {
+  validateTrustedDevice,
+  TRUSTED_DEVICE_CONFIG,
+} from "./trusted-devices";
 
 // ============================================
 // VALIDATION SCHEMAS
@@ -229,7 +234,22 @@ export async function signIn(
 
     // Check if user needs MFA verification
     if (user.mfaEnabled) {
-      // User has MFA enabled - redirect to verification page
+      // Check for trusted device cookie
+      const cookieStore = await cookies();
+      const trustedDeviceToken = cookieStore.get(TRUSTED_DEVICE_CONFIG.cookieName)?.value;
+
+      if (trustedDeviceToken) {
+        // Validate the trusted device
+        const validationResult = await validateTrustedDevice(trustedDeviceToken);
+
+        if (validationResult.valid && validationResult.userId === user.id) {
+          // Trusted device is valid - skip MFA and go to dashboard
+          revalidatePath("/", "layout");
+          redirect("/dashboard");
+        }
+      }
+
+      // No valid trusted device - redirect to MFA verification page
       revalidatePath("/", "layout");
       redirect(`/mfa-verify?userId=${user.id}`);
     }

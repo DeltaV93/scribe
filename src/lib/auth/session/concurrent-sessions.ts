@@ -22,6 +22,7 @@ import {
   terminateAllSessions,
   getSessionSummaries,
 } from "./timeout";
+import { revokeAllTrustedDevices } from "../trusted-devices";
 
 // ============================================
 // CONCURRENT SESSION CHECKS
@@ -110,13 +111,16 @@ export async function updateMaxConcurrentSessions(
 // ============================================
 
 /**
- * Invalidate all sessions when password is changed
+ * Invalidate all sessions and trusted devices when password is changed
  * Should be called after a successful password change
  */
 export async function invalidateSessionsOnPasswordChange(
   userId: string,
   currentSessionId?: string
 ): Promise<number> {
+  // Revoke all trusted devices (security best practice)
+  await revokeAllTrustedDevices(userId, userId, "PASSWORD_CHANGE");
+
   // If current session is provided, keep it alive
   if (currentSessionId) {
     return await terminateAllSessionsExcept(
@@ -131,13 +135,16 @@ export async function invalidateSessionsOnPasswordChange(
 }
 
 /**
- * Invalidate all sessions when MFA settings are changed
+ * Invalidate all sessions and trusted devices when MFA settings are changed
  * Should be called after MFA is enabled, disabled, or reset
  */
 export async function invalidateSessionsOnMfaChange(
   userId: string,
   currentSessionId?: string
 ): Promise<number> {
+  // Revoke all trusted devices (security best practice - MFA bypass tokens should be invalidated)
+  await revokeAllTrustedDevices(userId, userId, "MFA_CHANGE");
+
   if (currentSessionId) {
     return await terminateAllSessionsExcept(
       userId,

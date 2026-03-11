@@ -1,0 +1,7 @@
+Type,Name,Value
+CNAME,r3zui3f4yo3r4pltazgbsqnc77ooqvdq._domainkey.mail.onclearpath.com,r3zui3f4yo3r4pltazgbsqnc77ooqvdq.dkim.amazonses.com
+CNAME,um72cvvjrae4ug6e7b4wzvdkbxw5gl2u._domainkey.mail.onclearpath.com,um72cvvjrae4ug6e7b4wzvdkbxw5gl2u.dkim.amazonses.com
+CNAME,vskiaqdvnbxjmhimmjgmtbvhzpij36hm._domainkey.mail.onclearpath.com,vskiaqdvnbxjmhimmjgmtbvhzpij36hm.dkim.amazonses.com
+MX,noreply.mail.onclearpath.com,10 feedback-smtp.us-east-2.amazonses.com
+TXT,noreply.mail.onclearpath.com,"v=spf1 include:amazonses.com ~all"
+TXT,_dmarc.mail.onclearpath.com,"v=DMARC1; p=none;"
