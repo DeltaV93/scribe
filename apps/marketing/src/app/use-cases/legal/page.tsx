@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import Image from "next/image";
+import { MarketingNav } from "@/components/marketing/nav";
+import { MarketingFooter } from "@/components/marketing/footer";
 
 export const metadata: Metadata = {
   title: "Legal Services - Client Intake & Matter Documentation",
@@ -227,34 +228,8 @@ export default function LegalPage() {
     <>
       <LegalJsonLd />
 
+      <MarketingNav currentPath="/use-cases/legal" />
       <main className="min-h-screen bg-[var(--paper)]">
-        {/* Nav */}
-        <nav className="fixed top-0 left-0 right-0 z-50 px-8 py-4 flex items-center justify-between bg-[color-mix(in_srgb,var(--paper)_80%,transparent)] backdrop-blur-xl border-b border-[color-mix(in_srgb,var(--border)_50%,transparent)]">
-          <Link href="/" className="flex items-center gap-3">
-            <Image
-              src="/inkra-logo.svg"
-              alt="Inkra"
-              width={48}
-              height={14}
-              priority
-            />
-            <span className="text-lg font-extrabold tracking-tight">Inkra</span>
-          </Link>
-          <div className="flex items-center gap-6">
-            <Link
-              href="/use-cases"
-              className="text-sm text-[var(--ink-muted)] hover:text-[var(--ink-blue-accent)] transition-colors"
-            >
-              All Use Cases
-            </Link>
-            <Link
-              href="/#cta"
-              className="px-5 py-2.5 bg-[var(--ink-blue)] text-white text-sm font-semibold rounded-lg hover:bg-[var(--ink-blue-mid)] transition-all hover:-translate-y-0.5 hover:shadow-lg"
-            >
-              Join the Pilot
-            </Link>
-          </div>
-        </nav>
 
         {/* Hero */}
         <section className="pt-32 pb-16 px-8">
@@ -750,41 +725,7 @@ export default function LegalPage() {
           </div>
         </section>
 
-        {/* Footer */}
-        <footer className="px-8 py-10 border-t border-[var(--border-light)] flex items-center justify-between flex-wrap gap-4">
-          <div className="flex items-center gap-3">
-            <span className="font-extrabold">Inkra</span>
-            <span className="text-xs text-[var(--ink-faint)]">
-              2026 Inkra - Phoenixing LLC
-            </span>
-          </div>
-          <div className="flex gap-5">
-            <Link
-              href="#"
-              className="text-sm text-[var(--ink-muted)] hover:text-[var(--ink-blue-accent)]"
-            >
-              Privacy
-            </Link>
-            <Link
-              href="#"
-              className="text-sm text-[var(--ink-muted)] hover:text-[var(--ink-blue-accent)]"
-            >
-              Terms
-            </Link>
-            <Link
-              href="#"
-              className="text-sm text-[var(--ink-muted)] hover:text-[var(--ink-blue-accent)]"
-            >
-              Security
-            </Link>
-            <Link
-              href="mailto:hello@inkra.app"
-              className="text-sm text-[var(--ink-muted)] hover:text-[var(--ink-blue-accent)]"
-            >
-              Contact
-            </Link>
-          </div>
-        </footer>
+        <MarketingFooter />
       </main>
     </>
   );

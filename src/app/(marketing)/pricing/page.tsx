@@ -5,6 +5,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { Check, HelpCircle, MessageCircle, Users, Building2, Sparkles } from "lucide-react";
 import { FAQJsonLd } from "@/components/seo/json-ld";
+import { MarketingNav } from "@/components/marketing/nav";
+import { MarketingFooter } from "@/components/marketing/footer";
 
 // Pricing FAQ content for SEO
 const pricingFAQs = [
@@ -811,31 +813,7 @@ export default function PricingPage() {
       `}</style>
 
       {/* NAV */}
-      <nav className="nav">
-        <Link href="/" className="nav-left" style={{ textDecoration: "none", color: "inherit" }}>
-          <div className="nav-mark">
-            <Image
-              src="/inkra-logo.svg"
-              alt="Inkra"
-              width={48}
-              height={14}
-              priority
-            />
-          </div>
-          <span className="nav-name">Inkra</span>
-        </Link>
-        <div className="nav-links">
-          <Link href="/#how" className="nav-link">
-            How it works
-          </Link>
-          <Link href="/pricing" className="nav-link" style={{ color: "var(--ink-blue-accent)" }}>
-            Pricing
-          </Link>
-        </div>
-        <Link href="/#cta" className="nav-cta">
-          Join the Pilot
-        </Link>
-      </nav>
+      <MarketingNav currentPath="/pricing" />
 
       {/* HERO */}
       <section className="hero">
@@ -1058,18 +1036,7 @@ export default function PricingPage() {
       </section>
 
       {/* FOOTER */}
-      <footer>
-        <div className="foot-left">
-          <span className="foot-name">Inkra</span>
-          <span className="foot-copy">© 2026 Inkra · Phoenixing LLC</span>
-        </div>
-        <div className="foot-links">
-          <a href="#">Privacy</a>
-          <a href="#">Terms</a>
-          <a href="#">Security</a>
-          <a href="mailto:hello@inkra.ai">Contact</a>
-        </div>
-      </footer>
+      <MarketingFooter />
     </>
   );
 }

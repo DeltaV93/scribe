@@ -1,7 +1,8 @@
 import { Metadata } from "next";
 import Link from "next/link";
-import Image from "next/image";
 import { ArrowRight, Clock, Calendar, FileText } from "lucide-react";
+import { MarketingNav } from "@/components/marketing/nav";
+import { MarketingFooter } from "@/components/marketing/footer";
 
 export const metadata: Metadata = {
   title: "Blog - Inkra Insights",
@@ -58,33 +59,9 @@ function formatDate(dateString: string): string {
 
 export default function BlogPage() {
   return (
+    <>
+      <MarketingNav currentPath="/blog" />
     <div className="min-h-screen bg-[var(--paper)]">
-      {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 px-6 py-4 bg-[color-mix(in_srgb,var(--paper)_80%,transparent)] backdrop-blur-md border-b border-[color-mix(in_srgb,var(--border)_50%,transparent)]">
-        <div className="max-w-4xl mx-auto flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-3">
-            <Image
-              src="/inkra-logo.svg"
-              alt="Inkra"
-              width={48}
-              height={14}
-              priority
-            />
-            <span className="text-lg font-extrabold tracking-tight">Inkra</span>
-          </Link>
-          <div className="flex items-center gap-6">
-            <Link href="/features" className="text-sm text-[var(--ink-muted)] hover:text-[var(--ink)]">
-              Features
-            </Link>
-            <Link href="/pricing" className="text-sm text-[var(--ink-muted)] hover:text-[var(--ink)]">
-              Pricing
-            </Link>
-            <Link href="/blog" className="text-sm text-[var(--ink-blue-accent)]">
-              Blog
-            </Link>
-          </div>
-        </div>
-      </nav>
 
       <main className="pt-32 pb-20 px-6">
         <div className="max-w-4xl mx-auto">
@@ -147,20 +124,8 @@ export default function BlogPage() {
         </div>
       </main>
 
-      {/* Footer */}
-      <footer className="py-10 px-6 border-t border-[var(--border-light)]">
-        <div className="max-w-4xl mx-auto flex flex-wrap items-center justify-between gap-4">
-          <span className="text-xs text-[var(--ink-faint)]">
-            © 2026 Inkra · Phoenixing LLC
-          </span>
-          <div className="flex gap-6">
-            <Link href="/privacy" className="text-sm text-[var(--ink-muted)] hover:text-[var(--ink-blue-accent)]">Privacy</Link>
-            <Link href="/terms" className="text-sm text-[var(--ink-muted)] hover:text-[var(--ink-blue-accent)]">Terms</Link>
-            <Link href="/security" className="text-sm text-[var(--ink-muted)] hover:text-[var(--ink-blue-accent)]">Security</Link>
-            <Link href="/contact" className="text-sm text-[var(--ink-muted)] hover:text-[var(--ink-blue-accent)]">Contact</Link>
-          </div>
-        </div>
-      </footer>
+      <MarketingFooter />
     </div>
+    </>
   );
 }

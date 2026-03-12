@@ -21,6 +21,8 @@ import {
   Scale,
   Briefcase,
 } from "lucide-react";
+import { MarketingNav } from "@/components/marketing/nav";
+import { MarketingFooter } from "@/components/marketing/footer";
 
 export const metadata: Metadata = {
   title: "Features - 8 Engines That Turn Conversations Into Work",
@@ -419,30 +421,7 @@ export default function FeaturesPage() {
 
       <div className="min-h-screen bg-[var(--paper)]">
         {/* Navigation */}
-        <nav className="fixed top-0 left-0 right-0 z-50 px-6 py-4 bg-[color-mix(in_srgb,var(--paper)_80%,transparent)] backdrop-blur-md border-b border-[color-mix(in_srgb,var(--border)_50%,transparent)]">
-          <div className="max-w-6xl mx-auto flex items-center justify-between">
-            <Link href="/" className="flex items-center gap-3">
-              <Image
-                src="/inkra-logo.svg"
-                alt="Inkra"
-                width={48}
-                height={14}
-                priority
-              />
-              <span className="text-lg font-extrabold tracking-tight">
-                Inkra
-              </span>
-            </Link>
-            <div className="flex items-center gap-4">
-              <Link
-                href="/#cta"
-                className="px-5 py-2.5 bg-[var(--ink-blue)] text-white text-sm font-semibold rounded-lg hover:bg-[var(--ink-blue-mid)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
-              >
-                Join the Pilot
-              </Link>
-            </div>
-          </div>
-        </nav>
+        <MarketingNav currentPath="/features" />
 
         {/* Hero Section */}
         <section className="pt-32 pb-20 px-6 relative overflow-hidden">
@@ -880,42 +859,7 @@ export default function FeaturesPage() {
         </section>
 
         {/* Footer */}
-        <footer className="py-10 px-6 border-t border-[var(--border-light)]">
-          <div className="max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <span className="font-extrabold text-base tracking-tight">Inkra</span>
-              <span className="text-xs text-[var(--ink-faint)]">
-                2026 Inkra. Phoenixing LLC
-              </span>
-            </div>
-            <div className="flex gap-6">
-              <Link
-                href="#"
-                className="text-sm text-[var(--ink-muted)] hover:text-[var(--ink-blue-accent)] transition-colors"
-              >
-                Privacy
-              </Link>
-              <Link
-                href="#"
-                className="text-sm text-[var(--ink-muted)] hover:text-[var(--ink-blue-accent)] transition-colors"
-              >
-                Terms
-              </Link>
-              <Link
-                href="#"
-                className="text-sm text-[var(--ink-muted)] hover:text-[var(--ink-blue-accent)] transition-colors"
-              >
-                Security
-              </Link>
-              <Link
-                href="mailto:hello@inkra.app"
-                className="text-sm text-[var(--ink-muted)] hover:text-[var(--ink-blue-accent)] transition-colors"
-              >
-                Contact
-              </Link>
-            </div>
-          </div>
-        </footer>
+        <MarketingFooter />
       </div>
     </>
   );

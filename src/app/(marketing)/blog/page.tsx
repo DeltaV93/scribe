@@ -3,6 +3,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { getAllPosts, formatDate } from "@/lib/blog";
 import { ArrowRight, Clock, Calendar } from "lucide-react";
+import { MarketingNav } from "@/components/marketing/nav";
+import { MarketingFooter } from "@/components/marketing/footer";
 
 export const metadata: Metadata = {
   title: "Blog - Inkra Insights",
@@ -79,16 +81,11 @@ export default function BlogPage() {
   return (
     <>
       <BlogJsonLd />
-      <main id="main-content" className="min-h-screen bg-paper">
+      <MarketingNav currentPath="/blog" />
+      <main id="main-content" className="min-h-screen bg-paper pt-20">
         {/* Header */}
         <header className="bg-paper-warm border-b border-border">
           <div className="max-w-4xl mx-auto px-6 py-20">
-            <Link
-              href="/"
-              className="text-ink-blue-accent hover:text-ink-blue transition-colors text-sm font-medium mb-6 inline-block"
-            >
-              &larr; Back to home
-            </Link>
             <h1 className="font-serif text-4xl md:text-5xl font-semibold text-ink tracking-tight">
               Inkra Insights
             </h1>
@@ -205,13 +202,9 @@ export default function BlogPage() {
           </div>
         </section>
 
-        {/* Footer */}
-        <footer className="bg-paper border-t border-border py-8">
-          <div className="max-w-4xl mx-auto px-6 text-center text-ink-muted text-sm">
-            <p>&copy; {new Date().getFullYear()} Inkra. All rights reserved.</p>
-          </div>
-        </footer>
       </main>
+      {/* Footer */}
+      <MarketingFooter />
     </>
   );
 }
