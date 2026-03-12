@@ -15,6 +15,7 @@ import { VideoMeetingCapture } from "@/components/recording/video-meeting-captur
 interface ConversationSetup {
   conversationId?: string;
   uploadUrl?: string;
+  uploadKey?: string;
   maxDurationMinutes?: number;
 }
 
@@ -66,6 +67,7 @@ export default function NewConversationPage() {
       setConversationSetup({
         conversationId: data.conversation.id,
         uploadUrl: data.upload.url,
+        uploadKey: data.upload.key,
         maxDurationMinutes: data.maxDurationMinutes,
       });
       setStep("recording");
@@ -86,12 +88,13 @@ export default function NewConversationPage() {
 
   const handleUploadComplete = useCallback(
     (conversationId: string) => {
-      // Update conversation to trigger processing
+      // Update conversation with recording URL and trigger processing
       fetch(`/api/conversations/${conversationId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           status: "PROCESSING",
+          recordingUrl: conversationSetup?.uploadKey,
           endedAt: new Date().toISOString(),
         }),
       }).then(() => {
@@ -102,7 +105,7 @@ export default function NewConversationPage() {
         }, 2000);
       });
     },
-    [router]
+    [router, conversationSetup?.uploadKey]
   );
 
   const handleVideoCapture = useCallback(
