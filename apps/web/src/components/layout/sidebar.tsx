@@ -19,6 +19,7 @@ import {
   ListChecks,
   Target,
   Bell,
+  MessageSquare,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -92,6 +93,12 @@ const navItems: NavItem[] = [
     href: "/calls",
     icon: Phone,
     requiredPermission: { resource: "calls", action: "read" },
+  },
+  {
+    title: "Conversations",
+    href: "/conversations",
+    icon: MessageSquare,
+    requiredPermission: { resource: "calls", action: "read" }, // Uses same permission as calls
   },
   {
     title: "Action Items",

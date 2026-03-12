@@ -12,8 +12,9 @@ import { PhoneCostCard } from "@/components/admin/phone-cost-card";
 import { NoteApprovalsTab } from "@/components/admin/note-approvals-tab";
 import { MLSettingsTab } from "@/components/admin/ml-settings-tab";
 import { WaitlistTab } from "@/components/admin/waitlist-tab";
+import { FeatureFlagsTab } from "@/components/admin/feature-flags-tab";
 import { Button } from "@/components/ui/button";
-import { Loader2, Shield, FileText, Brain, UserPlus } from "lucide-react";
+import { Loader2, Shield, FileText, Brain, UserPlus, ToggleRight } from "lucide-react";
 import Link from "next/link";
 
 interface PhoneStats {
@@ -200,6 +201,10 @@ export default function AdminPage() {
           </TabsTrigger>
           <TabsTrigger value="settings">Settings</TabsTrigger>
           <TabsTrigger value="delegation">Delegation</TabsTrigger>
+          <TabsTrigger value="features" className="flex items-center gap-1">
+            <ToggleRight className="h-3.5 w-3.5" />
+            Features
+          </TabsTrigger>
           <TabsTrigger value="ml-settings" className="flex items-center gap-1">
             <Brain className="h-3.5 w-3.5" />
             ML Settings
@@ -246,6 +251,10 @@ export default function AdminPage() {
 
         <TabsContent value="delegation">
           <SettingsDelegationTab />
+        </TabsContent>
+
+        <TabsContent value="features">
+          <FeatureFlagsTab />
         </TabsContent>
 
         <TabsContent value="ml-settings">
