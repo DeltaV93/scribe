@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import { getPresignedUploadUrl, calculateRetentionDate } from "@/lib/recording";
 import { addParticipant } from "@/lib/services/conversation-access";
 import { createAuditLog } from "@/lib/audit/service";
+import { isFeatureEnabled } from "@/lib/features/flags";
 import type { ConversationType } from "@prisma/client";
 
 /**
@@ -23,22 +24,27 @@ export async function POST(request: NextRequest) {
       formIds = [],
     } = body;
 
-    // Get org settings for retention
-    const org = await prisma.organization.findUnique({
-      where: { id: user.orgId },
-      select: {
-        recordingRetentionDays: true,
-        inPersonRecordingEnabled: true,
-        maxRecordingDurationMinutes: true,
-      },
-    });
-
-    if (!org?.inPersonRecordingEnabled) {
+    // Check if conversation capture feature is enabled
+    const isEnabled = await isFeatureEnabled(user.orgId, 'conversation-capture');
+    if (!isEnabled) {
       return NextResponse.json(
         { error: { code: "FEATURE_DISABLED", message: "In-person recording is not enabled for this organization" } },
         { status: 403 }
       );
     }
+
+    // Get org settings for retention
+    const org = await prisma.organization.findUnique({
+      where: { id: user.orgId },
+      select: {
+        recordingRetentionDays: true,
+        maxRecordingDurationMinutes: true,
+      },
+    });
+
+    // Default values if org settings not found
+    const recordingRetentionDays = org?.recordingRetentionDays ?? 90;
+    const maxRecordingDurationMinutes = org?.maxRecordingDurationMinutes ?? 120;
 
     // Create conversation record
     const conversation = await prisma.conversation.create({
@@ -48,7 +54,7 @@ export async function POST(request: NextRequest) {
         title: title || `In-Person Recording - ${new Date().toLocaleDateString()}`,
         status: "RECORDING",
         startedAt: new Date(),
-        recordingRetention: calculateRetentionDate(org.recordingRetentionDays),
+        recordingRetention: calculateRetentionDate(recordingRetentionDays),
         formIds,
         createdById: user.id,
         inPersonDetails: {
@@ -116,7 +122,7 @@ export async function POST(request: NextRequest) {
         key: uploadInfo.key,
         expiresAt: uploadInfo.expiresAt,
       },
-      maxDurationMinutes: org.maxRecordingDurationMinutes,
+      maxDurationMinutes: maxRecordingDurationMinutes,
     });
   } catch (error) {
     console.error("Error creating in-person conversation:", error);
