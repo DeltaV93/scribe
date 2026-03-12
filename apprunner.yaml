@@ -1,10 +1,2 @@
 version: 1.0
 runtime: docker
-build:
-  commands:
-    build:
-      - echo "Using Dockerfile"
-run:
-  network:
-    port: 3000
-    env: PORT
