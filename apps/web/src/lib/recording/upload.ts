@@ -57,8 +57,8 @@ export async function getPresignedUploadUrl(
     Bucket: BUCKET_NAME,
     Key: key,
     ContentType: contentType,
-    // Enable server-side encryption
-    ServerSideEncryption: "AES256",
+    // Note: Don't include ServerSideEncryption here for presigned URLs
+    // The bucket's default encryption (SSE-S3) handles this automatically
   });
 
   const uploadUrl = await getSignedUrl(s3Client, command, { expiresIn });
