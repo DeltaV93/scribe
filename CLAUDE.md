@@ -31,6 +31,27 @@ npm run test:e2e:headed  # Run E2E tests in headed browser
 
 ## Architecture
 
+### Monorepo Structure
+
+This is a **Turborepo monorepo**. The main web application is in `apps/web/`, NOT in the root `src/` directory.
+
+```
+/
+├── apps/
+│   ├── web/              # Main Next.js web application (DEPLOY THIS)
+│   │   ├── src/          # Application source code
+│   │   ├── package.json
+│   │   └── ...
+│   └── marketing/        # Marketing site
+├── packages/
+│   └── infra/            # AWS CDK infrastructure
+├── prisma/               # Database schema (shared)
+├── src/                  # LEGACY - do not use, sync to apps/web/src/
+└── package.json          # Root workspace config
+```
+
+**IMPORTANT**: When making changes, edit files in `apps/web/src/`, not root `src/`. The root `src/` directory is legacy and changes there won't be deployed.
+
 ### Tech Stack
 - **Framework**: Next.js 16+ (App Router) with TypeScript
 - **Database**: PostgreSQL with Prisma ORM
@@ -44,13 +65,15 @@ npm run test:e2e:headed  # Run E2E tests in headed browser
 
 ### Key Directories
 
+All paths below are relative to `apps/web/`:
+
 ```
-src/app/
+apps/web/src/app/
 ├── (auth)/           # Public auth pages (login, signup, password reset)
 ├── (dashboard)/      # Protected routes (forms, clients, calls, settings)
 └── api/              # REST API endpoints (50+ routes)
 
-src/lib/
+apps/web/src/lib/
 ├── ai/               # Claude integration (extraction.ts, generation, prompts)
 ├── auth/             # Server actions (signUp, signIn, etc.)
 ├── billing/          # Stripe integration (service.ts, webhooks.ts)
@@ -61,7 +84,7 @@ src/lib/
 ├── twilio/           # VoIP integration (call-manager, webhooks)
 └── db.ts             # Prisma client singleton
 
-src/components/
+apps/web/src/components/
 ├── ui/               # shadcn/ui primitives
 ├── form-builder/     # Form builder wizard components
 ├── conditional-logic/# React Flow-based logic editor
@@ -69,10 +92,10 @@ src/components/
 ```
 
 ### Authentication Flow
-1. Middleware (`middleware.ts`) protects `/dashboard/*` routes
+1. Middleware (`apps/web/middleware.ts`) protects `/dashboard/*` routes
 2. Supabase handles JWT tokens via `@supabase/ssr`
-3. `src/lib/supabase/middleware.ts` refreshes sessions for Server Components
-4. `src/lib/auth/actions.ts` contains server actions for auth operations
+3. `apps/web/src/lib/supabase/middleware.ts` refreshes sessions for Server Components
+4. `apps/web/src/lib/auth/actions.ts` contains server actions for auth operations
 5. `/api/auth/sync-user` syncs Supabase user to Prisma database on first login
 
 ### Database Models (Prisma)
@@ -85,7 +108,7 @@ Key relationships in `prisma/schema.prisma`:
 - **AuditLog** → Hash-chain for immutable compliance logging
 
 ### Form Builder State (Jotai)
-Located in `src/lib/form-builder/store.ts`:
+Located in `apps/web/src/lib/form-builder/store.ts`:
 - `formBuilderAtom` - Main state (form, fields, selectedFieldId, isDirty)
 - `wizardStepAtom` - Current step (setup, fields, organize, logic, preview, ai-config, publish)
 - Derived atoms for computed state (sortedFields, fieldsBySection, canPublish)
@@ -99,13 +122,13 @@ Located in `src/lib/form-builder/store.ts`:
 5. Async job: Deepgram transcription → Claude extraction → FormSubmission creation
 6. Case manager reviews and finalizes
 
-### AI Integration (`src/lib/ai/`)
+### AI Integration (`apps/web/src/lib/ai/`)
 - **extraction.ts**: `extractFormData()` - Takes fields + transcript → parsed JSON with confidence scores
 - **generation-prompts.ts**: Form generation from natural language requirements
 - **client.ts**: Lazy-loaded Anthropic SDK (server-side only)
 
 ### Resource Locking
-`src/lib/services/resource-locking.ts` provides pessimistic locking for concurrent editing:
+`apps/web/src/lib/services/resource-locking.ts` provides pessimistic locking for concurrent editing:
 - 5-minute lock duration with heartbeat refresh
 - `/api/locks` endpoints for acquire/release
 - Prevents conflicting edits on form submissions
@@ -119,7 +142,7 @@ Located in `src/lib/form-builder/store.ts`:
 ## Important Patterns
 
 ### Server Actions
-Auth operations use React Server Actions in `src/lib/auth/actions.ts` with `useFormState` pattern.
+Auth operations use React Server Actions in `apps/web/src/lib/auth/actions.ts` with `useFormState` pattern.
 
 ### API Route Organization
 Routes follow RESTful patterns with org-level isolation:
@@ -145,7 +168,7 @@ PHI includes any data that can identify a client AND relates to their health/ser
 
 ### When to Add Audit Logging
 
-Use `AuditLogger` from `/src/lib/audit/service.ts` for:
+Use `AuditLogger` from `apps/web/src/lib/audit/service.ts` for:
 
 | Event Type | Requires Audit Log |
 |------------|-------------------|
@@ -179,14 +202,14 @@ Before committing, verify:
 2. **Authorization**: Are permission checks in place (`canCreateForms`, etc.)?
 3. **Org Isolation**: Is data filtered by `orgId`?
 4. **PHI Access**: If accessing PHI, is it audit logged?
-5. **Encryption**: Are sensitive fields using field-level encryption? (See `/src/lib/encryption/`)
+5. **Encryption**: Are sensitive fields using field-level encryption? (See `apps/web/src/lib/encryption/`)
 6. **Rate Limiting**: Is the endpoint rate-limited appropriately?
 
 ### Key Compliance Files
 
-- `/src/lib/audit/` - Hash-chain audit logging
-- `/src/lib/encryption/` - AES-256-GCM field encryption
-- `/src/lib/auth/mfa/` - Multi-factor authentication
-- `/src/lib/auth/session/` - Session management with timeout
+- `apps/web/src/lib/audit/` - Hash-chain audit logging
+- `apps/web/src/lib/encryption/` - AES-256-GCM field encryption
+- `apps/web/src/lib/auth/mfa/` - Multi-factor authentication
+- `apps/web/src/lib/auth/session/` - Session management with timeout
 - `/docs/HIPAA_SPEC.md` - Full HIPAA compliance roadmap
 - `/docs/SOC2_SPEC.md` - SOC2 Type II requirements
