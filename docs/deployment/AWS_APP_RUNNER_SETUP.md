@@ -535,11 +535,13 @@ rediss://ENDPOINT:6379
 | **Branch** | `main` |
 | **Source directory** | `/` |
 
+> **Important:** Always deploy from `main` branch for production. Feature branches may be missing `pnpm-lock.yaml` or other required files.
+
 **Deployment settings:**
 
 | Field | Value |
 |-------|-------|
-| **Deployment trigger** | Automatic |
+| **Deployment trigger** | Manual (recommended) or Automatic |
 
 1. Click **Next**
 
@@ -549,9 +551,16 @@ rediss://ENDPOINT:6379
 |-------|-------|
 | **Configuration source** | Configure all settings here |
 | **Runtime** | Nodejs 22 |
-| **Build command** | `npm install && npx prisma generate && npm run build` |
-| **Start command** | `npm run start` |
-| **Port** | `3000` |
+| **Build command** | See below |
+| **Start command** | `node apps/web/.next/standalone/apps/web/server.js` |
+| **Port** | `8080` |
+
+**Build command** (paste this exactly):
+```
+corepack enable && corepack prepare pnpm@9.0.0 --activate && pnpm install --frozen-lockfile && pnpm --filter @inkra/web db:generate && pnpm turbo run build --filter=@inkra/web
+```
+
+> **Note:** The first build may fail with "exit code 137" (out of memory). App Runner will automatically retry with a larger instance. This is normal.
 
 1. Click **Next**
 
@@ -576,7 +585,7 @@ rediss://ENDPOINT:6379
 | Field | Value |
 |-------|-------|
 | **Protocol** | TCP |
-| **Port** | 3000 |
+| **Port** | `8080` |
 | **Timeout** | 5 seconds |
 | **Interval** | 10 seconds |
 | **Unhealthy threshold** | 5 |
@@ -613,11 +622,15 @@ Default URL: https://____________.us-east-2.awsapprunner.com
 
 | Variable | Value |
 |----------|-------|
+| `HOSTNAME` | `0.0.0.0` |
+| `PORT` | `8080` |
+| `NODE_ENV` | `production` |
 | `DATABASE_URL` | `postgresql://inkra_admin:PASSWORD@RDS_ENDPOINT:5432/inkra` |
 | `DIRECT_URL` | Same as DATABASE_URL |
 | `REDIS_URL` | `rediss://VALKEY_ENDPOINT:6379` |
 | `NEXT_PUBLIC_APP_URL` | `https://app.oninkra.com` |
-| `NODE_ENV` | `production` |
+
+> **Critical:** `HOSTNAME=0.0.0.0` is required for Next.js standalone mode to accept connections from App Runner health checks. Without it, the app binds to localhost only and health checks will fail.
 
 #### Authentication (Supabase)
 
@@ -814,6 +827,19 @@ Default URL: https://____________.us-east-2.awsapprunner.com
 
 ## Troubleshooting
 
+### Health check failed (app starts but deployment fails)
+- **Missing `HOSTNAME=0.0.0.0`**: Next.js standalone binds to localhost by default. Without this env var, App Runner health checks can't reach the app.
+- **Missing `PORT=8080`**: App must listen on the configured port.
+- Check Application logs (not Deployment logs) for crash errors after "Ready in XXms"
+
+### Build fails with exit code 137
+- This means out of memory. App Runner will automatically retry with a larger instance.
+- If it keeps failing, your build may need optimization.
+
+### "pnpm-lock.yaml is absent"
+- Make sure you're deploying from `main` branch (not a feature branch)
+- The lock file must be committed to the repository
+
 ### "Can't reach database server"
 - Check App Runner VPC connector is **Active**
 - Verify `inkra-db-sg` allows inbound from `inkra-app-sg`
@@ -827,6 +853,10 @@ Default URL: https://____________.us-east-2.awsapprunner.com
 - Remove quotes from DATABASE_URL
 - Ensure URL starts with `postgresql://`
 - Use ONLY letters and numbers in password
+
+### Web ACL / WAF errors
+- If you see "Error while retrieving Web ACL" - this is usually a permissions issue, not a blocking issue
+- In App Runner service → Observability, ensure no WAF is associated if you don't need it
 
 ---
 

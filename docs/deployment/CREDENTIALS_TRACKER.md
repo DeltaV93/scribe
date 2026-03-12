@@ -78,6 +78,15 @@ Run: `openssl rand -hex 32` for each
 
 ## Production Environment Credentials
 
+### App Runner Required
+These are required for Next.js standalone to work on App Runner:
+
+| Variable | Value |
+|----------|-------|
+| `HOSTNAME` | `0.0.0.0` |
+| `PORT` | `8080` |
+| `NODE_ENV` | `production` |
+
 ### Supabase (Production Project)
 - [ ] Project created: `inkra-prod`
 - [ ] Region: `us-west-2` (HIPAA)
@@ -144,7 +153,45 @@ These can be shared between Demo and Production (no PHI risk):
 
 ---
 
-## AWS Infrastructure Outputs
+## AWS App Runner Infrastructure
+
+For App Runner deployments (simpler than ECS/Terraform):
+
+### RDS PostgreSQL
+| Output | Value |
+|--------|-------|
+| `RDS Endpoint` | `inkra-prod-db.____________.us-east-2.rds.amazonaws.com` |
+| `Database Name` | `inkra` |
+| `Master Username` | `inkra_admin` |
+| `Master Password` | (stored separately) |
+| `DATABASE_URL` | `postgresql://inkra_admin:PASSWORD@ENDPOINT:5432/inkra` |
+| `DIRECT_URL` | Same as DATABASE_URL |
+
+### ElastiCache Valkey
+| Output | Value |
+|--------|-------|
+| `Endpoint` | `inkra-redis-prod.______.cache.amazonaws.com` |
+| `Port` | `6379` |
+| `REDIS_URL` | `rediss://ENDPOINT:6379` (note: `rediss` for TLS) |
+
+### App Runner
+| Output | Value |
+|--------|-------|
+| `VPC Connector` | `inkra-prod-connector` |
+| `Service Name` | `inkra-prod` |
+| `Default URL` | `https://____________.us-east-2.awsapprunner.com` |
+| `Custom Domain` | `https://app.oninkra.com` |
+
+### S3 Buckets (App Runner)
+| Bucket | Name |
+|--------|------|
+| Uploads | `inkra-uploads-prod` |
+| Recordings | `inkra-recordings-prod` |
+| Exports | `inkra-exports-prod` |
+
+---
+
+## AWS Infrastructure Outputs (Terraform/ECS)
 
 After running Terraform, capture these outputs:
 
