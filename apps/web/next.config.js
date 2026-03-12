@@ -45,7 +45,7 @@ const nextConfig = {
           },
           {
             key: 'Content-Security-Policy',
-            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://*.sentry.io; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' https://*.supabase.co https://api.stripe.com wss://*.deepgram.com https://*.sentry.io https://*.ingest.sentry.io https://*.twilio.com wss://*.twilio.com https://sdk.twilio.com https://*.s3.*.amazonaws.com; frame-src https://js.stripe.com; media-src 'self' https://sdk.twilio.com https://*.twilio.com https://*.s3.*.amazonaws.com blob:;",
+            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://*.sentry.io; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' https://*.supabase.co https://api.stripe.com wss://*.deepgram.com https://*.sentry.io https://*.ingest.sentry.io https://*.twilio.com wss://*.twilio.com https://sdk.twilio.com https://*.s3.us-east-2.amazonaws.com https://*.s3.us-east-1.amazonaws.com https://*.s3.amazonaws.com; frame-src https://js.stripe.com; media-src 'self' https://sdk.twilio.com https://*.twilio.com https://*.s3.us-east-2.amazonaws.com https://*.s3.us-east-1.amazonaws.com https://*.s3.amazonaws.com blob:;",
           },
           {
             key: 'X-XSS-Protection',
