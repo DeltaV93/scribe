@@ -1,16 +1,12 @@
 /**
  * MFA Enforcement Module
  *
- * Enforces MFA requirements for admin users (SUPER_ADMIN, ADMIN).
+ * Enforces MFA requirements for ALL users per security policy (PX-944).
  * Provides utilities to check MFA status and redirect users to MFA setup.
  */
 
 import { prisma } from "@/lib/db";
 import type { SessionUser } from "@/types";
-import { UserRole } from "@/types";
-
-// Roles that require MFA enforcement
-const ADMIN_ROLES: UserRole[] = [UserRole.SUPER_ADMIN, UserRole.ADMIN];
 
 /**
  * MFA status result
@@ -21,22 +17,17 @@ export interface MFAStatusInfo {
 }
 
 /**
- * Check if MFA is required for a user based on their role.
- * Returns true if the user is an admin (SUPER_ADMIN or ADMIN) without MFA enabled.
+ * Check if MFA is required for a user.
+ * Per security policy (PX-944), MFA is required for ALL users.
  *
  * @param user - The session user to check
  * @returns Promise<boolean> - True if user needs to set up MFA
  */
 export async function checkMFARequired(user: SessionUser): Promise<boolean> {
-  // Only enforce MFA for admin roles
-  if (!ADMIN_ROLES.includes(user.role)) {
-    return false;
-  }
-
   // Check MFA status from database
   const mfaStatus = await getMFAStatus(user.id);
 
-  // If MFA is not enabled, it's required
+  // MFA is required for all users - return true if not enabled
   return !mfaStatus.enabled;
 }
 
@@ -65,16 +56,6 @@ export async function getMFAStatus(userId: string): Promise<MFAStatusInfo> {
     enabled: user.mfaEnabled,
     verifiedAt: user.mfaEnabledAt ?? undefined,
   };
-}
-
-/**
- * Check if a user role requires MFA enforcement.
- *
- * @param role - The user role to check
- * @returns boolean - True if the role requires MFA
- */
-export function isAdminRole(role: UserRole): boolean {
-  return ADMIN_ROLES.includes(role);
 }
 
 /**

@@ -3,7 +3,7 @@ import { prisma } from "@/lib/db";
 import { redirect } from "next/navigation";
 import type { SessionUser, UserPermissions } from "@/types";
 import { UserRole } from "@/types";
-import { checkMFARequired, getMFASetupRedirectUrl, isAdminRole } from "./mfa-enforcement";
+import { checkMFARequired, getMFASetupRedirectUrl } from "./mfa-enforcement";
 
 /**
  * Get the current authenticated user with organization context
@@ -96,8 +96,9 @@ export async function requireAuth(options?: {
     redirect("/login");
   }
 
-  // Check MFA requirement for admin users (unless explicitly skipped)
-  if (!options?.skipMFACheck && isAdminRole(user.role)) {
+  // Check MFA requirement for ALL users (unless explicitly skipped)
+  // Per PX-944: MFA is required for all roles, not just admins
+  if (!options?.skipMFACheck) {
     const mfaRequired = await checkMFARequired(user);
     if (mfaRequired) {
       redirect(getMFASetupRedirectUrl());
