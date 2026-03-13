@@ -10,6 +10,7 @@
  *       └── PHI Data (encrypted by DEK)
  */
 
+import * as crypto from "crypto";
 import { prisma } from "@/lib/db";
 import { generateDek as generateLocalDek } from "./crypto";
 import {
@@ -104,13 +105,24 @@ export async function createOrgDek(organizationId: string): Promise<string> {
     plaintextDek = dataKey.plaintextKey;
     encryptedDek = dataKey.encryptedKey;
   } else {
-    // Development: Generate locally and store as-is (NOT for production)
+    // Development: Use local AES encryption (NOT for production)
     console.warn(
-      "[Encryption] KMS not configured - using local key generation. NOT SUITABLE FOR PRODUCTION."
+      "[Encryption] KMS not configured - using local encryption. NOT SUITABLE FOR PRODUCTION."
     );
     plaintextDek = generateLocalDek();
-    // In dev mode, we store the key "encrypted" with a dev prefix for identification
-    encryptedDek = `dev:${plaintextDek}`;
+    // Encrypt with a dev-only key derived from environment variable
+    const devKey = crypto
+      .createHash("sha256")
+      .update(
+        `dev-key-${process.env.DEV_ENCRYPTION_SECRET || "default-dev-secret"}`
+      )
+      .digest();
+    const iv = crypto.randomBytes(12);
+    const cipher = crypto.createCipheriv("aes-256-gcm", devKey, iv);
+    let encrypted = cipher.update(plaintextDek, "utf8", "hex");
+    encrypted += cipher.final("hex");
+    const authTag = cipher.getAuthTag();
+    encryptedDek = `dev:${iv.toString("hex")}:${authTag.toString("hex")}:${encrypted}`;
   }
 
   // Determine key version

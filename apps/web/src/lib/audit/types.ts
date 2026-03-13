@@ -73,6 +73,7 @@ export interface AuditLogEntry {
   details: Record<string, unknown>;
   ipAddress?: string;
   userAgent?: string;
+  correlationId?: string; // PX-970: Request correlation ID for traceability
   previousHash: string;
   hash: string;
   timestamp: Date;
@@ -88,6 +89,7 @@ export interface AuditLogCreateInput {
   details?: Record<string, unknown>;
   ipAddress?: string;
   userAgent?: string;
+  correlationId?: string; // PX-970: Request correlation ID for traceability
 }
 
 export interface AuditLogFilter {
@@ -96,6 +98,7 @@ export interface AuditLogFilter {
   action?: AuditAction;
   resource?: AuditResource;
   resourceId?: string;
+  correlationId?: string; // PX-970: Filter by request correlation ID
   startDate?: Date;
   endDate?: Date;
   limit?: number;

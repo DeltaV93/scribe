@@ -48,6 +48,7 @@ export async function createAuditLog(
       details: signedEntry.details as Prisma.InputJsonValue,
       ipAddress: signedEntry.ipAddress,
       userAgent: signedEntry.userAgent,
+      correlationId: input.correlationId,
       previousHash: signedEntry.previousHash,
       hash: signedEntry.hash,
       timestamp: signedEntry.timestamp,
@@ -65,6 +66,7 @@ export async function createAuditLog(
     details: created.details as Record<string, unknown>,
     ipAddress: created.ipAddress || undefined,
     userAgent: created.userAgent || undefined,
+    correlationId: created.correlationId || undefined,
     previousHash: created.previousHash,
     hash: created.hash,
     timestamp: created.timestamp,
@@ -83,6 +85,7 @@ export async function queryAuditLogs(
     ...(filter.action && { action: filter.action }),
     ...(filter.resource && { resource: filter.resource }),
     ...(filter.resourceId && { resourceId: filter.resourceId }),
+    ...(filter.correlationId && { correlationId: filter.correlationId }),
     ...(filter.startDate || filter.endDate
       ? {
           timestamp: {
@@ -115,6 +118,7 @@ export async function queryAuditLogs(
       details: e.details as Record<string, unknown>,
       ipAddress: e.ipAddress || undefined,
       userAgent: e.userAgent || undefined,
+      correlationId: e.correlationId || undefined,
       previousHash: e.previousHash,
       hash: e.hash,
       timestamp: e.timestamp,
@@ -146,6 +150,7 @@ export async function verifyAuditChain(
     details: e.details as Record<string, unknown>,
     ipAddress: e.ipAddress || undefined,
     userAgent: e.userAgent || undefined,
+    correlationId: e.correlationId || undefined,
     previousHash: e.previousHash,
     hash: e.hash,
     timestamp: e.timestamp,
@@ -180,6 +185,7 @@ export async function getIntegrityProof(
     details: entry.details as Record<string, unknown>,
     ipAddress: entry.ipAddress || undefined,
     userAgent: entry.userAgent || undefined,
+    correlationId: entry.correlationId || undefined,
     previousHash: entry.previousHash,
     hash: entry.hash,
     timestamp: entry.timestamp,

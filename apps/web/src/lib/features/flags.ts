@@ -20,6 +20,11 @@ export type FeatureFlag =
   | 'quizzes'
   | 'conversation-capture'
   | 'video-meeting-bot'
+  // Workflow Platform Integrations (PX-882)
+  // When enabled, users can connect their own accounts to these platforms
+  | 'workflow-linear'
+  | 'workflow-notion'
+  | 'workflow-jira'
 
 // Feature flag configuration
 export interface FeatureFlagConfig {
@@ -44,6 +49,11 @@ const DEFAULT_FLAGS: Record<FeatureFlag, FeatureFlagConfig> = {
   'quizzes': { enabled: false },
   'conversation-capture': { enabled: true }, // In-person recording enabled
   'video-meeting-bot': { enabled: false }, // Video meeting bot disabled until infrastructure ready
+  // Workflow Platform Integrations (PX-882)
+  // Disabled by default - admin must enable for users to connect
+  'workflow-linear': { enabled: false },
+  'workflow-notion': { enabled: false },
+  'workflow-jira': { enabled: false },
 }
 
 /**
@@ -195,4 +205,50 @@ export async function requireFeatureEnabled(
   if (!enabled) {
     throw new Error(`Feature "${flag}" is not enabled for this organization`)
   }
+}
+
+// ============================================
+// WORKFLOW PLATFORM HELPERS (PX-882)
+// ============================================
+
+/**
+ * Workflow platform types that can be enabled by admins
+ */
+export type WorkflowPlatformFlag = 'workflow-linear' | 'workflow-notion' | 'workflow-jira'
+
+/**
+ * Map from IntegrationPlatform enum to feature flag
+ */
+const PLATFORM_TO_FLAG: Record<string, WorkflowPlatformFlag> = {
+  LINEAR: 'workflow-linear',
+  NOTION: 'workflow-notion',
+  JIRA: 'workflow-jira',
+}
+
+/**
+ * Check if a workflow platform is enabled for an organization
+ */
+export async function isWorkflowPlatformEnabled(
+  orgId: string,
+  platform: 'LINEAR' | 'NOTION' | 'JIRA'
+): Promise<boolean> {
+  const flag = PLATFORM_TO_FLAG[platform]
+  if (!flag) return false
+  return isFeatureEnabled(orgId, flag)
+}
+
+/**
+ * Get all enabled workflow platforms for an organization
+ */
+export async function getEnabledWorkflowPlatforms(
+  orgId: string
+): Promise<Array<'LINEAR' | 'NOTION' | 'JIRA'>> {
+  const flags = await getFeatureFlags(orgId)
+  const enabled: Array<'LINEAR' | 'NOTION' | 'JIRA'> = []
+
+  if (flags['workflow-linear']?.enabled) enabled.push('LINEAR')
+  if (flags['workflow-notion']?.enabled) enabled.push('NOTION')
+  if (flags['workflow-jira']?.enabled) enabled.push('JIRA')
+
+  return enabled
 }

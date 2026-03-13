@@ -1,4 +1,5 @@
 import { getDeepgramClient } from "./client";
+import { validateExternalUrl } from "@/lib/security/url-validator";
 
 export interface TranscriptSegment {
   speaker: "CASE_MANAGER" | "CLIENT" | "UNCERTAIN";
@@ -48,6 +49,18 @@ interface DeepgramUtterance {
 export async function transcribeFromUrl(
   audioUrl: string
 ): Promise<TranscriptionResult> {
+  // Validate URL to prevent SSRF
+  const validation = await validateExternalUrl(audioUrl, [
+    'api.twilio.com',
+    'media.twiliocdn.com',
+    's3.amazonaws.com',
+    's3.us-west-2.amazonaws.com',
+    's3.us-east-1.amazonaws.com',
+  ]);
+  if (!validation.valid) {
+    throw new Error(`Invalid audio URL: ${validation.error}`);
+  }
+
   const client = getDeepgramClient();
 
   const response = await client.listen.prerecorded.transcribeUrl(

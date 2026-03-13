@@ -521,6 +521,9 @@ model Organization {
   conversations          Conversation[]
   integrationConnections IntegrationConnection[]
 
+  // Per-User Workflow Integrations (PX-882)
+  userIntegrationConnections UserIntegrationConnection[]
+
   @@index([slug])
   @@index([stripeCustomerId])
 }
@@ -739,6 +742,9 @@ model User {
   reviewedDraftedOutputs       DraftedOutput[]             @relation("DraftedOutputReviewer")
   confirmedObjectiveLinks      ConversationObjectiveLink[] @relation("ObjectiveLinkConfirmer")
   connectedIntegrations        IntegrationConnection[]     @relation("IntegrationConnector")
+
+  // Per-User Workflow Integrations (PX-882)
+  userIntegrationConnections UserIntegrationConnection[]
 
   @@index([orgId])
   @@index([email])
@@ -1106,16 +1112,17 @@ model FileUpload {
 // ============================================
 
 model AuditLog {
-  id           String  @id @default(uuid())
-  orgId        String
-  userId       String?
-  action       String // CREATE, UPDATE, DELETE, VIEW, EXPORT, PUBLISH, etc.
-  resource     String // FORM, SUBMISSION, CLIENT, USER, FILE, etc.
-  resourceId   String
-  resourceName String?
-  details      Json    @default("{}")
-  ipAddress    String?
-  userAgent    String?
+  id            String  @id @default(uuid())
+  orgId         String
+  userId        String?
+  action        String // CREATE, UPDATE, DELETE, VIEW, EXPORT, PUBLISH, etc.
+  resource      String // FORM, SUBMISSION, CLIENT, USER, FILE, etc.
+  resourceId    String
+  resourceName  String?
+  details       Json    @default("{}")
+  ipAddress     String?
+  userAgent     String?
+  correlationId String? // PX-970: Request correlation ID for traceability
 
   // Hash chain for immutability
   previousHash String
@@ -1130,6 +1137,7 @@ model AuditLog {
   @@index([resource, resourceId])
   @@index([userId])
   @@index([action])
+  @@index([correlationId])
 }
 
 model ComplianceReport {
@@ -3236,6 +3244,8 @@ enum IntegrationTokenType {
   GOOGLE_CALENDAR
   OUTLOOK_CALENDAR
   APPLE_CALENDAR
+  // Workflow platforms (PX-882)
+  WORKFLOW
 }
 
 model IntegrationToken {
@@ -3255,6 +3265,10 @@ model IntegrationToken {
   meetingIntegration    MeetingIntegration?  @relation(fields: [meetingIntegrationId], references: [id], onDelete: Cascade)
   calendarIntegrationId String?              @unique
   calendarIntegration   CalendarIntegration? @relation(fields: [calendarIntegrationId], references: [id], onDelete: Cascade)
+
+  // Per-User Workflow Integration (PX-882)
+  userIntegrationConnectionId String?                    @unique
+  userIntegrationConnection   UserIntegrationConnection? @relation(fields: [userIntegrationConnectionId], references: [id], onDelete: Cascade)
 
   // Audit
   createdAt DateTime @default(now())
@@ -4801,6 +4815,54 @@ enum IntegrationPlatform {
   NOTION
   GOOGLE_CALENDAR
   OUTLOOK_CALENDAR
+}
+
+// Per-User Workflow Integration Status (PX-882)
+enum UserIntegrationStatus {
+  PENDING      // OAuth flow initiated
+  ACTIVE       // Successfully connected
+  ERROR        // Token refresh failed
+  DISCONNECTED // User disconnected
+}
+
+// ============================================
+// PER-USER WORKFLOW INTEGRATIONS (PX-882)
+// ============================================
+// Stores per-user OAuth connections for workflow platforms.
+// Unlike IntegrationConnection (org-level), this allows each user
+// to connect their own Linear/Notion/Jira account.
+
+model UserIntegrationConnection {
+  id       String              @id @default(uuid())
+  userId   String
+  orgId    String
+  platform IntegrationPlatform
+
+  // Platform-specific config (workspace ID, default project, team, etc.)
+  config Json?
+
+  // Status
+  status     UserIntegrationStatus @default(PENDING)
+  lastUsedAt DateTime?
+  lastError  String?
+
+  // External identity (for attribution in destination platform)
+  externalUserId   String? // User ID in Linear/Notion/Jira
+  externalUserName String? // Display name in external system
+
+  // Audit
+  connectedAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization     Organization      @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  integrationToken IntegrationToken?
+
+  @@unique([userId, platform]) // One connection per user per platform
+  @@index([orgId, platform])
+  @@index([userId])
 }
 
 enum DraftStatus {
