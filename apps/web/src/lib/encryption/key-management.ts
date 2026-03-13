@@ -43,7 +43,12 @@ export interface DecryptedKey {
 
 // In-memory cache for decrypted keys (per-request lifecycle)
 const keyCache = new Map<string, { key: string; expiresAt: number }>();
-const KEY_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+/**
+ * Key cache TTL in milliseconds
+ * @security Shorter TTL = more KMS calls but better security
+ * Configure via ENCRYPTION_KEY_CACHE_TTL_MINUTES (default: 5 minutes)
+ */
+const KEY_CACHE_TTL_MS = (parseInt(process.env.ENCRYPTION_KEY_CACHE_TTL_MINUTES || "5", 10)) * 60 * 1000;
 
 // ============================================
 // DEK MANAGEMENT

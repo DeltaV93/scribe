@@ -53,8 +53,17 @@ function getEncryptionKey(): Buffer {
 
   // Otherwise derive using PBKDF2 with high iteration count
   // Salt should be stable for decryption compatibility
-  const salt = process.env.MFA_KEY_SALT || "scrybe-mfa-key-derivation-v1";
-  cachedKey = crypto.pbkdf2Sync(key, salt, 100000, 32, "sha256");
+  const salt = process.env.MFA_KEY_SALT;
+  if (!salt) {
+    // Warn in production if using default salt
+    if (process.env.NODE_ENV === "production") {
+      console.error(
+        "[SECURITY WARNING] MFA_KEY_SALT not configured. Using default salt is insecure in production!"
+      );
+    }
+  }
+  const effectiveSalt = salt || "scrybe-mfa-key-derivation-v1";
+  cachedKey = crypto.pbkdf2Sync(key, effectiveSalt, 100000, 32, "sha256");
   return cachedKey;
 }
 

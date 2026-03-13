@@ -62,8 +62,11 @@ export interface AlertResult {
 // Scrybe operations email (placeholder for now)
 const SCRYBE_OPS_EMAIL = process.env.SCRYBE_OPS_EMAIL || "security@scrybe.app";
 
-// Alert cooldown to prevent spam (in milliseconds)
-const ALERT_COOLDOWN_MS = 5 * 60 * 1000; // 5 minutes
+/**
+ * Alert cooldown to prevent spam (in milliseconds)
+ * Configure via SECURITY_ALERT_COOLDOWN_MINUTES (default: 5 minutes)
+ */
+const ALERT_COOLDOWN_MS = (parseInt(process.env.SECURITY_ALERT_COOLDOWN_MINUTES || "5", 10)) * 60 * 1000;
 
 // Track recent alerts to prevent duplicates
 const recentAlerts = new Map<string, Date>();

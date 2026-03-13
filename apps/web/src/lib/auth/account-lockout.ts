@@ -3,6 +3,13 @@
  *
  * Implements account lockout after failed login attempts.
  * HIPAA-compliant with configurable lockout duration.
+ *
+ * @security This module protects against brute force attacks by locking
+ * accounts after repeated failed login attempts.
+ *
+ * Configuration via environment variables:
+ * - ACCOUNT_LOCKOUT_MAX_ATTEMPTS: Max failed attempts before lockout (default: 5)
+ * - ACCOUNT_LOCKOUT_DURATION_MINUTES: Lockout duration in minutes (default: 30)
  */
 
 import { prisma } from "@/lib/db";
@@ -11,9 +18,13 @@ import { prisma } from "@/lib/db";
 // CONFIGURATION
 // ============================================
 
+/**
+ * Account lockout configuration with environment variable overrides
+ * @security Tune these values based on security requirements
+ */
 export const LOCKOUT_CONFIG = {
-  MAX_FAILED_ATTEMPTS: 5,
-  LOCKOUT_DURATION_MINUTES: 30,
+  MAX_FAILED_ATTEMPTS: parseInt(process.env.ACCOUNT_LOCKOUT_MAX_ATTEMPTS || "5", 10),
+  LOCKOUT_DURATION_MINUTES: parseInt(process.env.ACCOUNT_LOCKOUT_DURATION_MINUTES || "30", 10),
 } as const;
 
 // ============================================

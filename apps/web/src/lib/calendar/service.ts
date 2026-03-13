@@ -22,7 +22,12 @@ import type { CalendarOAuthState, CalendarOAuthTokens } from './types'
 // OAUTH STATE MANAGEMENT
 // ============================================
 
-const OAUTH_STATE_EXPIRY = 10 * 60 * 1000 // 10 minutes
+/**
+ * OAuth state expiry time in milliseconds
+ * @security OAuth state tokens expire to prevent CSRF replay attacks
+ * Configure via OAUTH_STATE_EXPIRY_MINUTES (default: 10 minutes)
+ */
+const OAUTH_STATE_EXPIRY = (parseInt(process.env.OAUTH_STATE_EXPIRY_MINUTES || "10", 10)) * 60 * 1000
 
 /**
  * Generate and encode OAuth state parameter
