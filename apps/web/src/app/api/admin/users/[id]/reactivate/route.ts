@@ -56,10 +56,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
   } catch (error) {
     console.error("Error reactivating user:", error);
 
-    if (error instanceof Error) {
-      return NextResponse.json({ error: error.message }, { status: 400 });
-    }
-
+    // Return generic error to prevent information disclosure
     return NextResponse.json(
       { error: "Failed to reactivate user" },
       { status: 500 }

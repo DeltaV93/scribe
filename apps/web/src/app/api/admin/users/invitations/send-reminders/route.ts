@@ -70,9 +70,10 @@ export async function POST(request: NextRequest) {
         await markReminderSent(invitation.id);
         results.sent++;
       } catch (error) {
+        console.error("Error sending reminder to:", invitation.email, error);
         results.errors.push({
           email: invitation.email,
-          error: error instanceof Error ? error.message : "Unknown error",
+          error: "Failed to send reminder",
         });
       }
     }

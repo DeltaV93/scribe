@@ -90,10 +90,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("Error creating invitation:", error);
 
-    if (error instanceof Error) {
-      return NextResponse.json({ error: error.message }, { status: 400 });
-    }
-
+    // Return generic error to prevent information disclosure
     return NextResponse.json(
       { error: "Failed to send invitation" },
       { status: 500 }

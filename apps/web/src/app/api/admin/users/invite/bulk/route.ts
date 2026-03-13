@@ -117,10 +117,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("Error creating bulk invitations:", error);
 
-    if (error instanceof Error) {
-      return NextResponse.json({ error: error.message }, { status: 400 });
-    }
-
+    // Return generic error to prevent information disclosure
     return NextResponse.json(
       { error: "Failed to send invitations" },
       { status: 500 }

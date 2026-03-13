@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { stripHtml } from "@/lib/security/sanitize";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -107,12 +108,10 @@ export function CallNotesPanel({
                           {format(new Date(note.createdAt), "MMM d, yyyy")}
                         </span>
                       </div>
-                      <div
-                        className="prose prose-sm max-w-none"
-                        dangerouslySetInnerHTML={{
-                          __html: note.content.replace(/<[^>]*>/g, ""),
-                        }}
-                      />
+                      <div className="prose prose-sm max-w-none">
+                        {/* Use proper sanitization instead of regex */}
+                        {stripHtml(note.content)}
+                      </div>
                     </div>
                   ))}
                 </div>

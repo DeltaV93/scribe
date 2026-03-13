@@ -54,10 +54,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
   } catch (error) {
     console.error("Error revoking invitation:", error);
 
-    if (error instanceof Error) {
-      return NextResponse.json({ error: error.message }, { status: 400 });
-    }
-
+    // Return generic error to prevent information disclosure
     return NextResponse.json(
       { error: "Failed to revoke invitation" },
       { status: 500 }

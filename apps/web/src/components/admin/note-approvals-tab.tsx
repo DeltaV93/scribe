@@ -8,6 +8,7 @@
  */
 
 import { useEffect, useState } from "react";
+import { sanitizeNoteContent } from "@/lib/security/sanitize";
 import {
   Card,
   CardContent,
@@ -352,10 +353,10 @@ export function NoteApprovalsTab({ pendingCount, onDataChange }: NoteApprovalsTa
           </DialogHeader>
           {previewNote && (
             <div className="space-y-4">
-              {/* Full content with HTML rendering */}
+              {/* Full content with HTML rendering (sanitized for XSS protection) */}
               <div
                 className="prose prose-sm max-w-none p-4 border rounded-md bg-muted/20"
-                dangerouslySetInnerHTML={{ __html: previewNote.content }}
+                dangerouslySetInnerHTML={{ __html: sanitizeNoteContent(previewNote.content) }}
               />
 
               {/* Tags */}

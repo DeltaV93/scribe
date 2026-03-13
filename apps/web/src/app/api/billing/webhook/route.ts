@@ -32,8 +32,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ received: true });
   } catch (error) {
     console.error("Webhook error:", error);
+    // Return generic error to prevent information disclosure
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Webhook error" },
+      { error: "Webhook processing failed" },
       { status: 400 }
     );
   }

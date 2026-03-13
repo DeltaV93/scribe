@@ -154,10 +154,8 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
   } catch (error) {
     console.error("Error updating user:", error);
 
-    if (error instanceof Error) {
-      return NextResponse.json({ error: error.message }, { status: 400 });
-    }
-
+    // Return generic error message to prevent information disclosure
+    // Specific errors are logged server-side for debugging
     return NextResponse.json(
       { error: "Failed to update user" },
       { status: 500 }
@@ -208,10 +206,8 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
   } catch (error) {
     console.error("Error deleting user:", error);
 
-    if (error instanceof Error) {
-      return NextResponse.json({ error: error.message }, { status: 400 });
-    }
-
+    // Return generic error message to prevent information disclosure
+    // Specific errors are logged server-side for debugging
     return NextResponse.json(
       { error: "Failed to delete user" },
       { status: 500 }

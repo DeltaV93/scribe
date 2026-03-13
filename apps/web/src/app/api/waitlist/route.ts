@@ -9,12 +9,30 @@ import { submitToWaitlist } from "@/lib/services/waitlist";
 
 /**
  * CORS headers for cross-origin requests from marketing site
+ * Note: MARKETING_URL must be configured in production
  */
-const corsHeaders = {
-  "Access-Control-Allow-Origin": process.env.MARKETING_URL || "https://oninkra.com",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type",
-};
+function getCorsHeaders(): Record<string, string> {
+  const marketingUrl = process.env.MARKETING_URL;
+
+  // In production, require MARKETING_URL to be set
+  if (!marketingUrl && process.env.NODE_ENV === "production") {
+    console.error("[Waitlist] MARKETING_URL not configured in production");
+    // Use a restrictive default that won't match real requests
+    return {
+      "Access-Control-Allow-Origin": "https://app.inkra.io",
+      "Access-Control-Allow-Methods": "POST, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type",
+    };
+  }
+
+  return {
+    "Access-Control-Allow-Origin": marketingUrl || "http://localhost:3001",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type",
+  };
+}
+
+const corsHeaders = getCorsHeaders();
 
 /**
  * OPTIONS /api/waitlist - CORS preflight
@@ -164,11 +182,10 @@ export async function POST(request: NextRequest) {
       industry: data.industry,
     });
 
-    // Log the submission
+    // Log the submission (redact PII for security)
     console.log("[Waitlist] Submission:", {
-      email: entry.email,
+      emailHash: entry.email.split("@")[0].slice(0, 2) + "***@" + entry.email.split("@")[1],
       isNew,
-      ip: clientIp,
       timestamp: new Date().toISOString(),
     });
 

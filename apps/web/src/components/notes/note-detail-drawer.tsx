@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Edit, Clock, User, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { sanitizeNoteContent } from "@/lib/security/sanitize";
 import type { ClientNote } from "@/hooks/use-client-notes";
 import { getTagColor } from "./notes-filter-bar";
 
@@ -181,7 +182,7 @@ export function NoteDetailDrawer({
           <p className="text-sm font-medium text-muted-foreground">Content</p>
           <div
             className="prose prose-sm max-w-none text-foreground"
-            dangerouslySetInnerHTML={{ __html: note.content }}
+            dangerouslySetInnerHTML={{ __html: sanitizeNoteContent(note.content) }}
           />
         </div>
 
