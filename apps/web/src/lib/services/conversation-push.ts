@@ -7,11 +7,13 @@
 
 import { prisma } from "@/lib/db";
 import { createAuditLog } from "@/lib/audit/service";
-import { getAccessToken } from "@/lib/integrations/base/token-store";
+import {
+  getUserAccessToken,
+  hasUserConnection,
+  canUserPushToPlatform,
+} from "@/lib/integrations/base/user-token-store";
 import { getWorkflowServiceAsync, hasWorkflowService } from "@/lib/integrations/base/registry";
-import { createLinearIssue } from "@/lib/integrations/linear";
 import { createCalendarEvent } from "@/lib/integrations/google-calendar";
-import { createNotionPage } from "@/lib/integrations/notion";
 import type {
   ActionItemDraft,
   CalendarEventDraft,
@@ -33,12 +35,24 @@ export interface PushOutputResult {
 }
 
 /**
- * Check if a platform is connected for an organization
+ * Check if a user has connected a workflow platform
+ *
+ * For workflow platforms (Linear, Notion, Jira), checks user-level connection.
+ * For other platforms (Google Calendar), checks org-level connection.
  */
-export async function isPlatformConnected(
+export async function isUserPlatformConnected(
+  userId: string,
   orgId: string,
   platform: IntegrationPlatform
 ): Promise<boolean> {
+  // Workflow platforms use per-user connections
+  if (hasWorkflowService(platform)) {
+    return hasUserConnection(userId, platform);
+  }
+
+  // Other platforms (calendar) use org-level connections for now
+  // This will be migrated later
+  const { getAccessToken } = await import("@/lib/integrations/base/token-store");
   const token = await getAccessToken(orgId, platform);
   return token !== null;
 }
@@ -80,14 +94,42 @@ export async function pushOutput(
   const metadata = (output.metadata as Record<string, unknown>) || {};
   const config = (output.destinationConfig as Record<string, unknown>) || {};
 
-  // Check if platform is connected
-  const accessToken = await getAccessToken(orgId, platform);
-  if (!accessToken) {
-    return {
-      success: false,
-      error: `${platform} is not connected. Please connect it in Settings > Integrations.`,
-      errorCode: "NOT_CONNECTED",
-    };
+  let accessToken: string | null = null;
+
+  // For workflow platforms, check user can push and get user token
+  if (hasWorkflowService(platform)) {
+    const canPush = await canUserPushToPlatform(
+      userId,
+      orgId,
+      platform as "LINEAR" | "NOTION" | "JIRA"
+    );
+    if (!canPush.canPush) {
+      return {
+        success: false,
+        error: canPush.reason || `Cannot push to ${platform}`,
+        errorCode: "USER_NOT_CONNECTED",
+      };
+    }
+
+    accessToken = await getUserAccessToken(userId, platform);
+    if (!accessToken) {
+      return {
+        success: false,
+        error: `Your ${platform} connection has expired. Please reconnect in Settings > Personal > Integrations.`,
+        errorCode: "TOKEN_EXPIRED",
+      };
+    }
+  } else {
+    // For other platforms (calendar), use org-level token
+    const { getAccessToken } = await import("@/lib/integrations/base/token-store");
+    accessToken = await getAccessToken(orgId, platform);
+    if (!accessToken) {
+      return {
+        success: false,
+        error: `${platform} is not connected. Please connect it in Settings > Integrations.`,
+        errorCode: "NOT_CONNECTED",
+      };
+    }
   }
 
   let externalId: string | undefined;
@@ -180,7 +222,7 @@ export async function pushOutput(
       };
     }
 
-    // Create audit log
+    // Create audit log with user attribution
     await createAuditLog({
       orgId,
       userId,
@@ -192,6 +234,8 @@ export async function pushOutput(
         outputType: output.outputType,
         platform,
         externalId,
+        // For workflow platforms, indicate push was made with user's own credentials
+        pushedAsUser: hasWorkflowService(platform) ? userId : undefined,
       },
     });
 
@@ -240,9 +284,12 @@ export async function pushOutputAndUpdateStatus(
 /**
  * Auto-push an output after approval
  *
- * Only pushes if:
- * 1. Output has a destination platform
- * 2. Platform is connected
+ * For workflow platforms (Linear, Notion, Jira):
+ * - Returns null (no auto-push) - user should use explicit "Add to X" button
+ * - This ensures proper user attribution and explicit consent
+ *
+ * For other platforms (Google Calendar):
+ * - Auto-pushes if platform is connected
  *
  * Failures are recorded but don't block approval.
  * Returns result for UI display.
@@ -265,8 +312,18 @@ export async function autoPushAfterApproval(
 
   const platform = output.destinationPlatform as IntegrationPlatform;
 
-  // Check if platform is connected
-  const isConnected = await isPlatformConnected(context.orgId, platform);
+  // For workflow platforms, don't auto-push - require explicit user action
+  // This ensures proper user attribution in the external system
+  if (hasWorkflowService(platform)) {
+    return null;
+  }
+
+  // For other platforms (e.g., Google Calendar), check if connected and auto-push
+  const isConnected = await isUserPlatformConnected(
+    context.userId,
+    context.orgId,
+    platform
+  );
   if (!isConnected) {
     // Platform not connected, don't auto-push
     return null;

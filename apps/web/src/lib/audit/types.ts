@@ -60,7 +60,9 @@ export type AuditResource =
   | "FLAGGED_SEGMENT"
   | "DRAFTED_OUTPUT"
   | "INTEGRATION_PUSH"
-  | "INTEGRATION";
+  | "INTEGRATION"
+  // PX-882: Per-user workflow integrations
+  | "USER_INTEGRATION";
 
 export interface AuditLogEntry {
   id: string;

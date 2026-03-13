@@ -16,6 +16,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { CalendarIntegrationSection } from "./integrations/components";
 import { ThemeToggle } from "@/components/settings/theme-toggle";
 import { TrustedDevicesList } from "@/components/settings/trusted-devices-list";
+import { UserWorkflowConnections } from "@/components/settings/user-workflow-connections";
 
 export default async function SettingsPage() {
   const user = await getCurrentUser();
@@ -139,6 +140,13 @@ export default async function SettingsPage() {
           <CalendarIntegrationSection />
         </Suspense>
       </section>
+
+      {/* Workflow Integrations (PX-882) */}
+      <section>
+        <Suspense fallback={<IntegrationsSkeleton />}>
+          <UserWorkflowConnections />
+        </Suspense>
+      </section>
     </div>
   );
 }
@@ -159,6 +167,29 @@ function CalendarSkeleton() {
         <Skeleton className="h-12 w-full" />
         <Skeleton className="h-12 w-full" />
         <Skeleton className="h-12 w-full" />
+      </CardContent>
+    </Card>
+  );
+}
+
+function IntegrationsSkeleton() {
+  return (
+    <Card>
+      <CardHeader>
+        <Skeleton className="h-6 w-32" />
+        <Skeleton className="h-4 w-64 mt-2" />
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {[1, 2].map((i) => (
+          <div key={i} className="flex items-center gap-4 p-4 border rounded-lg">
+            <Skeleton className="h-10 w-10 rounded-lg" />
+            <div className="space-y-2 flex-1">
+              <Skeleton className="h-5 w-24" />
+              <Skeleton className="h-4 w-48" />
+            </div>
+            <Skeleton className="h-9 w-24" />
+          </div>
+        ))}
       </CardContent>
     </Card>
   );

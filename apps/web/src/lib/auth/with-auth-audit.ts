@@ -168,6 +168,8 @@ function extractResourceIdFromParams(
     DRAFTED_OUTPUT: ["outputId", "id"],
     INTEGRATION_PUSH: ["pushId", "id"],
     INTEGRATION: ["integrationId", "connectionId", "id"],
+    // PX-882: Per-user workflow integrations
+    USER_INTEGRATION: ["connectionId", "platform", "id"],
   };
 
   const possibleParams = resourceParamMap[resource] || ["id"];

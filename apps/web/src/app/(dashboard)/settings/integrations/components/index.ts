@@ -11,4 +11,7 @@ export type { CalendarProvider } from "./CalendarProviderButton";
 export { ConnectedCalendarCard } from "./ConnectedCalendarCard";
 
 // Workflow integrations (PX-882)
+// Admin view - toggle to enable platforms for org
+export { AdminWorkflowPlatformsSection } from "./AdminWorkflowPlatformsSection";
+// Legacy: Org-level OAuth connection (deprecated, kept for reference)
 export { WorkflowIntegrationSection } from "./WorkflowIntegrationSection";

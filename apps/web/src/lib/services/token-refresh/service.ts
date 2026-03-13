@@ -352,6 +352,7 @@ async function createReconnectNotification(
     GOOGLE_CALENDAR: 'Google Calendar',
     OUTLOOK_CALENDAR: 'Outlook Calendar',
     APPLE_CALENDAR: 'Apple Calendar',
+    WORKFLOW: 'Workflow Integration',
   }
 
   const friendlyName = typeNames[tokenType] || tokenType
