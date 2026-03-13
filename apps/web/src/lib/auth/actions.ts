@@ -4,9 +4,10 @@ import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/db";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { z } from "zod";
 import { UserRole } from "@/types";
+import { checkRateLimit, RATE_LIMIT_CONFIGS } from "@/lib/rate-limit";
 import { getDefaultPermissions } from "./index";
 import { generateSlug } from "@/lib/utils";
 import {
@@ -277,6 +278,20 @@ export async function forgotPassword(
   _prevState: AuthState,
   formData: FormData
 ): Promise<AuthState> {
+  // Rate limit password reset requests (PX-946)
+  const headersList = await headers();
+  const ip = headersList.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+  const rateLimitResult = await checkRateLimit(
+    "authentication",
+    RATE_LIMIT_CONFIGS.authentication,
+    { ip }
+  );
+  if (!rateLimitResult.allowed) {
+    return {
+      error: "Too many password reset requests. Please try again later.",
+    };
+  }
+
   const rawData = {
     email: formData.get("email") as string,
   };
