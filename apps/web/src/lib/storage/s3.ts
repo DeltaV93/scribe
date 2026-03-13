@@ -6,6 +6,7 @@ import {
   HeadObjectCommand,
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { validateExternalUrl } from "@/lib/security/url-validator";
 
 // Re-export secure S3 module for new implementations
 export {
@@ -242,6 +243,15 @@ export async function transferRecordingToS3(
   orgId: string,
   callId: string
 ): Promise<string> {
+  // Validate URL to prevent SSRF attacks (PX-955)
+  const validation = await validateExternalUrl(sourceUrl, [
+    'api.twilio.com',
+    'media.twiliocdn.com',
+  ]);
+  if (!validation.valid) {
+    throw new Error(`Invalid recording URL: ${validation.error}`);
+  }
+
   // Check if this is a Twilio URL that requires authentication
   const headers: Record<string, string> = {};
 
