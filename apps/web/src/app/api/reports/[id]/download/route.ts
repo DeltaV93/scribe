@@ -38,7 +38,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       );
     }
 
-    // Check access
+    // Check access - CRITICAL: Must deny access if org doesn't match
     if (report.orgId !== user.orgId) {
       await logCrossOrgAccess({
         action: "REPORT_DOWNLOAD",
@@ -48,6 +48,11 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         resourceType: "Report",
         resourceId: id,
       });
+      // SECURITY: Reject cross-org access attempts
+      return NextResponse.json(
+        { error: { code: "FORBIDDEN", message: "Access denied" } },
+        { status: 403 }
+      );
     }
 
     if (report.status !== "COMPLETED") {

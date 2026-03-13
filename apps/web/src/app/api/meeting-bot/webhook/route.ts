@@ -17,8 +17,10 @@ import {
 // Webhook secret for verification
 const WEBHOOK_SECRET = process.env.MEETING_BOT_WEBHOOK_SECRET || "";
 
+import crypto from "crypto";
+
 /**
- * Verify webhook signature
+ * Verify webhook signature using timing-safe comparison
  */
 function verifyWebhookSignature(
   payload: string,
@@ -28,22 +30,29 @@ function verifyWebhookSignature(
   if (!secret) {
     // No secret configured, skip verification (development only)
     console.warn("[MeetingBot Webhook] No webhook secret configured");
-    return true;
+    return process.env.NODE_ENV === "development";
   }
 
   if (!signature) {
     return false;
   }
 
-  // Simple HMAC verification
-  // In production, use crypto.timingSafeEqual
-  const crypto = require("crypto");
-  const expectedSignature = crypto
+  // HMAC verification with timing-safe comparison to prevent timing attacks
+  const expectedSignature = `sha256=${crypto
     .createHmac("sha256", secret)
     .update(payload)
-    .digest("hex");
+    .digest("hex")}`;
 
-  return signature === `sha256=${expectedSignature}`;
+  // Use timing-safe comparison to prevent timing attacks
+  try {
+    return crypto.timingSafeEqual(
+      Buffer.from(signature),
+      Buffer.from(expectedSignature)
+    );
+  } catch {
+    // Buffers have different lengths - signature invalid
+    return false;
+  }
 }
 
 interface WebhookPayload {

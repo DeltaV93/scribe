@@ -5,10 +5,13 @@
  * Should be called daily by a cron job (e.g., Vercel Cron)
  */
 
+import crypto from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { processDraftReminders } from "@/lib/services/draft-reminders";
 
-// Verify cron secret to prevent unauthorized access
+/**
+ * Verify cron secret using timing-safe comparison to prevent timing attacks
+ */
 function verifyCronSecret(request: NextRequest): boolean {
   const cronSecret = process.env.CRON_SECRET;
   if (!cronSecret) {
@@ -17,7 +20,22 @@ function verifyCronSecret(request: NextRequest): boolean {
   }
 
   const authHeader = request.headers.get("authorization");
-  return authHeader === `Bearer ${cronSecret}`;
+  if (!authHeader) {
+    return false;
+  }
+
+  const expectedAuth = `Bearer ${cronSecret}`;
+
+  // Use timing-safe comparison to prevent timing attacks
+  try {
+    return crypto.timingSafeEqual(
+      Buffer.from(authHeader),
+      Buffer.from(expectedAuth)
+    );
+  } catch {
+    // Buffers have different lengths - auth invalid
+    return false;
+  }
 }
 
 /**

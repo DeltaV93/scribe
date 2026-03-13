@@ -1,5 +1,28 @@
+import crypto from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { processAllPendingCalls } from "@/lib/services/call-processing";
+
+/**
+ * Verify API key using timing-safe comparison to prevent timing attacks
+ */
+function verifyApiKey(authHeader: string | null, expectedKey: string): boolean {
+  if (!authHeader) {
+    return false;
+  }
+
+  const expectedAuth = `Bearer ${expectedKey}`;
+
+  // Use timing-safe comparison to prevent timing attacks
+  try {
+    return crypto.timingSafeEqual(
+      Buffer.from(authHeader),
+      Buffer.from(expectedAuth)
+    );
+  } catch {
+    // Buffers have different lengths - auth invalid
+    return false;
+  }
+}
 
 /**
  * POST /api/jobs/process-calls - Background job to process pending calls
@@ -23,7 +46,7 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      if (authHeader !== `Bearer ${expectedKey}`) {
+      if (!verifyApiKey(authHeader, expectedKey)) {
         return NextResponse.json(
           { error: "Unauthorized" },
           { status: 401 }

@@ -14,6 +14,9 @@ import * as https from "https";
 const certCache = new Map<string, string>();
 const CERT_CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour
 
+// Maximum age for SNS messages to prevent replay attacks (15 minutes)
+const MAX_MESSAGE_AGE_MS = 15 * 60 * 1000;
+
 interface CachedCert {
   cert: string;
   expiresAt: number;
@@ -209,6 +212,40 @@ export async function validateSNSMessage(
       return {
         valid: false,
         error: "Signature verification failed",
+      };
+    }
+
+    // Validate timestamp to prevent replay attacks
+    const messageTimestamp = new Date(message.Timestamp).getTime();
+    const now = Date.now();
+    const messageAge = now - messageTimestamp;
+
+    if (isNaN(messageTimestamp)) {
+      console.warn("[SNS] Invalid timestamp format:", message.Timestamp);
+      return {
+        valid: false,
+        error: "Invalid timestamp format",
+      };
+    }
+
+    if (messageAge > MAX_MESSAGE_AGE_MS) {
+      console.warn(
+        `[SNS] Message too old (${Math.round(messageAge / 1000)}s): ${message.MessageId}`
+      );
+      return {
+        valid: false,
+        error: `Message expired - received ${Math.round(messageAge / 1000)} seconds after creation`,
+      };
+    }
+
+    // Also reject messages from the future (clock skew > 5 min)
+    if (messageAge < -5 * 60 * 1000) {
+      console.warn(
+        `[SNS] Message timestamp in future: ${message.Timestamp}`
+      );
+      return {
+        valid: false,
+        error: "Message timestamp is in the future",
       };
     }
 
