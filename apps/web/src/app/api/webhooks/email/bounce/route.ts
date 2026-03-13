@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { handleBounce, handleDelivery, BounceNotification } from "@/lib/services/email";
+import { validateSNSRequest } from "@/lib/security/sns-validator";
 
 // ============================================
 // EMAIL BOUNCE WEBHOOK (PX-705)
@@ -21,16 +22,29 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
 
+    // Validate SNS message signature (PX-957)
+    const validation = await validateSNSRequest(body);
+    if (!validation.valid) {
+      console.warn("[EMAIL BOUNCE] SNS signature validation failed:", validation.error);
+      return NextResponse.json(
+        { error: "Invalid SNS signature" },
+        { status: 403 }
+      );
+    }
+
     // Handle SNS subscription confirmation
     if (body.Type === "SubscriptionConfirmation") {
       console.log("[EMAIL BOUNCE] SNS subscription confirmation received");
 
-      // In production, you would confirm the subscription by calling the SubscribeURL
-      // For now, log it and return success
+      // Auto-confirm the subscription (signature was already validated)
       if (body.SubscribeURL) {
-        console.log("[EMAIL BOUNCE] SubscribeURL:", body.SubscribeURL);
-        // Optional: Auto-confirm subscription
-        // await fetch(body.SubscribeURL);
+        console.log("[EMAIL BOUNCE] Auto-confirming subscription...");
+        try {
+          await fetch(body.SubscribeURL);
+          console.log("[EMAIL BOUNCE] Subscription confirmed");
+        } catch (confirmError) {
+          console.error("[EMAIL BOUNCE] Failed to confirm subscription:", confirmError);
+        }
       }
 
       return NextResponse.json({
