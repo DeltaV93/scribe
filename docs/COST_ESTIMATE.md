@@ -18,10 +18,13 @@
 | Service | Monthly Cost | Notes |
 |---------|-------------|-------|
 | **Railway (PostgreSQL)** | $20-30 | Database hosting |
+| **Railway (Redis)** | $10-20 | BullMQ job queue + Socket.io adapter |
 | **Supabase Auth** | $25 | Pro plan for production |
 | **AWS KMS** | $1 | Encryption key |
-| **Hosting (Vercel/Railway)** | $20-50 | App hosting |
-| **Subtotal** | **$66-106** | |
+| **Hosting (Railway)** | $20-50 | App hosting |
+| **Sentry** | $26-50 | Error tracking, performance monitoring, session replay |
+| **Fathom Analytics** | $14-25 | Privacy-friendly usage analytics |
+| **Subtotal** | **$116-201** | |
 
 ---
 
@@ -40,23 +43,48 @@
 
 ### 3. Deepgram (Transcription)
 
+Uses **Nova-2** model with diarization enabled. The app supports both batch (post-call) and live streaming (during calls) transcription.
+
 | Item | Calculation | Monthly Cost |
 |------|-------------|--------------|
-| **Transcription** | 18,000 min × $0.0043 | $77.40 |
-| **Diarization (+50%)** | 18,000 min × $0.0021 | $37.80 |
-| **Subtotal** | | **~$115** |
+| **Batch Transcription (post-call)** | 18,000 min × $0.0043 | $77.40 |
+| **Live Streaming (during calls)** | 18,000 min × $0.0077 | $138.60 |
+| **Subtotal (batch only)** | | **~$77** |
+| **Subtotal (batch + live)** | | **~$216** |
+
+*Note: If live transcription is enabled during calls, Deepgram costs nearly triple. Batch-only mode uses prerecorded transcription after call ends. Diarization (speaker identification) is included with Nova-2 prerecorded at no extra charge.*
 
 ---
 
-### 4. Anthropic Claude (AI Extraction)
+### 4. Anthropic Claude (AI Operations)
+
+Uses **Claude Sonnet 4** (`claude-sonnet-4-20250514`) at $3/1M input tokens, $15/1M output tokens.
+
+#### Call Extraction (primary cost driver)
 
 | Item | Calculation | Monthly Cost |
 |------|-------------|--------------|
-| **Extractions** | 2,400 calls × ~3,500 input tokens | 8.4M input tokens |
-| **Responses** | 2,400 calls × ~600 output tokens | 1.4M output tokens |
-| **Input Cost** | 8.4M × $3/1M | $25.20 |
-| **Output Cost** | 1.4M × $15/1M | $21.00 |
+| **Input Tokens** | 2,400 calls × ~3,500 tokens | 8.4M tokens × $3/1M = $25.20 |
+| **Output Tokens** | 2,400 calls × ~600 tokens | 1.4M tokens × $15/1M = $21.00 |
 | **Subtotal** | | **~$46** |
+
+#### Additional AI Operations (estimated)
+
+| Operation | Est. Monthly Calls | Max Tokens | Est. Monthly Cost |
+|-----------|-------------------|------------|-------------------|
+| **Form Generation** | ~50 | 6,000 output | ~$5 |
+| **Call Action Items** | ~2,400 | 2,000 output | ~$8 |
+| **Meeting Summaries** | ~200 | 2,048 output | ~$3 |
+| **Syllabus Extraction** | ~20 | 4,096 output | ~$1 |
+| **Goal Parsing** | ~100 | 4,096 output | ~$2 |
+| **Subtotal** | | | **~$19** |
+
+#### Total Anthropic
+
+| Scenario | Monthly Cost |
+|----------|-------------|
+| **Call extraction only** | ~$46 |
+| **All AI operations** | **~$65** |
 
 ---
 
@@ -85,17 +113,33 @@
 
 ## Total Monthly Costs
 
+### Scenario A: Batch Transcription Only
+
 | Category | Low | High |
 |----------|-----|------|
-| Infrastructure | $66 | $106 |
+| Infrastructure (incl. Redis, Sentry, Fathom) | $116 | $201 |
 | Twilio | $250 | $290 |
-| Deepgram | $100 | $130 |
-| Anthropic | $40 | $55 |
+| Deepgram (batch only) | $70 | $85 |
+| Anthropic (all AI operations) | $55 | $75 |
 | AWS S3 | $0 | $1 |
 | Stripe Fees | $50 | $100 |
-| **TOTAL** | **$506** | **$682** |
+| **TOTAL** | **$541** | **$752** |
 
-### Per-User Cost: $5.06 - $6.82/user/month
+**Per-User Cost: $5.41 - $7.52/user/month**
+
+### Scenario B: Batch + Live Streaming Transcription
+
+| Category | Low | High |
+|----------|-----|------|
+| Infrastructure (incl. Redis, Sentry, Fathom) | $116 | $201 |
+| Twilio | $250 | $290 |
+| Deepgram (batch + live) | $200 | $230 |
+| Anthropic (all AI operations) | $55 | $75 |
+| AWS S3 | $0 | $1 |
+| Stripe Fees | $50 | $100 |
+| **TOTAL** | **$671** | **$897** |
+
+**Per-User Cost: $6.71 - $8.97/user/month**
 
 ---
 
@@ -115,9 +159,11 @@ Assuming 10-20 orgs with mix of plans:
 
 ## Profit Margin Analysis
 
+### Scenario A: Batch Transcription Only
+
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│              MONTHLY P&L AT 100 USERS                       │
+│              MONTHLY P&L AT 100 USERS (BATCH ONLY)          │
 ├─────────────────────────────────────────────────────────────┤
 │                                                             │
 │  Revenue:                                                   │
@@ -127,17 +173,46 @@ Assuming 10-20 orgs with mix of plans:
 │    Total Revenue:           $1,772                          │
 │                                                             │
 │  Costs:                                                     │
-│    Infrastructure:          $86                             │
+│    Infrastructure:          $159                            │
 │    Twilio:                  $269                            │
-│    Deepgram:                $115                            │
-│    Anthropic:               $46                             │
+│    Deepgram:                $77                             │
+│    Anthropic:               $65                             │
 │    Stripe Fees:             $57                             │
 │    ─────────────────────────────                            │
-│    Total Costs:             $573                            │
+│    Total Costs:             $627                            │
 │                                                             │
 │  ════════════════════════════════════════                   │
-│  GROSS PROFIT:              $1,199/month                    │
-│  GROSS MARGIN:              67.6%                           │
+│  GROSS PROFIT:              $1,145/month                    │
+│  GROSS MARGIN:              64.6%                           │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Scenario B: Batch + Live Streaming Transcription
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│              MONTHLY P&L AT 100 USERS (BATCH + LIVE)        │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  Revenue:                                                   │
+│    Subscriptions:           $1,622                          │
+│    Phone Numbers:           $150                            │
+│    ─────────────────────────────                            │
+│    Total Revenue:           $1,772                          │
+│                                                             │
+│  Costs:                                                     │
+│    Infrastructure:          $159                            │
+│    Twilio:                  $269                            │
+│    Deepgram:                $216                            │
+│    Anthropic:               $65                             │
+│    Stripe Fees:             $57                             │
+│    ─────────────────────────────                            │
+│    Total Costs:             $766                            │
+│                                                             │
+│  ════════════════════════════════════════                   │
+│  GROSS PROFIT:              $1,006/month                    │
+│  GROSS MARGIN:              56.8%                           │
 │                                                             │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -146,12 +221,13 @@ Assuming 10-20 orgs with mix of plans:
 
 ## Key Insights
 
-### Cost Drivers (Highest to Lowest)
-1. **Twilio** (~47% of costs) - Calling minutes are the biggest expense
-2. **Deepgram** (~20% of costs) - Transcription scales with call volume
-3. **Infrastructure** (~15% of costs) - Fixed regardless of usage
-4. **Stripe Fees** (~10% of costs) - Scales with revenue
-5. **Anthropic** (~8% of costs) - AI extraction is surprisingly cheap
+### Cost Drivers (Highest to Lowest) — Scenario B
+
+1. **Twilio** (~35% of costs) - Calling minutes are the biggest expense
+2. **Deepgram** (~28% of costs) - Live + batch transcription scales with call volume
+3. **Infrastructure** (~21% of costs) - Fixed costs including Redis, Sentry, Fathom
+4. **Anthropic** (~8% of costs) - AI extraction and other operations
+5. **Stripe Fees** (~7% of costs) - Scales with revenue
 
 ### Phone Number Margin
 - Twilio cost: $1.15/number/month
@@ -159,23 +235,37 @@ Assuming 10-20 orgs with mix of plans:
 - **Margin: 77% ($3.85/number)**
 
 ### Cost Per Call
-- Twilio minutes: $0.10 (7.5 min × $0.013)
-- Deepgram: $0.048 (7.5 min × $0.0064)
-- Anthropic: $0.019
-- **Total per call: ~$0.17**
+
+| Service | Per Call (batch only) | Per Call (batch + live) |
+|---------|----------------------|------------------------|
+| Twilio minutes | $0.10 | $0.10 |
+| Deepgram | $0.032 | $0.090 |
+| Anthropic (extraction + action items) | $0.027 | $0.027 |
+| **Total** | **~$0.16** | **~$0.22** |
 
 ---
 
 ## Scaling Projections
 
-| Users | Calls/mo | Monthly Cost | Revenue | Profit |
-|-------|----------|--------------|---------|--------|
-| 100 | 2,400 | $573 | $1,772 | $1,199 |
-| 250 | 6,000 | $1,180 | $4,430 | $3,250 |
-| 500 | 12,000 | $2,200 | $8,860 | $6,660 |
-| 1,000 | 24,000 | $4,150 | $17,720 | $13,570 |
+### Scenario A: Batch Only
 
-*Note: Infrastructure costs stay relatively flat; variable costs (Twilio, Deepgram, Anthropic) scale linearly*
+| Users | Calls/mo | Monthly Cost | Revenue | Profit | Margin |
+|-------|----------|--------------|---------|--------|--------|
+| 100 | 2,400 | $627 | $1,772 | $1,145 | 64.6% |
+| 250 | 6,000 | $1,280 | $4,430 | $3,150 | 71.1% |
+| 500 | 12,000 | $2,400 | $8,860 | $6,460 | 72.9% |
+| 1,000 | 24,000 | $4,600 | $17,720 | $13,120 | 74.0% |
+
+### Scenario B: Batch + Live
+
+| Users | Calls/mo | Monthly Cost | Revenue | Profit | Margin |
+|-------|----------|--------------|---------|--------|--------|
+| 100 | 2,400 | $766 | $1,772 | $1,006 | 56.8% |
+| 250 | 6,000 | $1,620 | $4,430 | $2,810 | 63.4% |
+| 500 | 12,000 | $3,080 | $8,860 | $5,780 | 65.2% |
+| 1,000 | 24,000 | $5,960 | $17,720 | $11,760 | 66.4% |
+
+*Note: Infrastructure costs stay relatively flat; variable costs (Twilio, Deepgram, Anthropic) scale linearly. Margins improve at scale as fixed costs are spread across more users.*
 
 ---
 
@@ -183,18 +273,21 @@ Assuming 10-20 orgs with mix of plans:
 
 1. **Twilio Volume Discount** - Negotiate rates at higher volumes
 2. **Deepgram Annual Contract** - Can get 20-30% discount
-3. **Anthropic Batch API** - 50% cheaper for non-real-time extraction
-4. **Recording Retention** - Reduce from 30 to 7-14 days
-5. **Phone Pooling** - Share numbers across case managers if feasible
+3. **Disable Live Transcription** - Use batch-only to cut Deepgram costs by ~64%
+4. **Anthropic Batch API** - 50% cheaper for non-real-time extraction
+5. **Anthropic Prompt Caching** - Cache reads cost 90% less than fresh input tokens
+6. **Recording Retention** - Reduce from 30 to 7-14 days
+7. **Phone Pooling** - Share numbers across case managers if feasible
+8. **Sentry Sampling** - Reduce session replay and performance sample rates in production
 
 ---
 
 ## Break-Even Analysis
 
-| Scenario | Break-Even Users |
-|----------|------------------|
-| Current pricing | ~32 users |
-| All Starter plans | ~50 users |
-| All Professional | ~18 users |
+| Scenario | Break-Even Users (Batch) | Break-Even Users (Batch + Live) |
+|----------|--------------------------|--------------------------------|
+| Current pricing mix | ~35 users | ~43 users |
+| All Starter plans | ~55 users | ~68 users |
+| All Professional | ~20 users | ~24 users |
 
-*With 100 users, you're well above break-even with healthy margins.*
+*With 100 users, you're well above break-even with healthy margins in either scenario.*
