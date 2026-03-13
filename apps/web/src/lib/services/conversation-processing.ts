@@ -13,7 +13,7 @@ import {
 } from "@/lib/deepgram/transcribe";
 import { detectSensitivity, type FlaggedSegmentResult } from "@/lib/nlp";
 import { generateWorkflowOutputs, type GeneratedOutputs } from "./workflow-outputs";
-import { transferRecordingToS3, isS3Configured } from "@/lib/storage/s3";
+import { transferRecordingToS3, isS3Configured, downloadRecording } from "@/lib/storage/s3";
 import { isDeepgramConfigured } from "@/lib/deepgram/client";
 import { createAuditLog } from "@/lib/audit/service";
 
@@ -276,10 +276,24 @@ async function transcribeRecording(
     throw new Error("Deepgram not configured");
   }
 
-  const { segments } = await transcribeFromUrl(source);
-  const raw = formatTranscriptAsText(segments);
+  let result;
 
-  return { raw, segments };
+  // Check if source is an S3 key (not a URL)
+  if (source.startsWith("recordings/") || source.startsWith("in-person/")) {
+    // Download from S3 and transcribe from buffer
+    console.log(`[ConversationProcessing] Downloading recording from S3: ${source}`);
+    const buffer = await downloadRecording(source);
+
+    // Determine mime type from extension
+    const mimeType = source.endsWith(".webm") ? "audio/webm" : "audio/mp3";
+    result = await transcribeFromBuffer(buffer, mimeType);
+  } else {
+    // Direct URL transcription
+    result = await transcribeFromUrl(source);
+  }
+
+  const raw = formatTranscriptAsText(result.segments);
+  return { raw, segments: result.segments };
 }
 
 /**

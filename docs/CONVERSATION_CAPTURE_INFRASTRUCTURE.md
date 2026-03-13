@@ -266,6 +266,11 @@ curl -X POST https://demo.inkra.app/api/conversations/in-person \
 - Enable "Conversation Capture" feature flag in Admin → Features
 - Feature flag key: `conversation-capture`
 
+### "Deepgram returned null/undefined result" when processing
+- **Cause**: The `transcribeRecording()` function was passing S3 keys directly to `transcribeFromUrl()`, but Deepgram can't access S3 keys (bucket is private)
+- **Fix Applied**: Updated `conversation-processing.ts` to detect S3 keys and download recordings before transcription
+- **Verification**: Check logs for `[ConversationProcessing] Downloading recording from S3: ...` message
+
 ---
 
 ## Related Documentation
