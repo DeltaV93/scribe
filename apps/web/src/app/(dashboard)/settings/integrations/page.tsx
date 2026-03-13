@@ -10,7 +10,7 @@ import { Suspense } from "react";
 import { requireAuth, isAdmin } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { IntegrationsContent } from "./integrations-content";
-import { CalendarIntegrationSection } from "./components";
+import { CalendarIntegrationSection, WorkflowIntegrationSection } from "./components";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default async function IntegrationsPage() {
@@ -44,6 +44,17 @@ export default async function IntegrationsPage() {
         <h2 className="text-xl font-semibold mb-4">Meeting Platforms</h2>
         <Suspense fallback={<IntegrationsSkeleton />}>
           <IntegrationsContent />
+        </Suspense>
+      </section>
+
+      {/* Workflow Integrations Section (PX-882) */}
+      <section>
+        <h2 className="text-xl font-semibold mb-4">Workflow Integrations</h2>
+        <p className="text-sm text-muted-foreground mb-4">
+          Connect to push action items, meeting notes, and documents to external platforms.
+        </p>
+        <Suspense fallback={<IntegrationsSkeleton />}>
+          <WorkflowIntegrationSection />
         </Suspense>
       </section>
     </div>

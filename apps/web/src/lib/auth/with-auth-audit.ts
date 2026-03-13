@@ -167,6 +167,7 @@ function extractResourceIdFromParams(
     FLAGGED_SEGMENT: ["segmentId", "id"],
     DRAFTED_OUTPUT: ["outputId", "id"],
     INTEGRATION_PUSH: ["pushId", "id"],
+    INTEGRATION: ["integrationId", "connectionId", "id"],
   };
 
   const possibleParams = resourceParamMap[resource] || ["id"];

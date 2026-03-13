@@ -59,7 +59,8 @@ export type AuditResource =
   | "CONVERSATION_ACCESS"
   | "FLAGGED_SEGMENT"
   | "DRAFTED_OUTPUT"
-  | "INTEGRATION_PUSH";
+  | "INTEGRATION_PUSH"
+  | "INTEGRATION";
 
 export interface AuditLogEntry {
   id: string;
