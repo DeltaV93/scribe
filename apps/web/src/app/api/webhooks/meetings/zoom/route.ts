@@ -49,9 +49,11 @@ export async function POST(request: NextRequest) {
     );
 
     if (!isValid) {
-      console.warn("[Zoom Webhook] Invalid webhook signature");
-      // Still process for development, but log warning
-      // In production, return 401
+      console.warn("[Zoom Webhook] Invalid webhook signature - rejecting request");
+      return NextResponse.json(
+        { error: "Invalid webhook signature" },
+        { status: 401 }
+      );
     }
 
     // Check for recording events

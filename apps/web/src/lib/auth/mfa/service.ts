@@ -21,6 +21,7 @@ import {
   formatCodesForDisplay,
   type BackupCodesResult,
 } from "./backup-codes";
+import { invalidateSessionsOnMfaChange } from "../session";
 
 // Roles that require MFA by default
 const MFA_REQUIRED_ROLES: UserRole[] = [UserRole.ADMIN, UserRole.PROGRAM_MANAGER];
@@ -210,6 +211,9 @@ export async function enableMFA(
     details: { event: "MFA_ENABLED" },
   });
 
+  // Invalidate all other sessions on MFA change (security best practice)
+  await invalidateSessionsOnMfaChange(userId);
+
   return {
     success: true,
     backupCodes: formatCodesForDisplay(backupCodesResult.plainTextCodes),
@@ -394,6 +398,9 @@ export async function disableMFA(
     },
   });
 
+  // Invalidate all sessions on MFA change (security best practice)
+  await invalidateSessionsOnMfaChange(targetUserId);
+
   return { success: true };
 }
 
@@ -527,6 +534,9 @@ export async function adminResetMFA(
       resetBy: adminUser.email,
     },
   });
+
+  // Invalidate all sessions on MFA reset (security best practice)
+  await invalidateSessionsOnMfaChange(targetUserId);
 
   return { success: true };
 }
