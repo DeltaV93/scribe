@@ -3,6 +3,16 @@ import { requireAuth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { z } from "zod";
 import Anthropic from "@anthropic-ai/sdk";
+
+// Schema for AI-extracted requirements
+const extractedRequirementsSchema = z.object({
+  requiredMetrics: z.array(z.string()).optional().default([]),
+  requiredSections: z.array(z.string()).optional().default([]),
+  deadlines: z.union([z.array(z.string()), z.string()]).optional(),
+  formatRequirements: z.union([z.array(z.string()), z.string()]).optional(),
+  dataElements: z.array(z.string()).optional().default([]),
+  notes: z.union([z.array(z.string()), z.string()]).optional(),
+}).passthrough(); // Allow unknown fields
 import { Prisma } from "@prisma/client";
 
 // Lazy-load Anthropic client
@@ -82,15 +92,23 @@ Respond ONLY with valid JSON.`,
       ],
     });
 
-    let extractedRequirements = {};
+    let extractedRequirements: Record<string, unknown> = {};
     const content = response.content[0];
     if (content.type === "text") {
       try {
         const jsonMatch = content.text.match(/\{[\s\S]*\}/);
         if (jsonMatch) {
-          extractedRequirements = JSON.parse(jsonMatch[0]);
+          const parsed = JSON.parse(jsonMatch[0]);
+          const validated = extractedRequirementsSchema.safeParse(parsed);
+          if (validated.success) {
+            extractedRequirements = validated.data;
+          } else {
+            console.warn("[FunderDocs] Claude returned invalid JSON structure:", validated.error.flatten());
+            extractedRequirements = { rawAnalysis: content.text, validationErrors: validated.error.flatten() };
+          }
         }
-      } catch {
+      } catch (parseError) {
+        console.warn("[FunderDocs] Failed to parse Claude JSON response:", parseError);
         extractedRequirements = { rawAnalysis: content.text };
       }
     }
