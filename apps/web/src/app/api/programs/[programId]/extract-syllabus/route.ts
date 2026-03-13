@@ -13,6 +13,7 @@ import {
 import { ExtractionStatus, MaterialType } from "@prisma/client";
 import { UserRole } from "@/types";
 import { z } from "zod";
+import { validateExternalUrl } from "@/lib/security/url-validator";
 
 // Validation schema for extraction request
 const extractSyllabusSchema = z.object({
@@ -99,6 +100,16 @@ export async function POST(
     await updateExtractionStatus(materialId, ExtractionStatus.PROCESSING);
 
     try {
+      // Validate URL to prevent SSRF - only allow S3 URLs
+      const urlValidation = await validateExternalUrl(material.fileUrl, [
+        's3.amazonaws.com',
+        's3.us-west-2.amazonaws.com',
+        's3.us-east-1.amazonaws.com',
+      ]);
+      if (!urlValidation.valid) {
+        throw new Error(`Invalid file URL: ${urlValidation.error}`);
+      }
+
       // Fetch the file content
       const fileResponse = await fetch(material.fileUrl);
       if (!fileResponse.ok) {
