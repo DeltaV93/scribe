@@ -29,6 +29,7 @@ import {
 import { TranscriptViewer } from "@/components/conversation/transcript-viewer";
 import { SensitivityReview } from "@/components/conversation/sensitivity-review";
 import { OutputEditor } from "@/components/conversation/output-editor";
+import { EditableTitle } from "@/components/conversation/editable-title";
 import { cn } from "@/lib/utils";
 import type {
   ConversationType,
@@ -104,6 +105,7 @@ export default function ConversationDetailPage({
   const { id } = use(params);
   const router = useRouter();
   const [conversation, setConversation] = useState<Conversation | null>(null);
+  const [canEditTitle, setCanEditTitle] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("outputs");
 
@@ -119,6 +121,7 @@ export default function ConversationDetailPage({
 
       if (data.success) {
         setConversation(data.conversation);
+        setCanEditTitle(data.canEditTitle ?? false);
 
         // Auto-select review tab if there are pending items
         const pendingFlags = data.conversation.flaggedSegments.filter(
@@ -254,9 +257,16 @@ export default function ConversationDetailPage({
               {TYPE_ICONS[conversation.type]}
             </div>
             <div>
-              <h1 className="text-xl font-bold">
-                {conversation.title || "Untitled Conversation"}
-              </h1>
+              <EditableTitle
+                conversationId={conversation.id}
+                title={conversation.title}
+                canEdit={canEditTitle}
+                onTitleUpdate={(newTitle) => {
+                  setConversation((prev) =>
+                    prev ? { ...prev, title: newTitle } : null
+                  );
+                }}
+              />
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <User className="h-3 w-3" />
                 <span>{conversation.createdBy.name || conversation.createdBy.email}</span>

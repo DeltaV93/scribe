@@ -69,10 +69,14 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     // Log access for restricted content
     await logAccess(id, user.id, "VIEW");
 
+    // Check if current user can edit the title (creator only)
+    const canEditTitle = conversation.createdById === user.id;
+
     return NextResponse.json({
       success: true,
       conversation,
       accessType: accessResult.accessType,
+      canEditTitle,
     });
   } catch (error) {
     console.error("Error fetching conversation:", error);
@@ -103,6 +107,42 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 
     const { title, status, recordingUrl, endedAt, durationSeconds } = body;
 
+    // Store old title for audit logging if title is being updated
+    let oldTitle: string | null = null;
+
+    // Title validation and creator-only check
+    if (title !== undefined) {
+      // Validate title length
+      if (title !== null && title.length > 100) {
+        return NextResponse.json(
+          { error: { code: "VALIDATION_ERROR", message: "Title must be 100 characters or less" } },
+          { status: 400 }
+        );
+      }
+
+      // Only creator can edit title
+      const existingConversation = await prisma.conversation.findUnique({
+        where: { id },
+        select: { createdById: true, title: true },
+      });
+
+      if (!existingConversation) {
+        return NextResponse.json(
+          { error: { code: "NOT_FOUND", message: "Conversation not found" } },
+          { status: 404 }
+        );
+      }
+
+      if (existingConversation.createdById !== user.id) {
+        return NextResponse.json(
+          { error: { code: "FORBIDDEN", message: "Only the creator can edit the title" } },
+          { status: 403 }
+        );
+      }
+
+      oldTitle = existingConversation.title;
+    }
+
     // Build update data
     const updateData: Record<string, unknown> = {};
     if (title !== undefined) updateData.title = title;
@@ -111,7 +151,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     if (endedAt !== undefined) updateData.endedAt = new Date(endedAt);
     if (durationSeconds !== undefined) updateData.durationSeconds = durationSeconds;
 
-    const conversation = await prisma.conversation.update({
+    const updatedConversation = await prisma.conversation.update({
       where: { id },
       data: updateData,
       select: {
@@ -131,19 +171,24 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       await queueForProcessing(id);
     }
 
-    // Audit log
+    // Audit log with enhanced details for title changes
+    const auditDetails: Record<string, unknown> = { updatedFields: Object.keys(updateData) };
+    if (title !== undefined) {
+      auditDetails.titleChange = { oldValue: oldTitle, newValue: title };
+    }
+
     await createAuditLog({
       orgId: user.orgId,
       userId: user.id,
       action: "UPDATE",
       resource: "CONVERSATION",
       resourceId: id,
-      details: { updatedFields: Object.keys(updateData) },
+      details: auditDetails,
     });
 
     return NextResponse.json({
       success: true,
-      conversation,
+      conversation: updatedConversation,
     });
   } catch (error) {
     console.error("Error updating conversation:", error);
