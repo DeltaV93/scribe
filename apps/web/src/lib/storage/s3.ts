@@ -161,6 +161,9 @@ export async function getSignedRecordingUrl(
     Key: key,
   });
 
+  // Audit log for presigned URL generation
+  console.log(`[S3] Generating presigned URL for key=${key}, bucket=${bucket}, expiresIn=${safeExpiresIn}s`);
+
   return getSignedUrl(client, command, { expiresIn: safeExpiresIn });
 }
 
