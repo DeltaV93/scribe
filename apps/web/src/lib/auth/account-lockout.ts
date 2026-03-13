@@ -37,21 +37,19 @@ export interface LockoutStatus {
 export async function getLockoutStatus(userId: string): Promise<LockoutStatus> {
   const user = await prisma.user.findUnique({
     where: { id: userId },
-    select: { id: true },
+    select: {
+      id: true,
+      failedLoginAttempts: true,
+      lockedUntil: true,
+    },
   });
 
   if (!user) {
     throw new Error("User not found");
   }
 
-  // Access fields that may not exist in schema yet
-  const userWithLockout = user as {
-    failedLoginAttempts?: number;
-    lockedUntil?: Date | null;
-  };
-
-  const failedAttempts = userWithLockout.failedLoginAttempts ?? 0;
-  const lockedUntil = userWithLockout.lockedUntil ?? null;
+  const failedAttempts = user.failedLoginAttempts ?? 0;
+  const lockedUntil = user.lockedUntil ?? null;
 
   const now = new Date();
   const isLocked = lockedUntil !== null && lockedUntil > now;
@@ -89,6 +87,8 @@ export async function recordFailedLoginAttempt(userId: string): Promise<LockoutS
       id: true,
       email: true,
       name: true,
+      failedLoginAttempts: true,
+      lockedUntil: true,
     },
   });
 
@@ -96,23 +96,15 @@ export async function recordFailedLoginAttempt(userId: string): Promise<LockoutS
     throw new Error("User not found");
   }
 
-  const userWithLockout = user as {
-    id: string;
-    email: string;
-    name: string | null;
-    failedLoginAttempts?: number;
-    lockedUntil?: Date | null;
-  };
-
   // Check if currently locked and lock hasn't expired
   const now = new Date();
-  if (userWithLockout.lockedUntil && userWithLockout.lockedUntil > now) {
+  if (user.lockedUntil && user.lockedUntil > now) {
     return getLockoutStatus(userId);
   }
 
   // Increment failed attempts (or reset if lock expired)
-  const currentAttempts = userWithLockout.failedLoginAttempts ?? 0;
-  const newFailedAttempts = (userWithLockout.lockedUntil && userWithLockout.lockedUntil <= now)
+  const currentAttempts = user.failedLoginAttempts ?? 0;
+  const newFailedAttempts = (user.lockedUntil && user.lockedUntil <= now)
     ? 1
     : currentAttempts + 1;
 
@@ -131,7 +123,7 @@ export async function recordFailedLoginAttempt(userId: string): Promise<LockoutS
     data: {
       failedLoginAttempts: newFailedAttempts,
       lockedUntil,
-    } as Record<string, unknown>,
+    },
   });
 
   return getLockoutStatus(userId);
@@ -146,7 +138,7 @@ export async function clearFailedLoginAttempts(userId: string): Promise<void> {
     data: {
       failedLoginAttempts: 0,
       lockedUntil: null,
-    } as Record<string, unknown>,
+    },
   });
 }
 
@@ -171,7 +163,7 @@ export async function unlockAccount(
     data: {
       failedLoginAttempts: 0,
       lockedUntil: null,
-    } as Record<string, unknown>,
+    },
   });
 
   // Log the admin action
@@ -204,37 +196,26 @@ export async function getLockedAccounts(
 ): Promise<Array<{ id: string; email: string; name: string | null; lockedUntil: Date; failedAttempts: number }>> {
   const now = new Date();
 
-  // Since lockedUntil may not be in schema, get all users and filter
+  // Query users with lockout - filter directly in DB for efficiency
   const users = await prisma.user.findMany({
-    where: { orgId },
+    where: {
+      orgId,
+      lockedUntil: { gt: now },
+    },
     select: {
       id: true,
       email: true,
       name: true,
+      failedLoginAttempts: true,
+      lockedUntil: true,
     },
   });
 
-  const lockedUsers: Array<{ id: string; email: string; name: string | null; lockedUntil: Date; failedAttempts: number }> = [];
-
-  for (const user of users) {
-    const userWithLockout = user as {
-      id: string;
-      email: string;
-      name: string | null;
-      lockedUntil?: Date | null;
-      failedLoginAttempts?: number;
-    };
-
-    if (userWithLockout.lockedUntil && userWithLockout.lockedUntil > now) {
-      lockedUsers.push({
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        lockedUntil: userWithLockout.lockedUntil,
-        failedAttempts: userWithLockout.failedLoginAttempts ?? 0,
-      });
-    }
-  }
-
-  return lockedUsers;
+  return users.map((user) => ({
+    id: user.id,
+    email: user.email,
+    name: user.name,
+    lockedUntil: user.lockedUntil!,
+    failedAttempts: user.failedLoginAttempts ?? 0,
+  }));
 }
