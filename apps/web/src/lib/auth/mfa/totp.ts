@@ -27,24 +27,35 @@ const PERIOD = 30; // 30 seconds per step (standard)
 const ENCRYPTION_ALGORITHM = "aes-256-gcm";
 const IV_LENGTH = 12; // 96 bits for GCM
 
+// Cached derived key to avoid repeated key derivation
+let cachedKey: Buffer | null = null;
+
 /**
- * Get encryption key from environment
- * In production, this should be a securely stored secret
+ * Get encryption key from environment with proper key derivation (PX-952)
+ * Uses PBKDF2 with high iteration count for non-hex keys
  */
 function getEncryptionKey(): Buffer {
+  if (cachedKey) {
+    return cachedKey;
+  }
+
   const key = process.env.MFA_ENCRYPTION_KEY;
   if (!key) {
     throw new Error("MFA_ENCRYPTION_KEY environment variable is not set");
   }
 
   // Key should be 32 bytes (256 bits) for AES-256
-  // If provided as hex string, convert it
-  if (key.length === 64) {
-    return Buffer.from(key, "hex");
+  // If provided as 64-char hex string, use directly (already strong key)
+  if (key.length === 64 && /^[0-9a-fA-F]+$/.test(key)) {
+    cachedKey = Buffer.from(key, "hex");
+    return cachedKey;
   }
 
-  // If key is shorter, derive a 256-bit key using SHA-256
-  return crypto.createHash("sha256").update(key).digest();
+  // Otherwise derive using PBKDF2 with high iteration count
+  // Salt should be stable for decryption compatibility
+  const salt = process.env.MFA_KEY_SALT || "scrybe-mfa-key-derivation-v1";
+  cachedKey = crypto.pbkdf2Sync(key, salt, 100000, 32, "sha256");
+  return cachedKey;
 }
 
 /**
@@ -167,15 +178,17 @@ export async function generateCurrentTOTP(secret: string): Promise<string> {
 }
 
 export interface TOTPSetupData {
-  secret: string; // Raw secret (for immediate verification during setup)
-  encryptedSecret: string; // Encrypted secret for storage
+  // Note: plaintext secret removed for security (PX-951)
+  // The secret is contained in the QR code and manualEntryKey by necessity
+  encryptedSecret: string; // Encrypted secret for storage and verification
   qrCodeDataURL: string; // QR code image as data URL
-  manualEntryKey: string; // Formatted key for manual entry
+  manualEntryKey: string; // Formatted key for manual entry (this IS the secret, formatted)
 }
 
 /**
  * Initialize MFA setup for a user
  * Returns all data needed for the setup UI
+ * Note: plaintext secret is not returned directly for security (PX-951)
  */
 export async function initializeTOTPSetup(
   userEmail: string
@@ -186,7 +199,6 @@ export async function initializeTOTPSetup(
   const manualEntryKey = formatSecretForDisplay(secret);
 
   return {
-    secret,
     encryptedSecret,
     qrCodeDataURL,
     manualEntryKey,
@@ -194,18 +206,22 @@ export async function initializeTOTPSetup(
 }
 
 /**
- * Complete MFA setup - verify the code and return encrypted secret
- * Returns null if verification fails
+ * Complete MFA setup - verify the code against encrypted secret
+ * Returns the encrypted secret if verification succeeds, null otherwise
+ * Updated to take encryptedSecret instead of plaintext (PX-951)
  */
 export async function completeTOTPSetup(
-  secret: string,
+  encryptedSecret: string,
   verificationCode: string
 ): Promise<string | null> {
+  // Decrypt to verify, but don't expose the plaintext
+  const secret = decryptSecret(encryptedSecret);
   if (!(await verifyTOTP(secret, verificationCode))) {
     return null;
   }
 
-  return encryptSecret(secret);
+  // Return the same encrypted secret (already encrypted properly)
+  return encryptedSecret;
 }
 
 /**

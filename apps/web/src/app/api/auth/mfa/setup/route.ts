@@ -13,9 +13,9 @@ import { getCurrentUser } from "@/lib/auth";
 import { initializeMFASetup, enableMFA } from "@/lib/auth/mfa";
 import { z } from "zod";
 
-// Schema for completing MFA setup
+// Schema for completing MFA setup (uses encryptedSecret for security PX-951)
 const completeSetupSchema = z.object({
-  secret: z.string().min(16, "Invalid secret"),
+  encryptedSecret: z.string().min(32, "Invalid encrypted secret"),
   verificationCode: z.string().regex(/^\d{6}$/, "Code must be 6 digits"),
 });
 
@@ -42,13 +42,13 @@ export async function POST() {
       );
     }
 
-    // Return setup data (but not the raw secret to store client-side)
+    // Return setup data (encryptedSecret for verification, not plaintext)
     return NextResponse.json({
       success: true,
       data: {
         qrCodeDataURL: result.setupData!.qrCodeDataURL,
         manualEntryKey: result.setupData!.manualEntryKey,
-        secret: result.setupData!.secret, // Needed for verification step
+        encryptedSecret: result.setupData!.encryptedSecret, // For verification step
       },
     });
   } catch (error) {
@@ -84,9 +84,9 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    const { secret, verificationCode } = validation.data;
+    const { encryptedSecret, verificationCode } = validation.data;
 
-    const result = await enableMFA(user.id, secret, verificationCode);
+    const result = await enableMFA(user.id, encryptedSecret, verificationCode);
 
     if (!result.success) {
       return NextResponse.json(

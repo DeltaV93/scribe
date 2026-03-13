@@ -11,7 +11,6 @@ import { createAuditLog } from "@/lib/audit/service";
 import {
   initializeTOTPSetup,
   verifyEncryptedTOTP,
-  encryptSecret,
   type TOTPSetupData,
 } from "./totp";
 import {
@@ -156,10 +155,11 @@ export async function initializeMFASetup(
 /**
  * Enable MFA for a user after verifying the setup code
  * Returns backup codes (only shown once)
+ * Note: Takes encryptedSecret instead of plaintext for security (PX-951)
  */
 export async function enableMFA(
   userId: string,
-  secret: string,
+  encryptedSecret: string,
   verificationCode: string
 ): Promise<MFAEnableResult> {
   const user = await prisma.user.findUnique({
@@ -180,19 +180,15 @@ export async function enableMFA(
     return { success: false, error: "MFA is already enabled" };
   }
 
-  // Import totp functions for verification
-  const { verifyTOTP } = await import("./totp");
-
-  // Verify the code with the provided secret
-  if (!(await verifyTOTP(secret, verificationCode))) {
+  // Verify the code with the encrypted secret
+  if (!(await verifyEncryptedTOTP(encryptedSecret, verificationCode))) {
     return { success: false, error: "Invalid verification code" };
   }
 
   // Generate backup codes
   const backupCodesResult: BackupCodesResult = await generateBackupCodes();
-  const encryptedSecret = encryptSecret(secret);
 
-  // Update user with MFA settings
+  // Update user with MFA settings (secret is already encrypted)
   await prisma.user.update({
     where: { id: userId },
     data: {
