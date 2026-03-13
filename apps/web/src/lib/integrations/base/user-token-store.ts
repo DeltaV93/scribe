@@ -12,6 +12,7 @@ import { prisma } from "@/lib/db";
 import { IntegrationPlatform, UserIntegrationStatus } from "@prisma/client";
 import type { PlatformConfig, WorkflowPlatform } from "./types";
 import { isWorkflowPlatformEnabled } from "@/lib/features/flags";
+import { encryptForOrg, decryptForOrg } from "@/lib/encryption/field-encryption";
 
 // ============================================
 // Types
@@ -94,6 +95,7 @@ export function getUserCallbackUrl(platform: IntegrationPlatform): string {
  * Store or update a user's integration connection
  *
  * Creates IntegrationToken for secure token storage.
+ * Tokens are encrypted at rest using org-level encryption keys.
  */
 export async function storeUserIntegrationConnection(
   userId: string,
@@ -106,6 +108,12 @@ export async function storeUserIntegrationConnection(
   externalUserId?: string,
   externalUserName?: string
 ): Promise<void> {
+  // Encrypt tokens before storage
+  const encryptedAccessToken = await encryptForOrg(orgId, accessToken);
+  const encryptedRefreshToken = refreshToken
+    ? await encryptForOrg(orgId, refreshToken)
+    : null;
+
   // Check for existing connection
   const existing = await prisma.userIntegrationConnection.findUnique({
     where: { userId_platform: { userId, platform } },
@@ -119,8 +127,8 @@ export async function storeUserIntegrationConnection(
       await prisma.integrationToken.update({
         where: { id: existing.integrationToken.id },
         data: {
-          accessToken,
-          refreshToken: refreshToken ?? null,
+          accessToken: encryptedAccessToken,
+          refreshToken: encryptedRefreshToken,
           expiresAt: expiresAt ?? null,
           issuedAt: new Date(),
         },
@@ -130,8 +138,8 @@ export async function storeUserIntegrationConnection(
       await prisma.integrationToken.create({
         data: {
           type: "WORKFLOW",
-          accessToken,
-          refreshToken: refreshToken ?? null,
+          accessToken: encryptedAccessToken,
+          refreshToken: encryptedRefreshToken,
           expiresAt: expiresAt ?? null,
           userIntegrationConnectionId: existing.id,
         },
@@ -169,8 +177,8 @@ export async function storeUserIntegrationConnection(
     await prisma.integrationToken.create({
       data: {
         type: "WORKFLOW",
-        accessToken,
-        refreshToken: refreshToken ?? null,
+        accessToken: encryptedAccessToken,
+        refreshToken: encryptedRefreshToken,
         expiresAt: expiresAt ?? null,
         userIntegrationConnectionId: connection.id,
       },
@@ -214,6 +222,7 @@ export async function getUserIntegrationConnection(
  * Get access token for a user (with refresh if needed)
  *
  * Returns null if connection doesn't exist or token is expired.
+ * Decrypts the token from encrypted storage.
  */
 export async function getUserAccessToken(
   userId: string,
@@ -257,7 +266,9 @@ export async function getUserAccessToken(
     data: { lastUsedAt: new Date() },
   });
 
-  return token.accessToken;
+  // Decrypt the token before returning
+  const decryptedToken = await decryptForOrg(connection.orgId, token.accessToken);
+  return decryptedToken;
 }
 
 /**
