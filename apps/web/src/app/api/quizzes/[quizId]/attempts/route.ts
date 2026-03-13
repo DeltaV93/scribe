@@ -162,19 +162,26 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       { status: 201 }
     );
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Failed to start quiz attempt";
     console.error("Error starting quiz attempt:", error);
 
-    // Handle known errors
-    if (message.includes("already passed") || message.includes("Maximum attempts")) {
+    // Handle known user-facing errors
+    const errorMessage = error instanceof Error ? error.message : "";
+    if (errorMessage.includes("already passed")) {
       return NextResponse.json(
-        { error: { code: "FORBIDDEN", message } },
+        { error: { code: "FORBIDDEN", message: "You have already passed this quiz" } },
+        { status: 403 }
+      );
+    }
+    if (errorMessage.includes("Maximum attempts")) {
+      return NextResponse.json(
+        { error: { code: "FORBIDDEN", message: "Maximum quiz attempts reached" } },
         { status: 403 }
       );
     }
 
+    // Generic error for unknown cases
     return NextResponse.json(
-      { error: { code: "INTERNAL_ERROR", message } },
+      { error: { code: "INTERNAL_ERROR", message: "Failed to start quiz attempt" } },
       { status: 500 }
     );
   }

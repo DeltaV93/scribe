@@ -65,7 +65,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(preview);
   } catch (error) {
     console.error("Error generating preview:", error);
-    const message = error instanceof Error ? error.message : "Failed to generate preview";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json({ error: "Failed to generate preview" }, { status: 500 });
   }
 }

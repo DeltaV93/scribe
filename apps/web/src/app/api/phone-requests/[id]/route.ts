@@ -25,7 +25,7 @@ export async function DELETE(
   } catch (error) {
     console.error("Error canceling phone request:", error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Failed to cancel request" },
+      { error: "Failed to cancel request" },
       { status: 500 }
     );
   }

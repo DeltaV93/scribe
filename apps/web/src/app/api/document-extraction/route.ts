@@ -122,7 +122,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Document extraction error:', error)
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Internal server error' },
+      { error: 'Document extraction failed' },
       { status: 500 }
     )
   }
@@ -189,7 +189,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('List extractions error:', error)
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Internal server error' },
+      { error: 'Failed to list extractions' },
       { status: 500 }
     )
   }

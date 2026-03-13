@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("Error creating phone request:", error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Failed to create request" },
+      { error: "Failed to create request" },
       { status: 500 }
     );
   }

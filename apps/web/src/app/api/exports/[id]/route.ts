@@ -78,7 +78,6 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     return NextResponse.json({ error: "Unknown action" }, { status: 400 });
   } catch (error) {
     console.error("Error processing export action:", error);
-    const message = error instanceof Error ? error.message : "Failed to process action";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json({ error: "Failed to process action" }, { status: 500 });
   }
 }
