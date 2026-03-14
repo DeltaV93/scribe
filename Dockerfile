@@ -40,6 +40,11 @@ RUN mkdir -p /prisma-client && \
     cp -r /app/node_modules/.pnpm/@prisma+client*/node_modules/@prisma/client /prisma-client/ && \
     cp -r /app/node_modules/.pnpm/@prisma+client*/node_modules/.prisma /prisma-client/
 
+# Copy Prisma CLI to a predictable location for runtime migrations
+RUN mkdir -p /prisma-cli && \
+    cp -r /app/node_modules/.pnpm/prisma@*/node_modules/prisma /prisma-cli/ && \
+    cp -r /app/node_modules/.pnpm/@prisma+engines@*/node_modules/@prisma/engines /prisma-cli/
+
 # -----------------------------------------------------------------------------
 # Stage 2: Builder
 # -----------------------------------------------------------------------------
@@ -136,6 +141,10 @@ COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/static ./apps/web/
 # Copy Prisma client from predictable location (pnpm stores in .pnpm, we copied it out)
 COPY --from=deps /prisma-client/.prisma ./node_modules/.prisma
 COPY --from=deps /prisma-client/client ./node_modules/@prisma/client
+
+# Copy Prisma CLI for migrations (needed at runtime for migrate deploy)
+COPY --from=deps /prisma-cli/prisma ./node_modules/prisma
+COPY --from=deps /prisma-cli/engines ./node_modules/@prisma/engines
 
 # Copy startup script
 COPY --chown=nextjs:nodejs scripts/start.sh ./start.sh
