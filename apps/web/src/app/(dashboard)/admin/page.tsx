@@ -13,8 +13,9 @@ import { NoteApprovalsTab } from "@/components/admin/note-approvals-tab";
 import { MLSettingsTab } from "@/components/admin/ml-settings-tab";
 import { WaitlistTab } from "@/components/admin/waitlist-tab";
 import { FeatureFlagsTab } from "@/components/admin/feature-flags-tab";
+import { IntegrationsTab } from "@/components/admin/integrations-tab";
 import { Button } from "@/components/ui/button";
-import { Loader2, Shield, FileText, Brain, UserPlus, ToggleRight } from "lucide-react";
+import { Loader2, Shield, FileText, Brain, UserPlus, ToggleRight, Plug } from "lucide-react";
 import Link from "next/link";
 
 interface PhoneStats {
@@ -209,6 +210,10 @@ export default function AdminPage() {
             <Brain className="h-3.5 w-3.5" />
             ML Settings
           </TabsTrigger>
+          <TabsTrigger value="integrations" className="flex items-center gap-1">
+            <Plug className="h-3.5 w-3.5" />
+            Integrations
+          </TabsTrigger>
           {canAccessWaitlist && (
             <TabsTrigger value="waitlist" className="relative flex items-center gap-1">
               <UserPlus className="h-3.5 w-3.5" />
@@ -259,6 +264,10 @@ export default function AdminPage() {
 
         <TabsContent value="ml-settings">
           <MLSettingsTab onDataChange={refreshData} />
+        </TabsContent>
+
+        <TabsContent value="integrations">
+          <IntegrationsTab />
         </TabsContent>
 
         {canAccessWaitlist && (
