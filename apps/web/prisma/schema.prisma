@@ -513,13 +513,16 @@ model Organization {
   settingsDelegations SettingsDelegation[]
 
   // Calendar Integration (PX-822)
-  calendarIntegrations      CalendarIntegration[]
-  calendarEvents            CalendarEvent[]
-  pendingSchedulingItems    PendingSchedulingItem[]
+  calendarIntegrations   CalendarIntegration[]
+  calendarEvents         CalendarEvent[]
+  pendingSchedulingItems PendingSchedulingItem[]
 
   // Conversation Capture System (PX-865)
   conversations          Conversation[]
   integrationConnections IntegrationConnection[]
+
+  // Per-User Workflow Integrations (PX-882)
+  userIntegrationConnections UserIntegrationConnection[]
 
   @@index([slug])
   @@index([stripeCustomerId])
@@ -720,11 +723,11 @@ model User {
   caseManagerProfile CaseManagerProfile?
 
   // RBAC Relations
-  programMemberships       ProgramMember[]        @relation("ProgramMembership")
-  assignedProgramMembers   ProgramMember[]        @relation("ProgramMemberAssigner")
-  delegatedSettings        SettingsDelegation[]   @relation("DelegatedSettings")
-  settingsDelegatedByMe    SettingsDelegation[]   @relation("SettingsDelegator")
-  permissionDenials        PermissionDenialLog[]  @relation("PermissionDenials")
+  programMemberships     ProgramMember[]       @relation("ProgramMembership")
+  assignedProgramMembers ProgramMember[]       @relation("ProgramMemberAssigner")
+  delegatedSettings      SettingsDelegation[]  @relation("DelegatedSettings")
+  settingsDelegatedByMe  SettingsDelegation[]  @relation("SettingsDelegator")
+  permissionDenials      PermissionDenialLog[] @relation("PermissionDenials")
 
   // Calendar Integration (PX-822)
   calendarIntegration    CalendarIntegration?
@@ -732,13 +735,16 @@ model User {
   pendingSchedulingItems PendingSchedulingItem[]
 
   // Conversation Capture System (PX-865)
-  createdConversations         Conversation[]              @relation("ConversationCreator")
-  conversationAccess           ConversationAccess[]        @relation("ConversationAccessUser")
-  grantedConversationAccess    ConversationAccess[]        @relation("ConversationAccessGranter")
-  reviewedFlaggedSegments      FlaggedSegment[]            @relation("FlaggedSegmentReviewer")
-  reviewedDraftedOutputs       DraftedOutput[]             @relation("DraftedOutputReviewer")
-  confirmedObjectiveLinks      ConversationObjectiveLink[] @relation("ObjectiveLinkConfirmer")
-  connectedIntegrations        IntegrationConnection[]     @relation("IntegrationConnector")
+  createdConversations      Conversation[]              @relation("ConversationCreator")
+  conversationAccess        ConversationAccess[]        @relation("ConversationAccessUser")
+  grantedConversationAccess ConversationAccess[]        @relation("ConversationAccessGranter")
+  reviewedFlaggedSegments   FlaggedSegment[]            @relation("FlaggedSegmentReviewer")
+  reviewedDraftedOutputs    DraftedOutput[]             @relation("DraftedOutputReviewer")
+  confirmedObjectiveLinks   ConversationObjectiveLink[] @relation("ObjectiveLinkConfirmer")
+  connectedIntegrations     IntegrationConnection[]     @relation("IntegrationConnector")
+
+  // Per-User Workflow Integrations (PX-882)
+  userIntegrationConnections UserIntegrationConnection[]
 
   @@index([orgId])
   @@index([email])
@@ -1106,16 +1112,17 @@ model FileUpload {
 // ============================================
 
 model AuditLog {
-  id           String  @id @default(uuid())
-  orgId        String
-  userId       String?
-  action       String // CREATE, UPDATE, DELETE, VIEW, EXPORT, PUBLISH, etc.
-  resource     String // FORM, SUBMISSION, CLIENT, USER, FILE, etc.
-  resourceId   String
-  resourceName String?
-  details      Json    @default("{}")
-  ipAddress    String?
-  userAgent    String?
+  id            String  @id @default(uuid())
+  orgId         String
+  userId        String?
+  action        String // CREATE, UPDATE, DELETE, VIEW, EXPORT, PUBLISH, etc.
+  resource      String // FORM, SUBMISSION, CLIENT, USER, FILE, etc.
+  resourceId    String
+  resourceName  String?
+  details       Json    @default("{}")
+  ipAddress     String?
+  userAgent     String?
+  correlationId String? // PX-970: Request correlation ID for traceability
 
   // Hash chain for immutability
   previousHash String
@@ -1130,6 +1137,7 @@ model AuditLog {
   @@index([resource, resourceId])
   @@index([userId])
   @@index([action])
+  @@index([correlationId])
 }
 
 model ComplianceReport {
@@ -1352,7 +1360,7 @@ model Call {
   manualCorrections Json? // Array of FieldCorrection
 
   // ML Service Integration
-  mlMatchedForms      Json?     // Array of FormMatch with confidence scores
+  mlMatchedForms      Json? // Array of FormMatch with confidence scores
   mlMatchingTimestamp DateTime? // When form matching was run
   mlServiceUsed       Boolean   @default(false) // Whether ML service was available
 
@@ -1635,31 +1643,31 @@ model UserInvitation {
 // ============================================
 
 model Waitlist {
-  id             String         @id @default(uuid())
-  email          String         @unique
-  firstName      String
-  lastName       String
-  organization   String
-  role           String
-  teamSize       String
-  industry       String
-  status         WaitlistStatus @default(PENDING)
+  id           String         @id @default(uuid())
+  email        String         @unique
+  firstName    String
+  lastName     String
+  organization String
+  role         String
+  teamSize     String
+  industry     String
+  status       WaitlistStatus @default(PENDING)
 
   // Approval token for account creation
-  approvalToken  String?        @unique
+  approvalToken  String?   @unique
   tokenExpiresAt DateTime?
 
   // Timestamps
-  submittedAt    DateTime       @default(now())
-  approvedAt     DateTime?
-  completedAt    DateTime?      // When user created account
+  submittedAt DateTime  @default(now())
+  approvedAt  DateTime?
+  completedAt DateTime? // When user created account
 
   // Who approved (nullable - admin user)
-  approvedById   String?
-  approvedBy     User?          @relation("WaitlistApprover", fields: [approvedById], references: [id])
+  approvedById String?
+  approvedBy   User?   @relation("WaitlistApprover", fields: [approvedById], references: [id])
 
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([status])
   @@index([submittedAt])
@@ -3081,8 +3089,8 @@ enum CalendarIntegrationStatus {
 }
 
 model CalendarIntegration {
-  id       String                    @id @default(uuid())
-  userId   String                    @unique // One calendar per user
+  id       String           @id @default(uuid())
+  userId   String           @unique // One calendar per user
   orgId    String
   provider CalendarProvider
 
@@ -3120,7 +3128,7 @@ enum CalendarEventStatus {
 }
 
 model CalendarEvent {
-  id     String               @id @default(uuid())
+  id     String @id @default(uuid())
   userId String
   orgId  String
 
@@ -3138,11 +3146,11 @@ model CalendarEvent {
   rrule       String? // iCal RRULE format
 
   // Linked entities
-  callId                 String? // Call that generated this event
-  clientId               String? // Client this event is about
-  calendarIntegrationId  String?
+  callId                  String? // Call that generated this event
+  clientId                String? // Client this event is about
+  calendarIntegrationId   String?
   pendingSchedulingItemId String? @unique
-  actionItemId           String?
+  actionItemId            String?
 
   // Invite tracking
   clientInvited Boolean @default(false)
@@ -3155,11 +3163,11 @@ model CalendarEvent {
   updatedAt DateTime @updatedAt
 
   // Relations
-  user                 User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  organization         Organization           @relation(fields: [orgId], references: [id], onDelete: Cascade)
-  calendarIntegration  CalendarIntegration?   @relation(fields: [calendarIntegrationId], references: [id])
-  call                 Call?                  @relation(fields: [callId], references: [id])
-  client               Client?                @relation(fields: [clientId], references: [id])
+  user                  User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization          Organization           @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  calendarIntegration   CalendarIntegration?   @relation(fields: [calendarIntegrationId], references: [id])
+  call                  Call?                  @relation(fields: [callId], references: [id])
+  client                Client?                @relation(fields: [clientId], references: [id])
   pendingSchedulingItem PendingSchedulingItem? @relation(fields: [pendingSchedulingItemId], references: [id])
 
   @@index([userId])
@@ -3212,10 +3220,10 @@ model PendingSchedulingItem {
   updatedAt DateTime @updatedAt
 
   // Relations
-  call          Call          @relation(fields: [callId], references: [id], onDelete: Cascade)
-  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  organization  Organization  @relation(fields: [orgId], references: [id], onDelete: Cascade)
-  client        Client?       @relation(fields: [clientId], references: [id])
+  call          Call           @relation(fields: [callId], references: [id], onDelete: Cascade)
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization  Organization   @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  client        Client?        @relation(fields: [clientId], references: [id])
   calendarEvent CalendarEvent?
 
   @@index([userId, status])
@@ -3236,6 +3244,8 @@ enum IntegrationTokenType {
   GOOGLE_CALENDAR
   OUTLOOK_CALENDAR
   APPLE_CALENDAR
+  // Workflow platforms (PX-882)
+  WORKFLOW
 }
 
 model IntegrationToken {
@@ -3243,7 +3253,7 @@ model IntegrationToken {
   type IntegrationTokenType
 
   // Encrypted OAuth credentials
-  accessToken  String  // Encrypted at rest via AES-256-GCM
+  accessToken  String // Encrypted at rest via AES-256-GCM
   refreshToken String? // Encrypted at rest, may be null for some providers
 
   // Token lifecycle
@@ -3255,6 +3265,10 @@ model IntegrationToken {
   meetingIntegration    MeetingIntegration?  @relation(fields: [meetingIntegrationId], references: [id], onDelete: Cascade)
   calendarIntegrationId String?              @unique
   calendarIntegration   CalendarIntegration? @relation(fields: [calendarIntegrationId], references: [id], onDelete: Cascade)
+
+  // Per-User Workflow Integration (PX-882)
+  userIntegrationConnectionId String?                    @unique
+  userIntegrationConnection   UserIntegrationConnection? @relation(fields: [userIntegrationConnectionId], references: [id], onDelete: Cascade)
 
   // Audit
   createdAt DateTime @default(now())
@@ -4589,30 +4603,30 @@ model StateConsentRule {
 // PX-735: Interaction metadata for unrecorded calls
 // Logs call metadata (date, time, duration, participants) without content
 model InteractionMetadata {
-  id              String           @id @default(cuid())
-  clientId        String
-  caseManagerId   String
-  orgId           String
+  id            String @id @default(cuid())
+  clientId      String
+  caseManagerId String
+  orgId         String
 
-  interactionType InteractionType  @default(VOIP_CALL)
-  direction       CallDirection    @default(OUTBOUND)
+  interactionType InteractionType @default(VOIP_CALL)
+  direction       CallDirection   @default(OUTBOUND)
 
   startedAt       DateTime
   endedAt         DateTime?
   durationSeconds Int?
 
   // Why was it unrecorded?
-  reason          UnrecordedReason
+  reason UnrecordedReason
 
   // Optional reference to call if it started as a Call record
-  callId          String?
+  callId String?
 
-  createdAt       DateTime         @default(now())
+  createdAt DateTime @default(now())
 
   // Relations
-  client          Client           @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  caseManager     User             @relation("InteractionCaseManager", fields: [caseManagerId], references: [id])
-  organization    Organization     @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  client       Client       @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  caseManager  User         @relation("InteractionCaseManager", fields: [caseManagerId], references: [id])
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
 
   @@index([clientId])
   @@index([caseManagerId])
@@ -4803,6 +4817,54 @@ enum IntegrationPlatform {
   OUTLOOK_CALENDAR
 }
 
+// Per-User Workflow Integration Status (PX-882)
+enum UserIntegrationStatus {
+  PENDING // OAuth flow initiated
+  ACTIVE // Successfully connected
+  ERROR // Token refresh failed
+  DISCONNECTED // User disconnected
+}
+
+// ============================================
+// PER-USER WORKFLOW INTEGRATIONS (PX-882)
+// ============================================
+// Stores per-user OAuth connections for workflow platforms.
+// Unlike IntegrationConnection (org-level), this allows each user
+// to connect their own Linear/Notion/Jira account.
+
+model UserIntegrationConnection {
+  id       String              @id @default(uuid())
+  userId   String
+  orgId    String
+  platform IntegrationPlatform
+
+  // Platform-specific config (workspace ID, default project, team, etc.)
+  config Json?
+
+  // Status
+  status     UserIntegrationStatus @default(PENDING)
+  lastUsedAt DateTime?
+  lastError  String?
+
+  // External identity (for attribution in destination platform)
+  externalUserId   String? // User ID in Linear/Notion/Jira
+  externalUserName String? // Display name in external system
+
+  // Audit
+  connectedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Relations
+  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization     Organization      @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  integrationToken IntegrationToken?
+
+  @@unique([userId, platform]) // One connection per user per platform
+  @@index([orgId, platform])
+  @@index([userId])
+}
+
 enum DraftStatus {
   PENDING // Awaiting review
   APPROVED // User approved
@@ -4833,7 +4895,7 @@ model Conversation {
   // Recording storage
   recordingUrl       String? // S3 URL: recordings/{orgId}/{conversationId}.webm
   recordingRetention DateTime? // When to delete based on org policy
-  isRecorded         Boolean  @default(true)
+  isRecorded         Boolean   @default(true)
 
   // Consent tracking (compatible with PX-735)
   consentStatus    String? // JSON: consent status per participant
@@ -4856,9 +4918,9 @@ model Conversation {
   aiProcessingRetries Int              @default(0)
 
   // Sensitivity classification
-  sensitivityTier    SensitivityTier @default(STANDARD)
-  flaggedSegments    FlaggedSegment[]
-  redactedSegments   Json? // Segments permanently removed
+  sensitivityTier  SensitivityTier  @default(STANDARD)
+  flaggedSegments  FlaggedSegment[]
+  redactedSegments Json? // Segments permanently removed
 
   // Creator
   createdById String
@@ -4903,7 +4965,7 @@ model PhoneCallDetails {
   conversationId String @unique
 
   // Twilio integration
-  twilioCallSid String? @unique
+  twilioCallSid String?       @unique
   direction     CallDirection @default(OUTBOUND)
 
   // Primary participants
@@ -4970,7 +5032,7 @@ model VideoMeetingDetails {
 
 // Flagged content segments for sensitivity review
 model FlaggedSegment {
-  id             String   @id @default(uuid())
+  id             String @id @default(uuid())
   conversationId String
 
   // Time markers in transcript
@@ -5107,10 +5169,10 @@ model ConversationObjectiveLink {
 
 // Link conversations to clients (many-to-many)
 model ConversationClient {
-  id             String @id @default(uuid())
+  id             String   @id @default(uuid())
   conversationId String
   clientId       String
-  isPrimary      Boolean @default(false) // Primary client for this conversation
+  isPrimary      Boolean  @default(false) // Primary client for this conversation
   addedAt        DateTime @default(now())
 
   // Relations
@@ -5129,15 +5191,15 @@ model IntegrationConnection {
   name     String // Display name (e.g., "Production Linear", "Notion Workspace")
 
   // OAuth tokens (encrypted)
-  accessToken  String @db.Text
-  refreshToken String? @db.Text
+  accessToken  String    @db.Text
+  refreshToken String?   @db.Text
   expiresAt    DateTime?
 
   // Platform-specific config
   config Json? // Workspace ID, default project, etc.
 
   // Status
-  isActive  Boolean  @default(true)
+  isActive   Boolean   @default(true)
   lastUsedAt DateTime?
   lastError  String?
 
