@@ -1,8 +1,8 @@
 /**
- * Workflow Integrations - Reusable OAuth Handlers (PX-882)
+ * Workflow Integrations - Reusable OAuth Handlers (PX-882 + PX-1001)
  *
  * Factory functions that create OAuth route handlers with built-in:
- * - Rate limiting
+ * - Rate limiting (PX-1001)
  * - RBAC permission checks
  * - Audit logging
  * - State validation
@@ -17,6 +17,10 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { createAuditLog } from "@/lib/audit/service";
+import {
+  checkRateLimit,
+  RATE_LIMIT_CONFIGS,
+} from "@/lib/rate-limit";
 import {
   requireIntegrationAuth,
   requireIntegrationPermission,
@@ -59,13 +63,29 @@ export function createOAuthAuthorizeHandler(platform: WorkflowPlatform) {
       }
       const { user } = authResult;
 
-      // 2. Check RBAC permission
+      // 2. Rate limiting (PX-1001) - 10 OAuth attempts per 15 minutes
+      const clientIp = getClientIp(request);
+      const rateLimitResult = await checkRateLimit(
+        "authentication",
+        RATE_LIMIT_CONFIGS.authentication,
+        { userId: user.id, ip: clientIp || undefined }
+      );
+
+      if (!rateLimitResult.allowed) {
+        return integrationErrorResponse(
+          "RATE_LIMITED",
+          `Too many connection attempts. Please try again in ${Math.ceil(rateLimitResult.retryAfter / 60)} minutes.`,
+          429
+        );
+      }
+
+      // 3. Check RBAC permission
       const permCheck = await requireIntegrationPermission(user);
       if (!permCheck.allowed) {
         return permCheck.response;
       }
 
-      // 3. Get platform service and check configuration
+      // 5. Get platform service and check configuration
       const service = getWorkflowService(platform);
       if (!service.isConfigured()) {
         return integrationErrorResponse(
@@ -75,13 +95,13 @@ export function createOAuthAuthorizeHandler(platform: WorkflowPlatform) {
         );
       }
 
-      // 4. Get and validate redirect URL
+      // 6. Get and validate redirect URL
       const redirectUrl =
         request.nextUrl.searchParams.get("redirectUrl") ||
         "/settings/integrations";
       const validatedRedirect = validateRedirectUrl(redirectUrl);
 
-      // 5. Generate state
+      // 7. Generate state
       const state = generateOAuthState(
         platform,
         user.orgId,
@@ -89,11 +109,11 @@ export function createOAuthAuthorizeHandler(platform: WorkflowPlatform) {
         validatedRedirect
       );
 
-      // 6. Build authorization URL
+      // 8. Build authorization URL
       const callbackUrl = getCallbackUrl(platform);
       const authorizationUrl = service.getAuthorizationUrl(state, callbackUrl);
 
-      // 7. Log OAuth initiation
+      // 9. Log OAuth initiation
       console.log(
         `[${platform} OAuth] Initiated: org=${user.orgId} user=${user.id}`
       );

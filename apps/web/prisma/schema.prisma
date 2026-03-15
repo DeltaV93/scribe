@@ -3270,6 +3270,10 @@ model IntegrationToken {
   userIntegrationConnectionId String?                    @unique
   userIntegrationConnection   UserIntegrationConnection? @relation(fields: [userIntegrationConnectionId], references: [id], onDelete: Cascade)
 
+  // Org-level Workflow Integration (PX-1001)
+  integrationConnectionId String?                @unique
+  integrationConnection   IntegrationConnection? @relation(fields: [integrationConnectionId], references: [id], onDelete: Cascade)
+
   // Audit
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -5183,15 +5187,16 @@ model ConversationClient {
   @@index([clientId])
 }
 
-// Integration connection for workflow outputs
+// Integration connection for workflow outputs (PX-882 + PX-1001)
 model IntegrationConnection {
   id       String              @id @default(uuid())
   orgId    String
   platform IntegrationPlatform
   name     String // Display name (e.g., "Production Linear", "Notion Workspace")
 
-  // OAuth tokens (encrypted)
-  accessToken  String    @db.Text
+  // Legacy OAuth tokens - deprecated, use IntegrationToken instead (PX-1001)
+  // Nullable to support migration to encrypted storage
+  accessToken  String?   @db.Text
   refreshToken String?   @db.Text
   expiresAt    DateTime?
 
@@ -5209,10 +5214,79 @@ model IntegrationConnection {
   updatedAt     DateTime @updatedAt
 
   // Relations
-  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
-  connectedBy  User         @relation("IntegrationConnector", fields: [connectedById], references: [id])
+  organization     Organization          @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  connectedBy      User                  @relation("IntegrationConnector", fields: [connectedById], references: [id])
+  integrationToken IntegrationToken?     // Encrypted token storage (PX-1001)
+  resources        IntegrationResource[] // Discovered resources (PX-1002)
 
   @@unique([orgId, platform, name])
   @@index([orgId, platform])
   @@index([isActive])
+}
+
+// ============================================
+// INTEGRATION HUB (PX-1001 + PX-1002)
+// ============================================
+
+enum IntegrationCategory {
+  COMMUNICATION // Slack, Gmail, Teams
+  DOCUMENTATION // Notion, Google Docs, Confluence
+  PROJECT_MGMT // Linear, Jira, Asana
+  CRM // Salesforce, HubSpot
+  HR_LEGAL // BambooHR, Clio
+  HEALTHCARE // Epic, Athenahealth
+  NONPROFIT // Apricot, HMIS
+  CALENDAR // Google, Outlook, Apple
+}
+
+enum ResourceType {
+  WORKSPACE
+  TEAM
+  PROJECT
+  DATABASE
+  CHANNEL
+  FOLDER
+}
+
+// OAuth provider configuration (replaces scattered env vars)
+model IntegrationProvider {
+  id       String              @id @default(uuid())
+  platform IntegrationPlatform @unique
+
+  // OAuth Configuration (encrypted)
+  clientId     String // Encrypted
+  clientSecret String // Encrypted
+  authorizeUrl String
+  tokenUrl     String
+  scopes       String[] // Default scopes
+  redirectUri  String // Computed from platform
+
+  // Platform metadata
+  displayName String
+  iconUrl     String?
+  category    IntegrationCategory
+
+  // Feature control
+  isEnabled    Boolean @default(false) // Global on/off
+  isConfigured Boolean @default(false) // OAuth creds present
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Store discovered resources after OAuth for destination selection
+model IntegrationResource {
+  id           String       @id @default(uuid())
+  connectionId String
+  resourceType ResourceType
+  externalId   String // ID in external system
+  name         String
+  parentId     String? // e.g., team for project
+  metadata     Json?
+
+  connection IntegrationConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+
+  @@unique([connectionId, resourceType, externalId])
+  @@index([connectionId])
+  @@index([resourceType])
 }
