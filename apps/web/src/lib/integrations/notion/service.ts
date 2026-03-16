@@ -15,6 +15,7 @@ import type {
   MeetingNotesDraft,
   PlatformConfig,
 } from "../base/types";
+import type { PlatformResources } from "../base/adapter";
 import {
   notionTokenResponseSchema,
   type NotionTokenResponse,
@@ -496,6 +497,111 @@ export class NotionWorkflowService implements WorkflowService {
         errorCode: "EXCEPTION",
       };
     }
+  }
+
+  // ============================================
+  // Resource Discovery (PX-1002)
+  // ============================================
+
+  /**
+   * Discover databases and pages available in the Notion workspace
+   */
+  async discoverResources(accessToken: string): Promise<PlatformResources> {
+    // Get workspace info
+    const userInfo = await notionRequest<{
+      bot: {
+        owner: {
+          type: string;
+          workspace?: {
+            id: string;
+            name: string;
+          };
+        };
+      };
+    }>(accessToken, "/users/me", "GET");
+
+    const workspace = userInfo.bot?.owner?.workspace;
+
+    // Search for databases the integration has access to
+    const searchResult = await notionRequest<{
+      results: Array<{
+        object: "database" | "page";
+        id: string;
+        title?: Array<{ plain_text: string }>;
+        parent?: {
+          type: string;
+          page_id?: string;
+          database_id?: string;
+          workspace?: boolean;
+        };
+        url?: string;
+      }>;
+      has_more: boolean;
+      next_cursor: string | null;
+    }>(accessToken, "/search", "POST", {
+      filter: {
+        property: "object",
+        value: "database",
+      },
+      page_size: 100,
+    });
+
+    const databases = searchResult.results
+      .filter((item) => item.object === "database")
+      .map((db) => ({
+        id: db.id,
+        name: db.title?.[0]?.plain_text || "Untitled Database",
+        parentId: db.parent?.page_id || db.parent?.database_id,
+      }));
+
+    // Also search for top-level pages that can be parents
+    const pagesResult = await notionRequest<{
+      results: Array<{
+        object: "page";
+        id: string;
+        properties?: {
+          title?: {
+            title?: Array<{ plain_text: string }>;
+          };
+        };
+        parent?: {
+          type: string;
+          workspace?: boolean;
+        };
+        url?: string;
+      }>;
+    }>(accessToken, "/search", "POST", {
+      filter: {
+        property: "object",
+        value: "page",
+      },
+      page_size: 50,
+    });
+
+    // Filter to top-level pages (workspace parent)
+    const topLevelPages = pagesResult.results
+      .filter((page) => page.parent?.workspace)
+      .map((page) => ({
+        id: page.id,
+        name:
+          page.properties?.title?.title?.[0]?.plain_text || "Untitled Page",
+      }));
+
+    const resources: PlatformResources = {
+      workspaces: workspace
+        ? [
+            {
+              id: workspace.id,
+              name: workspace.name,
+            },
+          ]
+        : [],
+      databases,
+      // Use folders to represent top-level pages that can be parents
+      folders: topLevelPages,
+    };
+
+    return resources;
   }
 }
 

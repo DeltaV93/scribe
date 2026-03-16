@@ -16,6 +16,7 @@ import type {
   MeetingNotesDraft,
   PlatformConfig,
 } from "../base/types";
+import type { PlatformResources } from "../base/adapter";
 import {
   jiraTokenResponseSchema,
   jiraAccessibleResourcesSchema,
@@ -401,6 +402,59 @@ export class JiraWorkflowService implements WorkflowService {
     };
 
     return this.pushActionItem(accessToken, actionItem, config);
+  }
+
+  // ============================================
+  // Resource Discovery (PX-1002)
+  // ============================================
+
+  /**
+   * Discover Jira sites and projects available with the access token
+   */
+  async discoverResources(accessToken: string): Promise<PlatformResources> {
+    // Get accessible Jira cloud sites
+    const sites = await getAccessibleResources(accessToken);
+
+    const resources: PlatformResources = {
+      workspaces: sites.map((site) => ({
+        id: site.id,
+        name: site.name,
+        url: site.url,
+      })),
+      projects: [],
+    };
+
+    // For each site, get projects
+    for (const site of sites) {
+      try {
+        const projectsResult = await jiraRequest<{
+          values: Array<{
+            id: string;
+            key: string;
+            name: string;
+            projectTypeKey: string;
+          }>;
+          maxResults: number;
+          total: number;
+        }>(accessToken, site.id, "/project/search?maxResults=100");
+
+        const siteProjects = projectsResult.values.map((project) => ({
+          id: project.id,
+          name: project.name,
+          key: project.key,
+          teamId: site.id, // Use site as team equivalent
+        }));
+
+        resources.projects = [...(resources.projects || []), ...siteProjects];
+      } catch (error) {
+        console.warn(
+          `[Jira Discovery] Failed to get projects for site ${site.id}:`,
+          error
+        );
+      }
+    }
+
+    return resources;
   }
 }
 

@@ -5,7 +5,7 @@
  * Extends the existing WorkflowService pattern with discovery and lifecycle methods.
  */
 
-import { IntegrationPlatform, IntegrationCategory, ResourceType } from "@prisma/client";
+import { IntegrationPlatform, IntegrationCategory, ResourceType, Prisma } from "@prisma/client";
 import type {
   OutputType,
   OutputPayload,
@@ -221,14 +221,7 @@ export function resourceToDbFormat(
   connectionId: string,
   resourceType: ResourceType,
   resource: { id: string; name: string; parentId?: string; [key: string]: unknown }
-): {
-  connectionId: string;
-  resourceType: ResourceType;
-  externalId: string;
-  name: string;
-  parentId: string | null;
-  metadata: Record<string, unknown>;
-} {
+): Prisma.IntegrationResourceCreateManyInput {
   const { id, name, parentId, ...rest } = resource;
   return {
     connectionId,
@@ -236,6 +229,6 @@ export function resourceToDbFormat(
     externalId: id,
     name,
     parentId: parentId ?? null,
-    metadata: rest,
+    metadata: Object.keys(rest).length > 0 ? rest as Prisma.InputJsonValue : undefined,
   };
 }

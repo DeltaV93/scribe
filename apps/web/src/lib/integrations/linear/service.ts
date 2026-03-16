@@ -15,6 +15,7 @@ import type {
   MeetingNotesDraft,
   PlatformConfig,
 } from "../base/types";
+import type { PlatformResources } from "../base/adapter";
 import {
   linearTokenResponseSchema,
   type LinearTokenResponse,
@@ -304,6 +305,104 @@ export class LinearWorkflowService implements WorkflowService {
         errorCode: "EXCEPTION",
       };
     }
+  }
+
+  // ============================================
+  // Resource Discovery (PX-1002)
+  // ============================================
+
+  /**
+   * Discover teams and projects available in the Linear workspace
+   */
+  async discoverResources(accessToken: string): Promise<PlatformResources> {
+    const query = `
+      query DiscoverResources {
+        viewer {
+          organization {
+            id
+            name
+            urlKey
+          }
+        }
+        teams {
+          nodes {
+            id
+            name
+            key
+            projects {
+              nodes {
+                id
+                name
+                state
+              }
+            }
+          }
+        }
+      }
+    `;
+
+    const result = await linearQuery<{
+      data?: {
+        viewer: {
+          organization: {
+            id: string;
+            name: string;
+            urlKey: string;
+          };
+        };
+        teams: {
+          nodes: Array<{
+            id: string;
+            name: string;
+            key: string;
+            projects: {
+              nodes: Array<{
+                id: string;
+                name: string;
+                state: string;
+              }>;
+            };
+          }>;
+        };
+      };
+      errors?: Array<{ message: string }>;
+    }>(accessToken, query);
+
+    if (result.errors?.length) {
+      throw new Error(`Linear discovery failed: ${result.errors[0].message}`);
+    }
+
+    const org = result.data?.viewer.organization;
+    const teamsData = result.data?.teams.nodes || [];
+
+    const resources: PlatformResources = {
+      workspaces: org
+        ? [
+            {
+              id: org.id,
+              name: org.name,
+              url: `https://linear.app/${org.urlKey}`,
+            },
+          ]
+        : [],
+      teams: teamsData.map((team) => ({
+        id: team.id,
+        name: team.name,
+        workspaceId: org?.id,
+      })),
+      projects: teamsData.flatMap((team) =>
+        team.projects.nodes
+          .filter((p) => p.state !== "canceled") // Exclude canceled projects
+          .map((project) => ({
+            id: project.id,
+            name: project.name,
+            teamId: team.id,
+            key: team.key, // Include team key for reference
+          }))
+      ),
+    };
+
+    return resources;
   }
 }
 
