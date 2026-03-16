@@ -34,6 +34,8 @@ import {
   TIER_2_FIELDS,
   encryptTier2,
   isTier2Encrypted,
+  maskTier2Field,
+  getTier2FieldsForModel,
 } from "./two-tier";
 
 // ============================================
@@ -160,6 +162,13 @@ export function createEncryptionMiddleware(): Prisma.Middleware {
     // decryption with audit context using decryptTier2()
     if (result && tier1Config && ["findUnique", "findFirst", "findMany", "create", "update", "upsert"].includes(params.action)) {
       await decryptReadData(result, model, tier1Config);
+    }
+
+    // Mask Tier 2 fields in read results (PX-963)
+    // Tier 2 fields should never appear as encrypted blobs in API responses.
+    // They are masked by default - explicit decryption with audit required.
+    if (result && tier2Config && ["findUnique", "findFirst", "findMany", "create", "update", "upsert"].includes(params.action)) {
+      maskTier2ReadData(result, model);
     }
 
     return result;
@@ -331,6 +340,50 @@ async function decryptRecord(
     }
   } catch (error) {
     console.error(`[Encryption] Failed to get DEK for org ${orgId}:`, error);
+  }
+}
+
+// ============================================
+// TIER 2 MASKING (PX-963)
+// ============================================
+
+/**
+ * Mask Tier 2 fields in read data
+ * Prevents encrypted blobs from leaking to API responses
+ */
+function maskTier2ReadData(result: unknown, model: string): void {
+  if (!result) return;
+
+  // Handle arrays (findMany)
+  if (Array.isArray(result)) {
+    for (const item of result) {
+      maskTier2Record(item, model);
+    }
+    return;
+  }
+
+  // Handle single record
+  maskTier2Record(result, model);
+}
+
+/**
+ * Mask Tier 2 fields in a single record
+ */
+function maskTier2Record(record: unknown, model: string): void {
+  if (!record || typeof record !== "object") return;
+
+  const data = record as Record<string, unknown>;
+  const tier2Fields = getTier2FieldsForModel(model);
+
+  for (const field of tier2Fields) {
+    if (field in data) {
+      const value = data[field];
+      // Mask if the field is encrypted (Tier 2 format) or has any value
+      // The field will be explicitly decrypted via decryptTier2() when needed
+      if (value !== null && value !== undefined) {
+        data[field] = maskTier2Field(model, field, value);
+      }
+    }
   }
 }
 

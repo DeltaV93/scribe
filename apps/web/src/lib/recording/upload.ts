@@ -1,23 +1,17 @@
 /**
  * Recording Upload Service (PX-865)
  * Handles S3 presigned URL upload for recordings
+ *
+ * Security: Uses secure-s3 module for KMS encryption (PX-953, PX-981)
  */
 
-import { S3Client, PutObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-
-const s3Client = new S3Client({
-  region: process.env.AWS_REGION || "us-east-1",
-  credentials:
-    process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY
-      ? {
-          accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-          secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-        }
-      : undefined,
-});
-
-const BUCKET_NAME = process.env.AWS_S3_BUCKET || "inkra-recordings";
+import {
+  S3BucketType,
+  secureUpload,
+  getSecureUploadUrl,
+  getSecureDownloadUrl,
+  generateRecordingKey as generateSecureRecordingKey,
+} from "@/lib/storage/secure-s3";
 
 export interface PresignedUploadUrl {
   uploadUrl: string;
@@ -32,17 +26,19 @@ export interface PresignedDownloadUrl {
 
 /**
  * Generate S3 key for conversation recording
+ * Uses secure-s3 key format with date partitioning
  */
 export function generateRecordingKey(
   orgId: string,
   conversationId: string,
   extension: string = "webm"
 ): string {
-  return `recordings/${orgId}/${conversationId}.${extension}`;
+  return generateSecureRecordingKey(orgId, conversationId, extension);
 }
 
 /**
  * Get a presigned URL for uploading a recording directly to S3
+ * Uses KMS encryption via secure-s3 module (PX-953, PX-981)
  */
 export async function getPresignedUploadUrl(
   orgId: string,
@@ -53,15 +49,14 @@ export async function getPresignedUploadUrl(
   const extension = contentType.split("/")[1] || "webm";
   const key = generateRecordingKey(orgId, conversationId, extension);
 
-  const command = new PutObjectCommand({
-    Bucket: BUCKET_NAME,
-    Key: key,
-    ContentType: contentType,
-    // Note: Don't include ServerSideEncryption here for presigned URLs
-    // The bucket's default encryption (SSE-S3) handles this automatically
-  });
+  // Uses KMS encryption via secure-s3 module
+  const uploadUrl = await getSecureUploadUrl(
+    S3BucketType.RECORDINGS,
+    key,
+    contentType,
+    { expiresIn }
+  );
 
-  const uploadUrl = await getSignedUrl(s3Client, command, { expiresIn });
   const expiresAt = new Date(Date.now() + expiresIn * 1000);
 
   return {
@@ -78,12 +73,12 @@ export async function getPresignedDownloadUrl(
   key: string,
   expiresIn: number = 3600 // 1 hour default
 ): Promise<PresignedDownloadUrl> {
-  const command = new GetObjectCommand({
-    Bucket: BUCKET_NAME,
-    Key: key,
-  });
+  const downloadUrl = await getSecureDownloadUrl(
+    S3BucketType.RECORDINGS,
+    key,
+    { expiresIn }
+  );
 
-  const downloadUrl = await getSignedUrl(s3Client, command, { expiresIn });
   const expiresAt = new Date(Date.now() + expiresIn * 1000);
 
   return {
@@ -94,6 +89,7 @@ export async function getPresignedDownloadUrl(
 
 /**
  * Upload recording blob directly (server-side)
+ * Uses KMS encryption via secure-s3 module (PX-953, PX-981)
  */
 export async function uploadRecording(
   orgId: string,
@@ -106,15 +102,17 @@ export async function uploadRecording(
 
   const body = blob instanceof Blob ? Buffer.from(await blob.arrayBuffer()) : blob;
 
-  const command = new PutObjectCommand({
-    Bucket: BUCKET_NAME,
-    Key: key,
-    Body: body,
-    ContentType: contentType,
-    ServerSideEncryption: "AES256",
-  });
+  // Uses KMS encryption (ServerSideEncryption: "aws:kms")
+  const result = await secureUpload(
+    S3BucketType.RECORDINGS,
+    key,
+    body,
+    { contentType }
+  );
 
-  await s3Client.send(command);
+  if (!result.success) {
+    throw new Error(`Failed to upload recording: ${result.error}`);
+  }
 
   return key;
 }
