@@ -11,6 +11,7 @@ import { prisma } from "@/lib/db";
 import { IntegrationPlatform } from "@prisma/client";
 import { encryptForOrg, decryptForOrg } from "@/lib/encryption/field-encryption";
 import type { PlatformConfig, IntegrationConnectionData } from "./types";
+import { canRefresh, needsRefresh, refreshToken } from "./token-refresh";
 
 // ============================================
 // Platform Configuration
@@ -218,36 +219,69 @@ export async function getIntegrationConnection(
  *
  * Returns null if connection doesn't exist or refresh fails.
  * Tokens are decrypted before returning.
+ *
+ * PX-1001 Phase 2: Auto-refreshes tokens when expired or expiring soon.
  */
 export async function getAccessToken(
   orgId: string,
   platform: IntegrationPlatform
 ): Promise<string | null> {
-  const connection = await getIntegrationConnection(orgId, platform);
+  let connection = await getIntegrationConnection(orgId, platform);
 
   if (!connection) {
     return null;
   }
 
-  // Check if token is expired
-  if (connection.expiresAt && connection.expiresAt < new Date()) {
-    // Token expired - need to refresh
-    if (!connection.refreshToken) {
-      // No refresh token, connection is invalid
-      await markConnectionError(
-        connection.id,
-        "Token expired and no refresh token available"
-      );
-      return null;
-    }
+  // Check if token needs refresh (expired or expiring soon)
+  const tokenNeedsRefresh = needsRefresh(connection.expiresAt, platform);
+  const tokenExpired = connection.expiresAt && connection.expiresAt < new Date();
 
-    // TODO: Implement token refresh (PX-1001 Phase 2)
-    // For now, mark as error
-    await markConnectionError(
-      connection.id,
-      "Token expired - reconnection required"
-    );
-    return null;
+  if (tokenNeedsRefresh || tokenExpired) {
+    // Check if platform supports refresh
+    if (!canRefresh(platform)) {
+      if (tokenExpired) {
+        // Platform doesn't support refresh and token is expired
+        await markConnectionError(
+          connection.id,
+          "Token expired - reconnection required"
+        );
+        return null;
+      }
+      // Token expiring but platform doesn't refresh - still usable
+    } else if (!connection.refreshToken) {
+      // No refresh token available
+      if (tokenExpired) {
+        await markConnectionError(
+          connection.id,
+          "Token expired and no refresh token available"
+        );
+        return null;
+      }
+      // Token expiring but no refresh token - still usable for now
+    } else {
+      // Attempt refresh
+      console.log(
+        `[Token Store] Refreshing ${platform} token for org ${orgId} (${tokenExpired ? "expired" : "expiring soon"})`
+      );
+
+      const refreshResult = await refreshToken(connection.id);
+
+      if (refreshResult.success) {
+        // Re-fetch connection to get new token
+        connection = await getIntegrationConnection(orgId, platform);
+        if (!connection) {
+          return null;
+        }
+      } else if (tokenExpired) {
+        // Refresh failed and token is expired - can't use it
+        await markConnectionError(
+          connection.id,
+          `Token refresh failed: ${refreshResult.error}`
+        );
+        return null;
+      }
+      // If refresh failed but token not yet expired, still return the old token
+    }
   }
 
   // Update last used timestamp

@@ -9,7 +9,7 @@ import { Queue, QueueOptions } from 'bullmq'
 import { getRedisConnection } from './connection'
 
 // Job type definitions
-export type JobType = 'mass-note-batch' | 'form-conversion' | 'document-extraction' | 'report-generation' | 'funder-export' | 'scheduled-export-runner' | 'import' | 'meeting-processing' | 'invitation-reminder' | 'invitation-reminder-runner'
+export type JobType = 'mass-note-batch' | 'form-conversion' | 'document-extraction' | 'report-generation' | 'funder-export' | 'scheduled-export-runner' | 'import' | 'meeting-processing' | 'invitation-reminder' | 'invitation-reminder-runner' | 'token-refresh-runner'
 
 // Job data types
 export interface MassNoteBatchJobData {
@@ -102,7 +102,11 @@ export interface InvitationReminderRunnerData {
   type: 'invitation-reminder-runner'
 }
 
-export type JobData = MassNoteBatchJobData | FormConversionJobData | DocumentExtractionJobData | ReportGenerationJobData | FunderExportJobData | ScheduledExportRunnerData | ImportJobData | MeetingProcessingJobData | InvitationReminderJobData | InvitationReminderRunnerData
+export interface TokenRefreshRunnerData {
+  type: 'token-refresh-runner'
+}
+
+export type JobData = MassNoteBatchJobData | FormConversionJobData | DocumentExtractionJobData | ReportGenerationJobData | FunderExportJobData | ScheduledExportRunnerData | ImportJobData | MeetingProcessingJobData | InvitationReminderJobData | InvitationReminderRunnerData | TokenRefreshRunnerData
 
 // Queue instances (lazy loaded)
 let jobQueue: Queue | null = null
