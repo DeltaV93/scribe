@@ -9,12 +9,14 @@ import {
   Video,
   Clock,
   User,
+  Users,
   AlertTriangle,
   CheckCircle,
   Loader2,
   MoreHorizontal,
   Trash2,
   RefreshCw,
+  FileText,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -30,6 +32,15 @@ import { TranscriptViewer } from "@/components/conversation/transcript-viewer";
 import { SensitivityReview } from "@/components/conversation/sensitivity-review";
 import { OutputEditor } from "@/components/conversation/output-editor";
 import { EditableTitle } from "@/components/conversation/editable-title";
+import { SpeakerLabeler } from "@/components/conversation/speaker-labeler";
+import {
+  UnifiedReviewView,
+  useExtractionData,
+} from "@/components/conversation/unified-review-view";
+import {
+  ClientSuggestionPanel,
+  useClientSuggestions,
+} from "@/components/conversation/client-suggestion-panel";
 import { cn } from "@/lib/utils";
 import type {
   ConversationType,
@@ -49,6 +60,7 @@ interface Conversation {
   sensitivityTier: SensitivityTier;
   transcriptRaw: string | null;
   transcriptJson: unknown;
+  formIds: string[];
   createdBy: {
     id: string;
     name: string | null;
@@ -95,6 +107,94 @@ function formatDuration(seconds: number | null): string {
   const mins = Math.floor(seconds / 60);
   const secs = seconds % 60;
   return `${mins}:${secs.toString().padStart(2, "0")}`;
+}
+
+// Forms tab content with extraction and client suggestion
+function FormsTabContent({
+  conversationId,
+  hasTranscript,
+}: {
+  conversationId: string;
+  hasTranscript: boolean;
+}) {
+  const {
+    isLoading: isExtractionLoading,
+    extractionData,
+    forms,
+    runExtraction,
+  } = useExtractionData(conversationId);
+
+  const {
+    isLoading: isSuggestionsLoading,
+    suggestions,
+    extractedPII,
+    fetchSuggestions,
+  } = useClientSuggestions(conversationId);
+
+  const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
+
+  const handleFinalize = async (edits: Record<string, Record<string, unknown>>) => {
+    try {
+      const response = await fetch(`/api/conversations/${conversationId}/finalize`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          edits,
+          clientId: selectedClientId,
+        }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error?.message || "Failed to finalize");
+      }
+
+      alert(`Created ${data.submissions.length} form submission(s)`);
+    } catch (error) {
+      console.error("Finalize error:", error);
+      alert(error instanceof Error ? error.message : "Failed to finalize");
+    }
+  };
+
+  if (!hasTranscript) {
+    return (
+      <Card>
+        <CardContent className="py-8 text-center">
+          <p className="text-muted-foreground">
+            Transcript required for form extraction. Wait for processing to complete.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Unified Review View */}
+      <UnifiedReviewView
+        conversationId={conversationId}
+        extractionData={extractionData}
+        forms={forms}
+        isLoading={isExtractionLoading}
+        onExtract={runExtraction}
+        onFinalize={handleFinalize}
+      />
+
+      {/* Client Suggestion Panel */}
+      <ClientSuggestionPanel
+        conversationId={conversationId}
+        suggestions={suggestions}
+        extractedPII={extractedPII}
+        isLoading={isSuggestionsLoading}
+        onSuggest={fetchSuggestions}
+        onSelect={(clientId) => setSelectedClientId(clientId)}
+        onCreateNew={() => {
+          // Could open a modal to create new client
+          window.open("/clients/new", "_blank");
+        }}
+      />
+    </div>
+  );
 }
 
 export default function ConversationDetailPage({
@@ -355,6 +455,18 @@ export default function ConversationDetailPage({
                   </Badge>
                 )}
               </TabsTrigger>
+              {conversation.type === "IN_PERSON" && !!conversation.transcriptJson && (
+                <TabsTrigger value="speakers" className="gap-2">
+                  <Users className="h-4 w-4" />
+                  Speakers
+                </TabsTrigger>
+              )}
+              {conversation.formIds.length > 0 && (
+                <TabsTrigger value="forms" className="gap-2">
+                  <FileText className="h-4 w-4" />
+                  Forms
+                </TabsTrigger>
+              )}
             </TabsList>
 
             <TabsContent value="outputs" className="mt-4">
@@ -373,6 +485,21 @@ export default function ConversationDetailPage({
                 onReview={handleReviewSegment}
               />
             </TabsContent>
+
+            {conversation.type === "IN_PERSON" && (
+              <TabsContent value="speakers" className="mt-4">
+                <SpeakerLabeler conversationId={conversation.id} />
+              </TabsContent>
+            )}
+
+            {conversation.formIds.length > 0 && (
+              <TabsContent value="forms" className="mt-4">
+                <FormsTabContent
+                  conversationId={conversation.id}
+                  hasTranscript={!!conversation.transcriptRaw}
+                />
+              </TabsContent>
+            )}
           </Tabs>
         </div>
 

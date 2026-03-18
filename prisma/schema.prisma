@@ -1020,12 +1020,13 @@ model FormTemplate {
 // ============================================
 
 model FormSubmission {
-  id            String  @id @default(uuid())
-  orgId         String
-  formId        String
-  formVersionId String
-  clientId      String?
-  callId        String?
+  id             String  @id @default(uuid())
+  orgId          String
+  formId         String
+  formVersionId  String
+  clientId       String?
+  callId         String?
+  conversationId String?
 
   // Submission data (encrypted sensitive fields)
   data Json
@@ -1046,18 +1047,20 @@ model FormSubmission {
   updatedAt     DateTime  @updatedAt
 
   // Relations
-  form        Form          @relation(fields: [formId], references: [id], onDelete: Cascade)
-  formVersion FormVersion   @relation(fields: [formVersionId], references: [id])
-  signatures  Signature[]
-  client      Client?       @relation(fields: [clientId], references: [id])
-  call        Call?         @relation(fields: [callId], references: [id])
-  submitter   User?         @relation(fields: [submittedById], references: [id])
-  editLogs    FormEditLog[]
+  form         Form          @relation(fields: [formId], references: [id], onDelete: Cascade)
+  formVersion  FormVersion   @relation(fields: [formVersionId], references: [id])
+  signatures   Signature[]
+  client       Client?       @relation(fields: [clientId], references: [id])
+  call         Call?         @relation(fields: [callId], references: [id])
+  conversation Conversation? @relation(fields: [conversationId], references: [id])
+  submitter    User?         @relation(fields: [submittedById], references: [id])
+  editLogs     FormEditLog[]
 
   @@index([formId])
   @@index([formVersionId])
   @@index([clientId])
   @@index([callId])
+  @@index([conversationId])
 }
 
 model Signature {
@@ -5033,6 +5036,9 @@ model Conversation {
 
   // Participant links (for client tracking)
   clientLinks ConversationClient[]
+
+  // Form submissions created from this conversation
+  formSubmissions FormSubmission[]
 
   @@index([orgId, status])
   @@index([orgId, type])

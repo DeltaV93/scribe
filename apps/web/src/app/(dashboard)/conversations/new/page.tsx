@@ -2,15 +2,16 @@
 
 import { useState, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Mic, Video, Users, MapPin } from "lucide-react";
+import { ArrowLeft, Mic, Video, Users, MapPin, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { InPersonRecorder } from "@/components/recording/in-person-recorder";
 import { VideoMeetingCapture } from "@/components/recording/video-meeting-capture";
+import { FormSelector } from "@/components/recording/form-selector";
+import { InPersonSessionView } from "@/components/recording/in-person-session-view";
 
 interface ConversationSetup {
   conversationId?: string;
@@ -28,6 +29,7 @@ export default function NewConversationPage() {
   const [title, setTitle] = useState("");
   const [location, setLocation] = useState("");
   const [participants, setParticipants] = useState("");
+  const [selectedFormIds, setSelectedFormIds] = useState<string[]>([]);
   const [conversationSetup, setConversationSetup] = useState<ConversationSetup | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -55,6 +57,7 @@ export default function NewConversationPage() {
           participants: participants
             ? participants.split(",").map((p) => ({ name: p.trim() }))
             : [],
+          formIds: selectedFormIds.length > 0 ? selectedFormIds : undefined,
         }),
       });
 
@@ -141,7 +144,7 @@ export default function NewConversationPage() {
 
   if (step === "recording" && conversationSetup) {
     return (
-      <div className="container max-w-2xl py-6 space-y-6">
+      <div className="container max-w-5xl py-6 space-y-6">
         <div className="flex items-center gap-4">
           <Button
             variant="ghost"
@@ -177,10 +180,12 @@ export default function NewConversationPage() {
           </CardContent>
         </Card>
 
-        <InPersonRecorder
-          conversationId={conversationSetup.conversationId}
+        <InPersonSessionView
+          conversationId={conversationSetup.conversationId!}
           uploadUrl={conversationSetup.uploadUrl}
           maxDurationMinutes={conversationSetup.maxDurationMinutes}
+          title={title}
+          initialFormIds={selectedFormIds}
           onRecordingStart={handleRecordingStart}
           onRecordingStop={handleRecordingStop}
           onUploadComplete={handleUploadComplete}
@@ -285,6 +290,20 @@ export default function NewConversationPage() {
                 </div>
                 <p className="text-xs text-muted-foreground">
                   Separate names with commas
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2">
+                  <FileText className="h-4 w-4" />
+                  Forms (optional)
+                </Label>
+                <FormSelector
+                  selectedFormIds={selectedFormIds}
+                  onFormsChange={setSelectedFormIds}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Select forms to extract data into during this session
                 </p>
               </div>
 
