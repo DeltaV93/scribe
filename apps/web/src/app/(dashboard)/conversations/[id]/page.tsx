@@ -60,7 +60,7 @@ interface Conversation {
   sensitivityTier: SensitivityTier;
   transcriptRaw: string | null;
   transcriptJson: unknown;
-  formIds: string[];
+  formIds?: string[];
   createdBy: {
     id: string;
     name: string | null;
@@ -461,7 +461,7 @@ export default function ConversationDetailPage({
                   Speakers
                 </TabsTrigger>
               )}
-              {conversation.formIds.length > 0 && (
+              {(conversation.formIds?.length ?? 0) > 0 && (
                 <TabsTrigger value="forms" className="gap-2">
                   <FileText className="h-4 w-4" />
                   Forms
@@ -492,7 +492,7 @@ export default function ConversationDetailPage({
               </TabsContent>
             )}
 
-            {conversation.formIds.length > 0 && (
+            {(conversation.formIds?.length ?? 0) > 0 && (
               <TabsContent value="forms" className="mt-4">
                 <FormsTabContent
                   conversationId={conversation.id}

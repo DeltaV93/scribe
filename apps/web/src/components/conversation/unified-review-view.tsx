@@ -558,24 +558,54 @@ export function useExtractionData(conversationId: string) {
     setError(null);
 
     try {
-      const response = await fetch(
-        `/api/conversations/${conversationId}/extract`
-      );
-      const data = await response.json();
+      // Fetch both extraction data and guide (field details) in parallel
+      const [extractResponse, guideResponse] = await Promise.all([
+        fetch(`/api/conversations/${conversationId}/extract`),
+        fetch(`/api/conversations/${conversationId}/guide`),
+      ]);
 
-      if (!response.ok) {
-        throw new Error(data.error?.message || "Failed to fetch extraction data");
+      const [extractData, guideData] = await Promise.all([
+        extractResponse.json(),
+        guideResponse.json(),
+      ]);
+
+      if (!extractResponse.ok) {
+        throw new Error(extractData.error?.message || "Failed to fetch extraction data");
       }
 
-      setExtractionData(data.extractedFields || null);
-      setForms(
-        data.forms?.map((f: { formId: string; formName: string; formType: string; fieldCount: number }) => ({
-          formId: f.formId,
-          formName: f.formName,
-          formType: f.formType,
-          fields: [], // Fields will be populated from guide endpoint
-        })) || []
+      setExtractionData(extractData.extractedFields || null);
+
+      // Build forms with field details from guide
+      const formInfos: FormInfo[] = (extractData.forms || []).map(
+        (f: { formId: string; formName: string; formType: string; fieldCount: number }) => {
+          // Find matching form in guide data (guide uses 'id' not 'formId')
+          const guideForm = guideData.forms?.find((gf: { id: string }) => gf.id === f.formId);
+
+          // Flatten fields from sections
+          const allFields: FormFieldInfo[] = [];
+          if (guideForm?.sections) {
+            for (const section of guideForm.sections) {
+              for (const field of section.fields || []) {
+                allFields.push({
+                  id: field.id,
+                  slug: field.key, // guide uses 'key' for slug
+                  name: field.label, // guide uses 'label' for name
+                  type: field.type,
+                  isRequired: field.required, // guide uses 'required'
+                });
+              }
+            }
+          }
+
+          return {
+            formId: f.formId,
+            formName: f.formName,
+            formType: f.formType,
+            fields: allFields,
+          };
+        }
       );
+      setForms(formInfos);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unknown error");
     } finally {

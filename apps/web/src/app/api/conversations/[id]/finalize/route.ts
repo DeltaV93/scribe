@@ -132,11 +132,8 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         id: { in: formsToCreate },
         orgId: user.orgId,
       },
-      select: {
-        id: true,
-        name: true,
+      include: {
         versions: {
-          where: { isActive: true },
           orderBy: { version: "desc" },
           take: 1,
           select: { id: true },
@@ -247,7 +244,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       orgId: user.orgId,
       userId: user.id,
       action: "CREATE",
-      resource: "FORM_SUBMISSION",
+      resource: "SUBMISSION",
       resourceId: conversationId,
       details: {
         operation: "finalize_conversation",
