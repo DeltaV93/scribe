@@ -255,8 +255,15 @@ async function uploadConsentSignature(
       Key: key,
       Body: buffer,
       ContentType: "image/png",
-      ServerSideEncryption: "aws:kms",
-      SSEKMSKeyId: process.env.AWS_KMS_KEY_ARN,
+      // Use KMS if configured, otherwise fall back to S3 managed AES-256
+      ...(process.env.AWS_KMS_KEY_ARN
+        ? {
+            ServerSideEncryption: "aws:kms" as const,
+            SSEKMSKeyId: process.env.AWS_KMS_KEY_ARN,
+          }
+        : {
+            ServerSideEncryption: "AES256" as const,
+          }),
       Metadata: {
         "recording-id": recordingId,
         "org-id": orgId,
@@ -303,8 +310,15 @@ export async function uploadRecording(
         Key: key,
         Body: input.audioBuffer,
         ContentType: input.mimeType || "audio/webm",
-        ServerSideEncryption: "aws:kms",
-        SSEKMSKeyId: process.env.AWS_KMS_KEY_ARN,
+        // Use KMS if configured, otherwise fall back to S3 managed AES-256
+        ...(process.env.AWS_KMS_KEY_ARN
+          ? {
+              ServerSideEncryption: "aws:kms" as const,
+              SSEKMSKeyId: process.env.AWS_KMS_KEY_ARN,
+            }
+          : {
+              ServerSideEncryption: "AES256" as const,
+            }),
         Metadata: {
           "recording-id": recording.id,
           "org-id": recording.organizationId,

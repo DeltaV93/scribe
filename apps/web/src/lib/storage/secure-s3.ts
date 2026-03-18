@@ -179,18 +179,48 @@ function getBucket(bucketType: S3BucketType): string {
 }
 
 /**
- * Get KMS key ARN
+ * Get KMS key ARN (returns null if not configured)
  */
-function getKMSKeyArn(): string {
+function getKMSKeyArn(): string | null {
   if (!s3Config) {
     getSecureS3Client(); // Initialize config
   }
 
-  if (!s3Config?.kmsKeyArn) {
-    throw new Error("AWS_KMS_KEY_ARN not configured");
+  return s3Config?.kmsKeyArn || null;
+}
+
+// Track if we've logged the AES-256 fallback warning
+let hasLoggedAesFallback = false;
+
+/**
+ * Get encryption parameters for S3 uploads.
+ * Uses KMS if configured, otherwise falls back to AES-256 (S3 managed).
+ */
+export function getEncryptionParams(): {
+  ServerSideEncryption: "aws:kms" | "AES256";
+  SSEKMSKeyId?: string;
+} {
+  const kmsKeyArn = getKMSKeyArn();
+
+  if (kmsKeyArn) {
+    return {
+      ServerSideEncryption: "aws:kms",
+      SSEKMSKeyId: kmsKeyArn,
+    };
   }
 
-  return s3Config.kmsKeyArn;
+  // Log warning once per process
+  if (!hasLoggedAesFallback) {
+    console.warn(
+      "[Secure S3] AWS_KMS_KEY_ARN not configured, using AES-256 encryption. " +
+        "Set AWS_KMS_KEY_ARN for HIPAA-compliant customer-managed encryption."
+    );
+    hasLoggedAesFallback = true;
+  }
+
+  return {
+    ServerSideEncryption: "AES256",
+  };
 }
 
 // ============================================
@@ -214,18 +244,17 @@ export async function secureUpload(
 ): Promise<UploadResult> {
   const client = getSecureS3Client();
   const bucket = getBucket(bucketType);
-  const kmsKeyArn = getKMSKeyArn();
+  const encryptionParams = getEncryptionParams();
 
   const params: PutObjectCommandInput = {
     Bucket: bucket,
     Key: key,
     Body: body,
     ContentType: options.contentType,
-    // Enforce KMS encryption
-    ServerSideEncryption: "aws:kms",
-    SSEKMSKeyId: kmsKeyArn,
-    // Bucket key for cost optimization
-    BucketKeyEnabled: true,
+    // Use KMS if configured, otherwise AES-256
+    ...encryptionParams,
+    // Bucket key for cost optimization (only applies to KMS)
+    ...(encryptionParams.ServerSideEncryption === "aws:kms" && { BucketKeyEnabled: true }),
     // Optional metadata
     ...(options.metadata && { Metadata: options.metadata }),
     ...(options.cacheControl && { CacheControl: options.cacheControl }),
@@ -241,7 +270,8 @@ export async function secureUpload(
     const command = new PutObjectCommand(params);
     const response = await client.send(command);
 
-    console.log(`[SecureS3] Uploaded ${key} to ${bucket} (encrypted with KMS)`);
+    const encryptionType = encryptionParams.ServerSideEncryption === "aws:kms" ? "KMS" : "AES-256";
+    console.log(`[SecureS3] Uploaded ${key} to ${bucket} (encrypted with ${encryptionType})`);
 
     return {
       success: true,
@@ -275,7 +305,7 @@ export async function getSecureUploadUrl(
 ): Promise<string> {
   const client = getSecureS3Client();
   const bucket = getBucket(bucketType);
-  const kmsKeyArn = getKMSKeyArn();
+  const encryptionParams = getEncryptionParams();
 
   // Enforce expiry limits
   const maxExpiry = PRESIGNED_URL_EXPIRY[bucketType];
@@ -285,12 +315,13 @@ export async function getSecureUploadUrl(
     Math.min(maxExpiry, MAX_PRESIGNED_URL_EXPIRY)
   );
 
+  // Note: For presigned URLs with AES256, we don't include encryption headers
+  // as S3 will use its default bucket encryption. Only include for KMS.
   const command = new PutObjectCommand({
     Bucket: bucket,
     Key: key,
     ContentType: contentType,
-    ServerSideEncryption: "aws:kms",
-    SSEKMSKeyId: kmsKeyArn,
+    ...(encryptionParams.ServerSideEncryption === "aws:kms" && encryptionParams),
   });
 
   const url = await getSignedUrl(client, command, { expiresIn });
@@ -572,15 +603,14 @@ export async function copyObject(
 ): Promise<{ success: boolean; error?: string }> {
   const client = getSecureS3Client();
   const bucket = getBucket(bucketType);
-  const kmsKeyArn = getKMSKeyArn();
+  const encryptionParams = getEncryptionParams();
 
   try {
     const command = new CopyObjectCommand({
       Bucket: bucket,
       CopySource: `${bucket}/${sourceKey}`,
       Key: destKey,
-      ServerSideEncryption: "aws:kms",
-      SSEKMSKeyId: kmsKeyArn,
+      ...encryptionParams,
     });
 
     await client.send(command);
