@@ -556,6 +556,9 @@ model User {
   mfaLastUsed    DateTime?
   mfaEnabledAt   DateTime?
 
+  // UI Preferences
+  showQuickActionFab Boolean @default(true)
+
   isActive    Boolean   @default(true)
   lastLoginAt DateTime?
   createdAt   DateTime  @default(now())
