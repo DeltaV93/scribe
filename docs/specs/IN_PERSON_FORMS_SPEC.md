@@ -40,10 +40,10 @@ Case managers conducting in-person meetings (home visits, office intakes, assess
 **So that** I know what information to gather during the conversation
 
 **Acceptance Criteria:**
-- [ ] Multi-select dropdown shows published forms on new conversation page
-- [ ] Selected forms are stored in `Conversation.formIds`
-- [ ] Can proceed without selecting any forms
-- [ ] Form count badge shows number of selected forms
+- [x] Multi-select dropdown shows published forms on new conversation page
+- [x] Selected forms are stored in `Conversation.formIds`
+- [x] Can proceed without selecting any forms
+- [x] Form count badge shows number of selected forms
 
 ### US-2: Add Forms During Recording
 **As a** case manager
@@ -51,10 +51,10 @@ Case managers conducting in-person meetings (home visits, office intakes, assess
 **So that** I can capture relevant data when topics emerge naturally
 
 **Acceptance Criteria:**
-- [ ] Form selector accessible during active recording (not blocking recording UI)
-- [ ] Adding form doesn't interrupt or pause recording
-- [ ] Newly added forms appear in conversation guide immediately
-- [ ] Can remove forms before recording ends (but not after)
+- [x] Form selector accessible during active recording (not blocking recording UI)
+- [x] Adding form doesn't interrupt or pause recording
+- [x] Newly added forms appear in conversation guide immediately
+- [x] Can remove forms before recording ends (but not after)
 
 ### US-3: Optional Form Field Guide
 **As a** case manager
@@ -62,11 +62,11 @@ Case managers conducting in-person meetings (home visits, office intakes, assess
 **So that** I can track what information I've gathered
 
 **Acceptance Criteria:**
-- [ ] Toggle button to show/hide guide panel
-- [ ] Guide shows fields grouped by form with collapsible sections
-- [ ] Can check off fields as information is gathered
-- [ ] Progress indicator shows completed/total fields per form
-- [ ] State persists during pause/resume
+- [x] Toggle button to show/hide guide panel
+- [x] Guide shows fields grouped by form with collapsible sections
+- [x] Can check off fields as information is gathered
+- [x] Progress indicator shows completed/total fields per form
+- [x] State persists during pause/resume
 
 ### US-4: Client Suggestion from Transcript
 **As a** case manager
@@ -74,11 +74,11 @@ Case managers conducting in-person meetings (home visits, office intakes, assess
 **So that** I can link submissions without manual search
 
 **Acceptance Criteria:**
-- [ ] After transcription, AI extracts PII (name, DOB, phone, email)
-- [ ] System searches existing clients with configurable confidence threshold (default 70%)
-- [ ] Shows matched identifiers and confidence score for each suggestion
-- [ ] Can select suggested client or create new
-- [ ] PHI access is audit logged
+- [x] After transcription, AI extracts PII (name, DOB, phone, email)
+- [x] System searches existing clients with configurable confidence threshold (default 70%)
+- [x] Shows matched identifiers and confidence score for each suggestion
+- [x] Can select suggested client or create new
+- [x] PHI access is audit logged
 
 ### US-5: Unified Extraction Review
 **As a** case manager
@@ -86,12 +86,12 @@ Case managers conducting in-person meetings (home visits, office intakes, assess
 **So that** I can efficiently correct and approve before finalizing
 
 **Acceptance Criteria:**
-- [ ] Single review screen shows data grouped by form
-- [ ] Each field shows: extracted value, confidence score, source snippet
-- [ ] Fields below confidence threshold are highlighted for review
-- [ ] Inline editing for corrections
-- [ ] "Finalize" creates separate FormSubmissions per form
-- [ ] Can assign different clients to different forms if needed
+- [x] Single review screen shows data grouped by form
+- [x] Each field shows: extracted value, confidence score, source snippet
+- [x] Fields below confidence threshold are highlighted for review
+- [x] Inline editing for corrections
+- [x] "Finalize" creates separate FormSubmissions per form
+- [x] Can assign different clients to different forms if needed
 
 ### US-6: Speaker Labeling
 **As a** case manager
@@ -99,11 +99,11 @@ Case managers conducting in-person meetings (home visits, office intakes, assess
 **So that** extraction focuses on client statements
 
 **Acceptance Criteria:**
-- [ ] Deepgram diarization identifies speaker numbers in transcript
-- [ ] UI to label each detected speaker (staff/client/other)
-- [ ] Can optionally link speaker to existing client record
-- [ ] Labels stored and displayed in transcript viewer
-- [ ] Extraction prioritizes client-labeled speakers
+- [x] Deepgram diarization identifies speaker numbers in transcript
+- [x] UI to label each detected speaker (staff/client/other)
+- [ ] Can optionally link speaker to existing client record (deferred)
+- [x] Labels stored and displayed in transcript viewer
+- [x] Extraction prioritizes client-labeled speakers
 
 ---
 
@@ -923,3 +923,9 @@ All endpoints must verify:
 4. **Client matching is sensitive** - Searching by PII requires careful audit logging for HIPAA compliance.
 
 5. **Unified review simplifies UX** - Rather than N review flows for N forms, one unified view reduces cognitive load.
+
+6. **Schema sync matters** - The monorepo has schema files in both `prisma/schema.prisma` (root) and `apps/web/prisma/schema.prisma`. These must stay in sync or Prisma client generation will use stale types.
+
+7. **API response structure varies** - The guide API returns fields nested in `sections` with different keys (`key` vs `slug`, `label` vs `name`, `required` vs `isRequired`). Frontend hooks must map these correctly.
+
+8. **Defensive null checks for formIds** - Older conversations created before this feature won't have `formIds`. Always use `conversation.formIds?.length ?? 0` instead of `conversation.formIds.length`.
