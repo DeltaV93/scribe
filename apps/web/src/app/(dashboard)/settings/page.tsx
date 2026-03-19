@@ -15,6 +15,7 @@ import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CalendarIntegrationSection } from "./integrations/components";
 import { ThemeToggle } from "@/components/settings/theme-toggle";
+import { QuickActionToggle } from "@/components/settings/quick-action-toggle";
 import { TrustedDevicesList } from "@/components/settings/trusted-devices-list";
 import { UserWorkflowConnections } from "@/components/settings/user-workflow-connections";
 
@@ -37,6 +38,9 @@ export default async function SettingsPage() {
 
       {/* Appearance Settings */}
       <ThemeToggle />
+
+      {/* Quick Actions Settings */}
+      <QuickActionToggle initialValue={user.showQuickActionFab ?? true} />
 
       {/* Profile Settings */}
       <Card>

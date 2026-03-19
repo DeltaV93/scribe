@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
 import { Sidebar } from "@/components/layout/sidebar";
+import { QuickActionProvider } from "@/components/quick-actions";
 
 export default async function DashboardLayout({
   children,
@@ -26,6 +27,7 @@ export default async function DashboardLayout({
       <main className="flex-1 overflow-y-auto bg-muted/30">
         {children}
       </main>
+      <QuickActionProvider userRole={user.role} showFab={user.showQuickActionFab ?? true} />
     </div>
   );
 }

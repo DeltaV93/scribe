@@ -265,6 +265,7 @@ export interface SessionUser {
   orgName: string;
   permissions: UserPermissions;
   mfaEnabled?: boolean;
+  showQuickActionFab?: boolean;
 }
 
 export interface UserPermissions {

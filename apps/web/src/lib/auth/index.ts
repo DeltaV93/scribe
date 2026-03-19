@@ -43,6 +43,7 @@ export async function getCurrentUser(): Promise<SessionUser | null> {
         canDeleteForms: true,
         canPublishForms: true,
         mfaEnabled: true,
+        showQuickActionFab: true,
         organization: {
           select: {
             id: true,
@@ -73,6 +74,7 @@ export async function getCurrentUser(): Promise<SessionUser | null> {
         canPublishForms: user.canPublishForms,
       },
       mfaEnabled: user.mfaEnabled,
+      showQuickActionFab: user.showQuickActionFab,
     };
   } catch (error) {
     console.error("Error in getCurrentUser:", error);
