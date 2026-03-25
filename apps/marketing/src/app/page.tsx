@@ -1745,14 +1745,21 @@ export default function HomePage() {
                 <input type="text" name="organization" placeholder="Organization" required disabled={formState.status === "submitting"} />
                 <select name="role" required defaultValue="" disabled={formState.status === "submitting"}>
                   <option value="" disabled>Your role</option>
-                  <option>Sales / Account Management</option>
-                  <option>Case Manager / Social Worker</option>
+                  <option>Sales</option>
+                  <option>Account Management</option>
+                  <option>Case Manager</option>
+                  <option>Social Worker</option>
                   <option>Program Director</option>
-                  <option>Executive Director / CEO</option>
-                  <option>Engineering / Product Manager</option>
+                  <option>Executive Director</option>
+                  <option>CEO</option>
+                  <option>Engineering</option>
+                  <option>Product Manager</option>
                   <option>UX Researcher</option>
-                  <option>IT / Operations</option>
-                  <option>Clinician / Therapist / Doctor</option>
+                  <option>IT</option>
+                  <option>Operations</option>
+                  <option>Clinician</option>
+                  <option>Therapist</option>
+                  <option>Doctor</option>
                   <option>Customer Support Lead</option>
                   <option>Other</option>
                 </select>
@@ -1766,19 +1773,25 @@ export default function HomePage() {
                 </select>
                 <select name="industry" required className="full" defaultValue="" disabled={formState.status === "submitting"}>
                   <option value="" disabled>Industry</option>
-                  <option>Sales / Tech</option>
-                  <option>Nonprofit / Human Services</option>
+                  <option>Sales</option>
+                  <option>Tech</option>
+                  <option>Nonprofit</option>
+                  <option>Human Services</option>
                   <option>Behavioral Health</option>
-                  <option>Healthcare / Medical</option>
-                  <option>UX Research / Design</option>
-                  <option>Product / Engineering</option>
+                  <option>Healthcare</option>
+                  <option>Medical</option>
+                  <option>UX Research</option>
+                  <option>Design</option>
+                  <option>Product</option>
+                  <option>Engineering</option>
                   <option>Customer Support</option>
                   <option>Legal</option>
                   <option>Real Estate</option>
                   <option>Education</option>
                   <option>Financial Services</option>
                   <option>Government</option>
-                  <option>Multi-Location Retail / Operations</option>
+                  <option>Multi-Location Retail</option>
+                  <option>Operations</option>
                   <option>Other</option>
                 </select>
                 {formState.status === "error" && (
