@@ -490,7 +490,60 @@ src/
 - Checked at login time, not stored in database
 - Excluded from waitlist UI completely
 
-### 5.4 Information Leakage Prevention
+### 5.4 Internal Admin Access (Waitlist Management)
+
+**Who can see and manage the waitlist?**
+
+Access to the waitlist tab in `/admin` is controlled by the `INTERNAL_ADMIN_EMAILS` environment variable, **NOT** by RBAC roles. This is intentional — waitlist management is for Inkra internal team members only, not customer organization admins.
+
+**How it works:**
+
+1. Admin page loads → calls `/api/admin/waitlist/check-access`
+2. Endpoint checks if user's email is in `INTERNAL_ADMIN_EMAILS`
+3. If yes → `canAccessWaitlist = true` → Waitlist tab appears
+4. If no → tab is hidden (no error, just not shown)
+
+**Environment Variable Configuration:**
+
+```bash
+# .env.local (development) or environment config (production)
+INTERNAL_ADMIN_EMAILS=valerie@techbychoice.org,another.admin@inkra.ai
+```
+
+- Comma-separated list of emails
+- Case-insensitive comparison
+- Must match the user's email in the database exactly (no wildcards)
+
+**To grant waitlist admin access:**
+
+1. Add their email to `INTERNAL_ADMIN_EMAILS` in the environment
+2. Restart the application (or redeploy)
+3. User refreshes the admin page → Waitlist tab now visible
+
+**Key files:**
+
+| File | Purpose |
+|------|---------|
+| `apps/web/src/lib/services/waitlist.ts` | `isInternalAdmin()` and `getInternalAdminEmails()` functions |
+| `apps/web/src/app/api/admin/waitlist/check-access/route.ts` | API endpoint that checks access |
+| `apps/web/src/app/(dashboard)/admin/page.tsx` | Conditional rendering of Waitlist tab |
+
+**Why separate from RBAC?**
+
+- Waitlist is a pre-signup feature — manages people who don't have accounts yet
+- Organization ADMINs shouldn't manage the global waitlist
+- Only Inkra team members need this access
+- Keeps waitlist data isolated from multi-tenant customer data
+
+**Common confusion:**
+
+| Scenario | Result |
+|----------|--------|
+| User is ADMIN role but not in `INTERNAL_ADMIN_EMAILS` | Cannot see waitlist tab |
+| User is VIEWER role but is in `INTERNAL_ADMIN_EMAILS` | CAN see waitlist tab |
+| User is in `DEMO_ACCOUNT_EMAILS` only | Can login without waitlist, but CANNOT manage waitlist |
+
+### 5.5 Information Leakage Prevention
 
 - Login with unknown email: "Invalid credentials" (standard)
 - Login with pending waitlist email: "Application pending" (intentional disclosure)
