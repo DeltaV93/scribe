@@ -171,8 +171,15 @@ function EditableField({
             {needsReview && (
               <TooltipProvider>
                 <Tooltip>
-                  <TooltipTrigger>
-                    <AlertTriangle className="h-3.5 w-3.5 text-amber-500" />
+                  <TooltipTrigger asChild>
+                    <span
+                      className="inline-flex items-center justify-center rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
+                      tabIndex={0}
+                      role="img"
+                      aria-label="Low confidence - please review"
+                    >
+                      <AlertTriangle className="h-3.5 w-3.5 text-amber-500" />
+                    </span>
                   </TooltipTrigger>
                   <TooltipContent>
                     <p>Low confidence - please review</p>
@@ -202,18 +209,22 @@ function EditableField({
               <Button
                 size="icon"
                 variant="ghost"
-                className="h-8 w-8"
+                className="h-8 w-8 hover:bg-green-100 dark:hover:bg-green-900/30 focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:ring-offset-2"
                 onClick={() => onEditSave(editValue)}
+                aria-label="Save changes"
               >
                 <Check className="h-4 w-4 text-green-600" />
+                <span className="sr-only">Save</span>
               </Button>
               <Button
                 size="icon"
                 variant="ghost"
-                className="h-8 w-8"
+                className="h-8 w-8 hover:bg-red-100 dark:hover:bg-red-900/30 focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2"
                 onClick={onEditCancel}
+                aria-label="Cancel editing"
               >
                 <X className="h-4 w-4 text-red-600" />
+                <span className="sr-only">Cancel</span>
               </Button>
             </div>
           ) : (
@@ -224,10 +235,12 @@ function EditableField({
               <Button
                 size="icon"
                 variant="ghost"
-                className="h-6 w-6 opacity-50 hover:opacity-100"
+                className="h-6 w-6 text-muted-foreground hover:text-foreground hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 onClick={onEditStart}
+                aria-label={`Edit ${fieldName}`}
               >
                 <Edit3 className="h-3 w-3" />
+                <span className="sr-only">Edit</span>
               </Button>
             </div>
           )}
@@ -378,13 +391,18 @@ export function UnifiedReviewView({
             Extract data from the transcript to populate form fields automatically.
           </p>
           {onExtract && (
-            <Button onClick={handleExtract} disabled={isExtracting} className="gap-2">
+            <Button
+              onClick={handleExtract}
+              disabled={isExtracting}
+              className="gap-2 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              aria-busy={isExtracting}
+            >
               {isExtracting ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
+                <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
               ) : (
-                <Sparkles className="h-4 w-4" />
+                <Sparkles className="h-4 w-4" aria-hidden="true" />
               )}
-              Extract Data
+              {isExtracting ? "Extracting..." : "Extract Data"}
             </Button>
           )}
         </CardContent>
@@ -422,14 +440,15 @@ export function UnifiedReviewView({
                 size="sm"
                 onClick={handleExtract}
                 disabled={isExtracting}
-                className="gap-2"
+                className="gap-2 hover:bg-accent hover:text-accent-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                aria-busy={isExtracting}
               >
                 {isExtracting ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
                 ) : (
-                  <RefreshCw className="h-4 w-4" />
+                  <RefreshCw className="h-4 w-4" aria-hidden="true" />
                 )}
-                Re-extract
+                {isExtracting ? "Extracting..." : "Re-extract"}
               </Button>
             )}
           </div>
@@ -456,7 +475,10 @@ export function UnifiedReviewView({
               open={isExpanded}
               onOpenChange={() => toggleFormExpanded(form.formId)}
             >
-              <CollapsibleTrigger className="flex items-center justify-between w-full text-left p-3 rounded-lg border bg-card hover:bg-muted/50 transition-colors">
+              <CollapsibleTrigger
+                className="flex items-center justify-between w-full text-left p-3 rounded-lg border bg-card hover:bg-accent hover:border-accent-foreground/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 transition-colors"
+                aria-label={`${isExpanded ? "Collapse" : "Expand"} ${form.formName}`}
+              >
                 <div className="flex items-center gap-2">
                   {isExpanded ? (
                     <ChevronDown className="h-4 w-4" />
@@ -525,14 +547,15 @@ export function UnifiedReviewView({
             <Button
               onClick={handleFinalize}
               disabled={isFinalizing}
-              className="gap-2"
+              className="gap-2 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              aria-busy={isFinalizing}
             >
               {isFinalizing ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
+                <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
               ) : (
-                <Check className="h-4 w-4" />
+                <Check className="h-4 w-4" aria-hidden="true" />
               )}
-              Finalize & Create Submissions
+              {isFinalizing ? "Finalizing..." : "Finalize & Create Submissions"}
             </Button>
           </div>
         )}

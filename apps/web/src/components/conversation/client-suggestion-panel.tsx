@@ -152,8 +152,13 @@ function SuggestionCard({
           {/* Actions */}
           <div className="flex flex-col items-end gap-2">
             <ConfidenceBadge confidence={suggestion.overallConfidence} />
-            <Button size="sm" onClick={onSelect} className="gap-1">
-              <Check className="h-3 w-3" />
+            <Button
+              size="sm"
+              onClick={onSelect}
+              className="gap-1 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              aria-label={`Select ${suggestion.firstName} ${suggestion.lastName}`}
+            >
+              <Check className="h-3 w-3" aria-hidden="true" />
               Select
             </Button>
           </div>
@@ -227,8 +232,12 @@ export function ClientSuggestionPanel({
             <p className="text-sm text-muted-foreground mb-3">
               Find matching clients based on the conversation transcript.
             </p>
-            <Button onClick={onSuggest} variant="outline" className="gap-2">
-              <Sparkles className="h-4 w-4" />
+            <Button
+              onClick={onSuggest}
+              variant="outline"
+              className="gap-2 hover:bg-accent hover:text-accent-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            >
+              <Sparkles className="h-4 w-4" aria-hidden="true" />
               Suggest Clients
             </Button>
           </div>
@@ -291,9 +300,9 @@ export function ClientSuggestionPanel({
             <Button
               variant="outline"
               onClick={onCreateNew}
-              className="w-full gap-2"
+              className="w-full gap-2 hover:bg-accent hover:text-accent-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             >
-              <UserPlus className="h-4 w-4" />
+              <UserPlus className="h-4 w-4" aria-hidden="true" />
               Create New Client
             </Button>
           </div>
@@ -304,7 +313,8 @@ export function ClientSuggestionPanel({
           <div className="text-center">
             <button
               onClick={onSuggest}
-              className="text-xs text-muted-foreground hover:text-foreground underline"
+              className="text-xs text-muted-foreground hover:text-foreground focus-visible:text-foreground underline rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 px-1"
+              aria-label="Re-analyze transcript to find client matches"
             >
               Re-analyze transcript
             </button>
