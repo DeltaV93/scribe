@@ -42,18 +42,27 @@ import {
   useClientSuggestions,
 } from "@/components/conversation/client-suggestion-panel";
 import { cn } from "@/lib/utils";
+import { RecordingRecoveryPanel } from "@/components/conversation/recording-recovery-panel";
 import type {
   ConversationType,
   ConversationStatus,
   SensitivityTier,
   FlagReviewStatus,
+  RecoveryStatus,
 } from "@prisma/client";
+
+interface RecordingStatusData {
+  hasRecording: boolean;
+  presignedUrlValid: boolean;
+  lastHeartbeat: string | null;
+}
 
 interface Conversation {
   id: string;
   type: ConversationType;
   title: string | null;
   status: ConversationStatus;
+  recoveryStatus: RecoveryStatus | null;
   startedAt: string;
   endedAt: string | null;
   durationSeconds: number | null;
@@ -208,10 +217,34 @@ export default function ConversationDetailPage({
   const [canEditTitle, setCanEditTitle] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("outputs");
+  const [recordingStatus, setRecordingStatus] = useState<RecordingStatusData | null>(null);
 
   useEffect(() => {
     fetchConversation();
   }, [id]);
+
+  // Fetch recording status when conversation is stuck in RECORDING with recoveryStatus
+  useEffect(() => {
+    if (conversation?.status === "RECORDING" && conversation?.recoveryStatus) {
+      fetchRecordingStatus();
+    }
+  }, [conversation?.id, conversation?.status, conversation?.recoveryStatus]);
+
+  const fetchRecordingStatus = async () => {
+    try {
+      const response = await fetch(`/api/conversations/${id}/recording-status`);
+      const data = await response.json();
+      if (data.success) {
+        setRecordingStatus({
+          hasRecording: data.hasRecording,
+          presignedUrlValid: data.presignedUrlValid,
+          lastHeartbeat: data.lastHeartbeat,
+        });
+      }
+    } catch (error) {
+      console.error("Failed to fetch recording status:", error);
+    }
+  };
 
   const fetchConversation = async () => {
     setIsLoading(true);
@@ -429,6 +462,20 @@ export default function ConversationDetailPage({
             </p>
           </CardContent>
         </Card>
+      )}
+
+      {/* Recording recovery panel for stuck recordings */}
+      {conversation.status === "RECORDING" && conversation.recoveryStatus && recordingStatus && (
+        <RecordingRecoveryPanel
+          conversationId={conversation.id}
+          recoveryStatus={conversation.recoveryStatus}
+          hasRecording={recordingStatus.hasRecording}
+          lastHeartbeat={recordingStatus.lastHeartbeat}
+          startedAt={conversation.startedAt}
+          durationSeconds={conversation.durationSeconds}
+          presignedUrlValid={recordingStatus.presignedUrlValid}
+          onRecoveryComplete={fetchConversation}
+        />
       )}
 
       {/* Main content */}

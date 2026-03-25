@@ -4776,6 +4776,14 @@ enum ConversationStatus {
   FAILED // Processing failed
 }
 
+// Recovery status for stuck/orphaned recordings (PX-RECOVERY)
+enum RecoveryStatus {
+  RECOVERABLE // Audio found in S3, can process
+  AWAITING_UPLOAD // No audio yet, presigned URL may still be valid
+  EXPIRED // Presigned URL expired, no audio found
+  ABANDONED // User explicitly abandoned
+}
+
 enum SensitivityTier {
   STANDARD // Tier 3 - normal workflow, no restrictions
   RESTRICTED // Tier 2 - RBAC limited, participants + granted only
@@ -5006,6 +5014,11 @@ model Conversation {
   aiProcessingError   String?
   aiProcessingRetries Int              @default(0)
 
+  // Recording session health tracking (PX-RECOVERY)
+  lastHeartbeat     DateTime? // Last ping from active recording session
+  recordingDeviceId String? // UUID identifying the browser session
+  recoveryStatus    RecoveryStatus? // Set by stale detection cron
+
   // Sensitivity classification
   sensitivityTier    SensitivityTier @default(STANDARD)
   flaggedSegments    FlaggedSegment[]
@@ -5049,6 +5062,7 @@ model Conversation {
   @@index([startedAt])
   @@index([sensitivityTier])
   @@index([legacyCallId])
+  @@index([status, lastHeartbeat]) // For stale recording detection
 }
 
 // Phone call specific details (Twilio VoIP)

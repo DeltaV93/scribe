@@ -26,13 +26,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import type { ConversationType, ConversationStatus, SensitivityTier } from "@prisma/client";
+import type { ConversationType, ConversationStatus, SensitivityTier, RecoveryStatus } from "@prisma/client";
 
 interface Conversation {
   id: string;
   type: ConversationType;
   title: string | null;
   status: ConversationStatus;
+  recoveryStatus: RecoveryStatus | null;
   startedAt: string;
   endedAt: string | null;
   durationSeconds: number | null;
@@ -60,6 +61,14 @@ const STATUS_BADGES: Record<ConversationStatus, { label: string; variant: "defau
   REVIEW: { label: "Review", variant: "default" },
   COMPLETED: { label: "Completed", variant: "secondary" },
   FAILED: { label: "Failed", variant: "destructive" },
+};
+
+// Recovery status badges for stuck recordings (PX-RECOVERY)
+const RECOVERY_BADGES: Record<RecoveryStatus, { label: string; variant: "default" | "secondary" | "outline" | "destructive"; className?: string }> = {
+  RECOVERABLE: { label: "Interrupted - Recoverable", variant: "outline", className: "border-green-500 text-green-600" },
+  AWAITING_UPLOAD: { label: "Awaiting Upload", variant: "outline", className: "border-amber-500 text-amber-600" },
+  EXPIRED: { label: "Upload Expired", variant: "destructive" },
+  ABANDONED: { label: "Abandoned", variant: "secondary" },
 };
 
 function formatDuration(seconds: number | null): string {
@@ -206,6 +215,10 @@ export default function ConversationsPage() {
             const hasFlags = conversation._count.flaggedSegments > 0;
             const hasOutputs = conversation._count.draftedOutputs > 0;
 
+            // Show recovery badge if recording is stuck with recovery status
+            const showRecoveryBadge = conversation.status === "RECORDING" && conversation.recoveryStatus;
+            const recoveryInfo = conversation.recoveryStatus ? RECOVERY_BADGES[conversation.recoveryStatus] : null;
+
             return (
               <Card
                 key={conversation.id}
@@ -224,7 +237,13 @@ export default function ConversationsPage() {
                       <h3 className="font-medium truncate">
                         {conversation.title || "Untitled Conversation"}
                       </h3>
-                      <Badge variant={statusInfo.variant}>{statusInfo.label}</Badge>
+                      {showRecoveryBadge && recoveryInfo ? (
+                        <Badge variant={recoveryInfo.variant} className={recoveryInfo.className}>
+                          {recoveryInfo.label}
+                        </Badge>
+                      ) : (
+                        <Badge variant={statusInfo.variant}>{statusInfo.label}</Badge>
+                      )}
                       {conversation.sensitivityTier !== "STANDARD" && (
                         <Badge
                           variant="outline"

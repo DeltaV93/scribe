@@ -14,6 +14,20 @@ import {
 } from "@/lib/recording";
 import { uploadToPresignedUrl } from "@/lib/recording/upload";
 
+// Heartbeat interval in milliseconds (30 seconds)
+const HEARTBEAT_INTERVAL = 30000;
+
+// Generate or retrieve a persistent device ID for this session
+function getDeviceId(): string {
+  const storageKey = "inkra-device-id";
+  let deviceId = sessionStorage.getItem(storageKey);
+  if (!deviceId) {
+    deviceId = crypto.randomUUID();
+    sessionStorage.setItem(storageKey, deviceId);
+  }
+  return deviceId;
+}
+
 interface InPersonRecorderProps {
   conversationId?: string;
   uploadUrl?: string;
@@ -43,6 +57,68 @@ export function InPersonRecorder({
 
   const recorderRef = useRef<WebRecorder | null>(null);
   const durationIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const heartbeatIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const deviceIdRef = useRef<string | null>(null);
+
+  // Initialize device ID on mount
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      deviceIdRef.current = getDeviceId();
+    }
+  }, []);
+
+  // Heartbeat effect - sends heartbeat every 30 seconds while recording
+  useEffect(() => {
+    if (!conversationId || !deviceIdRef.current) return;
+
+    const sendHeartbeat = async () => {
+      if (recordingState !== "recording" && recordingState !== "paused") return;
+
+      try {
+        const response = await fetch(`/api/conversations/${conversationId}/heartbeat`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            deviceId: deviceIdRef.current,
+            recordingState,
+            durationSeconds: duration,
+          }),
+        });
+
+        if (!response.ok) {
+          console.warn("[Heartbeat] Failed to send heartbeat:", response.status);
+        } else {
+          const data = await response.json();
+          if (!data.shouldContinue && data.message) {
+            console.warn("[Heartbeat] Server warning:", data.message);
+          }
+        }
+      } catch (err) {
+        console.warn("[Heartbeat] Error sending heartbeat:", err);
+      }
+    };
+
+    if (recordingState === "recording" || recordingState === "paused") {
+      // Send immediate heartbeat on state change
+      sendHeartbeat();
+
+      // Set up interval
+      heartbeatIntervalRef.current = setInterval(sendHeartbeat, HEARTBEAT_INTERVAL);
+    } else {
+      // Clear interval when not recording
+      if (heartbeatIntervalRef.current) {
+        clearInterval(heartbeatIntervalRef.current);
+        heartbeatIntervalRef.current = null;
+      }
+    }
+
+    return () => {
+      if (heartbeatIntervalRef.current) {
+        clearInterval(heartbeatIntervalRef.current);
+        heartbeatIntervalRef.current = null;
+      }
+    };
+  }, [recordingState, conversationId, duration]);
 
   // Check browser support and permissions
   useEffect(() => {

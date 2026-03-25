@@ -57,6 +57,7 @@ export async function GET(request: NextRequest) {
           type: true,
           title: true,
           status: true,
+          recoveryStatus: true,
           startedAt: true,
           endedAt: true,
           durationSeconds: true,
