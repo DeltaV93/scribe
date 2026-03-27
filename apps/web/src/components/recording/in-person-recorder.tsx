@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Mic, Square, Pause, Play, AlertCircle, Volume2 } from "lucide-react";
+import { Mic, Square, Pause, Play, AlertCircle, Volume2, CloudOff, Cloud } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -13,6 +13,14 @@ import {
   type RecordingState,
 } from "@/lib/recording";
 import { uploadToPresignedUrl } from "@/lib/recording/upload";
+import {
+  useRecordingPersistence,
+  CHUNK_INTERVAL_MS,
+} from "@/hooks/useRecordingPersistence";
+import {
+  chunkedUpload,
+  shouldUseChunkedUpload,
+} from "@/lib/recording/chunked-upload";
 
 // Heartbeat interval in milliseconds (30 seconds)
 const HEARTBEAT_INTERVAL = 30000;
@@ -30,22 +38,29 @@ function getDeviceId(): string {
 
 interface InPersonRecorderProps {
   conversationId?: string;
+  orgId?: string;
   uploadUrl?: string;
+  s3Key?: string;
   maxDurationMinutes?: number;
   onRecordingStart?: () => void;
   onRecordingStop?: (duration: number) => void;
   onUploadComplete?: (conversationId: string) => void;
   onError?: (error: string) => void;
+  /** Enable offline resilience features (IndexedDB backup, chunked upload) */
+  enableOfflineResilience?: boolean;
 }
 
 export function InPersonRecorder({
   conversationId,
+  orgId,
   uploadUrl,
+  s3Key,
   maxDurationMinutes = 60,
   onRecordingStart,
   onRecordingStop,
   onUploadComplete,
   onError,
+  enableOfflineResilience = true,
 }: InPersonRecorderProps) {
   const [recordingState, setRecordingState] = useState<RecordingState>("inactive");
   const [duration, setDuration] = useState(0);
@@ -54,11 +69,16 @@ export function InPersonRecorder({
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [permissionStatus, setPermissionStatus] = useState<PermissionState | null>(null);
+  const [isOfflineBackupActive, setIsOfflineBackupActive] = useState(false);
+  const [pendingRecoveryCount, setPendingRecoveryCount] = useState(0);
 
   const recorderRef = useRef<WebRecorder | null>(null);
   const durationIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const heartbeatIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const deviceIdRef = useRef<string | null>(null);
+  const chunkIndexRef = useRef(0);
+  const lastChunkTimeRef = useRef<number>(0);
+  const accumulatedChunksRef = useRef<Blob[]>([]);
 
   // Initialize device ID on mount
   useEffect(() => {
@@ -66,6 +86,90 @@ export function InPersonRecorder({
       deviceIdRef.current = getDeviceId();
     }
   }, []);
+
+  // ============================================================================
+  // Offline Resilience (Phase 2)
+  // ============================================================================
+
+  // Recording persistence hook for IndexedDB backup and service worker sync
+  const persistence = useRecordingPersistence({
+    conversationId: conversationId || "",
+    deviceId: deviceIdRef.current || "",
+    orgId: orgId || "",
+    uploadUrl,
+    s3Key,
+    enabled: enableOfflineResilience && !!conversationId && !!orgId,
+    onRecoveryFound: (sessions) => {
+      setPendingRecoveryCount(sessions.length);
+      console.log(`[InPersonRecorder] Found ${sessions.length} recoverable sessions`);
+    },
+    onUploadComplete: (recoveredConversationId) => {
+      console.log(`[InPersonRecorder] Recovery upload complete for ${recoveredConversationId}`);
+      if (recoveredConversationId === conversationId) {
+        onUploadComplete?.(recoveredConversationId);
+      }
+      // Refresh pending count
+      persistence.getPendingCount().then(setPendingRecoveryCount);
+    },
+    onError: (errorMsg) => {
+      console.error(`[InPersonRecorder] Persistence error: ${errorMsg}`);
+    },
+  });
+
+  // Update offline backup status indicator
+  useEffect(() => {
+    setIsOfflineBackupActive(persistence.isAvailable);
+  }, [persistence.isAvailable]);
+
+  // Check for pending uploads on mount
+  useEffect(() => {
+    if (persistence.isAvailable) {
+      persistence.getPendingCount().then(setPendingRecoveryCount);
+    }
+  }, [persistence.isAvailable]);
+
+  // ============================================================================
+  // beforeunload Warning
+  // ============================================================================
+
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (recordingState === "recording" || recordingState === "paused") {
+        // Show browser warning
+        e.preventDefault();
+        e.returnValue = "Recording in progress. Your recording may be lost if you leave.";
+
+        // The persistence hook already registered for background sync when available
+        return e.returnValue;
+      }
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [recordingState]);
+
+  // ============================================================================
+  // Visibility Change Handling
+  // ============================================================================
+
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden && (recordingState === "recording" || recordingState === "paused")) {
+        // App went to background - chunks are being saved continuously
+        // Log for debugging
+        console.log("[InPersonRecorder] App went to background during recording");
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [recordingState]);
 
   // Heartbeat effect - sends heartbeat every 30 seconds while recording
   useEffect(() => {
@@ -166,12 +270,46 @@ export function InPersonRecorder({
     try {
       setError(null);
 
+      // Start offline persistence session if available
+      if (persistence.isAvailable) {
+        await persistence.startPersistence();
+      }
+
+      // Reset chunk tracking
+      chunkIndexRef.current = 0;
+      lastChunkTimeRef.current = Date.now();
+      accumulatedChunksRef.current = [];
+
       const recorder = new WebRecorder({
         onStateChange: setRecordingState,
         onAudioLevel: setAudioLevel,
         onError: (err) => {
           setError(err.message);
           onError?.(err.message);
+        },
+        // Save chunks to IndexedDB periodically (every CHUNK_INTERVAL_MS)
+        onDataAvailable: async (chunk: Blob) => {
+          // Accumulate chunks
+          accumulatedChunksRef.current.push(chunk);
+
+          // Check if enough time has passed to save a batch
+          const now = Date.now();
+          if (now - lastChunkTimeRef.current >= CHUNK_INTERVAL_MS) {
+            // Combine accumulated chunks into one blob
+            const combinedChunk = new Blob(accumulatedChunksRef.current, {
+              type: "audio/webm",
+            });
+
+            // Save to IndexedDB
+            if (persistence.isAvailable) {
+              await persistence.saveAudioChunk(combinedChunk, chunkIndexRef.current);
+            }
+
+            // Reset for next batch
+            chunkIndexRef.current += 1;
+            lastChunkTimeRef.current = now;
+            accumulatedChunksRef.current = [];
+          }
         },
       });
 
@@ -184,7 +322,7 @@ export function InPersonRecorder({
       setError(message);
       onError?.(message);
     }
-  }, [onRecordingStart, onError]);
+  }, [onRecordingStart, onError, persistence]);
 
   const stopRecording = useCallback(async () => {
     if (!recorderRef.current) return;
@@ -193,25 +331,70 @@ export function InPersonRecorder({
       const result = await recorderRef.current.stop();
       onRecordingStop?.(result.duration);
 
+      // Save any remaining accumulated chunks to IndexedDB
+      if (persistence.isAvailable && accumulatedChunksRef.current.length > 0) {
+        const remainingChunk = new Blob(accumulatedChunksRef.current, {
+          type: "audio/webm",
+        });
+        await persistence.saveAudioChunk(remainingChunk, chunkIndexRef.current);
+        accumulatedChunksRef.current = [];
+      }
+
       // Upload if we have a URL
       if (uploadUrl && conversationId) {
         setIsUploading(true);
         setUploadProgress(0);
 
-        await uploadToPresignedUrl(uploadUrl, result.blob, (percent) => {
-          setUploadProgress(percent);
-        });
+        // Use chunked upload for large files (>10MB)
+        if (shouldUseChunkedUpload(result.blob.size)) {
+          console.log(
+            `[InPersonRecorder] Using chunked upload for ${(result.blob.size / 1024 / 1024).toFixed(2)}MB file`
+          );
+
+          const uploadResult = await chunkedUpload({
+            conversationId,
+            blob: result.blob,
+            contentType: result.mimeType,
+            onProgress: (progress) => {
+              setUploadProgress(progress.percentComplete);
+            },
+          });
+
+          if (!uploadResult.success) {
+            throw new Error(uploadResult.error || "Chunked upload failed");
+          }
+        } else {
+          // Use simple presigned URL upload for smaller files
+          await uploadToPresignedUrl(uploadUrl, result.blob, (percent) => {
+            setUploadProgress(percent);
+          });
+        }
+
+        // Stop persistence and cleanup IndexedDB (don't trigger background upload since we just uploaded)
+        if (persistence.isAvailable) {
+          await persistence.stopPersistence(false);
+        }
 
         setIsUploading(false);
         onUploadComplete?.(conversationId);
+      } else {
+        // No upload URL - trigger background upload via persistence
+        if (persistence.isAvailable) {
+          await persistence.stopPersistence(true);
+        }
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to stop recording";
       setError(message);
       onError?.(message);
       setIsUploading(false);
+
+      // On upload failure, keep IndexedDB data for recovery
+      if (persistence.isAvailable) {
+        console.log("[InPersonRecorder] Upload failed, data preserved in IndexedDB for recovery");
+      }
     }
-  }, [uploadUrl, conversationId, onRecordingStop, onUploadComplete, onError]);
+  }, [uploadUrl, conversationId, onRecordingStop, onUploadComplete, onError, persistence]);
 
   const pauseRecording = useCallback(() => {
     recorderRef.current?.pause();
@@ -221,11 +404,34 @@ export function InPersonRecorder({
     recorderRef.current?.resume();
   }, []);
 
-  const cancelRecording = useCallback(() => {
+  const cancelRecording = useCallback(async () => {
     recorderRef.current?.cancel();
     setDuration(0);
     setAudioLevel(0);
-  }, []);
+    accumulatedChunksRef.current = [];
+    chunkIndexRef.current = 0;
+
+    // Delete IndexedDB data since user cancelled
+    if (persistence.isAvailable) {
+      await persistence.stopPersistence(false);
+    }
+  }, [persistence]);
+
+  // Recover any pending uploads from previous sessions
+  const recoverPendingUploads = useCallback(async () => {
+    if (!persistence.isAvailable) return;
+
+    try {
+      setIsUploading(true);
+      await persistence.recoverPendingUploads();
+      const remaining = await persistence.getPendingCount();
+      setPendingRecoveryCount(remaining);
+    } catch (err) {
+      console.error("[InPersonRecorder] Recovery failed:", err);
+    } finally {
+      setIsUploading(false);
+    }
+  }, [persistence]);
 
   // Permission denied state
   if (permissionStatus === "denied") {
@@ -277,12 +483,55 @@ export function InPersonRecorder({
   return (
     <Card>
       <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2 text-lg">
-          <Mic className="h-5 w-5" />
-          In-Person Recording
-        </CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <Mic className="h-5 w-5" />
+            In-Person Recording
+          </CardTitle>
+          {/* Offline backup status indicator */}
+          {enableOfflineResilience && (
+            <div
+              className={cn(
+                "flex items-center gap-1.5 rounded-full px-2 py-1 text-xs",
+                isOfflineBackupActive
+                  ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                  : "bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400"
+              )}
+              title={
+                isOfflineBackupActive
+                  ? "Offline backup enabled - your recording is protected"
+                  : "Offline backup not available"
+              }
+            >
+              {isOfflineBackupActive ? (
+                <Cloud className="h-3 w-3" />
+              ) : (
+                <CloudOff className="h-3 w-3" />
+              )}
+              <span className="hidden sm:inline">
+                {isOfflineBackupActive ? "Protected" : "No backup"}
+              </span>
+            </div>
+          )}
+        </div>
       </CardHeader>
       <CardContent className="space-y-4">
+        {/* Pending recovery notification */}
+        {pendingRecoveryCount > 0 && recordingState === "inactive" && !isUploading && (
+          <div className="flex items-center justify-between rounded-lg bg-blue-50 px-3 py-2 dark:bg-blue-900/20">
+            <div className="text-sm text-blue-700 dark:text-blue-400">
+              {pendingRecoveryCount} recording{pendingRecoveryCount > 1 ? "s" : ""} pending upload
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={recoverPendingUploads}
+              className="text-blue-700 hover:text-blue-800 dark:text-blue-400"
+            >
+              Upload Now
+            </Button>
+          </div>
+        )}
         {/* Recording indicator */}
         {recordingState !== "inactive" && (
           <div className="flex items-center justify-between">
