@@ -109,8 +109,12 @@ export async function GET(request: NextRequest) {
       const callWhere: Prisma.CallActionItemWhereInput = {
         orgId: user.orgId,
         OR: [
+          // Directly assigned to user by ID
           { assigneeUserId: user.id },
+          // Assigned by name match
           ...(user.name ? [{ assigneeName: user.name }] : []),
+          // From calls where user is the case manager (shows unassigned items too)
+          { call: { caseManagerId: user.id } },
         ],
         ...(status && { status }),
       };
