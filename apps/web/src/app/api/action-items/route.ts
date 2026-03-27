@@ -1,14 +1,19 @@
 /**
- * Action Items API
+ * Action Items API (My Tasks)
  *
  * GET /api/action-items - Get action items assigned to the current user
- * Combines action items from both calls and meetings
+ * Combines action items from calls, meetings, and reminders into a unified task view
  */
 
 import { NextRequest, NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
-import { Prisma } from "@prisma/client";
+import { Prisma, ReminderStatus } from "@prisma/client";
+import {
+  reminderToActionItemStatus,
+  actionItemStatusToReminderStatuses,
+  numericPriorityToString,
+} from "@/lib/services/tasks/status-mapping";
 
 interface UnifiedActionItem {
   id: string;
@@ -20,7 +25,7 @@ interface UnifiedActionItem {
   status: "OPEN" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED";
   contextSnippet: string | null;
   createdAt: string;
-  source: "call" | "meeting";
+  source: "call" | "meeting" | "reminder";
   call?: {
     id: string;
     clientId: string;
@@ -31,6 +36,13 @@ interface UnifiedActionItem {
     title: string;
     actualStartAt: string | null;
     scheduledStartAt: string | null;
+  };
+  reminder?: {
+    id: string;
+    title: string;
+    clientId: string;
+    clientName: string;
+    originalStatus: ReminderStatus;
   };
 }
 
@@ -46,7 +58,7 @@ function priorityToString(priority: number | null | undefined): string {
  *
  * Query params:
  * - status: Filter by status (OPEN, IN_PROGRESS, COMPLETED, CANCELLED)
- * - source: Filter by source (call, meeting, or all)
+ * - source: Filter by source (call, meeting, reminder, or all)
  * - limit: Number of items to return (default 50, max 100)
  * - offset: Number of items to skip (default 0)
  */
@@ -62,7 +74,11 @@ export async function GET(request: NextRequest) {
       | "COMPLETED"
       | "CANCELLED"
       | null;
-    const sourceFilter = searchParams.get("source") as "call" | "meeting" | null;
+    const sourceFilter = searchParams.get("source") as
+      | "call"
+      | "meeting"
+      | "reminder"
+      | null;
     const limit = Math.min(
       parseInt(searchParams.get("limit") || "50", 10),
       100
@@ -198,6 +214,81 @@ export async function GET(request: NextRequest) {
             title: item.meeting.title,
             actualStartAt: item.meeting.actualStartAt?.toISOString() || null,
             scheduledStartAt: item.meeting.scheduledStartAt?.toISOString() || null,
+          },
+        });
+      }
+    }
+
+    // Fetch reminders assigned to the current user
+    if (!sourceFilter || sourceFilter === "reminder") {
+      // Map action item status to reminder statuses for filtering
+      const reminderStatuses = status
+        ? actionItemStatusToReminderStatuses(status)
+        : undefined;
+
+      const reminderWhere: Prisma.ReminderWhereInput = {
+        orgId: user.orgId,
+        assignedToId: user.id,
+        // Exclude completed and cancelled by default unless explicitly filtered
+        ...(reminderStatuses
+          ? { status: { in: reminderStatuses } }
+          : {
+              status: {
+                in: [
+                  ReminderStatus.PENDING,
+                  ReminderStatus.SENT,
+                  ReminderStatus.ACKNOWLEDGED,
+                  ReminderStatus.OVERDUE,
+                ],
+              },
+            }),
+      };
+
+      const reminders = await prisma.reminder.findMany({
+        where: reminderWhere,
+        include: {
+          client: {
+            select: { id: true, firstName: true, lastName: true },
+          },
+          assignedTo: {
+            select: { id: true, name: true, email: true },
+          },
+          completedBy: {
+            select: { id: true, name: true },
+          },
+        },
+        orderBy: [
+          { priority: "asc" },
+          { dueDate: "asc" },
+          { createdAt: "desc" },
+        ],
+      });
+
+      for (const reminder of reminders) {
+        const clientName = [
+          reminder.client.firstName,
+          reminder.client.lastName,
+        ]
+          .filter(Boolean)
+          .join(" ");
+
+        results.push({
+          id: reminder.id,
+          description: reminder.title, // Use title as description for reminders
+          assigneeName: reminder.assignedTo.name,
+          assigneeUserId: reminder.assignedToId,
+          dueDate: reminder.dueDate.toISOString(),
+          priority: numericPriorityToString(reminder.priority),
+          status: reminderToActionItemStatus(reminder.status),
+          contextSnippet: reminder.description, // Use description as context
+          createdAt: reminder.createdAt.toISOString(),
+          source: "reminder",
+          reminder: {
+            id: reminder.id,
+            title: reminder.title,
+            clientId: reminder.client.id,
+            clientName,
+            originalStatus: reminder.status,
           },
         });
       }

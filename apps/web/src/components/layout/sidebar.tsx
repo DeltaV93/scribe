@@ -18,7 +18,6 @@ import {
   GraduationCap,
   ListChecks,
   Target,
-  Bell,
   MessageSquare,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -101,22 +100,16 @@ const navItems: NavItem[] = [
     requiredPermission: { resource: "calls", action: "read" }, // Uses same permission as calls
   },
   {
-    title: "Action Items",
+    title: "My Tasks",
     href: "/action-items",
     icon: ListChecks,
-    // All roles can access action items (no permission required)
+    // All roles can access tasks (unified view of action items + reminders)
   },
   {
     title: "Goals",
     href: "/goals",
     icon: Target,
     requiredPermission: { resource: "goals", action: "read" },
-  },
-  {
-    title: "Reminders",
-    href: "/reminders",
-    icon: Bell,
-    // All roles can access reminders (no permission required)
   },
 ];
 

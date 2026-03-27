@@ -33,8 +33,11 @@ import {
   AlertCircle,
   ExternalLink,
   Phone,
+  Bell,
+  Users,
 } from "lucide-react";
 import { format } from "date-fns";
+import type { ReminderStatus } from "@prisma/client";
 
 interface ActionItem {
   id: string;
@@ -42,11 +45,11 @@ interface ActionItem {
   assigneeName: string | null;
   assigneeUserId: string | null;
   dueDate: string | null;
-  priority: number;
+  priority: string;
   status: "OPEN" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED";
   contextSnippet: string | null;
   createdAt: string;
-  source: "call" | "meeting";
+  source: "call" | "meeting" | "reminder";
   call?: {
     id: string;
     clientId: string;
@@ -57,6 +60,13 @@ interface ActionItem {
     title: string;
     actualStartAt: string | null;
     scheduledStartAt: string | null;
+  };
+  reminder?: {
+    id: string;
+    title: string;
+    clientId: string;
+    clientName: string;
+    originalStatus: ReminderStatus;
   };
 }
 
@@ -73,6 +83,7 @@ export default function ActionItemsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [sourceFilter, setSourceFilter] = useState<string>("all");
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [updatingItemId, setUpdatingItemId] = useState<string | null>(null);
@@ -86,6 +97,9 @@ export default function ActionItemsPage() {
       if (statusFilter && statusFilter !== "all") {
         params.set("status", statusFilter);
       }
+      if (sourceFilter && sourceFilter !== "all") {
+        params.set("source", sourceFilter);
+      }
       params.set("limit", limit.toString());
       params.set("offset", ((page - 1) * limit).toString());
 
@@ -98,7 +112,7 @@ export default function ActionItemsPage() {
         const errorData = await response.json().catch(() => ({}));
         setError(
           errorData.error?.message ||
-            "Failed to load action items. Please try again."
+            "Failed to load tasks. Please try again."
         );
       }
     } catch (err) {
@@ -109,7 +123,7 @@ export default function ActionItemsPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [statusFilter, page]);
+  }, [statusFilter, sourceFilter, page]);
 
   useEffect(() => {
     fetchActionItems();
@@ -121,34 +135,53 @@ export default function ActionItemsPage() {
     setError(null);
 
     try {
-      // Use appropriate endpoint based on source
-      const endpoint =
-        item.source === "call"
-          ? `/api/action-items/${item.id}`
-          : `/api/meetings/${item.meeting?.id}/action-items`;
+      let response: Response;
 
-      const body =
-        item.source === "call"
-          ? { status: newStatus }
-          : { actionItemId: item.id, status: newStatus };
+      if (item.source === "reminder") {
+        // For reminders, use different endpoints for complete vs reopen
+        if (newStatus === "COMPLETED") {
+          response = await fetch(`/api/reminders/${item.id}/complete`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+          });
+        } else {
+          // Reopen: set status back to PENDING
+          response = await fetch(`/api/reminders/${item.id}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ status: "PENDING" }),
+          });
+        }
+      } else {
+        // Use appropriate endpoint based on source (call or meeting)
+        const endpoint =
+          item.source === "call"
+            ? `/api/action-items/${item.id}`
+            : `/api/meetings/${item.meeting?.id}/action-items`;
 
-      const response = await fetch(endpoint, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
+        const body =
+          item.source === "call"
+            ? { status: newStatus }
+            : { actionItemId: item.id, status: newStatus };
+
+        response = await fetch(endpoint, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+      }
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        setError(errorData.error?.message || "Failed to update action item");
+        setError(errorData.error?.message || "Failed to update task");
         return;
       }
 
       // Refresh the list
       fetchActionItems();
     } catch (err) {
-      console.error("Error updating action item:", err);
-      setError("Failed to update action item. Please try again.");
+      console.error("Error updating task:", err);
+      setError("Failed to update task. Please try again.");
     } finally {
       setUpdatingItemId(null);
     }
@@ -183,9 +216,9 @@ export default function ActionItemsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">My Action Items</h1>
+          <h1 className="text-3xl font-bold tracking-tight">My Tasks</h1>
           <p className="text-muted-foreground">
-            Action items assigned to you from meeting summaries.
+            Tasks assigned to you from calls, meetings, and reminders.
           </p>
         </div>
       </div>
@@ -208,6 +241,24 @@ export default function ActionItemsPage() {
             <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
             <SelectItem value="COMPLETED">Completed</SelectItem>
             <SelectItem value="CANCELLED">Cancelled</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Select
+          value={sourceFilter}
+          onValueChange={(value) => {
+            setSourceFilter(value);
+            setPage(1);
+          }}
+        >
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Filter by source" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Sources</SelectItem>
+            <SelectItem value="call">Calls</SelectItem>
+            <SelectItem value="meeting">Meetings</SelectItem>
+            <SelectItem value="reminder">Reminders</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -249,11 +300,11 @@ export default function ActionItemsPage() {
                 <TableCell colSpan={5} className="text-center py-8">
                   <div className="text-muted-foreground">
                     <ListChecks className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                    <p>No action items found</p>
+                    <p>No tasks found</p>
                     <p className="text-sm">
-                      {statusFilter !== "all"
-                        ? "Try changing the status filter."
-                        : "Action items assigned to you from calls and meetings will appear here."}
+                      {statusFilter !== "all" || sourceFilter !== "all"
+                        ? "Try changing the filters."
+                        : "Tasks assigned to you from calls, meetings, and reminders will appear here."}
                     </p>
                   </div>
                 </TableCell>
@@ -366,6 +417,25 @@ export default function ActionItemsPage() {
                               {formatSourceDate(item)}
                             </p>
                           )}
+                        </>
+                      ) : item.source === "reminder" && item.reminder ? (
+                        <>
+                          <button
+                            onClick={() =>
+                              router.push(`/clients/${item.reminder!.clientId}`)
+                            }
+                            className="flex items-center gap-1 text-sm text-primary hover:underline"
+                          >
+                            <Bell className="h-3 w-3 flex-shrink-0" />
+                            <span className="truncate max-w-[150px]">
+                              Reminder
+                            </span>
+                            <ExternalLink className="h-3 w-3 flex-shrink-0" />
+                          </button>
+                          <p className="text-xs text-muted-foreground flex items-center gap-1">
+                            <Users className="h-3 w-3" />
+                            {item.reminder.clientName}
+                          </p>
                         </>
                       ) : (
                         <span className="text-muted-foreground">-</span>
