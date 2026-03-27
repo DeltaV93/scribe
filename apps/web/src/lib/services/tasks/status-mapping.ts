@@ -1,11 +1,11 @@
 /**
  * Status mapping utilities for unified action items/tasks view
  *
- * Maps between ReminderStatus and ActionItemStatus to provide a unified
- * task interface across calls, meetings, and reminders.
+ * Maps between ReminderStatus, DraftStatus, and ActionItemStatus to provide a unified
+ * task interface across calls, meetings, conversations, and reminders.
  */
 
-import { ReminderStatus } from "@prisma/client";
+import { ReminderStatus, DraftStatus } from "@prisma/client";
 
 export type ActionItemStatus = "OPEN" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED";
 
@@ -92,4 +92,52 @@ export function numericPriorityToString(priority: number | null | undefined): st
   if (priority === 1) return "HIGH";
   if (priority === 3) return "LOW";
   return "NORMAL";
+}
+
+/**
+ * Map DraftStatus (from DraftedOutput/Conversations) to ActionItemStatus
+ *
+ * Mapping:
+ * - PENDING, FAILED → OPEN (needs attention)
+ * - APPROVED → IN_PROGRESS (approved, awaiting push)
+ * - PUSHED → COMPLETED (successfully sent to destination)
+ * - REJECTED → CANCELLED
+ */
+export function draftStatusToActionItemStatus(
+  draftStatus: DraftStatus
+): ActionItemStatus {
+  switch (draftStatus) {
+    case "PENDING":
+    case "FAILED":
+      return "OPEN";
+    case "APPROVED":
+      return "IN_PROGRESS";
+    case "PUSHED":
+      return "COMPLETED";
+    case "REJECTED":
+      return "CANCELLED";
+    default:
+      return "OPEN";
+  }
+}
+
+/**
+ * Get draft statuses that map to a given action item status
+ * Used for filtering conversation action items by action item status
+ */
+export function actionItemStatusToDraftStatuses(
+  actionStatus: ActionItemStatus
+): DraftStatus[] {
+  switch (actionStatus) {
+    case "OPEN":
+      return ["PENDING", "FAILED"];
+    case "IN_PROGRESS":
+      return ["APPROVED"];
+    case "COMPLETED":
+      return ["PUSHED"];
+    case "CANCELLED":
+      return ["REJECTED"];
+    default:
+      return ["PENDING", "FAILED"];
+  }
 }

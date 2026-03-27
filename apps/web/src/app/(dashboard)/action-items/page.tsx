@@ -35,9 +35,10 @@ import {
   Phone,
   Bell,
   Users,
+  MessageSquare,
 } from "lucide-react";
 import { format } from "date-fns";
-import type { ReminderStatus } from "@prisma/client";
+import type { ReminderStatus, DraftStatus } from "@prisma/client";
 
 interface ActionItem {
   id: string;
@@ -49,7 +50,7 @@ interface ActionItem {
   status: "OPEN" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED";
   contextSnippet: string | null;
   createdAt: string;
-  source: "call" | "meeting" | "reminder";
+  source: "call" | "meeting" | "conversation" | "reminder";
   call?: {
     id: string;
     clientId: string;
@@ -60,6 +61,12 @@ interface ActionItem {
     title: string;
     actualStartAt: string | null;
     scheduledStartAt: string | null;
+  };
+  conversation?: {
+    id: string;
+    title: string | null;
+    startedAt: string;
+    originalStatus: DraftStatus;
   };
   reminder?: {
     id: string;
@@ -151,6 +158,26 @@ export default function ActionItemsPage() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ status: "PENDING" }),
           });
+        }
+      } else if (item.source === "conversation" && item.conversation) {
+        // For conversation outputs, use approve/reopen endpoints
+        if (newStatus === "COMPLETED") {
+          response = await fetch(
+            `/api/conversations/${item.conversation.id}/outputs/${item.id}/approve`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+            }
+          );
+        } else {
+          // Reopen: set status back to PENDING
+          response = await fetch(
+            `/api/conversations/${item.conversation.id}/outputs/${item.id}/reopen`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+            }
+          );
         }
       } else {
         // Use appropriate endpoint based on source (call or meeting)
@@ -258,6 +285,7 @@ export default function ActionItemsPage() {
             <SelectItem value="all">All Sources</SelectItem>
             <SelectItem value="call">Calls</SelectItem>
             <SelectItem value="meeting">Meetings</SelectItem>
+            <SelectItem value="conversation">Conversations</SelectItem>
             <SelectItem value="reminder">Reminders</SelectItem>
           </SelectContent>
         </Select>
@@ -417,6 +445,24 @@ export default function ActionItemsPage() {
                               {formatSourceDate(item)}
                             </p>
                           )}
+                        </>
+                      ) : item.source === "conversation" && item.conversation ? (
+                        <>
+                          <button
+                            onClick={() =>
+                              router.push(`/conversations/${item.conversation!.id}`)
+                            }
+                            className="flex items-center gap-1 text-sm text-primary hover:underline"
+                          >
+                            <MessageSquare className="h-3 w-3 flex-shrink-0" />
+                            <span className="truncate max-w-[150px]">
+                              {item.conversation.title || "Conversation"}
+                            </span>
+                            <ExternalLink className="h-3 w-3 flex-shrink-0" />
+                          </button>
+                          <p className="text-xs text-muted-foreground">
+                            {format(new Date(item.conversation.startedAt), "MMM d, yyyy")}
+                          </p>
                         </>
                       ) : item.source === "reminder" && item.reminder ? (
                         <>

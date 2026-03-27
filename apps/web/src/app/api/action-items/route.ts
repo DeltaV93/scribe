@@ -2,16 +2,23 @@
  * Action Items API (My Tasks)
  *
  * GET /api/action-items - Get action items assigned to the current user
- * Combines action items from calls, meetings, and reminders into a unified task view
+ * Combines action items from calls, meetings, conversations, and reminders into a unified task view
  */
 
 import { NextRequest, NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
-import { Prisma, ReminderStatus } from "@prisma/client";
+import {
+  Prisma,
+  ReminderStatus,
+  DraftStatus,
+  WorkflowOutputType,
+} from "@prisma/client";
 import {
   reminderToActionItemStatus,
   actionItemStatusToReminderStatuses,
+  draftStatusToActionItemStatus,
+  actionItemStatusToDraftStatuses,
   numericPriorityToString,
 } from "@/lib/services/tasks/status-mapping";
 
@@ -25,7 +32,7 @@ interface UnifiedActionItem {
   status: "OPEN" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED";
   contextSnippet: string | null;
   createdAt: string;
-  source: "call" | "meeting" | "reminder";
+  source: "call" | "meeting" | "conversation" | "reminder";
   call?: {
     id: string;
     clientId: string;
@@ -36,6 +43,12 @@ interface UnifiedActionItem {
     title: string;
     actualStartAt: string | null;
     scheduledStartAt: string | null;
+  };
+  conversation?: {
+    id: string;
+    title: string | null;
+    startedAt: string;
+    originalStatus: DraftStatus;
   };
   reminder?: {
     id: string;
@@ -58,7 +71,7 @@ function priorityToString(priority: number | null | undefined): string {
  *
  * Query params:
  * - status: Filter by status (OPEN, IN_PROGRESS, COMPLETED, CANCELLED)
- * - source: Filter by source (call, meeting, reminder, or all)
+ * - source: Filter by source (call, meeting, conversation, reminder, or all)
  * - limit: Number of items to return (default 50, max 100)
  * - offset: Number of items to skip (default 0)
  */
@@ -77,6 +90,7 @@ export async function GET(request: NextRequest) {
     const sourceFilter = searchParams.get("source") as
       | "call"
       | "meeting"
+      | "conversation"
       | "reminder"
       | null;
     const limit = Math.min(
@@ -293,6 +307,73 @@ export async function GET(request: NextRequest) {
             clientId: reminder.client.id,
             clientName,
             originalStatus: reminder.status,
+          },
+        });
+      }
+    }
+
+    // Fetch conversation action items (DraftedOutput with ACTION_ITEM type)
+    if (!sourceFilter || sourceFilter === "conversation") {
+      // Map action item status to draft statuses for filtering
+      const draftStatuses = status
+        ? actionItemStatusToDraftStatuses(status)
+        : undefined;
+
+      const draftWhere: Prisma.DraftedOutputWhereInput = {
+        outputType: WorkflowOutputType.ACTION_ITEM,
+        conversation: {
+          orgId: user.orgId,
+          createdById: user.id, // Show action items from conversations user created
+        },
+        // Filter by status if provided, otherwise show non-completed
+        ...(draftStatuses
+          ? { status: { in: draftStatuses } }
+          : {
+              status: {
+                in: [DraftStatus.PENDING, DraftStatus.APPROVED, DraftStatus.FAILED],
+              },
+            }),
+      };
+
+      const draftedOutputs = await prisma.draftedOutput.findMany({
+        where: draftWhere,
+        include: {
+          conversation: {
+            select: {
+              id: true,
+              title: true,
+              startedAt: true,
+            },
+          },
+        },
+        orderBy: [{ createdAt: "desc" }],
+      });
+
+      for (const draft of draftedOutputs) {
+        // Parse metadata for assignee and due date info
+        const metadata = (draft.metadata as Record<string, unknown>) || {};
+        const assigneeName = (metadata.assignee as string) || null;
+        const dueDate = metadata.dueDate
+          ? new Date(metadata.dueDate as string).toISOString()
+          : null;
+        const priority = (metadata.priority as string) || "NORMAL";
+
+        results.push({
+          id: draft.id,
+          description: draft.title || draft.content.substring(0, 200),
+          assigneeName,
+          assigneeUserId: null, // DraftedOutput doesn't link to user
+          dueDate,
+          priority,
+          status: draftStatusToActionItemStatus(draft.status),
+          contextSnippet: draft.sourceSnippet,
+          createdAt: draft.createdAt.toISOString(),
+          source: "conversation",
+          conversation: {
+            id: draft.conversation.id,
+            title: draft.conversation.title,
+            startedAt: draft.conversation.startedAt.toISOString(),
+            originalStatus: draft.status,
           },
         });
       }
