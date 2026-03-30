@@ -27,3 +27,6 @@ export {
   getNotionDatabases,
   testNotionConnection,
 } from "./notion";
+
+// Notion Adapter (PX-1006)
+export { NotionAdapter, notionAdapter } from "./notion/adapter";

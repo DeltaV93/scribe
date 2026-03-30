@@ -63,10 +63,62 @@ export {
   getUserConnectionStatus,
 } from "./user-token-store";
 
-// Service registry
+// Service registry (legacy WorkflowService)
 export {
   getWorkflowService,
   getWorkflowServiceAsync,
   hasWorkflowService,
   getSupportedPlatforms,
 } from "./registry";
+
+// Adapter registry (PX-1006 - IntegrationAdapter)
+export {
+  getAdapter,
+  hasAdapter,
+  getAdapterPlatforms,
+  getAdaptersByCategory,
+  pushToAdapter,
+  getPlatformsForOutputType,
+  canPlatformHandleOutput,
+  listAdapters,
+  getAdapterInfo,
+} from "./adapter-registry";
+export type { AdapterInfo } from "./adapter-registry";
+
+// Adapter interface (PX-1002)
+export type {
+  IntegrationAdapter,
+  OAuthTokens,
+  ConnectionTestResult,
+  PlatformResources,
+  PushOperation,
+  PushResult,
+  Workspace,
+  Team,
+  Project,
+  Database,
+  Channel,
+  Folder,
+} from "./adapter";
+export { isIntegrationAdapter, resourceToDbFormat } from "./adapter";
+
+// Push queue (PX-1002)
+export {
+  createPushJob,
+  createMultiDestinationPushJobs,
+  processPushJob,
+  getPendingJobs,
+  getJobStatus,
+  getJobsForOutput,
+  processAllPendingJobs,
+} from "./push-queue";
+export type { CreatePushJobInput, PushJobResult, ProcessJobResult } from "./push-queue";
+
+// Sensitivity check (PX-1002)
+export {
+  checkOutputSensitivity,
+  checkConversationSensitivity,
+  getPushableOutputs,
+  isOutputTypeCompatibleWithPlatform,
+} from "./sensitivity-check";
+export type { SensitivityCheckResult } from "./sensitivity-check";

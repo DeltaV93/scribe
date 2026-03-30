@@ -106,6 +106,14 @@ const PROVIDER_DEFAULTS: Record<
     scopes: ["Calendars.ReadWrite", "offline_access"],
     iconUrl: "/integrations/outlook.svg",
   },
+  SLACK: {
+    displayName: "Slack",
+    category: "COMMUNICATION",
+    authorizeUrl: "https://slack.com/oauth/v2/authorize",
+    tokenUrl: "https://slack.com/api/oauth.v2.access",
+    scopes: ["chat:write", "channels:read", "groups:read", "users:read"],
+    iconUrl: "/integrations/slack.svg",
+  },
 };
 
 // ============================================
@@ -139,6 +147,10 @@ const ENV_VAR_MAPPING: Record<IntegrationPlatform, { clientId: string; clientSec
   OUTLOOK_CALENDAR: {
     clientId: "MICROSOFT_CLIENT_ID",
     clientSecret: "MICROSOFT_CLIENT_SECRET",
+  },
+  SLACK: {
+    clientId: "SLACK_CLIENT_ID",
+    clientSecret: "SLACK_CLIENT_SECRET",
   },
 };
 
@@ -467,6 +479,11 @@ export async function buildAuthorizationUrl(
     case "OUTLOOK_CALENDAR":
       if (config.scopes.length) {
         url.searchParams.set("scope", config.scopes.join(" "));
+      }
+      break;
+    case "SLACK":
+      if (config.scopes.length) {
+        url.searchParams.set("scope", config.scopes.join(","));
       }
       break;
   }

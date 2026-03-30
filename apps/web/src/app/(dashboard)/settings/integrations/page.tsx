@@ -1,16 +1,26 @@
 /**
- * Integrations Settings Page
+ * Integrations Settings Page (PX-1003)
  *
- * Allows users to connect/disconnect:
- * - Meeting platforms (Teams, Zoom, Google Meet)
+ * Allows admins to manage organization integrations:
  * - Calendar providers (Google, Outlook, Apple)
+ * - Meeting platforms (Teams, Zoom, Google Meet)
+ * - Workflow platforms (Linear, Notion, Jira)
+ * - Communication (Slack, Gmail, Teams Chat)
+ * - Coming soon integrations (Wave 2/3)
  */
 
 import { Suspense } from "react";
 import { requireAuth, isAdmin } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { IntegrationsContent } from "./integrations-content";
-import { CalendarIntegrationSection, AdminWorkflowPlatformsSection } from "./components";
+import {
+  CalendarIntegrationSection,
+  AdminWorkflowPlatformsSection,
+  CommunicationSection,
+  DocumentationSection,
+  ProjectManagementSection,
+  ComingSoonSection,
+} from "./components";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default async function IntegrationsPage() {
@@ -51,6 +61,34 @@ export default async function IntegrationsPage() {
       <section>
         <Suspense fallback={<IntegrationsSkeleton />}>
           <AdminWorkflowPlatformsSection />
+        </Suspense>
+      </section>
+
+      {/* Communication Section (PX-1003) */}
+      <section>
+        <Suspense fallback={<IntegrationsSkeleton />}>
+          <CommunicationSection />
+        </Suspense>
+      </section>
+
+      {/* Documentation Section (PX-1003) */}
+      <section>
+        <Suspense fallback={<IntegrationsSkeleton />}>
+          <DocumentationSection />
+        </Suspense>
+      </section>
+
+      {/* Additional Project Management Section (PX-1003) */}
+      <section>
+        <Suspense fallback={<IntegrationsSkeleton />}>
+          <ProjectManagementSection />
+        </Suspense>
+      </section>
+
+      {/* Coming Soon Section (PX-1003) */}
+      <section>
+        <Suspense fallback={<IntegrationsSkeleton />}>
+          <ComingSoonSection />
         </Suspense>
       </section>
     </div>

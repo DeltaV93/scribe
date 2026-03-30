@@ -29,17 +29,16 @@ export enum OutputType {
  * Maps output types to platforms that can receive them.
  *
  * Note: Uses IntegrationPlatform enum values from Prisma.
- * Some platforms (SLACK, TEAMS, etc.) are planned but not yet in schema.
  */
 export const OUTPUT_COMPATIBILITY: Partial<Record<OutputType, IntegrationPlatform[]>> = {
-  [OutputType.ACTION_ITEM]: ["LINEAR", "JIRA", "NOTION"],
-  [OutputType.MEETING_NOTES]: ["NOTION", "GOOGLE_DOCS"],
+  [OutputType.ACTION_ITEM]: ["LINEAR", "JIRA", "NOTION", "SLACK"],
+  [OutputType.MEETING_NOTES]: ["NOTION", "GOOGLE_DOCS", "SLACK"],
+  [OutputType.SESSION_SUMMARY]: ["SLACK"],
+  [OutputType.MESSAGE]: ["SLACK"],
   // Future platforms:
   // [OutputType.CASE_NOTE]: ["SALESFORCE_NPSP", "APRICOT", "ETO"],
-  // [OutputType.SESSION_SUMMARY]: ["SLACK", "TEAMS"],
   // [OutputType.EMAIL_DRAFT]: ["GMAIL", "OUTLOOK"],
   // [OutputType.FOLLOW_UP]: ["SLACK", "TEAMS", "EMAIL"],
-  // [OutputType.MESSAGE]: ["SLACK", "TEAMS"],
 };
 
 // ============================================

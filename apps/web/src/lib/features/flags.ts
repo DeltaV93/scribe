@@ -25,6 +25,18 @@ export type FeatureFlag =
   | 'workflow-linear'
   | 'workflow-notion'
   | 'workflow-jira'
+  | 'workflow-slack'
+  // Communication Integrations (PX-1003)
+  | 'integration-slack'
+  | 'integration-gmail'
+  | 'integration-outlook'
+  | 'integration-teams'
+  // Documentation Integrations (PX-1003)
+  | 'integration-google-docs'
+  | 'integration-confluence'
+  // Project Management Integrations (PX-1003)
+  | 'integration-asana'
+  | 'integration-monday'
 
 // Feature flag configuration
 export interface FeatureFlagConfig {
@@ -54,6 +66,18 @@ const DEFAULT_FLAGS: Record<FeatureFlag, FeatureFlagConfig> = {
   'workflow-linear': { enabled: false },
   'workflow-notion': { enabled: false },
   'workflow-jira': { enabled: false },
+  'workflow-slack': { enabled: false },
+  // Communication Integrations (PX-1003)
+  'integration-slack': { enabled: false },
+  'integration-gmail': { enabled: false },
+  'integration-outlook': { enabled: false },
+  'integration-teams': { enabled: false },
+  // Documentation Integrations (PX-1003)
+  'integration-google-docs': { enabled: false },
+  'integration-confluence': { enabled: false },
+  // Project Management Integrations (PX-1003)
+  'integration-asana': { enabled: false },
+  'integration-monday': { enabled: false },
 }
 
 /**
@@ -214,7 +238,7 @@ export async function requireFeatureEnabled(
 /**
  * Workflow platform types that can be enabled by admins
  */
-export type WorkflowPlatformFlag = 'workflow-linear' | 'workflow-notion' | 'workflow-jira'
+export type WorkflowPlatformFlag = 'workflow-linear' | 'workflow-notion' | 'workflow-jira' | 'workflow-slack'
 
 /**
  * Map from IntegrationPlatform enum to feature flag
@@ -223,6 +247,7 @@ const PLATFORM_TO_FLAG: Record<string, WorkflowPlatformFlag> = {
   LINEAR: 'workflow-linear',
   NOTION: 'workflow-notion',
   JIRA: 'workflow-jira',
+  SLACK: 'workflow-slack',
 }
 
 /**
@@ -230,7 +255,7 @@ const PLATFORM_TO_FLAG: Record<string, WorkflowPlatformFlag> = {
  */
 export async function isWorkflowPlatformEnabled(
   orgId: string,
-  platform: 'LINEAR' | 'NOTION' | 'JIRA'
+  platform: 'LINEAR' | 'NOTION' | 'JIRA' | 'SLACK'
 ): Promise<boolean> {
   const flag = PLATFORM_TO_FLAG[platform]
   if (!flag) return false
@@ -242,13 +267,14 @@ export async function isWorkflowPlatformEnabled(
  */
 export async function getEnabledWorkflowPlatforms(
   orgId: string
-): Promise<Array<'LINEAR' | 'NOTION' | 'JIRA'>> {
+): Promise<Array<'LINEAR' | 'NOTION' | 'JIRA' | 'SLACK'>> {
   const flags = await getFeatureFlags(orgId)
-  const enabled: Array<'LINEAR' | 'NOTION' | 'JIRA'> = []
+  const enabled: Array<'LINEAR' | 'NOTION' | 'JIRA' | 'SLACK'> = []
 
   if (flags['workflow-linear']?.enabled) enabled.push('LINEAR')
   if (flags['workflow-notion']?.enabled) enabled.push('NOTION')
   if (flags['workflow-jira']?.enabled) enabled.push('JIRA')
+  if (flags['workflow-slack']?.enabled) enabled.push('SLACK')
 
   return enabled
 }

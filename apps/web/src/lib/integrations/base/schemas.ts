@@ -12,7 +12,7 @@ import { z } from "zod";
 // ============================================
 
 export const oauthStateSchema = z.object({
-  platform: z.enum(["LINEAR", "NOTION", "JIRA"]),
+  platform: z.enum(["LINEAR", "NOTION", "JIRA", "SLACK"]),
   orgId: z.string().uuid(),
   userId: z.string().uuid(),
   redirectUrl: z.string().optional(),
@@ -93,6 +93,43 @@ export type JiraAccessibleResources = z.infer<
   typeof jiraAccessibleResourcesSchema
 >;
 
+/**
+ * Slack OAuth token response
+ * Slack returns authed_user info alongside bot token
+ */
+export const slackTokenResponseSchema = z.object({
+  ok: z.literal(true),
+  access_token: z.string().min(1),
+  token_type: z.literal("bot").optional(),
+  scope: z.string().optional(),
+  bot_user_id: z.string().optional(),
+  app_id: z.string().optional(),
+  team: z
+    .object({
+      id: z.string(),
+      name: z.string(),
+    })
+    .optional(),
+  authed_user: z
+    .object({
+      id: z.string(),
+      scope: z.string().optional(),
+      access_token: z.string().optional(),
+      token_type: z.string().optional(),
+    })
+    .optional(),
+  enterprise: z
+    .object({
+      id: z.string(),
+      name: z.string(),
+    })
+    .nullable()
+    .optional(),
+  is_enterprise_install: z.boolean().optional(),
+});
+
+export type SlackTokenResponse = z.infer<typeof slackTokenResponseSchema>;
+
 // ============================================
 // Connection Status Schemas
 // ============================================
@@ -148,8 +185,8 @@ export const meetingNotesDraftSchema = z.object({
 // ============================================
 
 export const pushOutputRequestSchema = z.object({
-  platform: z.enum(["LINEAR", "NOTION", "JIRA"]),
-  outputType: z.enum(["ACTION_ITEM", "MEETING_NOTES"]),
+  platform: z.enum(["LINEAR", "NOTION", "JIRA", "SLACK"]),
+  outputType: z.enum(["ACTION_ITEM", "MEETING_NOTES", "SESSION_SUMMARY"]),
   config: z
     .object({
       teamId: z.string().optional(),
@@ -157,6 +194,7 @@ export const pushOutputRequestSchema = z.object({
       databaseId: z.string().optional(),
       parentPageId: z.string().optional(),
       issueType: z.string().optional(),
+      channelId: z.string().optional(), // Slack channel
     })
     .optional(),
 });
@@ -178,13 +216,14 @@ export const oauthErrorSchema = z.object({
  * Validate and parse token response for a platform
  */
 export function validateTokenResponse(
-  platform: "LINEAR" | "NOTION" | "JIRA",
+  platform: "LINEAR" | "NOTION" | "JIRA" | "SLACK",
   data: unknown
 ): { success: true; data: unknown } | { success: false; error: string } {
   const schemas = {
     LINEAR: linearTokenResponseSchema,
     NOTION: notionTokenResponseSchema,
     JIRA: jiraTokenResponseSchema,
+    SLACK: slackTokenResponseSchema,
   };
 
   const schema = schemas[platform];

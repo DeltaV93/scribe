@@ -20,7 +20,7 @@ import { IntegrationPlatform } from "@prisma/client";
  */
 export type WorkflowPlatform = Extract<
   IntegrationPlatform,
-  "LINEAR" | "NOTION" | "JIRA"
+  "LINEAR" | "NOTION" | "JIRA" | "SLACK"
 >;
 
 /**
@@ -29,7 +29,7 @@ export type WorkflowPlatform = Extract<
 export function isWorkflowPlatform(
   platform: IntegrationPlatform
 ): platform is WorkflowPlatform {
-  return ["LINEAR", "NOTION", "JIRA"].includes(platform);
+  return ["LINEAR", "NOTION", "JIRA", "SLACK"].includes(platform);
 }
 
 // ============================================
@@ -143,6 +143,10 @@ export interface PlatformConfig {
   siteUrl?: string;
   projectKey?: string;
   defaultIssueType?: string;
+
+  // Slack
+  channelId?: string;
+  channelName?: string;
 }
 
 /**

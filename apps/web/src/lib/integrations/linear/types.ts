@@ -1,5 +1,5 @@
 /**
- * Linear-specific types (PX-882)
+ * Linear-specific types (PX-882, PX-1007)
  */
 
 export interface LinearIssue {
@@ -18,6 +18,13 @@ export interface LinearTeam {
 export interface LinearProject {
   id: string;
   name: string;
+}
+
+export interface LinearLabel {
+  id: string;
+  name: string;
+  color: string;
+  teamId?: string;
 }
 
 export interface LinearCreateIssueResponse {

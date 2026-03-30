@@ -34,6 +34,7 @@ export type EndpointCategory =
   | 'public'
   | 'health'
   | 'external_api'
+  | 'integration_push'
 
 /**
  * Rate limit configurations by endpoint category
@@ -98,6 +99,14 @@ export const RATE_LIMIT_CONFIGS: Record<EndpointCategory, RateLimitConfig> = {
     trackByIp: false,
     message: 'External API rate limit exceeded. Please wait before making more requests.',
   },
+  integration_push: {
+    limit: 100,
+    windowSeconds: 60 * 60, // 1 hour
+    name: 'Integration Push',
+    trackByUser: true,
+    trackByIp: false,
+    message: 'Integration push limit exceeded. Please wait before sending more outputs.',
+  },
 }
 
 /**
@@ -143,6 +152,10 @@ export const ROUTE_PATTERNS: RoutePattern[] = [
   // External API calls (calendar, AI, etc.) - per-user limits
   { pattern: '/api/integrations/calendar/*', category: 'external_api' },
   { pattern: '/api/scheduling/*', category: 'external_api' },
+
+  // Integration push endpoints - per-user limits (PX-1002)
+  { pattern: '/api/integrations/push/*', methods: ['POST'], category: 'integration_push' },
+  { pattern: '/api/outputs/*/push', methods: ['POST'], category: 'integration_push' },
 
   // All other API endpoints - standard authenticated limits
   { pattern: '/api/*', category: 'api' },

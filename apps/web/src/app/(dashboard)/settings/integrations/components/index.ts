@@ -15,3 +15,10 @@ export { ConnectedCalendarCard } from "./ConnectedCalendarCard";
 export { AdminWorkflowPlatformsSection } from "./AdminWorkflowPlatformsSection";
 // Legacy: Org-level OAuth connection (deprecated, kept for reference)
 export { WorkflowIntegrationSection } from "./WorkflowIntegrationSection";
+
+// Integration Hub (PX-1002/PX-1003)
+export { IntegrationCard } from "./IntegrationCard";
+export { CommunicationSection } from "./CommunicationSection";
+export { DocumentationSection } from "./DocumentationSection";
+export { ProjectManagementSection } from "./ProjectManagementSection";
+export { ComingSoonSection } from "./ComingSoonSection";

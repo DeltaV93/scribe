@@ -73,6 +73,10 @@ const REFRESH_CONFIGS: Record<IntegrationPlatform, RefreshConfig> = {
     authMethod: "body",
     refreshBuffer: 300,
   },
+  SLACK: {
+    // Slack bot tokens don't expire
+    supportsRefresh: false,
+  },
 };
 
 // ============================================
@@ -160,6 +164,14 @@ function getPlatformCredentials(platform: IntegrationPlatform): {
       return {
         clientId: process.env.MICROSOFT_CLIENT_ID,
         clientSecret: process.env.MICROSOFT_CLIENT_SECRET,
+      };
+    case "SLACK":
+      if (!process.env.SLACK_CLIENT_ID || !process.env.SLACK_CLIENT_SECRET) {
+        return null;
+      }
+      return {
+        clientId: process.env.SLACK_CLIENT_ID,
+        clientSecret: process.env.SLACK_CLIENT_SECRET,
       };
     default:
       return null;

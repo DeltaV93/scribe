@@ -126,7 +126,7 @@ export function validateRedirectUrl(url: string | undefined | null): string {
  * base64url token for CSRF protection.
  */
 export function generateOAuthState(
-  platform: "LINEAR" | "NOTION" | "JIRA",
+  platform: "LINEAR" | "NOTION" | "JIRA" | "SLACK",
   orgId: string,
   userId: string,
   redirectUrl?: string

@@ -1,21 +1,29 @@
 /**
- * Workflow Integrations - Service Registry (PX-882)
+ * Workflow Integrations - Service Registry (PX-882, PX-1007)
  *
- * Factory pattern for getting platform-specific WorkflowService instances.
+ * Factory pattern for getting platform-specific WorkflowService and IntegrationAdapter instances.
  *
  * Design Patterns:
- * - Factory: getWorkflowService returns platform-specific implementation
+ * - Factory: getWorkflowService/getIntegrationAdapter returns platform-specific implementation
  * - Registry: Maps platform enum to service instances
  * - Lazy Loading: Services are created on first access
  *
  * Usage:
  * ```typescript
+ * // Legacy WorkflowService pattern
  * const service = getWorkflowService("LINEAR");
  * const result = await service.pushActionItem(token, draft, config);
+ *
+ * // New IntegrationAdapter pattern (PX-1007)
+ * const adapter = await getIntegrationAdapterAsync("LINEAR");
+ * const result = await adapter.push({ type, payload, destination, accessToken });
  * ```
  */
 
+import { IntegrationPlatform } from "@prisma/client";
 import type { WorkflowService, WorkflowPlatform } from "./types";
+import type { IntegrationAdapter } from "./adapter";
+import { isIntegrationAdapter } from "./adapter";
 
 // ============================================
 // Service Registry
@@ -42,6 +50,10 @@ const serviceFactories: Record<WorkflowPlatform, () => Promise<WorkflowService>>
   JIRA: async () => {
     const { JiraWorkflowService } = await import("../jira/service");
     return new JiraWorkflowService();
+  },
+  SLACK: async () => {
+    const { SlackWorkflowService } = await import("../slack/service");
+    return new SlackWorkflowService();
   },
 };
 
@@ -153,6 +165,10 @@ function createLazyService(platform: WorkflowPlatform): LazyWorkflowService {
           return !!(
             process.env.JIRA_CLIENT_ID && process.env.JIRA_CLIENT_SECRET
           );
+        case "SLACK":
+          return !!(
+            process.env.SLACK_CLIENT_ID && process.env.SLACK_CLIENT_SECRET
+          );
         default:
           return false;
       }
@@ -198,6 +214,17 @@ function createLazyService(platform: WorkflowPlatform): LazyWorkflowService {
             clientId: process.env.JIRA_CLIENT_ID,
             clientSecret: process.env.JIRA_CLIENT_SECRET,
           };
+        case "SLACK":
+          if (!process.env.SLACK_CLIENT_ID || !process.env.SLACK_CLIENT_SECRET) {
+            return null;
+          }
+          return {
+            authUrl: "https://slack.com/oauth/v2/authorize",
+            tokenUrl: "https://slack.com/api/oauth.v2.access",
+            scopes: ["chat:write", "channels:read", "groups:read", "users:read"],
+            clientId: process.env.SLACK_CLIENT_ID,
+            clientSecret: process.env.SLACK_CLIENT_SECRET,
+          };
         default:
           return null;
       }
@@ -216,7 +243,9 @@ function createLazyService(platform: WorkflowPlatform): LazyWorkflowService {
       url.searchParams.set("state", state);
 
       if (config.scopes?.length) {
-        url.searchParams.set("scope", config.scopes.join(" "));
+        // Slack uses comma-separated scopes
+        const scopeSeparator = platform === "SLACK" ? "," : " ";
+        url.searchParams.set("scope", config.scopes.join(scopeSeparator));
       }
 
       // Platform-specific params
@@ -257,4 +286,88 @@ function createLazyService(platform: WorkflowPlatform): LazyWorkflowService {
       return service.pushMeetingNotes(accessToken, draft, config);
     },
   };
+}
+
+// ============================================
+// IntegrationAdapter Registry (PX-1007)
+// ============================================
+
+/**
+ * Registry of IntegrationAdapter instances
+ * Separate from WorkflowService registry for type safety
+ */
+const adapterRegistry: Partial<Record<IntegrationPlatform, IntegrationAdapter>> = {};
+
+/**
+ * Platforms that implement the full IntegrationAdapter interface
+ */
+const ADAPTER_PLATFORMS: IntegrationPlatform[] = ["LINEAR"];
+
+/**
+ * Get an IntegrationAdapter asynchronously
+ *
+ * Returns only services that implement the full IntegrationAdapter interface,
+ * not just the older WorkflowService interface.
+ *
+ * @throws Error if platform does not implement IntegrationAdapter
+ */
+export async function getIntegrationAdapterAsync(
+  platform: IntegrationPlatform
+): Promise<IntegrationAdapter> {
+  // Check if already loaded
+  const cached = adapterRegistry[platform];
+  if (cached) {
+    return cached;
+  }
+
+  // Check if this platform supports IntegrationAdapter
+  if (!ADAPTER_PLATFORMS.includes(platform)) {
+    throw new Error(
+      `Platform ${platform} does not implement IntegrationAdapter. ` +
+        `Supported platforms: ${ADAPTER_PLATFORMS.join(", ")}`
+    );
+  }
+
+  // Load the service and verify it implements IntegrationAdapter
+  const service = await loadAdapterService(platform);
+
+  if (!isIntegrationAdapter(service)) {
+    throw new Error(
+      `Platform ${platform} service does not implement IntegrationAdapter interface`
+    );
+  }
+
+  adapterRegistry[platform] = service;
+  return service;
+}
+
+/**
+ * Check if a platform implements IntegrationAdapter
+ */
+export function hasIntegrationAdapter(platform: IntegrationPlatform): boolean {
+  return ADAPTER_PLATFORMS.includes(platform);
+}
+
+/**
+ * Get all platforms that implement IntegrationAdapter
+ */
+export function getIntegrationAdapterPlatforms(): IntegrationPlatform[] {
+  return [...ADAPTER_PLATFORMS];
+}
+
+/**
+ * Load adapter service implementation
+ */
+async function loadAdapterService(
+  platform: IntegrationPlatform
+): Promise<IntegrationAdapter> {
+  switch (platform) {
+    case "LINEAR": {
+      const { LinearWorkflowService } = await import("../linear/service");
+      return new LinearWorkflowService();
+    }
+    // Future adapters will be added here as they implement IntegrationAdapter
+    default:
+      throw new Error(`No IntegrationAdapter factory for platform: ${platform}`);
+  }
 }
