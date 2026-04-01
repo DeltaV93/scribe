@@ -228,7 +228,9 @@ export async function recordingExists(key: string): Promise<boolean> {
     );
     return true;
   } catch (error) {
-    if ((error as { name?: string }).name === "NotFound") {
+    const errorName = (error as { name?: string }).name;
+    // AWS S3 returns "NotFound" or "NoSuchKey" depending on the SDK version/error type
+    if (errorName === "NotFound" || errorName === "NoSuchKey") {
       return false;
     }
     throw error;

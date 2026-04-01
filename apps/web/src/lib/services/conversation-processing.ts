@@ -13,12 +13,25 @@ import {
 } from "@/lib/deepgram/transcribe";
 import { detectSensitivity, type FlaggedSegmentResult } from "@/lib/nlp";
 import { generateWorkflowOutputs, type GeneratedOutputs } from "./workflow-outputs";
-import { transferRecordingToS3, isS3Configured, downloadRecording } from "@/lib/storage/s3";
+import { transferRecordingToS3, isS3Configured, downloadRecording, recordingExists } from "@/lib/storage/s3";
 import { isDeepgramConfigured } from "@/lib/deepgram/client";
 import { createAuditLog } from "@/lib/audit/service";
 
 const MAX_RETRIES = 3;
 const RETRY_DELAY_MS = 5000;
+const UPLOAD_WAIT_DELAY_MS = 30000; // 30 seconds - longer delay for "not yet uploaded"
+const PRESIGNED_URL_VALID_DURATION_MS = 60 * 60 * 1000; // 1 hour
+
+/**
+ * Custom error for when recording hasn't been uploaded yet
+ * (but upload window is still open)
+ */
+class RecordingNotYetUploadedError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "RecordingNotYetUploadedError";
+  }
+}
 
 export interface ProcessingResult {
   success: boolean;
@@ -44,6 +57,7 @@ interface ConversationWithOrg {
   aiProcessingRetries: number;
   formIds: string[];
   createdById: string;
+  createdAt: Date;
   organization: {
     id: string;
     recordingRetentionDays: number;
@@ -86,6 +100,46 @@ export async function processConversation(
         data: { recordingUrl: s3Key },
       });
       recordingSource = s3Key;
+    }
+
+    // Step 3.5: Verify recording exists in S3 before attempting to transcribe
+    if (recordingSource.startsWith("recordings/") || recordingSource.startsWith("in-person/")) {
+      const exists = await recordingExists(recordingSource);
+
+      if (!exists) {
+        console.log(`[ConversationProcessing] Recording not found in S3: ${recordingSource}`);
+
+        // Check if upload window is still open
+        const presignedUrlExpiresAt = new Date(
+          conversation.createdAt.getTime() + PRESIGNED_URL_VALID_DURATION_MS
+        );
+        const presignedUrlValid = presignedUrlExpiresAt > new Date();
+
+        if (presignedUrlValid) {
+          // Upload window still open - give more time for upload to complete
+          throw new RecordingNotYetUploadedError(
+            `Recording not yet uploaded. Upload window expires at ${presignedUrlExpiresAt.toISOString()}`
+          );
+        } else {
+          // Upload window expired - stop retrying and mark for recovery UI
+          console.log(`[ConversationProcessing] Upload window expired, marking as EXPIRED`);
+          await prisma.conversation.update({
+            where: { id: conversationId },
+            data: {
+              status: "RECORDING", // Keep as RECORDING for recovery UI
+              recoveryStatus: "EXPIRED",
+              aiProcessingStatus: ProcessingStatus.FAILED,
+              aiProcessingError: "Recording upload window expired - no audio file found",
+            },
+          });
+
+          return {
+            success: false,
+            conversationId,
+            error: "Recording not found and upload window expired",
+          };
+        }
+      }
     }
 
     // Step 4: Transcribe the recording
@@ -176,12 +230,12 @@ export async function processConversation(
     console.error(`[ConversationProcessing] Error:`, error);
 
     // Handle retry logic
-    const conversation = await prisma.conversation.findUnique({
+    const conversationForRetry = await prisma.conversation.findUnique({
       where: { id: conversationId },
       select: { aiProcessingRetries: true },
     });
 
-    const retries = (conversation?.aiProcessingRetries || 0) + 1;
+    const retries = (conversationForRetry?.aiProcessingRetries || 0) + 1;
 
     if (retries < MAX_RETRIES) {
       await prisma.conversation.update({
@@ -193,10 +247,19 @@ export async function processConversation(
         },
       });
 
+      // Use longer delay for "not yet uploaded" errors to give time for upload
+      const isUploadPending = error instanceof RecordingNotYetUploadedError;
+      const delayMs = isUploadPending ? UPLOAD_WAIT_DELAY_MS : RETRY_DELAY_MS * retries;
+
+      console.log(
+        `[ConversationProcessing] Scheduling retry ${retries}/${MAX_RETRIES} in ${delayMs}ms` +
+          (isUploadPending ? " (waiting for upload)" : "")
+      );
+
       // Schedule retry
       setTimeout(() => {
         processConversation(conversationId).catch(console.error);
-      }, RETRY_DELAY_MS * retries);
+      }, delayMs);
     } else {
       await prisma.conversation.update({
         where: { id: conversationId },
@@ -256,6 +319,7 @@ async function getConversationForProcessing(
       aiProcessingRetries: true,
       formIds: true,
       createdById: true,
+      createdAt: true,
       organization: {
         select: {
           id: true,
