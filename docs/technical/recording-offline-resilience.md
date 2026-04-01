@@ -4,6 +4,91 @@
 
 This document covers the technical implementation of offline resilience for in-person conversation recordings, ensuring audio data survives device failures, network issues, and browser crashes.
 
+---
+
+## Processing Pipeline - Missing Recording Handling
+
+### Problem
+
+The conversation processing pipeline would retry indefinitely when a recording didn't exist in S3, eventually marking the conversation as `FAILED` with no user recourse.
+
+### Solution
+
+Added a pre-flight check that verifies the recording exists before processing.
+
+**File:** `apps/web/src/lib/services/conversation-processing.ts`
+
+**Constants:**
+```typescript
+const MAX_RETRIES = 3;
+const RETRY_DELAY_MS = 5000;                    // 5s for normal errors
+const UPLOAD_WAIT_DELAY_MS = 30000;             // 30s for "not yet uploaded"
+const PRESIGNED_URL_VALID_DURATION_MS = 3600000; // 1 hour
+```
+
+**Flow:**
+```
+processConversation(id)
+       ↓
+  Fetch conversation
+       ↓
+  Check S3 existence ─── exists ──→ Continue to transcription
+       │
+   not exists
+       ↓
+  Check upload window
+       │
+   ┌───┴───┐
+ valid   expired
+   ↓        ↓
+ Throw   Mark EXPIRED
+ error   Return failure
+   ↓
+ Retry with 30s delay
+```
+
+**Error Handling:**
+```typescript
+class RecordingNotYetUploadedError extends Error {
+  name = "RecordingNotYetUploadedError";
+}
+
+// In catch block:
+const isUploadPending = error instanceof RecordingNotYetUploadedError;
+const delayMs = isUploadPending ? UPLOAD_WAIT_DELAY_MS : RETRY_DELAY_MS * retries;
+```
+
+### S3 Error Handling
+
+**File:** `apps/web/src/lib/storage/s3.ts`
+
+Fixed `recordingExists()` to handle both AWS error types:
+```typescript
+export async function recordingExists(key: string): Promise<boolean> {
+  try {
+    await client.send(new HeadObjectCommand({ Bucket: bucket, Key: key }));
+    return true;
+  } catch (error) {
+    const errorName = (error as { name?: string }).name;
+    if (errorName === "NotFound" || errorName === "NoSuchKey") {
+      return false;
+    }
+    throw error;
+  }
+}
+```
+
+### Behavior Matrix
+
+| Recording State | Upload Window | Action | Final Status |
+|-----------------|---------------|--------|--------------|
+| Exists in S3 | N/A | Process normally | COMPLETED/REVIEW |
+| Missing | Open (< 1hr) | Retry with 30s delay | Depends on outcome |
+| Missing | Expired (> 1hr) | Stop immediately | EXPIRED |
+| Missing | Expired, max retries | Stop | FAILED |
+
+---
+
 ## Components
 
 ### 1. IndexedDB Storage (Dexie.js)

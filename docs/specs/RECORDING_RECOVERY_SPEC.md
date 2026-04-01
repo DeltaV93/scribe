@@ -2,10 +2,116 @@
 
 ## Overview
 
-The Recording Recovery System provides resilience for in-person conversation recordings, ensuring that audio data is never lost due to device failures, network issues, or browser crashes. The system consists of two phases:
+The Recording Recovery System provides resilience for in-person conversation recordings, ensuring that audio data is never lost due to device failures, network issues, or browser crashes. The system consists of three components:
 
+- **Processing Pipeline Fix**: Pre-flight check to handle missing recordings gracefully
 - **Phase 1**: Detection & Recovery UI - Identifies stuck recordings and provides manual recovery options
 - **Phase 2**: Offline Resilience - Prevents data loss through IndexedDB backup, chunked uploads, and service workers
+
+---
+
+## Processing Pipeline - Missing Recording Handling
+
+### Problem
+
+When processing is triggered but the recording doesn't exist in S3:
+- The pipeline attempts to download the recording
+- S3 returns `NoSuchKey` error
+- Retry logic triggers (3 retries, 5s delay each)
+- After 3 retries, conversation marked as `FAILED`
+- User has no visibility into why processing failed
+
+### Solution
+
+Added a pre-flight check in `processConversation()` that verifies the recording exists before attempting to transcribe.
+
+**File:** `apps/web/src/lib/services/conversation-processing.ts`
+
+```typescript
+// Step 3.5: Verify recording exists in S3 before attempting to transcribe
+if (recordingSource.startsWith("recordings/") || recordingSource.startsWith("in-person/")) {
+  const exists = await recordingExists(recordingSource);
+
+  if (!exists) {
+    // Check if upload window is still open (1 hour from creation)
+    const presignedUrlExpiresAt = new Date(
+      conversation.createdAt.getTime() + PRESIGNED_URL_VALID_DURATION_MS
+    );
+    const presignedUrlValid = presignedUrlExpiresAt > new Date();
+
+    if (presignedUrlValid) {
+      // Upload window still open - retry with longer delay
+      throw new RecordingNotYetUploadedError(...);
+    } else {
+      // Upload window expired - mark for recovery UI
+      await prisma.conversation.update({
+        where: { id: conversationId },
+        data: {
+          status: "RECORDING",
+          recoveryStatus: "EXPIRED",
+          aiProcessingStatus: ProcessingStatus.FAILED,
+          aiProcessingError: "Recording upload window expired - no audio file found",
+        },
+      });
+      return { success: false, ... };
+    }
+  }
+}
+```
+
+### Retry Strategy
+
+| Scenario | Delay | Max Retries | Final Status |
+|----------|-------|-------------|--------------|
+| Recording exists | N/A | N/A | COMPLETED/REVIEW |
+| Missing, upload window open | 30 seconds | 3 | FAILED (after 90s total) |
+| Missing, upload window expired | None | 0 | EXPIRED (immediate) |
+| Other errors (network, transcription) | 5s × retry count | 3 | FAILED |
+
+### Error Types
+
+```typescript
+// Custom error for "not yet uploaded" - uses longer retry delay
+class RecordingNotYetUploadedError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "RecordingNotYetUploadedError";
+  }
+}
+```
+
+### S3 Error Handling Fix
+
+**File:** `apps/web/src/lib/storage/s3.ts`
+
+The `recordingExists()` function now catches both `NotFound` and `NoSuchKey` errors:
+
+```typescript
+export async function recordingExists(key: string): Promise<boolean> {
+  try {
+    await client.send(new HeadObjectCommand({ Bucket: bucket, Key: key }));
+    return true;
+  } catch (error) {
+    const errorName = (error as { name?: string }).name;
+    // AWS S3 returns "NotFound" or "NoSuchKey" depending on SDK version
+    if (errorName === "NotFound" || errorName === "NoSuchKey") {
+      return false;
+    }
+    throw error;
+  }
+}
+```
+
+### Integration with Recovery UI
+
+When a recording is marked `recoveryStatus: EXPIRED`:
+1. Stale recording cron won't touch it (already marked)
+2. Recovery UI shows "Upload Window Expired" badge
+3. User can either:
+   - Manually upload the recording file
+   - Abandon the conversation
+
+---
 
 ## Problem Statement
 
