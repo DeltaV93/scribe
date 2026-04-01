@@ -79,7 +79,7 @@ async function main() {
     });
     console.log('\nGoals with pending drafts:');
     for (const d of draftsWithGoals) {
-      console.log(`  - ${d.goalId}: ${d.goal.name}`);
+      console.log(`  - ${d.goalId}: ${d.goal?.name ?? 'No goal linked'}`);
     }
   } catch (error) {
     console.error('Error fetching goals with drafts:', error);
