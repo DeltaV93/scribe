@@ -4,6 +4,7 @@ import {
   GoalStatus,
   Prisma,
 } from "@prisma/client";
+import mlServices from "@/lib/ml-services/client";
 
 // ============================================
 // TYPES
@@ -857,4 +858,533 @@ function transformGoal(goal: any): GoalWithRelations {
       programs: programs.length,
     },
   };
+}
+
+// ============================================
+// GOAL EMBEDDINGS (Goal Deduplication Feature)
+// ============================================
+
+/**
+ * Generate and store embedding for a goal
+ * Fire-and-forget: logs errors but doesn't throw
+ */
+export async function updateGoalEmbedding(goalId: string): Promise<void> {
+  try {
+    // Fetch goal name and description
+    const goal = await prisma.goal.findUnique({
+      where: { id: goalId },
+      select: { id: true, name: true, description: true },
+    });
+
+    if (!goal) {
+      console.warn(`[updateGoalEmbedding] Goal not found: ${goalId}`);
+      return;
+    }
+
+    // Generate embedding via ml-services
+    const response = await mlServices.goalEmbeddings.generate({
+      name: goal.name,
+      description: goal.description ?? undefined,
+    });
+
+    // Store embedding in goal record
+    await prisma.goal.update({
+      where: { id: goalId },
+      data: {
+        embedding: response.embedding,
+        embeddingModel: response.model_name,
+        embeddingUpdatedAt: new Date(),
+      },
+    });
+  } catch (error) {
+    // Log but don't throw - embeddings are non-critical
+    console.error(`[updateGoalEmbedding] Failed to update embedding for goal ${goalId}:`, error);
+  }
+}
+
+// ============================================
+// SIMILAR GOALS SEARCH
+// ============================================
+
+export interface FindSimilarGoalsOptions {
+  threshold?: number; // Default 0.5
+  topK?: number; // Default 5
+  excludeIds?: string[];
+  excludeDrafts?: boolean; // Default true
+}
+
+export interface SimilarGoalResult {
+  goalId: string;
+  goalName: string;
+  similarity: number;
+}
+
+/**
+ * Find similar goals using embedding similarity
+ */
+export async function findSimilarGoals(
+  orgId: string,
+  queryText: string,
+  options?: FindSimilarGoalsOptions
+): Promise<SimilarGoalResult[]> {
+  const threshold = options?.threshold ?? 0.5;
+  const topK = options?.topK ?? 5;
+  const excludeIds = options?.excludeIds ?? [];
+  const excludeDrafts = options?.excludeDrafts ?? true;
+
+  try {
+    // Fetch goals with embeddings from this org
+    const whereClause: Prisma.GoalWhereInput = {
+      orgId,
+      archivedAt: null,
+      embedding: { not: Prisma.JsonNull },
+    };
+
+    if (excludeDrafts) {
+      whereClause.status = { not: GoalStatus.DRAFT };
+    }
+
+    if (excludeIds.length > 0) {
+      whereClause.id = { notIn: excludeIds };
+    }
+
+    const goals = await prisma.goal.findMany({
+      where: whereClause,
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        embedding: true,
+      },
+    });
+
+    if (goals.length === 0) {
+      return [];
+    }
+
+    // Build candidates array for ml-services
+    const candidates = goals.map((goal) => ({
+      id: goal.id,
+      name: goal.name,
+      description: goal.description ?? undefined,
+      embedding: goal.embedding as number[],
+    }));
+
+    // Call ml-services to find similar goals
+    const response = await mlServices.goalEmbeddings.findSimilar({
+      query_text: queryText,
+      candidates,
+      threshold,
+      top_k: topK,
+    });
+
+    return response.matches.map((match) => ({
+      goalId: match.goal_id,
+      goalName: match.goal_name,
+      similarity: match.similarity,
+    }));
+  } catch (error) {
+    console.error(`[findSimilarGoals] Failed to find similar goals:`, error);
+    // Return empty array on error - graceful degradation
+    return [];
+  }
+}
+
+// ============================================
+// DRAFT GOAL MANAGEMENT
+// ============================================
+
+export interface CreateDraftGoalInput {
+  orgId: string;
+  createdById: string;
+  name: string;
+  description?: string | null;
+  type: GoalType;
+  sourceCallId?: string | null;
+  visibility?: string | null; // "PRIVATE" | "TEAM" | "USERS" | "ROLE"
+  visibleToRoles?: string[];
+  visibleToUserIds?: string[];
+  visibleToTeamIds?: string[];
+}
+
+/**
+ * Create a goal with DRAFT status
+ * Includes visibility controls and generates embedding async
+ */
+export async function createDraftGoal(
+  input: CreateDraftGoalInput
+): Promise<GoalWithRelations> {
+  const goal = await prisma.$transaction(async (tx) => {
+    // Create the draft goal
+    const newGoal = await tx.goal.create({
+      data: {
+        orgId: input.orgId,
+        createdById: input.createdById,
+        name: input.name,
+        description: input.description,
+        type: input.type,
+        status: GoalStatus.DRAFT,
+        sourceType: input.sourceCallId ? "call_extraction" : "manual",
+        sourceCallId: input.sourceCallId,
+        visibility: input.visibility ?? "PRIVATE",
+        visibleToRoles: input.visibleToRoles ?? [],
+      },
+      include: {
+        owner: { select: { id: true, name: true } },
+        team: { select: { id: true, name: true } },
+        grantLinks: {
+          include: {
+            grant: {
+              include: { deliverables: true },
+            },
+          },
+        },
+        objectiveLinks: {
+          include: {
+            objective: { select: { id: true, title: true, status: true, progress: true } },
+          },
+        },
+        kpiLinks: {
+          include: {
+            kpi: { select: { id: true, name: true, progressPercentage: true } },
+          },
+        },
+        programLinks: {
+          include: {
+            program: { select: { id: true, name: true, status: true } },
+          },
+        },
+      },
+    });
+
+    // Create user visibility records
+    if (input.visibleToUserIds && input.visibleToUserIds.length > 0) {
+      await tx.goalUserVisibility.createMany({
+        data: input.visibleToUserIds.map((userId) => ({
+          goalId: newGoal.id,
+          userId,
+          canEdit: false,
+        })),
+      });
+    }
+
+    // Create team visibility records
+    if (input.visibleToTeamIds && input.visibleToTeamIds.length > 0) {
+      await tx.goalTeamVisibility.createMany({
+        data: input.visibleToTeamIds.map((teamId) => ({
+          goalId: newGoal.id,
+          teamId,
+          canEdit: false,
+        })),
+      });
+    }
+
+    return newGoal;
+  });
+
+  // Fire-and-forget: generate embedding asynchronously
+  updateGoalEmbedding(goal.id).catch(() => {
+    // Already logged in updateGoalEmbedding
+  });
+
+  return transformGoal(goal);
+}
+
+export interface PublishDraftGoalOptions {
+  mergeIntoGoalId?: string; // If provided, merge into existing goal instead of publishing
+}
+
+/**
+ * Publish a draft goal or merge it into an existing goal
+ */
+export async function publishDraftGoal(
+  draftGoalId: string,
+  orgId: string,
+  options?: PublishDraftGoalOptions
+): Promise<GoalWithRelations> {
+  const draftGoal = await prisma.goal.findFirst({
+    where: {
+      id: draftGoalId,
+      orgId,
+      status: GoalStatus.DRAFT,
+    },
+    include: {
+      mentioningCalls: true,
+    },
+  });
+
+  if (!draftGoal) {
+    throw new Error("Draft goal not found");
+  }
+
+  if (options?.mergeIntoGoalId) {
+    // Merge into existing goal
+    return await mergeDraftIntoGoal(draftGoal, options.mergeIntoGoalId, orgId);
+  }
+
+  // Publish as new goal
+  const publishedGoal = await prisma.$transaction(async (tx) => {
+    // Update draft to published status
+    const goal = await tx.goal.update({
+      where: { id: draftGoalId },
+      data: {
+        status: GoalStatus.NOT_STARTED,
+        // Clear draft-specific visibility fields
+        visibility: null,
+        visibleToRoles: [],
+      },
+      include: {
+        owner: { select: { id: true, name: true } },
+        team: { select: { id: true, name: true } },
+        grantLinks: {
+          include: {
+            grant: {
+              include: { deliverables: true },
+            },
+          },
+        },
+        objectiveLinks: {
+          include: {
+            objective: { select: { id: true, title: true, status: true, progress: true } },
+          },
+        },
+        kpiLinks: {
+          include: {
+            kpi: { select: { id: true, name: true, progressPercentage: true } },
+          },
+        },
+        programLinks: {
+          include: {
+            program: { select: { id: true, name: true, status: true } },
+          },
+        },
+        mentioningCalls: true,
+      },
+    });
+
+    // Delete visibility junction records (no longer needed for published goals)
+    await tx.goalUserVisibility.deleteMany({
+      where: { goalId: draftGoalId },
+    });
+    await tx.goalTeamVisibility.deleteMany({
+      where: { goalId: draftGoalId },
+    });
+
+    // Create CallGoalDraft records for all mentioning calls
+    if (goal.mentioningCalls.length > 0) {
+      for (const mention of goal.mentioningCalls) {
+        await tx.callGoalDraft.create({
+          data: {
+            callId: mention.callId,
+            goalId: goal.id,
+            narrative: `Goal mentioned in call: ${mention.mentionedText}`,
+            actionItems: [],
+            keyPoints: [],
+            topics: [],
+            mappingType: "embedding_matched",
+            confidence: mention.confidence,
+            status: "APPROVED",
+          },
+        });
+      }
+
+      // Clear the draft mentions
+      await tx.draftGoalCallMention.deleteMany({
+        where: { goalId: draftGoalId },
+      });
+    }
+
+    return goal;
+  });
+
+  return transformGoal(publishedGoal);
+}
+
+/**
+ * Merge a draft goal into an existing goal
+ * Links all mentioning calls to the target goal, then deletes the draft
+ */
+async function mergeDraftIntoGoal(
+  draftGoal: any,
+  targetGoalId: string,
+  orgId: string
+): Promise<GoalWithRelations> {
+  const targetGoal = await prisma.goal.findFirst({
+    where: {
+      id: targetGoalId,
+      orgId,
+      archivedAt: null,
+    },
+  });
+
+  if (!targetGoal) {
+    throw new Error("Target goal not found");
+  }
+
+  const updatedGoal = await prisma.$transaction(async (tx) => {
+    // Create CallGoalDraft records linking mentioning calls to target goal
+    if (draftGoal.mentioningCalls && draftGoal.mentioningCalls.length > 0) {
+      for (const mention of draftGoal.mentioningCalls) {
+        // Check if CallGoalDraft already exists for this call+goal combo
+        const existing = await tx.callGoalDraft.findFirst({
+          where: {
+            callId: mention.callId,
+            goalId: targetGoalId,
+          },
+        });
+
+        if (!existing) {
+          await tx.callGoalDraft.create({
+            data: {
+              callId: mention.callId,
+              goalId: targetGoalId,
+              narrative: `Goal mentioned in call: ${mention.mentionedText}`,
+              actionItems: [],
+              keyPoints: [],
+              topics: [],
+              mappingType: "embedding_matched",
+              confidence: mention.confidence,
+              status: "APPROVED",
+            },
+          });
+        }
+      }
+    }
+
+    // Delete the draft goal and its related records (cascade handles junctions)
+    await tx.draftGoalCallMention.deleteMany({
+      where: { goalId: draftGoal.id },
+    });
+    await tx.goalUserVisibility.deleteMany({
+      where: { goalId: draftGoal.id },
+    });
+    await tx.goalTeamVisibility.deleteMany({
+      where: { goalId: draftGoal.id },
+    });
+    await tx.goal.delete({
+      where: { id: draftGoal.id },
+    });
+
+    // Return the updated target goal
+    return tx.goal.findUnique({
+      where: { id: targetGoalId },
+      include: {
+        owner: { select: { id: true, name: true } },
+        team: { select: { id: true, name: true } },
+        grantLinks: {
+          include: {
+            grant: {
+              include: { deliverables: true },
+            },
+          },
+        },
+        objectiveLinks: {
+          include: {
+            objective: { select: { id: true, title: true, status: true, progress: true } },
+          },
+        },
+        kpiLinks: {
+          include: {
+            kpi: { select: { id: true, name: true, progressPercentage: true } },
+          },
+        },
+        programLinks: {
+          include: {
+            program: { select: { id: true, name: true, status: true } },
+          },
+        },
+      },
+    });
+  });
+
+  if (!updatedGoal) {
+    throw new Error("Failed to fetch merged goal");
+  }
+
+  return transformGoal(updatedGoal);
+}
+
+// ============================================
+// DRAFT GOAL VISIBILITY
+// ============================================
+
+/**
+ * Check if a user can view a draft goal
+ * Checks creator, visibility settings, user/team visibility, and role-based access
+ */
+export async function canViewDraftGoal(
+  userId: string,
+  goalId: string
+): Promise<boolean> {
+  // Fetch the goal and user info
+  const [goal, user] = await Promise.all([
+    prisma.goal.findUnique({
+      where: { id: goalId },
+      select: {
+        id: true,
+        createdById: true,
+        status: true,
+        visibility: true,
+        visibleToRoles: true,
+        visibleToUsers: {
+          where: { userId },
+          select: { id: true },
+        },
+        visibleToTeams: {
+          select: { teamId: true },
+        },
+      },
+    }),
+    prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        role: true,
+        teamMemberships: {
+          select: { teamId: true },
+        },
+      },
+    }),
+  ]);
+
+  if (!goal || !user) {
+    return false;
+  }
+
+  // Non-draft goals are visible through normal permission checks
+  if (goal.status !== GoalStatus.DRAFT) {
+    return true;
+  }
+
+  // Creator always has access
+  if (goal.createdById === userId) {
+    return true;
+  }
+
+  const visibility = goal.visibility;
+
+  // PRIVATE: only creator (already checked above)
+  if (visibility === "PRIVATE" || !visibility) {
+    return false;
+  }
+
+  // USERS: check explicit user visibility
+  if (visibility === "USERS") {
+    return goal.visibleToUsers.length > 0;
+  }
+
+  // TEAM: check team membership visibility
+  if (visibility === "TEAM") {
+    const userTeamIds = user.teamMemberships.map((m) => m.teamId);
+    const goalTeamIds = goal.visibleToTeams.map((t) => t.teamId);
+    return goalTeamIds.some((teamId) => userTeamIds.includes(teamId));
+  }
+
+  // ROLE: check role-based visibility
+  if (visibility === "ROLE") {
+    const userRole = user.role as string;
+    return goal.visibleToRoles.includes(userRole);
+  }
+
+  return false;
 }

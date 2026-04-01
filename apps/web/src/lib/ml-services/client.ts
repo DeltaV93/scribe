@@ -740,6 +740,99 @@ export const auditEnhanced = {
 };
 
 // ============================================================================
+// Goal Embeddings (Goal Deduplication Feature)
+// ============================================================================
+
+export interface GoalEmbeddingRequest {
+  name: string;
+  description?: string;
+}
+
+export interface GoalEmbeddingResponse {
+  embedding: number[];
+  model_name: string;
+  dimension: number;
+  processing_time_ms: number;
+}
+
+export interface GoalCandidate {
+  id: string;
+  name: string;
+  description?: string;
+  embedding: number[];
+}
+
+export interface FindSimilarGoalsRequest {
+  query_text: string;
+  candidates: GoalCandidate[];
+  threshold?: number;
+  top_k?: number;
+}
+
+export interface SimilarGoalMatch {
+  goal_id: string;
+  goal_name: string;
+  similarity: number;
+}
+
+export interface FindSimilarGoalsResponse {
+  matches: SimilarGoalMatch[];
+  processing_time_ms: number;
+}
+
+export interface BatchGoalInput {
+  id: string;
+  name: string;
+  description?: string;
+}
+
+export interface BatchEmbeddingResultItem {
+  id: string;
+  embedding: number[] | null;
+  success: boolean;
+  error?: string;
+}
+
+export interface BatchEmbeddingResponse {
+  results: BatchEmbeddingResultItem[];
+  processed: number;
+  failed: number;
+  processing_time_ms: number;
+}
+
+export const goalEmbeddings = {
+  /**
+   * Generate embedding for a single goal
+   */
+  async generate(data: GoalEmbeddingRequest): Promise<GoalEmbeddingResponse> {
+    return mlFetch("/v1/matching/goals/embed", {
+      method: "POST",
+      body: data,
+    });
+  },
+
+  /**
+   * Find similar goals from candidates
+   */
+  async findSimilar(data: FindSimilarGoalsRequest): Promise<FindSimilarGoalsResponse> {
+    return mlFetch("/v1/matching/goals/similar", {
+      method: "POST",
+      body: data,
+    });
+  },
+
+  /**
+   * Batch generate embeddings for multiple goals
+   */
+  async batchGenerate(goals: BatchGoalInput[]): Promise<BatchEmbeddingResponse> {
+    return mlFetch("/v1/matching/goals/embed-batch", {
+      method: "POST",
+      body: { goals },
+    });
+  },
+};
+
+// ============================================================================
 // Health & Utility
 // ============================================================================
 
@@ -844,6 +937,7 @@ const mlServices = {
   feedback,
   matching,
   matchingFeedback,
+  goalEmbeddings,
   privacy,
   health,
   emitModelDeployed,

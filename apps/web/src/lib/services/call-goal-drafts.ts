@@ -2,13 +2,14 @@
  * Call Goal Drafts Service
  *
  * Handles creation, review, and approval of goal updates from call AI processing.
- * Supports hybrid goal mapping: client-linked + topic-matched goals.
+ * Supports hybrid goal mapping: client-linked + embedding-matched + topic-matched goals.
  */
 
 import { prisma } from "@/lib/db";
-import { GoalStatus } from "@prisma/client";
+import { GoalStatus, GoalType, Prisma } from "@prisma/client";
 import { anthropic, EXTRACTION_MODEL } from "@/lib/ai/client";
 import type { CallSummary } from "@/lib/ai/summary";
+import mlServices from "@/lib/ml-services/client";
 
 // ============================================
 // TYPES
@@ -35,8 +36,31 @@ export interface CallGoalDraftInput {
   keyPoints: string[];
   sentiment?: string;
   topics: string[];
-  mappingType: "client_linked" | "topic_matched" | "manual";
+  mappingType: "client_linked" | "topic_matched" | "embedding_matched" | "manual" | "pending";
   confidence: number;
+}
+
+export interface EmbeddingMatchResult {
+  goalId: string;
+  goalName: string;
+  similarity: number;
+  mappingType: "embedding_matched";
+}
+
+export interface SuggestedGoalFields {
+  suggestedName: string;
+  suggestedDescription: string;
+  suggestedType: GoalType;
+  suggestedOwnerId?: string;
+  suggestedTeamId?: string;
+  suggestedStartDate?: Date;
+  suggestedEndDate?: Date;
+}
+
+export interface DraftWithMatchCandidatesResult {
+  draftId: string;
+  matchCandidates: Array<{ goalId: string; goalName: string; similarity: number }>;
+  suggestedGoal: SuggestedGoalFields;
 }
 
 export interface DraftApprovalResult {
@@ -95,6 +119,10 @@ export async function findClientLinkedGoals(
 }
 
 /**
+ * @deprecated Use findGoalMatchesWithEmbeddings instead.
+ * This function uses Claude API which is expensive for topic matching.
+ * Kept as fallback if ML service is unavailable.
+ *
  * Find goals that match call topics using AI scoring
  * Returns goals with confidence > 0.6
  */
@@ -164,13 +192,294 @@ Which goals are relevant to these topics? Return only goals with confidence > 0.
 }
 
 /**
+ * Find goals that match call topics using embedding-based similarity
+ * Uses the ML service for efficient vector similarity search
+ * Returns goals with similarity > 0.6
+ */
+export async function findGoalMatchesWithEmbeddings(
+  topics: string[],
+  callSummary: string,
+  orgId: string,
+  excludeGoalIds: string[]
+): Promise<EmbeddingMatchResult[]> {
+  // Combine topics and summary into query text for embedding
+  const queryText = [
+    ...topics,
+    callSummary,
+  ].filter(Boolean).join(". ");
+
+  if (!queryText.trim()) return [];
+
+  try {
+    // Fetch all active, non-excluded goals with embeddings
+    const goals = await prisma.goal.findMany({
+      where: {
+        orgId,
+        archivedAt: null,
+        status: { notIn: [GoalStatus.COMPLETED, GoalStatus.DRAFT] },
+        id: { notIn: excludeGoalIds },
+        embedding: { not: Prisma.DbNull },
+      },
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        embedding: true,
+      },
+    });
+
+    if (goals.length === 0) {
+      console.log("[CallGoalDrafts] No goals with embeddings found for matching");
+      return [];
+    }
+
+    // Prepare candidates for ML service
+    const candidates = goals.map((g) => ({
+      id: g.id,
+      name: g.name,
+      description: g.description || undefined,
+      embedding: g.embedding as number[],
+    }));
+
+    // Call ML service for similarity search
+    const response = await mlServices.goalEmbeddings.findSimilar({
+      query_text: queryText,
+      candidates,
+      threshold: 0.6,
+      top_k: 10, // Return top 10 matches
+    });
+
+    return response.matches.map((match) => ({
+      goalId: match.goal_id,
+      goalName: match.goal_name,
+      similarity: match.similarity,
+      mappingType: "embedding_matched" as const,
+    }));
+  } catch (error) {
+    // Handle ML service errors gracefully - fall back to empty array
+    console.error("[CallGoalDrafts] Error in embedding-based goal matching:", error);
+    console.log("[CallGoalDrafts] ML service unavailable, returning empty matches");
+    return [];
+  }
+}
+
+/**
+ * Generate AI suggestions for a new goal based on detected goal text
+ */
+async function generateGoalSuggestions(
+  detectedGoalText: string,
+  clientName: string,
+  topics: string[]
+): Promise<SuggestedGoalFields> {
+  try {
+    const response = await anthropic.messages.create({
+      model: EXTRACTION_MODEL,
+      max_tokens: 1024,
+      system: `You are helping create a goal from a conversation. Based on the detected goal text, suggest appropriate goal fields.
+Return JSON with:
+- suggestedName: A concise goal name (under 80 chars)
+- suggestedDescription: A clear description of what success looks like
+- suggestedType: One of: GRANT, KPI, OKR, PROGRAM_INITIATIVE, TEAM_INITIATIVE, INDIVIDUAL
+  - Use INDIVIDUAL for client-specific goals
+  - Use PROGRAM_INITIATIVE for program-level goals
+  - Use TEAM_INITIATIVE for team-level goals
+  - Use KPI for measurable metrics
+  - Use OKR for objectives with key results
+  - Use GRANT for grant-related goals
+
+Be specific and actionable. Focus on measurable outcomes.`,
+      messages: [
+        {
+          role: "user",
+          content: `Detected goal text from call: "${detectedGoalText}"
+
+Client: ${clientName}
+Topics discussed: ${topics.join(", ")}
+
+Generate suggested goal fields.`,
+        },
+      ],
+    });
+
+    const textContent = response.content.find((c) => c.type === "text");
+    if (!textContent || textContent.type !== "text") {
+      return getDefaultGoalSuggestions(detectedGoalText);
+    }
+
+    const jsonMatch = textContent.text.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) {
+      return getDefaultGoalSuggestions(detectedGoalText);
+    }
+
+    const parsed = JSON.parse(jsonMatch[0]) as {
+      suggestedName: string;
+      suggestedDescription: string;
+      suggestedType: string;
+    };
+
+    // Map string to GoalType enum
+    const typeMap: Record<string, GoalType> = {
+      GRANT: GoalType.GRANT,
+      KPI: GoalType.KPI,
+      OKR: GoalType.OKR,
+      PROGRAM_INITIATIVE: GoalType.PROGRAM_INITIATIVE,
+      TEAM_INITIATIVE: GoalType.TEAM_INITIATIVE,
+      INDIVIDUAL: GoalType.INDIVIDUAL,
+    };
+
+    return {
+      suggestedName: parsed.suggestedName || detectedGoalText.slice(0, 80),
+      suggestedDescription: parsed.suggestedDescription || detectedGoalText,
+      suggestedType: typeMap[parsed.suggestedType?.toUpperCase()] || GoalType.INDIVIDUAL,
+    };
+  } catch (error) {
+    console.error("[CallGoalDrafts] Error generating goal suggestions:", error);
+    return getDefaultGoalSuggestions(detectedGoalText);
+  }
+}
+
+function getDefaultGoalSuggestions(detectedGoalText: string): SuggestedGoalFields {
+  return {
+    suggestedName: detectedGoalText.slice(0, 80),
+    suggestedDescription: detectedGoalText,
+    suggestedType: GoalType.INDIVIDUAL,
+  };
+}
+
+/**
+ * Find similar goals using embeddings for a given detected goal text
+ * Helper function for createDraftWithMatchCandidates
+ */
+async function findSimilarGoals(
+  detectedGoalText: string,
+  orgId: string
+): Promise<Array<{ goalId: string; goalName: string; similarity: number }>> {
+  try {
+    // Fetch goals with embeddings
+    const goals = await prisma.goal.findMany({
+      where: {
+        orgId,
+        archivedAt: null,
+        status: { notIn: [GoalStatus.COMPLETED, GoalStatus.DRAFT] },
+        embedding: { not: Prisma.DbNull },
+      },
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        embedding: true,
+      },
+    });
+
+    if (goals.length === 0) return [];
+
+    const candidates = goals.map((g) => ({
+      id: g.id,
+      name: g.name,
+      description: g.description || undefined,
+      embedding: g.embedding as number[],
+    }));
+
+    const response = await mlServices.goalEmbeddings.findSimilar({
+      query_text: detectedGoalText,
+      candidates,
+      threshold: 0.4, // Lower threshold to show more candidates for user selection
+      top_k: 5,
+    });
+
+    return response.matches.map((match) => ({
+      goalId: match.goal_id,
+      goalName: match.goal_name,
+      similarity: match.similarity,
+    }));
+  } catch (error) {
+    console.error("[CallGoalDrafts] Error finding similar goals:", error);
+    return [];
+  }
+}
+
+/**
+ * Create a draft with match candidates for user resolution
+ * Used when a new goal is detected in a call that doesn't clearly match existing goals
+ */
+export async function createDraftWithMatchCandidates(
+  callId: string,
+  detectedGoalText: string,
+  orgId: string,
+  createdById: string
+): Promise<DraftWithMatchCandidatesResult> {
+  // Fetch call details for context
+  const call = await prisma.call.findUnique({
+    where: { id: callId },
+    select: {
+      client: {
+        select: {
+          firstName: true,
+          lastName: true,
+        },
+      },
+      aiSummary: true,
+    },
+  });
+
+  const clientName = call?.client
+    ? `${call.client.firstName} ${call.client.lastName}`
+    : "Unknown Client";
+
+  const summary = call?.aiSummary as CallSummary | null;
+  const topics = summary?.topics || [];
+
+  // Find similar goals using embeddings
+  const matchCandidates = await findSimilarGoals(detectedGoalText, orgId);
+
+  // Generate AI suggestions for new goal fields
+  const suggestedGoal = await generateGoalSuggestions(
+    detectedGoalText,
+    clientName,
+    topics
+  );
+
+  // Create CallGoalDraft with pending status
+  const draft = await prisma.callGoalDraft.create({
+    data: {
+      callId,
+      goalId: null, // Pending resolution
+      narrative: detectedGoalText, // Use detected text as initial narrative
+      actionItems: [],
+      keyPoints: [],
+      sentiment: summary?.clientSentiment,
+      topics,
+      mappingType: "pending",
+      confidence: 0,
+      status: "PENDING",
+      detectedGoalText,
+      matchCandidates: matchCandidates,
+      suggestedName: suggestedGoal.suggestedName,
+      suggestedDescription: suggestedGoal.suggestedDescription,
+      suggestedType: suggestedGoal.suggestedType,
+      suggestedOwnerId: suggestedGoal.suggestedOwnerId,
+      suggestedTeamId: suggestedGoal.suggestedTeamId,
+      suggestedStartDate: suggestedGoal.suggestedStartDate,
+      suggestedEndDate: suggestedGoal.suggestedEndDate,
+    },
+  });
+
+  return {
+    draftId: draft.id,
+    matchCandidates,
+    suggestedGoal,
+  };
+}
+
+/**
  * Find all applicable goals for a call
- * Combines client-linked and topic-matched goals
+ * Combines client-linked and embedding-matched goals
  */
 export async function findApplicableGoals(
   clientId: string,
   orgId: string,
-  topics: string[]
+  topics: string[],
+  callSummary?: string
 ): Promise<Array<{ goalId: string; mappingType: string; confidence: number }>> {
   // Get client-linked goals first
   const clientLinkedGoalIds = await findClientLinkedGoals(clientId, orgId);
@@ -181,13 +490,19 @@ export async function findApplicableGoals(
       confidence: 1.0, // Client-linked goals have full confidence
     }));
 
-  // Get topic-matched goals (excluding already-linked)
-  const topicMatches = await findTopicMatchedGoals(topics, orgId, clientLinkedGoalIds);
-  for (const match of topicMatches) {
+  // Get embedding-matched goals (excluding already-linked)
+  const embeddingMatches = await findGoalMatchesWithEmbeddings(
+    topics,
+    callSummary || "",
+    orgId,
+    clientLinkedGoalIds
+  );
+
+  for (const match of embeddingMatches) {
     results.push({
       goalId: match.goalId,
-      mappingType: "topic_matched",
-      confidence: match.confidence,
+      mappingType: "embedding_matched",
+      confidence: match.similarity,
     });
   }
 
@@ -292,11 +607,12 @@ export async function createDraftsFromCall(
     const summary = call.aiSummary as unknown as CallSummary;
     const clientName = `${call.client.firstName} ${call.client.lastName}`;
 
-    // Find applicable goals
+    // Find applicable goals using embedding-based matching
     const applicableGoals = await findApplicableGoals(
       call.client.id,
       call.client.orgId,
-      summary.topics || []
+      summary.topics || [],
+      summary.overview || ""
     );
 
     if (applicableGoals.length === 0) {
@@ -492,6 +808,15 @@ export async function approveDraft(
       return { success: false, error: "Draft already processed" };
     }
 
+    if (!draft.goalId || !draft.goal) {
+      return { success: false, error: "Draft has no linked goal" };
+    }
+
+    // Capture goal data for use in transaction closure
+    const goalId = draft.goalId;
+    const goalProgress = draft.goal.progress;
+    const goalStatus = draft.goal.status;
+
     const finalNarrative = editedNarrative || draft.narrative;
     const clientName = `${draft.call.client.firstName} ${draft.call.client.lastName}`;
 
@@ -525,11 +850,11 @@ export async function approveDraft(
       // Create GoalProgress record with rich notes
       const progress = await tx.goalProgress.create({
         data: {
-          goalId: draft.goalId,
-          previousValue: draft.goal.progress,
-          newValue: draft.goal.progress, // No progress change from call alone
-          previousStatus: draft.goal.status,
-          newStatus: draft.goal.status,
+          goalId,
+          previousValue: goalProgress,
+          newValue: goalProgress, // No progress change from call alone
+          previousStatus: goalStatus,
+          newStatus: goalStatus,
           triggerType: "child_update",
           triggerSource: `call:${draft.callId}`,
           notes: JSON.stringify(richNotes),

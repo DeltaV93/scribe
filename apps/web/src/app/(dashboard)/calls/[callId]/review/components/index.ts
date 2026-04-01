@@ -10,3 +10,4 @@ export { Tier1EventCard } from "./Tier1EventCard";
 export { Tier2PendingCard } from "./Tier2PendingCard";
 export { ConflictCard } from "./ConflictCard";
 export { DateTimePicker } from "./DateTimePicker";
+export { GoalMatchesSection } from "./GoalMatchesSection";

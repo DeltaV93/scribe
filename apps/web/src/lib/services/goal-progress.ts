@@ -423,6 +423,7 @@ export async function getGoalsProgressSummary(
   });
 
   const byStatus: Record<GoalStatus, number> = {
+    [GoalStatus.DRAFT]: 0,
     [GoalStatus.NOT_STARTED]: 0,
     [GoalStatus.IN_PROGRESS]: 0,
     [GoalStatus.ON_TRACK]: 0,

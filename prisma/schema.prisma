@@ -513,9 +513,9 @@ model Organization {
   settingsDelegations SettingsDelegation[]
 
   // Calendar Integration (PX-822)
-  calendarIntegrations      CalendarIntegration[]
-  calendarEvents            CalendarEvent[]
-  pendingSchedulingItems    PendingSchedulingItem[]
+  calendarIntegrations   CalendarIntegration[]
+  calendarEvents         CalendarEvent[]
+  pendingSchedulingItems PendingSchedulingItem[]
 
   // Conversation Capture System (PX-865)
   conversations          Conversation[]
@@ -523,6 +523,10 @@ model Organization {
 
   // Per-User Workflow Integrations (PX-882)
   userIntegrationConnections UserIntegrationConnection[]
+
+  // Integration Hub (PX-1002)
+  pushJobs             PushJob[]
+  integrationWaitlists IntegrationWaitlist[]
 
   @@index([slug])
   @@index([stripeCustomerId])
@@ -697,6 +701,7 @@ model User {
   goalProgressRecords       GoalProgress[]       @relation("GoalProgressRecorder")
   goalUpdates               GoalUpdate[]         @relation("GoalUpdateCreator")
   reviewedCallGoalDrafts    CallGoalDraft[]      @relation("CallGoalDraftReviewer")
+  goalVisibleToMe           GoalUserVisibility[] @relation("GoalVisibleToUser")
   ownedKpis                 Kpi[]                @relation("KpiOwner")
   createdKpis               Kpi[]                @relation("KpiCreator")
   kpiProgressRecords        KpiProgress[]        @relation("KpiProgressRecorder")
@@ -726,11 +731,11 @@ model User {
   caseManagerProfile CaseManagerProfile?
 
   // RBAC Relations
-  programMemberships       ProgramMember[]        @relation("ProgramMembership")
-  assignedProgramMembers   ProgramMember[]        @relation("ProgramMemberAssigner")
-  delegatedSettings        SettingsDelegation[]   @relation("DelegatedSettings")
-  settingsDelegatedByMe    SettingsDelegation[]   @relation("SettingsDelegator")
-  permissionDenials        PermissionDenialLog[]  @relation("PermissionDenials")
+  programMemberships     ProgramMember[]       @relation("ProgramMembership")
+  assignedProgramMembers ProgramMember[]       @relation("ProgramMemberAssigner")
+  delegatedSettings      SettingsDelegation[]  @relation("DelegatedSettings")
+  settingsDelegatedByMe  SettingsDelegation[]  @relation("SettingsDelegator")
+  permissionDenials      PermissionDenialLog[] @relation("PermissionDenials")
 
   // Calendar Integration (PX-822)
   calendarIntegration    CalendarIntegration?
@@ -738,16 +743,20 @@ model User {
   pendingSchedulingItems PendingSchedulingItem[]
 
   // Conversation Capture System (PX-865)
-  createdConversations         Conversation[]              @relation("ConversationCreator")
-  conversationAccess           ConversationAccess[]        @relation("ConversationAccessUser")
-  grantedConversationAccess    ConversationAccess[]        @relation("ConversationAccessGranter")
-  reviewedFlaggedSegments      FlaggedSegment[]            @relation("FlaggedSegmentReviewer")
-  reviewedDraftedOutputs       DraftedOutput[]             @relation("DraftedOutputReviewer")
-  confirmedObjectiveLinks      ConversationObjectiveLink[] @relation("ObjectiveLinkConfirmer")
-  connectedIntegrations        IntegrationConnection[]     @relation("IntegrationConnector")
+  createdConversations      Conversation[]              @relation("ConversationCreator")
+  conversationAccess        ConversationAccess[]        @relation("ConversationAccessUser")
+  grantedConversationAccess ConversationAccess[]        @relation("ConversationAccessGranter")
+  reviewedFlaggedSegments   FlaggedSegment[]            @relation("FlaggedSegmentReviewer")
+  reviewedDraftedOutputs    DraftedOutput[]             @relation("DraftedOutputReviewer")
+  confirmedObjectiveLinks   ConversationObjectiveLink[] @relation("ObjectiveLinkConfirmer")
+  connectedIntegrations     IntegrationConnection[]     @relation("IntegrationConnector")
 
   // Per-User Workflow Integrations (PX-882)
   userIntegrationConnections UserIntegrationConnection[]
+
+  // Integration Hub (PX-1002)
+  pushJobs             PushJob[]             @relation("PushJobUser")
+  integrationWaitlists IntegrationWaitlist[] @relation("IntegrationWaitlistUser")
 
   @@index([orgId])
   @@index([email])
@@ -836,8 +845,9 @@ model Team {
   formAccess   FormAccess[]
 
   // Goals Hub Relations (PX-734)
-  goals Goal[]
-  kpis  Kpi[]
+  goals             Goal[]
+  kpis              Kpi[]
+  goalVisibleToTeam GoalTeamVisibility[] @relation("GoalVisibleToTeam")
 
   @@unique([orgId, name])
   @@index([orgId])
@@ -1366,7 +1376,7 @@ model Call {
   manualCorrections Json? // Array of FieldCorrection
 
   // ML Service Integration
-  mlMatchedForms      Json?     // Array of FormMatch with confidence scores
+  mlMatchedForms      Json? // Array of FormMatch with confidence scores
   mlMatchingTimestamp DateTime? // When form matching was run
   mlServiceUsed       Boolean   @default(false) // Whether ML service was available
 
@@ -1393,6 +1403,10 @@ model Call {
 
   // Goal Draft Relations (Rich Call Context)
   goalDrafts CallGoalDraft[]
+
+  // Draft Goal Relations (Goals created from this call)
+  createdDraftGoals Goal[]                 @relation("GoalSourceCall")
+  draftGoalMentions DraftGoalCallMention[] @relation("DraftGoalMentions")
 
   @@index([clientId])
   @@index([caseManagerId])
@@ -1649,31 +1663,31 @@ model UserInvitation {
 // ============================================
 
 model Waitlist {
-  id             String         @id @default(uuid())
-  email          String         @unique
-  firstName      String
-  lastName       String
-  organization   String
-  role           String
-  teamSize       String
-  industry       String
-  status         WaitlistStatus @default(PENDING)
+  id           String         @id @default(uuid())
+  email        String         @unique
+  firstName    String
+  lastName     String
+  organization String
+  role         String
+  teamSize     String
+  industry     String
+  status       WaitlistStatus @default(PENDING)
 
   // Approval token for account creation
-  approvalToken  String?        @unique
+  approvalToken  String?   @unique
   tokenExpiresAt DateTime?
 
   // Timestamps
-  submittedAt    DateTime       @default(now())
-  approvedAt     DateTime?
-  completedAt    DateTime?      // When user created account
+  submittedAt DateTime  @default(now())
+  approvedAt  DateTime?
+  completedAt DateTime? // When user created account
 
   // Who approved (nullable - admin user)
-  approvedById   String?
-  approvedBy     User?          @relation("WaitlistApprover", fields: [approvedById], references: [id])
+  approvedById String?
+  approvedBy   User?   @relation("WaitlistApprover", fields: [approvedById], references: [id])
 
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([status])
   @@index([submittedAt])
@@ -3095,8 +3109,8 @@ enum CalendarIntegrationStatus {
 }
 
 model CalendarIntegration {
-  id       String                    @id @default(uuid())
-  userId   String                    @unique // One calendar per user
+  id       String           @id @default(uuid())
+  userId   String           @unique // One calendar per user
   orgId    String
   provider CalendarProvider
 
@@ -3134,7 +3148,7 @@ enum CalendarEventStatus {
 }
 
 model CalendarEvent {
-  id     String               @id @default(uuid())
+  id     String @id @default(uuid())
   userId String
   orgId  String
 
@@ -3152,11 +3166,11 @@ model CalendarEvent {
   rrule       String? // iCal RRULE format
 
   // Linked entities
-  callId                 String? // Call that generated this event
-  clientId               String? // Client this event is about
-  calendarIntegrationId  String?
+  callId                  String? // Call that generated this event
+  clientId                String? // Client this event is about
+  calendarIntegrationId   String?
   pendingSchedulingItemId String? @unique
-  actionItemId           String?
+  actionItemId            String?
 
   // Invite tracking
   clientInvited Boolean @default(false)
@@ -3169,11 +3183,11 @@ model CalendarEvent {
   updatedAt DateTime @updatedAt
 
   // Relations
-  user                 User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  organization         Organization           @relation(fields: [orgId], references: [id], onDelete: Cascade)
-  calendarIntegration  CalendarIntegration?   @relation(fields: [calendarIntegrationId], references: [id])
-  call                 Call?                  @relation(fields: [callId], references: [id])
-  client               Client?                @relation(fields: [clientId], references: [id])
+  user                  User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization          Organization           @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  calendarIntegration   CalendarIntegration?   @relation(fields: [calendarIntegrationId], references: [id])
+  call                  Call?                  @relation(fields: [callId], references: [id])
+  client                Client?                @relation(fields: [clientId], references: [id])
   pendingSchedulingItem PendingSchedulingItem? @relation(fields: [pendingSchedulingItemId], references: [id])
 
   @@index([userId])
@@ -3226,10 +3240,10 @@ model PendingSchedulingItem {
   updatedAt DateTime @updatedAt
 
   // Relations
-  call          Call          @relation(fields: [callId], references: [id], onDelete: Cascade)
-  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  organization  Organization  @relation(fields: [orgId], references: [id], onDelete: Cascade)
-  client        Client?       @relation(fields: [clientId], references: [id])
+  call          Call           @relation(fields: [callId], references: [id], onDelete: Cascade)
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization  Organization   @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  client        Client?        @relation(fields: [clientId], references: [id])
   calendarEvent CalendarEvent?
 
   @@index([userId, status])
@@ -3259,7 +3273,7 @@ model IntegrationToken {
   type IntegrationTokenType
 
   // Encrypted OAuth credentials
-  accessToken  String  // Encrypted at rest via AES-256-GCM
+  accessToken  String // Encrypted at rest via AES-256-GCM
   refreshToken String? // Encrypted at rest, may be null for some providers
 
   // Token lifecycle
@@ -3277,7 +3291,7 @@ model IntegrationToken {
   userIntegrationConnection   UserIntegrationConnection? @relation(fields: [userIntegrationConnectionId], references: [id], onDelete: Cascade)
 
   // Org-Level Workflow Integration (PX-1001) - encrypted token storage
-  integrationConnectionId String?               @unique
+  integrationConnectionId String?                @unique
   integrationConnection   IntegrationConnection? @relation(fields: [integrationConnectionId], references: [id], onDelete: Cascade)
 
   // Audit
@@ -3750,6 +3764,7 @@ enum GoalType {
 }
 
 enum GoalStatus {
+  DRAFT // Draft goal awaiting review/publish
   NOT_STARTED
   IN_PROGRESS
   ON_TRACK
@@ -3800,11 +3815,25 @@ model Goal {
   updatedAt              DateTime   @updatedAt
   archivedAt             DateTime?
 
+  // Embedding for semantic search (384 floats for all-MiniLM-L6-v2)
+  embedding          Json? // Array of floats stored as JSON
+  embeddingModel     String? // e.g., "all-MiniLM-L6-v2"
+  embeddingUpdatedAt DateTime?
+
+  // Draft goal metadata (for DRAFT status goals)
+  sourceType   String? // "call_extraction" | "manual" | null
+  sourceCallId String? // Reference call that created the draft
+
+  // Visibility controls (draft goals only)
+  visibility     String? // "PRIVATE" | "TEAM" | "USERS" | "ROLE"
+  visibleToRoles String[] // Array of roles: ["ADMIN", "PROGRAM_MANAGER"]
+
   // Relations
   organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
   owner        User?        @relation("GoalOwner", fields: [ownerId], references: [id])
   team         Team?        @relation(fields: [teamId], references: [id])
   createdBy    User         @relation("GoalCreator", fields: [createdById], references: [id])
+  sourceCall   Call?        @relation("GoalSourceCall", fields: [sourceCallId], references: [id])
 
   // Junction tables for child items
   grantLinks     GoalGrant[]
@@ -3821,7 +3850,15 @@ model Goal {
   updates GoalUpdate[]
 
   // Call goal drafts (pending review)
-  callDrafts CallGoalDraft[]
+  callDrafts      CallGoalDraft[] @relation()
+  callDraftsAsNew CallGoalDraft[] @relation("DraftGoalFromCall")
+
+  // Visibility junction tables (for draft goals)
+  visibleToUsers GoalUserVisibility[]
+  visibleToTeams GoalTeamVisibility[]
+
+  // Calls that mentioned this draft goal before publishing
+  mentioningCalls DraftGoalCallMention[]
 
   @@index([orgId, status])
   @@index([orgId, type])
@@ -3829,6 +3866,7 @@ model Goal {
   @@index([teamId])
   @@index([endDate])
   @@index([archivedAt])
+  @@index([sourceCallId])
 }
 
 model GoalGrant {
@@ -3937,9 +3975,9 @@ model GoalUpdate {
 // Call Goal Draft - Draft goal updates created from call AI processing
 // Supports review workflow: PENDING -> APPROVED/REJECTED/EDITED
 model CallGoalDraft {
-  id     String @id @default(uuid())
+  id     String  @id @default(uuid())
   callId String
-  goalId String
+  goalId String? // Nullable: null when pending goal resolution
 
   // Draft content
   narrative   String  @db.Text // AI-generated natural language update
@@ -3949,7 +3987,7 @@ model CallGoalDraft {
   topics      Json // Topics discussed
 
   // Mapping metadata
-  mappingType String // "client_linked" | "topic_matched" | "manual"
+  mappingType String // "client_linked" | "topic_matched" | "embedding_matched" | "manual" | "pending"
   confidence  Float // AI confidence in goal relevance (0-1)
 
   // Review workflow
@@ -3958,15 +3996,87 @@ model CallGoalDraft {
   reviewedAt    DateTime?
   editedContent String?   @db.Text // If case manager edited the narrative
 
+  // Goal matching data (for pending resolution)
+  detectedGoalText String? @db.Text // Raw text extracted about goal
+  matchCandidates  Json? // Array of {goalId, goalName, similarity}
+  selectedMatchId  String? // If user linked to existing goal
+  isNewGoalDraft   Boolean @default(false) // True if creating new draft goal
+  draftGoalId      String? // Reference to created draft Goal
+
+  // AI-suggested draft goal fields
+  suggestedName        String?
+  suggestedDescription String?   @db.Text
+  suggestedType        GoalType?
+  suggestedOwnerId     String?
+  suggestedTeamId      String?
+  suggestedStartDate   DateTime?
+  suggestedEndDate     DateTime?
+
   createdAt DateTime @default(now())
 
   // Relations
   call       Call  @relation(fields: [callId], references: [id], onDelete: Cascade)
-  goal       Goal  @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  goal       Goal? @relation(fields: [goalId], references: [id], onDelete: Cascade)
   reviewedBy User? @relation("CallGoalDraftReviewer", fields: [reviewedById], references: [id])
+  draftGoal  Goal? @relation("DraftGoalFromCall", fields: [draftGoalId], references: [id])
 
   @@unique([callId, goalId])
   @@index([goalId, status])
+  @@index([callId])
+  @@index([draftGoalId])
+}
+
+// ============================================
+// GOAL VISIBILITY (Draft Goals)
+// Junction tables for draft goal visibility
+// ============================================
+
+// User-level visibility for draft goals
+model GoalUserVisibility {
+  id        String   @id @default(uuid())
+  goalId    String
+  userId    String
+  canEdit   Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  // Relations
+  goal Goal @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  user User @relation("GoalVisibleToUser", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([goalId, userId])
+  @@index([userId])
+}
+
+// Team-level visibility for draft goals
+model GoalTeamVisibility {
+  id        String   @id @default(uuid())
+  goalId    String
+  teamId    String
+  canEdit   Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  // Relations
+  goal Goal @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  team Team @relation("GoalVisibleToTeam", fields: [teamId], references: [id], onDelete: Cascade)
+
+  @@unique([goalId, teamId])
+  @@index([teamId])
+}
+
+// Track calls that mentioned a draft goal before it was published
+model DraftGoalCallMention {
+  id            String   @id @default(uuid())
+  goalId        String
+  callId        String
+  mentionedText String   @db.Text // The text that was extracted
+  confidence    Float    @default(0.0)
+  createdAt     DateTime @default(now())
+
+  // Relations
+  goal Goal @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  call Call @relation("DraftGoalMentions", fields: [callId], references: [id], onDelete: Cascade)
+
+  @@unique([goalId, callId])
   @@index([callId])
 }
 
@@ -4613,30 +4723,30 @@ model StateConsentRule {
 // PX-735: Interaction metadata for unrecorded calls
 // Logs call metadata (date, time, duration, participants) without content
 model InteractionMetadata {
-  id              String           @id @default(cuid())
-  clientId        String
-  caseManagerId   String
-  orgId           String
+  id            String @id @default(cuid())
+  clientId      String
+  caseManagerId String
+  orgId         String
 
-  interactionType InteractionType  @default(VOIP_CALL)
-  direction       CallDirection    @default(OUTBOUND)
+  interactionType InteractionType @default(VOIP_CALL)
+  direction       CallDirection   @default(OUTBOUND)
 
   startedAt       DateTime
   endedAt         DateTime?
   durationSeconds Int?
 
   // Why was it unrecorded?
-  reason          UnrecordedReason
+  reason UnrecordedReason
 
   // Optional reference to call if it started as a Call record
-  callId          String?
+  callId String?
 
-  createdAt       DateTime         @default(now())
+  createdAt DateTime @default(now())
 
   // Relations
-  client          Client           @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  caseManager     User             @relation("InteractionCaseManager", fields: [caseManagerId], references: [id])
-  organization    Organization     @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  client       Client       @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  caseManager  User         @relation("InteractionCaseManager", fields: [caseManagerId], references: [id])
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
 
   @@index([clientId])
   @@index([caseManagerId])
@@ -4833,26 +4943,27 @@ enum IntegrationPlatform {
   NOTION
   GOOGLE_CALENDAR
   OUTLOOK_CALENDAR
+  SLACK
 }
 
 // Per-User Workflow Integration Status (PX-882)
 enum UserIntegrationStatus {
-  PENDING      // OAuth flow initiated
-  ACTIVE       // Successfully connected
-  ERROR        // Token refresh failed
+  PENDING // OAuth flow initiated
+  ACTIVE // Successfully connected
+  ERROR // Token refresh failed
   DISCONNECTED // User disconnected
 }
 
 // Integration Categories (PX-1001)
 enum IntegrationCategory {
-  COMMUNICATION   // Slack, Gmail, Teams
-  DOCUMENTATION   // Notion, Google Docs, Confluence
-  PROJECT_MGMT    // Linear, Jira, Asana
-  CRM             // Salesforce, HubSpot
-  HR_LEGAL        // BambooHR, Clio
-  HEALTHCARE      // Epic, Athenahealth
-  NONPROFIT       // Apricot, HMIS
-  CALENDAR        // Google, Outlook, Apple
+  COMMUNICATION // Slack, Gmail, Teams
+  DOCUMENTATION // Notion, Google Docs, Confluence
+  PROJECT_MGMT // Linear, Jira, Asana
+  CRM // Salesforce, HubSpot
+  HR_LEGAL // BambooHR, Clio
+  HEALTHCARE // Epic, Athenahealth
+  NONPROFIT // Apricot, HMIS
+  CALENDAR // Google, Outlook, Apple
 }
 
 // Resource types for platform discovery (PX-1002)
@@ -4860,8 +4971,8 @@ enum ResourceType {
   WORKSPACE
   TEAM
   PROJECT
-  DATABASE  // Notion databases
-  CHANNEL   // Slack channels
+  DATABASE // Notion databases
+  CHANNEL // Slack channels
   FOLDER
 }
 
@@ -4880,7 +4991,7 @@ model IntegrationProvider {
   authorizeUrl String
   tokenUrl     String
   scopes       String[] // Default scopes
-  redirectUri  String   // Callback URL path
+  redirectUri  String // Callback URL path
 
   // Platform metadata
   displayName String
@@ -4907,10 +5018,10 @@ model IntegrationResource {
   id           String       @id @default(uuid())
   connectionId String
   resourceType ResourceType
-  externalId   String       // ID in external system
+  externalId   String // ID in external system
   name         String
-  parentId     String?      // e.g., team ID for project
-  metadata     Json?        // Additional platform-specific data
+  parentId     String? // e.g., team ID for project
+  metadata     Json? // Additional platform-specific data
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -4949,8 +5060,8 @@ model UserIntegrationConnection {
 
   // Audit
   connectedAt DateTime?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   // Relations
   user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -4992,7 +5103,7 @@ model Conversation {
   // Recording storage
   recordingUrl       String? // S3 URL: recordings/{orgId}/{conversationId}.webm
   recordingRetention DateTime? // When to delete based on org policy
-  isRecorded         Boolean  @default(true)
+  isRecorded         Boolean   @default(true)
 
   // Consent tracking (compatible with PX-735)
   consentStatus    String? // JSON: consent status per participant
@@ -5020,9 +5131,9 @@ model Conversation {
   recoveryStatus    RecoveryStatus? // Set by stale detection cron
 
   // Sensitivity classification
-  sensitivityTier    SensitivityTier @default(STANDARD)
-  flaggedSegments    FlaggedSegment[]
-  redactedSegments   Json? // Segments permanently removed
+  sensitivityTier  SensitivityTier  @default(STANDARD)
+  flaggedSegments  FlaggedSegment[]
+  redactedSegments Json? // Segments permanently removed
 
   // Creator
   createdById String
@@ -5071,7 +5182,7 @@ model PhoneCallDetails {
   conversationId String @unique
 
   // Twilio integration
-  twilioCallSid String? @unique
+  twilioCallSid String?       @unique
   direction     CallDirection @default(OUTBOUND)
 
   // Primary participants
@@ -5138,7 +5249,7 @@ model VideoMeetingDetails {
 
 // Flagged content segments for sensitivity review
 model FlaggedSegment {
-  id             String   @id @default(uuid())
+  id             String @id @default(uuid())
   conversationId String
 
   // Time markers in transcript
@@ -5240,6 +5351,7 @@ model DraftedOutput {
   // Relations
   conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
   reviewedBy   User?        @relation("DraftedOutputReviewer", fields: [reviewedById], references: [id])
+  pushJobs     PushJob[] // Multi-destination push support (PX-1002)
 
   @@index([conversationId])
   @@index([outputType])
@@ -5275,10 +5387,10 @@ model ConversationObjectiveLink {
 
 // Link conversations to clients (many-to-many)
 model ConversationClient {
-  id             String @id @default(uuid())
+  id             String   @id @default(uuid())
   conversationId String
   clientId       String
-  isPrimary      Boolean @default(false) // Primary client for this conversation
+  isPrimary      Boolean  @default(false) // Primary client for this conversation
   addedAt        DateTime @default(now())
 
   // Relations
@@ -5298,15 +5410,15 @@ model IntegrationConnection {
 
   // DEPRECATED: Legacy plaintext token storage (PX-1001)
   // New connections use IntegrationToken for encrypted storage
-  accessToken  String?  @db.Text // Nullable for migration to IntegrationToken
-  refreshToken String?  @db.Text
+  accessToken  String?   @db.Text // Nullable for migration to IntegrationToken
+  refreshToken String?   @db.Text
   expiresAt    DateTime?
 
   // Platform-specific config
   config Json? // Workspace ID, default project, etc.
 
   // Status
-  isActive  Boolean  @default(true)
+  isActive   Boolean   @default(true)
   lastUsedAt DateTime?
   lastError  String?
 
@@ -5316,12 +5428,79 @@ model IntegrationConnection {
   updatedAt     DateTime @updatedAt
 
   // Relations
-  organization     Organization           @relation(fields: [orgId], references: [id], onDelete: Cascade)
-  connectedBy      User                   @relation("IntegrationConnector", fields: [connectedById], references: [id])
-  integrationToken IntegrationToken?      // Encrypted token storage (PX-1001)
-  resources        IntegrationResource[]  // Discovered resources (teams, projects, etc.)
+  organization     Organization          @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  connectedBy      User                  @relation("IntegrationConnector", fields: [connectedById], references: [id])
+  integrationToken IntegrationToken? // Encrypted token storage (PX-1001)
+  resources        IntegrationResource[] // Discovered resources (teams, projects, etc.)
 
   @@unique([orgId, platform, name])
   @@index([orgId, platform])
   @@index([isActive])
+}
+
+// ============================================
+// Integration Hub - Push Queue (PX-1002)
+// ============================================
+
+// Push job status for async dispatch with retry
+enum PushJobStatus {
+  PENDING // Queued for processing
+  PROCESSING // Currently being processed
+  COMPLETED // Successfully pushed
+  FAILED // All retries exhausted
+}
+
+// Async push job for dispatching outputs to external integrations
+model PushJob {
+  id       String              @id @default(uuid())
+  outputId String
+  platform IntegrationPlatform
+  userId   String // User who initiated the push
+  orgId    String
+
+  // Job state
+  status      PushJobStatus @default(PENDING)
+  attempt     Int           @default(1)
+  maxAttempts Int           @default(3)
+  nextRetryAt DateTime? // When to retry if failed
+
+  // Result
+  completedAt DateTime?
+  externalId  String? // ID in external system (Linear issue ID, etc.)
+  externalUrl String? // URL to the created resource
+  error       String? // Error message if failed
+
+  // Platform-specific config for this push
+  destinationConfig Json? // Project ID, channel ID, etc.
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  output       DraftedOutput @relation(fields: [outputId], references: [id], onDelete: Cascade)
+  user         User          @relation("PushJobUser", fields: [userId], references: [id])
+  organization Organization  @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@index([status, nextRetryAt]) // For job queue worker
+  @@index([outputId])
+  @@index([userId])
+  @@index([orgId, status])
+}
+
+// Waitlist for upcoming integrations (PX-1003)
+model IntegrationWaitlist {
+  id       String  @id @default(uuid())
+  orgId    String
+  userId   String
+  platform String // e.g., "SALESFORCE", "EPIC", "HUBSPOT"
+  email    String? // Optional email for notifications
+
+  createdAt DateTime @default(now())
+
+  // Relations
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  user         User         @relation("IntegrationWaitlistUser", fields: [userId], references: [id])
+
+  @@unique([orgId, userId, platform])
+  @@index([platform])
 }

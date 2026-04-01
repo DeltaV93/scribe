@@ -37,6 +37,10 @@ from src.matching.correction_scorer import (
     QualityTier,
     create_training_dataset,
 )
+from src.matching.goal_embeddings import (
+    GoalEmbeddingService,
+    get_goal_embedding_service,
+)
 
 
 router = APIRouter(prefix="/matching")
@@ -792,3 +796,200 @@ async def process_pending_feedback(
         "positive_weight": dataset.positive_signal_weight,
         "negative_weight": dataset.negative_signal_weight,
     }
+
+
+# --- Goal Embedding Endpoints ---
+
+
+class GenerateGoalEmbeddingRequest(BaseModel):
+    """Request to generate goal embedding."""
+
+    name: str = Field(..., min_length=1, description="Goal name")
+    description: Optional[str] = Field(None, description="Optional goal description")
+
+
+class GoalEmbeddingResponse(BaseModel):
+    """Response with goal embedding."""
+
+    embedding: list[float]
+    model_name: str
+    dimension: int
+    processing_time_ms: float
+
+
+class GoalCandidateInput(BaseModel):
+    """A goal candidate for similarity search."""
+
+    id: str = Field(..., description="Goal ID")
+    name: str = Field(..., description="Goal name")
+    description: Optional[str] = Field(None, description="Goal description")
+    embedding: list[float] = Field(..., description="Pre-computed embedding")
+
+
+class FindSimilarGoalsRequest(BaseModel):
+    """Request to find similar goals."""
+
+    query_text: str = Field(..., min_length=1, description="Text to find similar goals for")
+    candidates: list[GoalCandidateInput] = Field(..., description="Goal candidates with embeddings")
+    threshold: float = Field(default=0.5, ge=0.0, le=1.0, description="Minimum similarity threshold")
+    top_k: int = Field(default=5, ge=1, le=20, description="Maximum results to return")
+
+
+class SimilarGoalResponse(BaseModel):
+    """A similar goal match."""
+
+    goal_id: str
+    goal_name: str
+    similarity: float
+
+
+class FindSimilarGoalsResponse(BaseModel):
+    """Response from similarity search."""
+
+    matches: list[SimilarGoalResponse]
+    processing_time_ms: float
+
+
+class BatchGoalInput(BaseModel):
+    """A goal for batch embedding."""
+
+    id: str = Field(..., description="Goal ID")
+    name: str = Field(..., description="Goal name")
+    description: Optional[str] = Field(None, description="Goal description")
+
+
+class BatchEmbeddingRequest(BaseModel):
+    """Request to batch generate embeddings."""
+
+    goals: list[BatchGoalInput] = Field(..., description="Goals to generate embeddings for")
+
+
+class BatchEmbeddingResultItem(BaseModel):
+    """Result for a single goal in batch."""
+
+    id: str
+    embedding: Optional[list[float]] = None
+    success: bool
+    error: Optional[str] = None
+
+
+class BatchEmbeddingResponse(BaseModel):
+    """Response with batch embeddings."""
+
+    results: list[BatchEmbeddingResultItem]
+    processed: int
+    failed: int
+    processing_time_ms: float
+
+
+@router.post("/goals/embed", response_model=GoalEmbeddingResponse)
+async def generate_goal_embedding(
+    request: GenerateGoalEmbeddingRequest,
+    service: GoalEmbeddingService = Depends(get_goal_embedding_service),
+) -> GoalEmbeddingResponse:
+    """Generate embedding for a single goal.
+
+    Combines goal name and description into a semantic embedding vector.
+    The resulting 384-dimensional vector can be stored and used for
+    similarity matching.
+    """
+    result = service.generate_goal_embedding(
+        name=request.name,
+        description=request.description,
+    )
+
+    if result is None:
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to generate embedding. Ensure sentence-transformers is installed.",
+        )
+
+    return GoalEmbeddingResponse(
+        embedding=result.embedding,
+        model_name=result.model_name,
+        dimension=result.dimension,
+        processing_time_ms=result.processing_time_ms,
+    )
+
+
+@router.post("/goals/similar", response_model=FindSimilarGoalsResponse)
+async def find_similar_goals(
+    request: FindSimilarGoalsRequest,
+    service: GoalEmbeddingService = Depends(get_goal_embedding_service),
+) -> FindSimilarGoalsResponse:
+    """Find similar goals from candidates.
+
+    Computes cosine similarity between query text and each candidate's
+    embedding. Returns matches above the threshold, sorted by similarity.
+    """
+    import time
+
+    start_time = time.perf_counter()
+
+    candidates = [
+        {
+            "id": c.id,
+            "name": c.name,
+            "description": c.description,
+            "embedding": c.embedding,
+        }
+        for c in request.candidates
+    ]
+
+    matches = service.find_similar_goals(
+        query_text=request.query_text,
+        goal_candidates=candidates,
+        threshold=request.threshold,
+        top_k=request.top_k,
+    )
+
+    elapsed_ms = (time.perf_counter() - start_time) * 1000
+
+    return FindSimilarGoalsResponse(
+        matches=[
+            SimilarGoalResponse(
+                goal_id=m.goal_id,
+                goal_name=m.goal_name,
+                similarity=m.similarity,
+            )
+            for m in matches
+        ],
+        processing_time_ms=elapsed_ms,
+    )
+
+
+@router.post("/goals/embed-batch", response_model=BatchEmbeddingResponse)
+async def batch_generate_embeddings(
+    request: BatchEmbeddingRequest,
+    service: GoalEmbeddingService = Depends(get_goal_embedding_service),
+) -> BatchEmbeddingResponse:
+    """Batch generate embeddings for multiple goals.
+
+    Efficiently generates embeddings for many goals at once.
+    Useful for backfilling embeddings for existing goals.
+    """
+    goals = [
+        {
+            "id": g.id,
+            "name": g.name,
+            "description": g.description,
+        }
+        for g in request.goals
+    ]
+
+    result = service.batch_generate_embeddings(goals)
+
+    return BatchEmbeddingResponse(
+        results=[
+            BatchEmbeddingResultItem(
+                id=r["id"],
+                embedding=r.get("embedding"),
+                success=r["success"],
+                error=r.get("error"),
+            )
+            for r in result.results
+        ],
+        processed=result.processed,
+        failed=result.failed,
+        processing_time_ms=result.processing_time_ms,
+    )

@@ -33,6 +33,7 @@ import { format } from "date-fns";
 import { toast } from "sonner";
 import Link from "next/link";
 import { ScheduledEventsSection } from "./components/ScheduledEventsSection";
+import { GoalMatchesSection } from "./components/GoalMatchesSection";
 
 interface CallData {
   id: string;
@@ -338,6 +339,9 @@ export default function CallReviewPage() {
               </CardContent>
             </Card>
           )}
+
+          {/* Goal Matches Section - Goals detected from this call */}
+          <GoalMatchesSection callId={callId} />
 
           {/* Scheduled Events Section - Calendar events from this call */}
           <ScheduledEventsSection callId={callId} />

@@ -39,6 +39,7 @@ const RETRY_DELAY_MS = 5000;
 interface ProcessingResult {
   success: boolean;
   callId: string;
+  blockedForReview?: boolean; // PX-878: Indicates pipeline blocked for sensitivity review
   transcript?: {
     raw: string;
     segments: TranscriptSegment[];
@@ -118,6 +119,71 @@ export async function processCompletedCall(
         transcriptJson: transcription.segments as unknown as object,
       },
     });
+
+    // Step 2.3: Sensitivity Detection (PX-878)
+    // Classify transcript segments for sensitive content
+    try {
+      const {
+        classifySensitivity,
+        shouldBlockPipeline,
+        isSensitivityEnabled,
+      } = await import("./sensitivity");
+
+      if (isSensitivityEnabled()) {
+        console.log(`[CallProcessing] Running sensitivity detection`);
+
+        const sensitivityResult = await classifySensitivity(
+          transcription.segments,
+          call.client.orgId,
+          callId
+        );
+
+        // Store sensitivity results
+        await prisma.call.update({
+          where: { id: callId },
+          data: {
+            sensitivityAnalysis: sensitivityResult.segments as unknown as object,
+            sensitivityTier: sensitivityResult.overallTier,
+            sensitivityConfidence: sensitivityResult.confidence,
+            sensitivityModelVersion: sensitivityResult.modelVersion,
+          },
+        });
+
+        console.log(
+          `[CallProcessing] Sensitivity: tier=${sensitivityResult.overallTier}, ` +
+            `confidence=${sensitivityResult.confidence.toFixed(2)}, ` +
+            `requiresReview=${sensitivityResult.requiresReview}`
+        );
+
+        // If REDACT content detected OR low confidence, BLOCK pipeline until human review
+        if (shouldBlockPipeline(sensitivityResult)) {
+          console.log(`[CallProcessing] Blocking for sensitivity review: ${callId}`);
+
+          await prisma.call.update({
+            where: { id: callId },
+            data: {
+              pendingSensitivityReview: true,
+              aiProcessingStatus: ProcessingStatus.PENDING, // Keep pending until review
+            },
+          });
+
+          // Return early — processing will resume when human reviews
+          return {
+            success: true,
+            callId,
+            blockedForReview: true,
+            transcript: {
+              raw: transcription.raw,
+              segments: transcription.segments,
+            },
+          };
+        }
+      }
+    } catch (sensitivityError) {
+      // Sensitivity detection is non-critical - log and continue
+      console.error(`[CallProcessing] Sensitivity detection error:`, sensitivityError);
+      // Don't block the pipeline on sensitivity service failure
+    }
 
     // Step 2.5: ML Form Matching (runs in parallel, non-blocking)
     let mlFormMatches: FormMatch[] = [];

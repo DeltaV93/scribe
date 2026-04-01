@@ -10,6 +10,11 @@ interface GoalStatusBadgeProps {
 }
 
 const statusConfig: Record<GoalStatus, { label: string; variant: "default" | "secondary" | "destructive" | "outline"; className: string }> = {
+  DRAFT: {
+    label: "Draft",
+    variant: "outline",
+    className: "bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-50",
+  },
   NOT_STARTED: {
     label: "Not Started",
     variant: "secondary",
