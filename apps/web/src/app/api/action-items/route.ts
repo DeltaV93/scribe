@@ -116,6 +116,21 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // Validate source filter if provided
+    const validSources = ["call", "meeting", "conversation", "reminder"];
+    if (sourceFilter && !validSources.includes(sourceFilter)) {
+      return NextResponse.json(
+        {
+          error: {
+            code: "VALIDATION_ERROR",
+            message:
+              "Invalid source. Must be call, meeting, conversation, or reminder",
+          },
+        },
+        { status: 400 }
+      );
+    }
+
     const results: UnifiedActionItem[] = [];
 
     // Fetch call action items

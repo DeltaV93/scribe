@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { canAccessConversation } from "@/lib/services/conversation-access";
+import { createAuditLog } from "@/lib/audit/service";
 
 interface RouteParams {
   params: Promise<{ id: string; outputId: string }>;
@@ -28,6 +29,11 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
     const output = await prisma.draftedOutput.findUnique({
       where: { id: outputId },
+      include: {
+        conversation: {
+          select: { orgId: true },
+        },
+      },
     });
 
     if (!output || output.conversationId !== id) {
@@ -37,6 +43,8 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       );
     }
 
+    const previousStatus = output.status;
+
     const updated = await prisma.draftedOutput.update({
       where: { id: outputId },
       data: {
@@ -44,6 +52,22 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         // Clear review info when reopening
         reviewedById: null,
         reviewedAt: null,
+      },
+    });
+
+    // Audit log the status change
+    await createAuditLog({
+      orgId: output.conversation.orgId,
+      userId: user.id,
+      action: "UPDATE",
+      resource: "DRAFTED_OUTPUT",
+      resourceId: outputId,
+      details: {
+        conversationId: id,
+        action: "reopen",
+        previousStatus,
+        newStatus: "PENDING",
+        outputType: output.outputType,
       },
     });
 
