@@ -1,0 +1,4 @@
+-- Baseline migration: DB schema synced via db:push
+-- This migration captures the state of the database as of 2026-04-01
+-- Changes include: Goal Deduplication, Recording Recovery, Integration Hub, and other features
+-- Applied via: prisma migrate resolve --applied
