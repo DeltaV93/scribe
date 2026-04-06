@@ -26,16 +26,13 @@ const footerLinks = {
     title: "Resources",
     links: [
       { name: "Blog", href: "/blog" },
-      { name: "Documentation", href: "#" },
-      { name: "Help Center", href: "#" },
+      { name: "Security", href: "/security" },
     ],
   },
   company: {
     title: "Company",
     links: [
-      { name: "About", href: "#" },
-      { name: "Contact", href: "mailto:hello@inkra.app" },
-      { name: "Careers", href: "#" },
+      { name: "Contact", href: "/contact" },
     ],
   },
 };

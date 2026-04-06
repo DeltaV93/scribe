@@ -11,11 +11,12 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: "Inkra - Conversation-to-Work Platform",
-    template: "%s | Inkra",
+    default:
+      "Inkra — Conversation-to-Work Platform | Auto-Documentation from Calls & Meetings",
+    template: "%s | Inkra — Conversation-to-Work Platform",
   },
   description:
-    "Turn conversations into case notes, forms, tasks, and compliance reports automatically. AI documentation for nonprofits, healthcare, social services, and sales teams.",
+    "Inkra turns your team's calls, meetings, and sessions into completed documentation, reports, tasks, and insights — automatically. One conversation, six outputs. HIPAA compliant.",
   keywords: [
     "conversation to work platform",
     "conversation intelligence software",
@@ -24,6 +25,14 @@ export const metadata: Metadata = {
     "AI case notes for social workers",
     "ambient clinical documentation",
     "HIPAA compliant transcription",
+    "automatic case notes from calls",
+    "SOAP notes generator from conversation",
+    "grant report automation nonprofit",
+    "auto documentation from phone calls",
+    "Otter alternative for healthcare",
+    "Fireflies alternative HIPAA compliant",
+    "meeting AI that does more than transcribe",
+    "conversation to workflow automation",
   ],
   authors: [{ name: "Inkra" }],
   creator: "Inkra",
@@ -33,9 +42,9 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_US",
     siteName: "Inkra",
-    title: "Inkra - Conversation-to-Work Platform",
+    title: "Inkra — Conversation-to-Work Platform",
     description:
-      "Turn conversations into case notes, forms, tasks, and compliance reports automatically.",
+      "One conversation generates documentation, reports, tasks, knowledge, context, and insights. Automatically. HIPAA compliant.",
     images: [
       {
         url: "/og-image.png",
@@ -47,9 +56,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Inkra - Conversation-to-Work Platform",
+    title: "Inkra — Conversation-to-Work Platform",
     description:
-      "Turn conversations into case notes, forms, tasks, and compliance reports automatically.",
+      "Your conversations do the work. Documentation, reports, tasks, insights — all automatic.",
     images: ["/og-image-twitter.png"],
     creator: "@inkra",
   },

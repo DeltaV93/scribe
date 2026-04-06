@@ -16,17 +16,19 @@ export interface OrganizationJsonLdProps {
 
 export function OrganizationJsonLd({
   name = "Inkra",
-  url = "https://inkra.ai",
-  logo = "https://inkra.ai/inkra-logo.svg",
-  description = "Conversation-to-Work Platform. Turn conversations into structured work automatically.",
+  url = "https://oninkra.com",
+  logo = "https://oninkra.com/inkra-logo.svg",
+  description = "Inkra builds conversation-to-work automation for healthcare, legal, nonprofit, and technology teams.",
 }: OrganizationJsonLdProps) {
   const data = {
     "@context": "https://schema.org",
     "@type": "Organization",
     name,
+    legalName: "Phoenixing LLC",
     url,
     logo,
     description,
+    email: "hello@inkra.app",
     sameAs: [
       // Add social links when available
       // "https://twitter.com/inkra",
@@ -34,7 +36,7 @@ export function OrganizationJsonLd({
     ],
     contactPoint: {
       "@type": "ContactPoint",
-      email: "hello@inkra.ai",
+      email: "hello@inkra.app",
       contactType: "sales",
     },
   };
@@ -60,7 +62,7 @@ export interface SoftwareApplicationJsonLdProps {
 
 export function SoftwareApplicationJsonLd({
   name = "Inkra",
-  description = "Conversation-to-Work Platform that turns phone calls, meetings, and conversations into case notes, forms, tasks, and compliance reports automatically.",
+  description = "Inkra is a conversation-to-work platform that automatically generates documentation, reports, tasks, and insights from team calls, meetings, and sessions. HIPAA compliant.",
   applicationCategory = "BusinessApplication",
   operatingSystem = "Web",
   offers = {
@@ -75,31 +77,34 @@ export function SoftwareApplicationJsonLd({
     description,
     applicationCategory,
     operatingSystem,
+    url: "https://oninkra.com",
     offers: {
       "@type": "Offer",
       price: offers.price,
       priceCurrency: offers.priceCurrency,
       availability: "https://schema.org/PreOrder",
-      description: "Spring 2026 Pilot Program",
+      description: "Pilot access — invite only",
+    },
+    creator: {
+      "@type": "Organization",
+      name: "Inkra",
+      legalName: "Phoenixing LLC",
+      url: "https://oninkra.com",
+      email: "hello@inkra.app",
+      description:
+        "Inkra builds conversation-to-work automation for healthcare, legal, nonprofit, and technology teams.",
     },
     featureList: [
-      "AI-generated case notes (SOAP, DAP, narrative formats)",
-      "Automated form filling with field-level extraction",
-      "Compliance reporting for WIOA, TANF, grant requirements",
-      "Multi-channel: VoIP phone, Zoom, Google Meet, Teams",
-      "Follow-up task generation with assignments",
-      "Photo-based attendance capture",
-      "Industry-configurable terminology",
-      "HIPAA and SOC2 compliant",
+      "Automatic documentation from conversations",
+      "SOAP notes and case notes generation",
+      "Grant report compilation",
+      "Task and follow-up creation",
+      "Real-time conversation guides",
+      "Organizational knowledge capture",
+      "HIPAA compliant",
+      "End-to-end encrypted",
     ],
-    screenshot: "https://inkra.ai/og-image.png",
-    aggregateRating: {
-      "@type": "AggregateRating",
-      ratingValue: "5",
-      ratingCount: "1",
-      bestRating: "5",
-      worstRating: "1",
-    },
+    screenshot: "https://oninkra.com/og-image.png",
   };
 
   return (
@@ -173,24 +178,29 @@ export function HowToJsonLd({ name, description, steps }: HowToJsonLdProps) {
 // Default FAQ content for AEO (Answer Engine Optimization)
 export const inkraFAQs = [
   {
+    question: "What is a conversation-to-work platform?",
+    answer:
+      "A conversation-to-work platform automatically converts team calls, meetings, and sessions into completed downstream work — documentation, reports, tasks, CRM updates, compliance filings, and more — without manual data entry.",
+  },
+  {
+    question: "How does Inkra differ from meeting note tools like Otter or Fireflies?",
+    answer:
+      "Meeting note tools transcribe and summarize. Inkra goes further: one conversation simultaneously generates case notes, SOAP notes, intake forms, grant reports, tasks, calendar events, and CRM updates. It replaces the work that happens after the meeting, not just the notes from it.",
+  },
+  {
+    question: "Is Inkra HIPAA compliant?",
+    answer:
+      "Yes. Inkra is built for regulated industries with end-to-end encryption, PHI detection, differential privacy, full audit trails, and HIPAA-compliant infrastructure on AWS. Your data is never used for AI training.",
+  },
+  {
+    question: "What industries does Inkra support?",
+    answer:
+      "Inkra serves healthcare and clinical teams, legal practices, nonprofits and social services, product and technology teams, sales organizations, HR departments, and support teams.",
+  },
+  {
     question: "What is Inkra?",
     answer:
       "Inkra is a conversation-to-work platform that automatically converts phone calls, meetings, and conversations into structured documentation including case notes, intake forms, follow-up tasks, and compliance reports. Unlike simple transcription tools, Inkra generates 6+ outputs from a single conversation.",
-  },
-  {
-    question: "How is Inkra different from Otter.ai or other meeting transcription tools?",
-    answer:
-      "While tools like Otter.ai focus on transcription and summaries, Inkra goes further by generating structured outputs: auto-filled forms, compliance reports, case notes in industry formats (SOAP, DAP), follow-up tasks with assignments, and calendar events. Inkra is built for organizations that need documentation automation, not just meeting notes.",
-  },
-  {
-    question: "Who is Inkra designed for?",
-    answer:
-      "Inkra serves nonprofit case managers, community health workers, social services agencies, sales teams, UX researchers, legal intake specialists, and any organization where team members spend significant time documenting conversations. Primary verticals include nonprofits, healthcare, social services, and sales.",
-  },
-  {
-    question: "Does Inkra support compliance requirements like HIPAA and WIOA?",
-    answer:
-      "Yes. Inkra is designed with compliance in mind, supporting HIPAA for healthcare, SOC2 for enterprise security, and automated reporting for grant requirements like WIOA and TANF. Audit logs track all activity for regulatory compliance.",
   },
   {
     question: "What channels does Inkra support?",
@@ -205,11 +215,6 @@ export const inkraFAQs = [
   {
     question: "Is Inkra available now?",
     answer:
-      "Inkra is currently accepting applications for the Spring 2026 pilot program. Visit inkra.ai to apply for early access.",
-  },
-  {
-    question: "How does Inkra pricing work?",
-    answer:
-      "Inkra uses usage-based pricing starting around $15-50 per user per month, depending on volume and features. Contact us for enterprise pricing.",
+      "Inkra is currently accepting applications for the Spring 2026 pilot program. Visit oninkra.com to apply for early access.",
   },
 ];
