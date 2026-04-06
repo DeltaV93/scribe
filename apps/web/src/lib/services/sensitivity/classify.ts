@@ -66,8 +66,8 @@ export async function classifySensitivity(
     const nlpSegments: SensitivityTranscriptSegment[] = segments.map(
       (segment, index) => ({
         index,
-        startTime: segment.start,
-        endTime: segment.end,
+        startTime: segment.startTime,
+        endTime: segment.endTime,
         text: segment.text,
         speaker: segment.speaker,
       })
@@ -120,8 +120,8 @@ function createFallbackResult(
   const fallbackSegments: SensitivitySegmentResult[] = segments.map(
     (segment, index) => ({
       segmentIndex: index,
-      startTime: segment.start,
-      endTime: segment.end,
+      startTime: segment.startTime,
+      endTime: segment.endTime,
       text: segment.text,
       tier: "STANDARD" as const,
       confidence: 0.5, // Low confidence indicates uncertainty

@@ -76,7 +76,8 @@ export async function continueCallProcessingAfterReview(
     const { generateCallSummary } = await import("@/lib/ai/summary");
 
     // Step 2.5: ML Form Matching (if not already done)
-    let mlMatchedForms = call.formIds.length > 0 ? null : undefined;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let mlMatchedForms: any[] | null | undefined = call.formIds.length > 0 ? null : undefined;
 
     try {
       console.log(`[ContinueProcessing] Running ML form matching`);
