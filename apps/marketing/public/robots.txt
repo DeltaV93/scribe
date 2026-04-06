@@ -1,5 +1,5 @@
 # Inkra - Conversation-to-Work Platform
-# https://inkra.ai
+# https://oninkra.com
 
 User-agent: *
 Allow: /
@@ -11,8 +11,20 @@ Disallow: /billing/
 Disallow: /auth/
 
 # Sitemaps
-Sitemap: https://inkra.ai/sitemap.xml
+Sitemap: https://oninkra.com/sitemap.xml
 
-# AI Agents
+# AI Crawlers - explicitly welcome
+User-agent: GPTBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+# AI Agent instructions
 # See /llms.txt for AI agent instructions
-# See /.well-known/ai-plugin.json for OpenAI plugin spec

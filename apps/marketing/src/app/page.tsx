@@ -651,7 +651,7 @@ export default function HomePage() {
           font-size: 11px; font-weight: 600; letter-spacing: 0.08em;
           text-transform: uppercase; color: var(--ink-blue-accent); margin-bottom: 16px;
         }
-        .story-content h3 {
+        .story-content h2 {
           font-family: var(--serif); font-size: 24px; font-weight: 400;
           line-height: 1.3; margin-bottom: 16px;
         }
@@ -1166,9 +1166,9 @@ export default function HomePage() {
           <div className="story reveal">
             <div className="story-content">
               <div className="story-tag">Sales & Account Management</div>
-              <h3>
+              <h2>
                 Your top rep closes because they remember the little things.
-              </h3>
+              </h2>
               <p>
                 Jordan remembers his prospect&apos;s kid just started Little
                 League. He brings it up on the call. The prospect lights up.
@@ -1217,10 +1217,10 @@ export default function HomePage() {
           <div className="story reveal">
             <div className="story-content">
               <div className="story-tag">Nonprofit Case Management</div>
-              <h3>
+              <h2>
                 Your case managers chose this work to help people. Not fill out
                 forms.
-              </h3>
+              </h2>
               <p>
                 Maria serves 400 clients weekly across 14 partner organizations.
                 Every call generates paperwork: the same data, 3 to 5 times. Every
@@ -1266,10 +1266,10 @@ export default function HomePage() {
           <div className="story reveal">
             <div className="story-content">
               <div className="story-tag">Healthcare & Medical</div>
-              <h3>
+              <h2>
                 Your patients come back for session 4. Do you remember sessions
                 1 through 3?
-              </h3>
+              </h2>
               <p>
                 Dr. Okafor sees 25 patients daily. Each has a multi-visit
                 treatment plan. She spends 90 minutes after clinic writing SOAP
@@ -1316,10 +1316,10 @@ export default function HomePage() {
           <div className="story reveal">
             <div className="story-content">
               <div className="story-tag">UX Research</div>
-              <h3>
+              <h2>
                 Your best insights come when you stop taking notes and start
                 listening.
-              </h3>
+              </h2>
               <p>
                 Priya runs 45-minute user interviews. The best moments come
                 off-script. But she can&apos;t take notes AND be present. After
@@ -1365,10 +1365,10 @@ export default function HomePage() {
           <div className="story reveal">
             <div className="story-content">
               <div className="story-tag">People Management</div>
-              <h3>
+              <h2>
                 Your engineer mentioned wanting to learn Rust three months ago.
                 Do you remember?
-              </h3>
+              </h2>
               <p>
                 Marcus has 8 direct reports. Promo packet time arrives and his
                 notes are... sparse. 12 hours to write a packet that still feels
@@ -1415,10 +1415,10 @@ export default function HomePage() {
           <div className="story reveal">
             <div className="story-content">
               <div className="story-tag">Product Teams</div>
-              <h3>
+              <h2>
                 Your standup just pushed back the timeline. Does the VP know
                 yet?
-              </h3>
+              </h2>
               <p>
                 A blocker surfaces in Tuesday&apos;s standup that pushes the
                 launch by two weeks. The VP finds out on Friday. Ravi spends 4
@@ -1465,10 +1465,10 @@ export default function HomePage() {
           <div className="story reveal">
             <div className="story-content">
               <div className="story-tag">Customer Support</div>
-              <h3>
+              <h2>
                 Your support team follows a workflow that changed last week. Do
                 they know?
-              </h3>
+              </h2>
               <p>
                 The refund policy changed Tuesday. Three reps gave the old
                 policy Wednesday. Training takes weeks to propagate. The best
@@ -1516,10 +1516,10 @@ export default function HomePage() {
           <div className="story reveal">
             <div className="story-content">
               <div className="story-tag">Legal Services</div>
-              <h3>
+              <h2>
                 Your client mentioned a key detail in the third call. Can you
                 find it?
-              </h3>
+              </h2>
               <p>
                 Attorney Kim has 40 active matters. Each client call surfaces
                 new facts. She bills 6 hours but spends 2 more on documentation.
@@ -1566,9 +1566,9 @@ export default function HomePage() {
           <div className="story reveal">
             <div className="story-content">
               <div className="story-tag">Multi-Location Operations</div>
-              <h3>
+              <h2>
                 Location 7 figured out intake. The other 11 don&apos;t know yet.
-              </h3>
+              </h2>
               <p>
                 Regional director overseeing 12 locations. Best practices
                 trapped in one manager&apos;s head. Three weeks just getting
