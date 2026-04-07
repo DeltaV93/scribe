@@ -13,6 +13,7 @@ import { validateFile, sanitizeFilename, scanPdfForThreats, validateMagicBytes }
 import { extractFromPdf, extractFromImage, type OcrResult } from './ocr'
 import { detectFields, validateDetectedFields, type DetectedField, type FieldDetectionResult } from './field-detection'
 import { checkForDuplicates, generateFieldFingerprint, type DuplicateCheckResult } from './duplicate-detection'
+import { secureDownload, S3BucketType, isSecureS3Configured } from '@/lib/storage/s3'
 
 export * from './security'
 export * from './ocr'
@@ -122,10 +123,46 @@ export async function processConversion(conversionId: string): Promise<Conversio
   })
 
   try {
-    // In a real implementation, we would fetch the file from S3
-    // For now, we'll assume the buffer is passed or stored temporarily
-    // This is a placeholder for the actual file retrieval
-    const buffer = Buffer.from('') // TODO: Fetch from S3 using conversion.sourcePath
+    // Fetch file from S3 or inline storage
+    let buffer: Buffer | null = null
+
+    // Try S3 first if configured
+    if (isSecureS3Configured()) {
+      console.log(`[FormConversion] Fetching file from S3: ${conversion.sourcePath}`)
+      const result = await secureDownload(S3BucketType.UPLOADS, conversion.sourcePath)
+
+      if (result.success && result.data) {
+        buffer = result.data
+      } else {
+        console.warn(`[FormConversion] S3 download failed: ${result.error}`)
+      }
+    }
+
+    // Fallback: check for inline stored data (used in dev environments)
+    if (!buffer && conversion.fieldPositions) {
+      const positions = conversion.fieldPositions as { fileBuffer?: string }
+      if (positions.fileBuffer) {
+        console.log(`[FormConversion] Using inline stored file data`)
+        buffer = Buffer.from(positions.fileBuffer, 'base64')
+      }
+    }
+
+    // If no buffer found, mark as needing manual review
+    if (!buffer || buffer.length === 0) {
+      await prisma.formConversion.update({
+        where: { id: conversionId },
+        data: {
+          status: 'REVIEW_REQUIRED',
+          warnings: ['Source file not available - manual field entry required'],
+        },
+      })
+
+      return {
+        conversionId,
+        status: 'REVIEW_REQUIRED',
+        warnings: ['Source file not available - manual field entry required'],
+      }
+    }
 
     // Perform OCR
     let ocrResult: OcrResult

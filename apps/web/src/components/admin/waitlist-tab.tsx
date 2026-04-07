@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -186,7 +187,7 @@ export function WaitlistTab({ onDataChange }: WaitlistTabProps) {
 
       if (response.ok) {
         const data = await response.json();
-        alert(`Successfully approved ${data.approvedCount} entries`);
+        toast.success(`Successfully approved ${data.approvedCount} entries`);
         await fetchWaitlist();
         onDataChange?.();
       }

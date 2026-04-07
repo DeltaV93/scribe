@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, use } from "react";
+import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
@@ -32,7 +33,7 @@ import { TranscriptViewer } from "@/components/conversation/transcript-viewer";
 import { SensitivityReview } from "@/components/conversation/sensitivity-review";
 import { OutputEditor } from "@/components/conversation/output-editor";
 import { EditableTitle } from "@/components/conversation/editable-title";
-import { SpeakerLabeler } from "@/components/conversation/speaker-labeler";
+import { SpeakerLabeler, type SpeakerLabel } from "@/components/conversation/speaker-labeler";
 import {
   UnifiedReviewView,
   useExtractionData,
@@ -135,6 +136,7 @@ function FormsTabContent({
 
   const {
     isLoading: isSuggestionsLoading,
+    error: suggestionsError,
     suggestions,
     extractedPII,
     fetchSuggestions,
@@ -158,10 +160,10 @@ function FormsTabContent({
         throw new Error(data.error?.message || "Failed to finalize");
       }
 
-      alert(`Created ${data.submissions.length} form submission(s)`);
+      toast.success(`Created ${data.submissions.length} form submission(s)`);
     } catch (error) {
       console.error("Finalize error:", error);
-      alert(error instanceof Error ? error.message : "Failed to finalize");
+      toast.error(error instanceof Error ? error.message : "Failed to finalize");
     }
   };
 
@@ -195,6 +197,7 @@ function FormsTabContent({
         suggestions={suggestions}
         extractedPII={extractedPII}
         isLoading={isSuggestionsLoading}
+        error={suggestionsError}
         onSuggest={fetchSuggestions}
         onSelect={(clientId) => setSelectedClientId(clientId)}
         onCreateNew={() => {
@@ -218,6 +221,7 @@ export default function ConversationDetailPage({
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("outputs");
   const [recordingStatus, setRecordingStatus] = useState<RecordingStatusData | null>(null);
+  const [speakerLabels, setSpeakerLabels] = useState<SpeakerLabel[]>([]);
 
   useEffect(() => {
     fetchConversation();
@@ -229,6 +233,33 @@ export default function ConversationDetailPage({
       fetchRecordingStatus();
     }
   }, [conversation?.id, conversation?.status, conversation?.recoveryStatus]);
+
+  // Fetch speaker labels when conversation has a transcript
+  useEffect(() => {
+    if (conversation?.transcriptJson) {
+      fetchSpeakerLabels();
+    }
+  }, [conversation?.id, !!conversation?.transcriptJson]);
+
+  // Poll for status updates when conversation is PROCESSING
+  useEffect(() => {
+    if (conversation?.status !== "PROCESSING") return;
+
+    const pollInterval = setInterval(async () => {
+      try {
+        const response = await fetch(`/api/conversations/${id}`);
+        const data = await response.json();
+        if (data.success && data.conversation.status !== "PROCESSING") {
+          setConversation(data.conversation);
+          setCanEditTitle(data.canEditTitle ?? false);
+        }
+      } catch (error) {
+        console.error("Polling error:", error);
+      }
+    }, 3000); // Poll every 3 seconds
+
+    return () => clearInterval(pollInterval);
+  }, [conversation?.status, id]);
 
   const fetchRecordingStatus = async () => {
     try {
@@ -243,6 +274,18 @@ export default function ConversationDetailPage({
       }
     } catch (error) {
       console.error("Failed to fetch recording status:", error);
+    }
+  };
+
+  const fetchSpeakerLabels = async () => {
+    try {
+      const response = await fetch(`/api/conversations/${id}/speakers`);
+      const data = await response.json();
+      if (response.ok && data.labels) {
+        setSpeakerLabels(data.labels);
+      }
+    } catch (error) {
+      console.error("Failed to fetch speaker labels:", error);
     }
   };
 
@@ -327,24 +370,66 @@ export default function ConversationDetailPage({
   };
 
   const handleApproveOutput = async (outputId: string) => {
-    await fetch(`/api/conversations/${id}/outputs/${outputId}/approve`, {
+    const response = await fetch(`/api/conversations/${id}/outputs/${outputId}/approve`, {
       method: "POST",
     });
-    fetchConversation();
+    if (response.ok) {
+      // Optimistic update - update local state without full refresh
+      setConversation((prev) =>
+        prev
+          ? {
+              ...prev,
+              draftedOutputs: prev.draftedOutputs.map((output) =>
+                output.id === outputId
+                  ? { ...output, status: "APPROVED" }
+                  : output
+              ),
+            }
+          : null
+      );
+    }
   };
 
   const handleRejectOutput = async (outputId: string) => {
-    await fetch(`/api/conversations/${id}/outputs/${outputId}/reject`, {
+    const response = await fetch(`/api/conversations/${id}/outputs/${outputId}/reject`, {
       method: "POST",
     });
-    fetchConversation();
+    if (response.ok) {
+      // Optimistic update
+      setConversation((prev) =>
+        prev
+          ? {
+              ...prev,
+              draftedOutputs: prev.draftedOutputs.map((output) =>
+                output.id === outputId
+                  ? { ...output, status: "REJECTED" }
+                  : output
+              ),
+            }
+          : null
+      );
+    }
   };
 
   const handlePushOutput = async (outputId: string) => {
-    await fetch(`/api/conversations/${id}/outputs/${outputId}/push`, {
+    const response = await fetch(`/api/conversations/${id}/outputs/${outputId}/push`, {
       method: "POST",
     });
-    fetchConversation();
+    if (response.ok) {
+      // Optimistic update
+      setConversation((prev) =>
+        prev
+          ? {
+              ...prev,
+              draftedOutputs: prev.draftedOutputs.map((output) =>
+                output.id === outputId
+                  ? { ...output, status: "PUSHED" }
+                  : output
+              ),
+            }
+          : null
+      );
+    }
   };
 
   if (isLoading) {
@@ -535,7 +620,10 @@ export default function ConversationDetailPage({
 
             {conversation.type === "IN_PERSON" && (
               <TabsContent value="speakers" className="mt-4">
-                <SpeakerLabeler conversationId={conversation.id} />
+                <SpeakerLabeler
+                  conversationId={conversation.id}
+                  onLabelsChange={(labels) => setSpeakerLabels(labels)}
+                />
               </TabsContent>
             )}
 
@@ -561,6 +649,7 @@ export default function ConversationDetailPage({
                 <TranscriptViewer
                   segments={conversation.transcriptJson as never[]}
                   flaggedSegments={conversation.flaggedSegments as never[]}
+                  speakerLabels={speakerLabels}
                   className="max-h-[600px] overflow-y-auto"
                 />
               ) : (

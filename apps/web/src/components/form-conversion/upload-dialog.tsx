@@ -92,20 +92,47 @@ export function UploadDialog({ open, onOpenChange }: UploadDialogProps) {
       setConversionId(data.data.conversionId);
       setProgress(70);
 
+      // Check if processing was done synchronously (no job queue)
+      if (data.data.processed || !data.data.jobId) {
+        // Processing was done synchronously
+        setProgress(100);
+
+        if (data.data.status === "FAILED") {
+          setState("error");
+          setError(data.data.warnings?.[0] || "Processing failed");
+          toast.error("Processing failed");
+        } else {
+          setState("success");
+          toast.success("Document processed successfully");
+        }
+        return;
+      }
+
       setState("processing");
 
       // Poll for completion
       await pollForCompletion(data.data.jobId);
     } catch (err) {
       setState("error");
-      setError(err instanceof Error ? err.message : "An error occurred");
-      toast.error("Upload failed");
+      const errorMessage = err instanceof Error ? err.message : "An error occurred";
+      setError(errorMessage);
+
+      // Provide more specific error messages
+      if (errorMessage.includes("not enabled")) {
+        toast.error("This feature is not enabled for your organization");
+      } else if (errorMessage.includes("S3") || errorMessage.includes("upload")) {
+        toast.error("Failed to upload file. Please try again.");
+      } else {
+        toast.error("Upload failed. Please try again.");
+      }
     }
   };
 
   const pollForCompletion = async (jobId: string) => {
     const maxAttempts = 60;
     let attempts = 0;
+    let pendingCount = 0;
+    const maxPendingAttempts = 15; // If job is PENDING for 30 seconds, trigger manual processing
 
     while (attempts < maxAttempts) {
       await new Promise((resolve) => setTimeout(resolve, 2000));
@@ -113,10 +140,20 @@ export function UploadDialog({ open, onOpenChange }: UploadDialogProps) {
 
       try {
         const response = await fetch(`/api/jobs/${jobId}`);
-        if (!response.ok) continue;
+        if (!response.ok) {
+          // Handle non-JSON responses
+          const text = await response.text();
+          console.error(`Job poll failed: ${response.status} - ${text}`);
+          continue;
+        }
 
         const data = await response.json();
         const job = data.data;
+
+        if (!job) {
+          console.error("No job data in response");
+          continue;
+        }
 
         setProgress(70 + Math.min(job.progress || 0, 100) * 0.25);
 
@@ -130,14 +167,56 @@ export function UploadDialog({ open, onOpenChange }: UploadDialogProps) {
         if (job.status === "FAILED") {
           throw new Error(job.error || "Processing failed");
         }
+
+        // Check if job is stuck in PENDING
+        if (job.status === "PENDING") {
+          pendingCount++;
+
+          // If stuck in PENDING, try to trigger processing manually
+          if (pendingCount === maxPendingAttempts && conversionId) {
+            console.log("Job stuck in PENDING, attempting direct status check");
+
+            // Check conversion status directly
+            const conversionResponse = await fetch(`/api/form-conversion/${conversionId}`);
+            if (conversionResponse.ok) {
+              const conversionData = await conversionResponse.json();
+              const conversion = conversionData.data;
+
+              if (conversion?.status === "REVIEW_REQUIRED" || conversion?.status === "COMPLETED") {
+                setState("success");
+                setProgress(100);
+                toast.success("Document processed successfully");
+                return;
+              }
+
+              if (conversion?.status === "FAILED") {
+                throw new Error(conversion.warnings?.[0] || "Processing failed");
+              }
+            }
+          }
+
+          if (pendingCount >= maxPendingAttempts * 2) {
+            // Job is stuck, likely no worker running
+            throw new Error(
+              "Processing is taking longer than expected. The document has been queued for processing. Please check back later."
+            );
+          }
+        }
       } catch (err) {
-        if (attempts >= maxAttempts) {
-          throw new Error("Processing timed out");
+        if (err instanceof Error && !err.message.includes("longer than expected")) {
+          // Only throw immediately for definitive errors
+          if (err.message.includes("failed") || attempts >= maxAttempts) {
+            throw err;
+          }
+        } else if (attempts >= maxAttempts) {
+          throw new Error("Processing timed out. Please try again later.");
+        } else {
+          throw err;
         }
       }
     }
 
-    throw new Error("Processing timed out");
+    throw new Error("Processing timed out. Please try again later.");
   };
 
   const handleViewResults = () => {

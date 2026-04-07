@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import { useParams, useRouter } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -122,11 +123,11 @@ export default function PortalEntryPage() {
         setReplyContent("");
       } else {
         const data = await response.json();
-        alert(data.error?.message || "Failed to send reply");
+        toast.error(data.error?.message || "Failed to send reply");
       }
     } catch (err) {
       console.error("Error sending reply:", err);
-      alert("Failed to send reply");
+      toast.error("Failed to send reply");
     } finally {
       setIsSending(false);
     }

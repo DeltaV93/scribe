@@ -23,12 +23,40 @@ import {
   checkForDuplicates,
 } from '@/lib/services/form-conversion'
 import { notifyJobCompleted, notifyJobFailed } from '@/lib/services/notifications'
+import { secureDownload, S3BucketType, isSecureS3Configured } from '@/lib/storage/s3'
 
-// Placeholder for S3 operations
-async function fetchFileFromS3(path: string): Promise<Buffer> {
-  // In production, this would use @aws-sdk/client-s3
-  // For now, return empty buffer (actual implementation depends on S3 setup)
-  console.log(`[FormConversion] Would fetch file from S3: ${path}`)
+/**
+ * Fetch file from S3 or from inline storage (for dev environments)
+ */
+async function fetchFileFromS3(path: string, conversionId: string): Promise<Buffer> {
+  // Try S3 first if configured
+  if (isSecureS3Configured()) {
+    console.log(`[FormConversion] Fetching file from S3: ${path}`)
+    const result = await secureDownload(S3BucketType.UPLOADS, path)
+
+    if (result.success && result.data) {
+      return result.data
+    }
+
+    console.warn(`[FormConversion] S3 download failed: ${result.error}`)
+  }
+
+  // Fallback: check for inline stored data (used in dev environments)
+  console.log(`[FormConversion] Checking for inline stored file data`)
+  const conversion = await prisma.formConversion.findUnique({
+    where: { id: conversionId },
+    select: { fieldPositions: true },
+  })
+
+  if (conversion?.fieldPositions) {
+    const positions = conversion.fieldPositions as { fileBuffer?: string }
+    if (positions.fileBuffer) {
+      console.log(`[FormConversion] Using inline stored file data`)
+      return Buffer.from(positions.fileBuffer, 'base64')
+    }
+  }
+
+  console.warn(`[FormConversion] No file data found for conversion ${conversionId}`)
   return Buffer.from('')
 }
 
@@ -58,8 +86,8 @@ async function processFormConversion(job: Job<FormConversionJobData>): Promise<v
       data: { status: 'PROCESSING' },
     })
 
-    // Fetch file from S3
-    const buffer = await fetchFileFromS3(sourcePath)
+    // Fetch file from S3 or inline storage
+    const buffer = await fetchFileFromS3(sourcePath, conversionId)
     await job.updateProgress(20)
 
     if (buffer.length === 0) {

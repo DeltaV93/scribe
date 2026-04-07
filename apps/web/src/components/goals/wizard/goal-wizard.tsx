@@ -92,60 +92,91 @@ export function GoalWizard() {
           name: formData.name,
           description: formData.description || null,
           type: formData.type,
-          startDate: formData.startDate?.toISOString(),
-          endDate: formData.endDate?.toISOString(),
+          startDate: formData.startDate ? formData.startDate.toISOString() : null,
+          endDate: formData.endDate ? formData.endDate.toISOString() : null,
           ownerId: formData.ownerId,
           teamId: formData.teamId,
         }),
       });
 
       if (!goalResponse.ok) {
-        throw new Error("Failed to create goal");
+        const errorData = await goalResponse.json().catch(() => null);
+        const errorMessage = errorData?.error?.message || "Failed to create goal";
+
+        // Handle specific error codes
+        if (goalResponse.status === 403) {
+          throw new Error("You do not have permission to create goals. Only Admins and Program Managers can create goals.");
+        } else if (goalResponse.status === 400 && errorData?.error?.details) {
+          // Handle validation errors
+          const fieldErrors = errorData.error.details.fieldErrors;
+          if (fieldErrors) {
+            const errorMessages = Object.entries(fieldErrors)
+              .map(([field, errors]) => `${field}: ${(errors as string[]).join(", ")}`)
+              .join("; ");
+            throw new Error(`Validation error: ${errorMessages}`);
+          }
+          throw new Error(errorMessage);
+        }
+
+        throw new Error(errorMessage);
       }
 
       const { data: goal } = await goalResponse.json();
 
       // Link grants
       for (const grantId of formData.grantIds) {
-        await fetch(`/api/goals/${goal.id}/grants`, {
+        const res = await fetch(`/api/goals/${goal.id}/grants`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ grantId }),
         });
+        if (!res.ok) {
+          console.warn(`Failed to link grant ${grantId}`);
+        }
       }
 
       // Link KPIs
       for (const kpiId of formData.kpiIds) {
-        await fetch(`/api/goals/${goal.id}/kpis`, {
+        const res = await fetch(`/api/goals/${goal.id}/kpis`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ kpiId }),
         });
+        if (!res.ok) {
+          console.warn(`Failed to link KPI ${kpiId}`);
+        }
       }
 
       // Link objectives
       for (const objectiveId of formData.objectiveIds) {
-        await fetch(`/api/goals/${goal.id}/objectives`, {
+        const res = await fetch(`/api/goals/${goal.id}/objectives`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ objectiveId }),
         });
+        if (!res.ok) {
+          console.warn(`Failed to link objective ${objectiveId}`);
+        }
       }
 
       // Link programs
       for (const programId of formData.programIds) {
-        await fetch(`/api/goals/${goal.id}/programs`, {
+        const res = await fetch(`/api/goals/${goal.id}/programs`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ programId, backfillHistorical: true }),
         });
+        if (!res.ok) {
+          console.warn(`Failed to link program ${programId}`);
+        }
       }
 
       toast.success("Goal created successfully");
       router.push(`/goals/${goal.id}`);
     } catch (error) {
       console.error("Error creating goal:", error);
-      toast.error("Failed to create goal");
+      const message = error instanceof Error ? error.message : "Failed to create goal";
+      toast.error(message);
     } finally {
       setIsSubmitting(false);
     }

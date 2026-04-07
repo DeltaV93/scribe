@@ -233,7 +233,7 @@ export function ClientSuggestionPanel({
               Find matching clients based on the conversation transcript.
             </p>
             <Button
-              onClick={onSuggest}
+              onClick={() => onSuggest()}
               variant="outline"
               className="gap-2 hover:bg-accent hover:text-accent-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             >
@@ -312,7 +312,7 @@ export function ClientSuggestionPanel({
         {!isLoading && hasExtractedPII && onSuggest && (
           <div className="text-center">
             <button
-              onClick={onSuggest}
+              onClick={() => onSuggest()}
               className="text-xs text-muted-foreground hover:text-foreground focus-visible:text-foreground underline rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 px-1"
               aria-label="Re-analyze transcript to find client matches"
             >

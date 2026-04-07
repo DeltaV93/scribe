@@ -5,24 +5,24 @@ import { GoalType, GoalStatus } from "@prisma/client";
 import { UserRole } from "@/types";
 import { z } from "zod";
 
+// Helper to validate and transform date strings
+const dateStringSchema = z
+  .union([
+    z.string().datetime().transform((val) => new Date(val)),
+    z.string().length(0).transform(() => null), // Empty string -> null
+    z.null(),
+  ])
+  .nullable()
+  .optional();
+
 // Validation schema for creating a goal
 const createGoalSchema = z.object({
   name: z.string().min(1, "Name is required").max(200),
   description: z.string().max(5000).nullable().optional(),
   type: z.nativeEnum(GoalType),
   status: z.nativeEnum(GoalStatus).optional(),
-  startDate: z
-    .string()
-    .datetime()
-    .transform((val) => new Date(val))
-    .nullable()
-    .optional(),
-  endDate: z
-    .string()
-    .datetime()
-    .transform((val) => new Date(val))
-    .nullable()
-    .optional(),
+  startDate: dateStringSchema,
+  endDate: dateStringSchema,
   ownerId: z.string().uuid().nullable().optional(),
   teamId: z.string().uuid().nullable().optional(),
   autoCompleteOnProgress: z.boolean().optional(),

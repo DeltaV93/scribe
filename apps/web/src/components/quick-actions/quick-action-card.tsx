@@ -30,10 +30,10 @@ export const QuickActionCard = forwardRef<HTMLButtonElement, QuickActionCardProp
         className={cn(
           "flex w-full items-center gap-4 rounded-lg p-4 text-left",
           "transition-colors duration-150",
-          "hover:bg-accent",
+          "hover:bg-muted",
           "focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
           "motion-reduce:transition-none",
-          isFocused && "bg-accent"
+          isFocused && "bg-muted"
         )}
         tabIndex={isFocused ? 0 : -1}
         aria-label={`${label}: ${description}`}

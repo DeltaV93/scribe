@@ -136,8 +136,8 @@ export default function ActionItemsPage() {
     fetchActionItems();
   }, [fetchActionItems]);
 
-  const handleStatusToggle = async (item: ActionItem) => {
-    const newStatus = item.status === "COMPLETED" ? "OPEN" : "COMPLETED";
+  const handleStatusChange = async (item: ActionItem, newStatus: "OPEN" | "IN_PROGRESS" | "COMPLETED") => {
+    if (newStatus === item.status) return;
     setUpdatingItemId(item.id);
     setError(null);
 
@@ -309,7 +309,7 @@ export default function ActionItemsPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[50px]">Done</TableHead>
+              <TableHead className="w-[50px]"></TableHead>
               <TableHead>Description</TableHead>
               <TableHead className="w-[120px]">Status</TableHead>
               <TableHead className="w-[130px]">Due Date</TableHead>
@@ -348,12 +348,34 @@ export default function ActionItemsPage() {
                       <div className="flex items-center justify-center">
                         {isUpdating ? (
                           <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : item.status === "CANCELLED" ? (
+                          <Checkbox checked={false} disabled />
                         ) : (
-                          <Checkbox
-                            checked={item.status === "COMPLETED"}
-                            onCheckedChange={() => handleStatusToggle(item)}
-                            disabled={item.status === "CANCELLED"}
-                          />
+                          <Select
+                            value={item.status}
+                            onValueChange={(value) =>
+                              handleStatusChange(
+                                item,
+                                value as "OPEN" | "IN_PROGRESS" | "COMPLETED"
+                              )
+                            }
+                          >
+                            <SelectTrigger className="h-8 w-8 p-0 border-0 bg-transparent justify-center [&>svg]:hidden">
+                              <Checkbox
+                                checked={item.status === "COMPLETED"}
+                                className={
+                                  item.status === "IN_PROGRESS"
+                                    ? "data-[state=unchecked]:bg-yellow-100 data-[state=unchecked]:border-yellow-500"
+                                    : ""
+                                }
+                              />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="OPEN">Open</SelectItem>
+                              <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
+                              <SelectItem value="COMPLETED">Completed</SelectItem>
+                            </SelectContent>
+                          </Select>
                         )}
                       </div>
                     </TableCell>

@@ -204,12 +204,18 @@ function FormBuilderNavigation({
   };
 
   // Handle next button click - for AI setup step, trigger generation
+  // IMPORTANT: On AI setup step, we must ONLY trigger generation, never navigate directly.
+  // Navigation happens via acceptGeneratedFieldsAtom after user reviews and accepts fields.
   const handleNext = () => {
-    if (nav.isAISetupStep && onAIGenerate) {
-      onAIGenerate();
-    } else {
-      nav.goToNext();
+    if (nav.isAISetupStep) {
+      // On AI setup step, always trigger generation (don't navigate)
+      if (onAIGenerate) {
+        onAIGenerate();
+      }
+      // If onAIGenerate is somehow undefined, do nothing rather than navigating
+      return;
     }
+    nav.goToNext();
   };
 
   return (

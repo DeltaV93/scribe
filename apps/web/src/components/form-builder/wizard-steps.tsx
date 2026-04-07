@@ -8,6 +8,7 @@ import {
   formBuilderAtom,
   visibleStepsAtom,
   creationMethodAtom,
+  aiGenerationAtom,
 } from "@/lib/form-builder/store";
 import type { WizardStep } from "@/types";
 import {
@@ -91,6 +92,11 @@ export function WizardSteps() {
   const formState = useAtomValue(formBuilderAtom);
   const visibleStepIds = useAtomValue(visibleStepsAtom);
   const creationMethod = useAtomValue(creationMethodAtom);
+  const aiState = useAtomValue(aiGenerationAtom);
+
+  // Use AI as default method (matches visibleStepsAtom behavior)
+  const effectiveMethod = creationMethod || "ai";
+  const isOnAISetupStep = currentStep === "setup" && effectiveMethod === "ai";
 
   // Get visible steps with their configs
   const visibleSteps = visibleStepIds.map((id) => {
@@ -119,6 +125,16 @@ export function WizardSteps() {
 
     // For first step (setup or upload), always accessible
     if (index === 0) return true;
+
+    // SAFEGUARD: When on AI setup step, cannot skip ahead to fields
+    // User must go through AI generation and review process first
+    if (isOnAISetupStep && step.id === "fields") {
+      // Only allow if AI generation was accepted (fields were added via acceptGeneratedFieldsAtom)
+      // or if user has manually added fields (edge case)
+      if (aiState.status !== "accepted" && formState.fields.length === 0) {
+        return false;
+      }
+    }
 
     // For fields, need form name
     if (step.id === "fields") return !!formState.form.name?.trim();
@@ -213,6 +229,10 @@ export function WizardNavigation() {
   // Find current step index in visible steps
   const currentStepIndex = visibleStepIds.findIndex((id) => id === currentStep);
 
+  // Use AI as default method (matches visibleStepsAtom behavior)
+  const effectiveMethod = creationMethod || "ai";
+  const isAISetupStep = currentStep === "setup" && effectiveMethod === "ai";
+
   const goToPrevious = () => {
     if (currentStepIndex > 0) {
       setCurrentStep(visibleStepIds[currentStepIndex - 1]);
@@ -220,6 +240,12 @@ export function WizardNavigation() {
   };
 
   const goToNext = () => {
+    // SAFEGUARD: Never auto-navigate from AI setup step
+    // Navigation from AI setup only happens via acceptGeneratedFieldsAtom
+    if (isAISetupStep) {
+      console.warn("goToNext called on AI setup step - this should not happen. Navigation blocked.");
+      return;
+    }
     if (currentStepIndex < visibleStepIds.length - 1) {
       setCurrentStep(visibleStepIds[currentStepIndex + 1]);
     }
@@ -229,7 +255,13 @@ export function WizardNavigation() {
     const nextStepId = visibleStepIds[currentStepIndex + 1];
     if (!nextStepId) return false;
 
-    // From first step (setup/upload), need form name
+    // For AI setup step, button enablement is based on form name
+    // (actual navigation is blocked in goToNext and handleNext)
+    if (isAISetupStep) {
+      return !!formState.form.name?.trim();
+    }
+
+    // From first step (upload method), need form name
     if (currentStepIndex === 0) return !!formState.form.name?.trim();
 
     // From fields onwards, need at least one field
@@ -242,15 +274,12 @@ export function WizardNavigation() {
     return true;
   };
 
-  // Use AI as default method (matches visibleStepsAtom behavior)
-  const effectiveMethod = creationMethod || "ai";
-
   // Determine button label based on current step and method
   const getNextButtonLabel = () => {
     if (currentStepIndex === visibleStepIds.length - 1) {
       return "Publish Form";
     }
-    if (currentStep === "setup" && effectiveMethod === "ai") {
+    if (isAISetupStep) {
       return "Generate Form";
     }
     return "Next";
@@ -268,6 +297,6 @@ export function WizardNavigation() {
     isLastStep: currentStepIndex === visibleStepIds.length - 1,
     setStep: setCurrentStep,
     nextButtonLabel: getNextButtonLabel(),
-    isAISetupStep: currentStep === "setup" && effectiveMethod === "ai",
+    isAISetupStep,
   };
 }

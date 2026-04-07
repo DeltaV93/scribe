@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import type { SensitivityCategory } from "@prisma/client";
+import type { SpeakerLabel } from "./speaker-labeler";
 
 interface TranscriptSegment {
   startTime: number;
@@ -24,6 +25,7 @@ interface TranscriptViewerProps {
     category: SensitivityCategory;
     status: string;
   }>;
+  speakerLabels?: SpeakerLabel[];
   onSegmentClick?: (segment: TranscriptSegment) => void;
   highlightTime?: number;
   className?: string;
@@ -53,9 +55,21 @@ function formatTime(seconds: number): string {
   return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
 }
 
+// Helper to get display name for a speaker
+function getSpeakerDisplayName(
+  speakerId: string | undefined,
+  speakerLabels: SpeakerLabel[]
+): string {
+  if (!speakerId) return "Unknown Speaker";
+  const label = speakerLabels.find((l) => l.speakerId === speakerId);
+  if (label?.name) return label.name;
+  return speakerId;
+}
+
 export function TranscriptViewer({
   segments,
   flaggedSegments = [],
+  speakerLabels = [],
   onSegmentClick,
   highlightTime,
   className,
@@ -137,6 +151,7 @@ export function TranscriptViewer({
           <div className="border-t p-4">
             <TranscriptContent
               groups={groupedSegments}
+              speakerLabels={speakerLabels}
               onSegmentClick={onSegmentClick}
               highlightTime={highlightTime}
             />
@@ -150,6 +165,7 @@ export function TranscriptViewer({
     <div className={cn("space-y-4", className)}>
       <TranscriptContent
         groups={groupedSegments}
+        speakerLabels={speakerLabels}
         onSegmentClick={onSegmentClick}
         highlightTime={highlightTime}
       />
@@ -164,12 +180,14 @@ interface TranscriptContentProps {
     startTime: number;
     endTime: number;
   }>;
+  speakerLabels: SpeakerLabel[];
   onSegmentClick?: (segment: TranscriptSegment) => void;
   highlightTime?: number;
 }
 
 function TranscriptContent({
   groups,
+  speakerLabels,
   onSegmentClick,
   highlightTime,
 }: TranscriptContentProps) {
@@ -192,7 +210,7 @@ function TranscriptContent({
             <div className="mb-2 flex items-center gap-2 text-xs text-muted-foreground">
               <User className="h-3 w-3" />
               <span className="font-medium">
-                {group.speaker || "Unknown Speaker"}
+                {getSpeakerDisplayName(group.speaker, speakerLabels)}
               </span>
               <span>•</span>
               <span>{formatTime(group.startTime)}</span>
