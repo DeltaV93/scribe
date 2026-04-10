@@ -6,15 +6,11 @@ build:
       - corepack enable
       - corepack prepare pnpm@9.0.0 --activate
     build:
-      - export NODE_OPTIONS="--max-old-space-size=4096"
       - pnpm install --frozen-lockfile
       - pnpm --filter @inkra/web db:generate
       - pnpm turbo run build --filter=@inkra/web
       - cp -r apps/web/.next/static apps/web/.next/standalone/apps/web/.next/static
       - cp -r apps/web/public apps/web/.next/standalone/apps/web/public
-  env:
-    - name: NODE_OPTIONS
-      value: "--max-old-space-size=4096"
 run:
   command: node apps/web/.next/standalone/apps/web/server.js
   network:

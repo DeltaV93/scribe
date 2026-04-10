@@ -4,6 +4,14 @@ const { withSentryConfig } = require('@sentry/nextjs');
 const nextConfig = {
   output: 'standalone',
   transpilePackages: ['@inkra/ui'],
+  // Skip type checking during build - runs in CI instead
+  // This fixes OOM errors on memory-constrained build environments (App Runner)
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
   experimental: {
     serverActions: {
       bodySizeLimit: '10mb',
