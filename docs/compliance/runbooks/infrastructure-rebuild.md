@@ -389,6 +389,8 @@ terraform apply -var-file=terraform.tfvars
 | **Subnets** | Both private subnets |
 | **Security group** | scrybe-app-sg |
 
+> **CRITICAL:** The VPC Connector MUST use `scrybe-app-sg` (application security group), NOT `scrybe-db-sg`. The RDS security group allows inbound from `scrybe-app-sg`. Using the wrong security group causes "Can't reach database server" errors.
+
 3. Click **Create**
 
 ### 8.2 Create App Runner Service
@@ -522,7 +524,25 @@ Set these in **App Runner** → **Configuration** → **Environment variables**:
 
 On first deployment, the database will be empty. Run schema push:
 
-**Option A: Via App Runner start command (one-time)**
+**Option A: Via Temporary EC2 Instance (Recommended)**
+
+This is the most secure method as it doesn't require making RDS publicly accessible.
+
+See the full runbook: [Database Migration via EC2](./database-migration-ec2.md)
+
+Quick summary:
+1. Launch a `t2.micro` EC2 instance in the VPC with `scrybe-app-sg` security group
+2. Attach `EC2-SSM-Role` IAM instance profile for Session Manager access
+3. Connect via Session Manager (no SSH key needed)
+4. Clone repo, install Node.js, run:
+   ```bash
+   export DATABASE_URL="postgresql://scrybe_admin:PASSWORD@RDS_ENDPOINT:5432/scrybe"
+   export DIRECT_URL="$DATABASE_URL"
+   npx prisma@5.22.0 db push
+   ```
+5. **Terminate the instance when done**
+
+**Option B: Via App Runner start command (one-time)**
 
 Temporarily change the start command to:
 ```
@@ -534,7 +554,7 @@ Deploy, verify tables are created (check logs for "The database is already in sy
 npm run start
 ```
 
-**Option B: From local machine (requires temporary public access)**
+**Option C: From local machine (requires temporary public access - NOT recommended)**
 
 1. Temporarily set RDS to **Publicly accessible: Yes**
 2. Add your IP to `scrybe-db-sg` inbound rules
@@ -621,10 +641,18 @@ DATABASE_URL="postgresql://scrybe_admin:PASSWORD@RDS_ENDPOINT:5432/scrybe" npx p
 
 ### "Can't reach database server"
 - Verify App Runner VPC connector is **Active**
+- **Verify VPC Connector uses `scrybe-app-sg`** (NOT `scrybe-db-sg`) - this is a common mistake
 - Verify `scrybe-db-sg` allows inbound from `scrybe-app-sg` on port 5432
 - Verify `scrybe-app-sg` has outbound rule to `10.0.0.0/16` on port 5432
 - Verify RDS and App Runner are in the **same VPC**
 - Verify RDS and App Runner use the **same private subnets**
+
+### VPC Connector using wrong security group
+If the VPC Connector was created with `scrybe-db-sg` instead of `scrybe-app-sg`:
+1. VPC Connectors are immutable - you cannot edit the security group
+2. Create a new VPC Connector with the correct security group (`scrybe-app-sg`)
+3. Edit the App Runner service configuration to use the new connector
+4. Delete the old VPC Connector
 
 ### "The scheme is not recognized in database URL"
 - Remove quotes from DATABASE_URL value
@@ -642,6 +670,7 @@ DATABASE_URL="postgresql://scrybe_admin:PASSWORD@RDS_ENDPOINT:5432/scrybe" npx p
 ### "Table does not exist"
 - Database schema not pushed. Run `npx prisma db push`
 - See Phase 10 for schema setup options
+- For private RDS, use the [Database Migration via EC2 runbook](./database-migration-ec2.md)
 
 ### Health check fails / Container exit code 1
 - Check application logs in CloudWatch

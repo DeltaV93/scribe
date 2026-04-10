@@ -14,9 +14,9 @@ This runbook provides step-by-step instructions for restoring the PostgreSQL dat
 
 - AWS CLI configured with appropriate permissions
 - Access to Supabase dashboard or database admin credentials
-- Railway CLI (if using Railway hosting)
-- Prisma CLI installed
-- VPN access (if required)
+- AWS Console access (for EC2 and RDS)
+- Git repository access (for schema migrations)
+- Database credentials (DATABASE_URL)
 
 ## Scenarios
 
@@ -59,18 +59,19 @@ psql $DATABASE_URL -c "SELECT now(), pg_is_in_recovery();"
 3. Choose target timestamp (before corruption)
 4. Confirm recovery
 
-**For Railway/Direct PostgreSQL:**
+**For AWS RDS:**
 ```bash
 # List available recovery points
-aws rds describe-db-cluster-snapshots \
-  --db-cluster-identifier scrybe-prod
+aws rds describe-db-instance-automated-backups \
+  --db-instance-identifier scrybe-prod-db \
+  --region us-east-2
 
 # Restore to point in time
-aws rds restore-db-cluster-to-point-in-time \
-  --source-db-cluster-identifier scrybe-prod \
-  --db-cluster-identifier scrybe-prod-restored \
-  --restore-to-time "2026-02-01T10:00:00Z" \
-  --restore-type full-copy
+aws rds restore-db-instance-to-point-in-time \
+  --source-db-instance-identifier scrybe-prod-db \
+  --target-db-instance-identifier scrybe-prod-db-restored \
+  --restore-time "2026-02-01T10:00:00Z" \
+  --region us-east-2
 ```
 
 #### 4. Verify Data Integrity
@@ -91,18 +92,32 @@ SELECT * FROM "AuditLog" ORDER BY "createdAt" DESC LIMIT 10;
 #### 5. Switch Application to Restored Database
 
 ```bash
-# Update environment variable
-# In Railway/Vercel dashboard, update DATABASE_URL
+# Update environment variable in App Runner
+# Go to: App Runner → Service → Configuration → Edit → Environment variables
+# Update DATABASE_URL and DIRECT_URL to point to the restored database
 
-# Or via CLI
-railway variables set DATABASE_URL=$RESTORED_DATABASE_URL
+# Get new endpoint
+aws rds describe-db-instances \
+  --db-instance-identifier scrybe-prod-db-restored \
+  --query 'DBInstances[0].Endpoint.Address' \
+  --output text
 ```
 
-#### 6. Regenerate Prisma Client
+#### 6. Apply Schema Migrations (if needed)
 
-```bash
-npm run db:generate
-```
+Since RDS is private, use the [Database Migration via EC2 runbook](./database-migration-ec2.md) to run migrations.
+
+Quick summary:
+1. Launch temporary EC2 in VPC with `scrybe-app-sg` and `EC2-SSM-Role`
+2. Connect via Session Manager
+3. Run:
+   ```bash
+   export DATABASE_URL="postgresql://scrybe_admin:PASSWORD@RESTORED_RDS_ENDPOINT:5432/scrybe"
+   export DIRECT_URL="$DATABASE_URL"
+   npx prisma@5.22.0 migrate status  # Check if migrations needed
+   npx prisma@5.22.0 db push         # Or: npx prisma migrate deploy
+   ```
+4. Terminate EC2 when done
 
 #### 7. Verify Application
 

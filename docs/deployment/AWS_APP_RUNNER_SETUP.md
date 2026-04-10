@@ -515,6 +515,8 @@ rediss://ENDPOINT:6379
 | **Subnets** | Select both PRIVATE subnets |
 | **Security groups** | `inkra-app-sg` |
 
+> **CRITICAL:** The VPC Connector MUST use `inkra-app-sg` (the application security group), NOT `inkra-db-sg`. The RDS security group allows inbound traffic from `inkra-app-sg`. Using the wrong security group will cause "Can't reach database server" errors.
+
 1. Click **Create**
 2. Wait for status: **Active**
 
@@ -704,6 +706,19 @@ Default URL: https://____________.us-east-2.awsapprunner.com
    ```
 4. **IMMEDIATELY** revert: **Publicly accessible: No** and remove IP
 
+**Option C: Via Temporary EC2 Instance (Recommended for private RDS)**
+
+This is the most secure method as it doesn't require making RDS publicly accessible.
+
+See the full runbook: [Database Migration via EC2](../compliance/runbooks/database-migration-ec2.md)
+
+Quick summary:
+1. Launch a `t2.micro` EC2 instance in the VPC with `inkra-app-sg` security group
+2. Attach `EC2-SSM-Role` IAM instance profile for Session Manager access
+3. Connect via Session Manager (no SSH key needed)
+4. Clone repo, install Node.js, run `npx prisma@5.22.0 db push`
+5. **Terminate the instance when done**
+
 ---
 
 ## Phase 11: Custom Domain
@@ -832,9 +847,13 @@ Default URL: https://____________.us-east-2.awsapprunner.com
 - **Missing `PORT=8080`**: App must listen on the configured port.
 - Check Application logs (not Deployment logs) for crash errors after "Ready in XXms"
 
-### Build fails with exit code 137
-- This means out of memory. App Runner will automatically retry with a larger instance.
-- If it keeps failing, your build may need optimization.
+### Build fails with exit code 137 (out of memory)
+- This means out of memory during build. App Runner will automatically retry with a larger instance.
+- If it keeps failing, add this build environment variable:
+  - **Key:** `NODE_OPTIONS`
+  - **Value:** `--max-old-space-size=4096`
+- This gives Node.js 4GB of heap memory during build.
+- To add: App Runner → Service → Configuration → Edit → Build configuration → Environment variables
 
 ### "pnpm-lock.yaml is absent"
 - Make sure you're deploying from `main` branch (not a feature branch)
@@ -842,8 +861,17 @@ Default URL: https://____________.us-east-2.awsapprunner.com
 
 ### "Can't reach database server"
 - Check App Runner VPC connector is **Active**
-- Verify `inkra-db-sg` allows inbound from `inkra-app-sg`
+- **Verify VPC Connector uses `inkra-app-sg`** (NOT `inkra-db-sg`) - this is a common mistake
+- Verify `inkra-db-sg` allows inbound from `inkra-app-sg` on port 5432
 - Verify RDS and App Runner use same private subnets
+- To check VPC Connector security group: App Runner → Service → Configuration → Networking → Outgoing
+
+### VPC Connector using wrong security group
+If the VPC Connector was created with `inkra-db-sg` instead of `inkra-app-sg`:
+1. VPC Connectors are immutable - you cannot edit the security group
+2. Create a new VPC Connector with the correct security group (`inkra-app-sg`)
+3. Edit the App Runner service configuration to use the new connector
+4. Delete the old VPC Connector
 
 ### "fetch failed" / "ConnectTimeoutError"
 - NAT Gateway not configured or in wrong subnet
