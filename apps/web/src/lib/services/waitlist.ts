@@ -18,6 +18,7 @@ export interface CreateWaitlistInput {
   role: string;
   teamSize: string;
   industry: string;
+  referralSource?: string;
 }
 
 export interface WaitlistEntry {
@@ -155,6 +156,7 @@ export async function submitToWaitlist(
       role: input.role,
       teamSize: input.teamSize,
       industry: input.industry,
+      referralSource: input.referralSource || null,
       status: WaitlistStatus.PENDING,
     },
     include: {

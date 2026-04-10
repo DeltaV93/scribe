@@ -86,6 +86,7 @@ const waitlistSchema = z.object({
     .string()
     .min(1, "Industry is required")
     .max(100, "Industry too long"),
+  referralSource: z.string().max(100).optional(),
 });
 
 export type WaitlistSubmission = z.infer<typeof waitlistSchema>;
@@ -180,6 +181,7 @@ export async function POST(request: NextRequest) {
       role: data.role,
       teamSize: data.teamSize,
       industry: data.industry,
+      referralSource: data.referralSource,
     });
 
     // Log the submission (redact PII for security)

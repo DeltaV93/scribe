@@ -1671,6 +1671,7 @@ model Waitlist {
   role         String
   teamSize     String
   industry     String
+  referralSource String?   // Tracking: "isar", "linkedin", etc.
   status       WaitlistStatus @default(PENDING)
 
   // Approval token for account creation
