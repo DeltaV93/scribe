@@ -351,6 +351,14 @@ export default function HomePage() {
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
+        /* Visually hidden content still readable by search engines and screen readers */
+        .sr-only {
+          position: absolute !important;
+          width: 1px; height: 1px;
+          padding: 0; margin: -1px;
+          overflow: hidden; clip: rect(0, 0, 0, 0);
+          white-space: nowrap; border: 0;
+        }
         html { scroll-behavior: smooth; }
         body {
           font-family: var(--sans);
@@ -651,7 +659,7 @@ export default function HomePage() {
           font-size: 11px; font-weight: 600; letter-spacing: 0.08em;
           text-transform: uppercase; color: var(--ink-blue-accent); margin-bottom: 16px;
         }
-        .story-content h2 {
+        .story-content h3 {
           font-family: var(--serif); font-size: 24px; font-weight: 400;
           line-height: 1.3; margin-bottom: 16px;
         }
@@ -720,7 +728,7 @@ export default function HomePage() {
           background: var(--ink-blue-wash); display: grid; place-items: center;
           font-size: 18px; margin-bottom: 16px;
         }
-        .engine h4 { font-size: 15px; font-weight: 700; margin-bottom: 8px; }
+        .engine h3 { font-size: 15px; font-weight: 700; margin-bottom: 8px; font-family: var(--sans); }
         .engine p { font-size: 13px; color: var(--ink-muted); line-height: 1.5; }
 
         /* INDUSTRIES BAR */
@@ -917,7 +925,7 @@ export default function HomePage() {
           <div className="nav-mark">
             <Image
               src="/inkra-logo.svg"
-              alt="Inkra"
+              alt="Inkra — Conversation-to-Work Platform logo"
               width={48}
               height={14}
               priority
@@ -1037,29 +1045,63 @@ export default function HomePage() {
       </div>
 
       {/* HERO */}
-      <section className="hero">
-        <div className="hero-badge">Workflow Automation Platform</div>
-        <h1>
+      <main id="main-content">
+      <section className="hero" aria-labelledby="hero-heading">
+        <div className="hero-badge">Conversation-to-Work Platform</div>
+        <h1 id="hero-heading">
+          <span className="sr-only">
+            Inkra is the conversation-to-work platform.{" "}
+          </span>
           Your words become
           <br />
           <em>completed work.</em>
         </h1>
         <p className="hero-sub">
-          Inkra joins your calls and meetings, listens to what&apos;s discussed,
-          and automatically completes the work that comes after.
+          Inkra is the conversation-to-work platform. It joins your calls and
+          meetings, listens to what&apos;s discussed, and automatically
+          completes the work that comes after — case notes, forms, reports,
+          CRM updates, and more.
         </p>
         <div className="hero-cta-row">
-          <button className="btn-primary" onClick={() => scrollTo("cta")}>
+          <button
+            className="btn-primary"
+            onClick={() => scrollTo("cta")}
+            aria-label="Apply to join the Inkra Spring 2026 pilot"
+          >
             Join the Spring 2026 Pilot →
           </button>
-          <button className="btn-ghost" onClick={() => scrollTo("how")}>
+          <button
+            className="btn-ghost"
+            onClick={() => scrollTo("how")}
+            aria-label="See how the Inkra conversation-to-work platform works"
+          >
             See how it works
           </button>
         </div>
         <p className="hero-note">20 spots · reviewed weekly</p>
-        <div className="hero-blob">
+        <div className="hero-blob" aria-hidden="true">
           <canvas ref={canvasRef} width={960} height={280} />
         </div>
+        {/* Static content fallback for crawlers and no-JS environments */}
+        <noscript>
+          <div style={{ maxWidth: 720, margin: "48px auto", padding: "24px", border: "1px solid var(--border-light)", borderRadius: 12 }}>
+            <h2>Inkra — Conversation-to-Work Platform</h2>
+            <p>
+              Inkra joins your phone calls and meetings and automatically
+              generates the completed downstream work: case notes, SOAP notes,
+              intake forms, grant reports, CRM updates, tasks, and compliance
+              filings. Built HIPAA-ready for healthcare, legal, nonprofits,
+              sales, product, and research teams.
+            </p>
+            <p>
+              <a href="/demo">Request a demo</a> ·{" "}
+              <a href="/features">Features</a> ·{" "}
+              <a href="/pricing">Pricing</a> ·{" "}
+              <a href="/use-cases/nonprofits">For nonprofits</a> ·{" "}
+              <a href="/use-cases/healthcare">For healthcare</a>
+            </p>
+          </div>
+        </noscript>
       </section>
 
       {/* TRUST BAR */}
@@ -1071,14 +1113,14 @@ export default function HomePage() {
       </div>
 
       {/* PROBLEM */}
-      <section className="section">
+      <section className="section" aria-labelledby="problem-heading">
         <div className="section-inner reveal">
           <div className="section-label">The problem nobody solves</div>
-          <div className="section-title">
+          <h2 id="problem-heading" className="section-title">
             Your team does the work twice.
             <br />
             <em>Once</em> with people. Once with <em>systems.</em>
-          </div>
+          </h2>
           <div className="stats-grid">
             <div className="stat">
               <div className="stat-num">16 hrs</div>
@@ -1134,14 +1176,14 @@ export default function HomePage() {
       </section>
 
       {/* HOW IT WORKS */}
-      <section className="section" id="how">
+      <section className="section" id="how" aria-labelledby="how-heading">
         <div className="section-inner reveal">
-          <div className="section-label">How it works</div>
-          <div className="section-title">
+          <div className="section-label">How the conversation-to-work platform works</div>
+          <h2 id="how-heading" className="section-title">
             Your words become
             <br />
             <em>completed work.</em>
-          </div>
+          </h2>
           <p className="section-subtitle">
             Watch a live session. Left side: the conversation. Right side: what
             Inkra completes automatically.
@@ -1153,22 +1195,22 @@ export default function HomePage() {
       </section>
 
       {/* INDUSTRY STORIES */}
-      <section className="section">
+      <section className="section" aria-labelledby="industries-heading">
         <div className="section-inner">
           <div className="section-label reveal">Sound familiar?</div>
-          <div className="section-title reveal">
+          <h2 id="industries-heading" className="section-title reveal">
             One platform. Every team.
             <br />
             <em>Every conversation becomes an output.</em>
-          </div>
+          </h2>
 
           {/* Sales */}
           <div className="story reveal">
             <div className="story-content">
               <div className="story-tag">Sales & Account Management</div>
-              <h2>
+              <h3>
                 Your top rep closes because they remember the little things.
-              </h2>
+              </h3>
               <p>
                 Jordan remembers his prospect&apos;s kid just started Little
                 League. He brings it up on the call. The prospect lights up.
@@ -1217,10 +1259,10 @@ export default function HomePage() {
           <div className="story reveal">
             <div className="story-content">
               <div className="story-tag">Nonprofit Case Management</div>
-              <h2>
+              <h3>
                 Your case managers chose this work to help people. Not fill out
                 forms.
-              </h2>
+              </h3>
               <p>
                 Maria serves 400 clients weekly across 14 partner organizations.
                 Every call generates paperwork: the same data, 3 to 5 times. Every
@@ -1266,10 +1308,10 @@ export default function HomePage() {
           <div className="story reveal">
             <div className="story-content">
               <div className="story-tag">Healthcare & Medical</div>
-              <h2>
+              <h3>
                 Your patients come back for session 4. Do you remember sessions
                 1 through 3?
-              </h2>
+              </h3>
               <p>
                 Dr. Okafor sees 25 patients daily. Each has a multi-visit
                 treatment plan. She spends 90 minutes after clinic writing SOAP
@@ -1316,10 +1358,10 @@ export default function HomePage() {
           <div className="story reveal">
             <div className="story-content">
               <div className="story-tag">UX Research</div>
-              <h2>
+              <h3>
                 Your best insights come when you stop taking notes and start
                 listening.
-              </h2>
+              </h3>
               <p>
                 Priya runs 45-minute user interviews. The best moments come
                 off-script. But she can&apos;t take notes AND be present. After
@@ -1365,10 +1407,10 @@ export default function HomePage() {
           <div className="story reveal">
             <div className="story-content">
               <div className="story-tag">People Management</div>
-              <h2>
+              <h3>
                 Your engineer mentioned wanting to learn Rust three months ago.
                 Do you remember?
-              </h2>
+              </h3>
               <p>
                 Marcus has 8 direct reports. Promo packet time arrives and his
                 notes are... sparse. 12 hours to write a packet that still feels
@@ -1415,10 +1457,10 @@ export default function HomePage() {
           <div className="story reveal">
             <div className="story-content">
               <div className="story-tag">Product Teams</div>
-              <h2>
+              <h3>
                 Your standup just pushed back the timeline. Does the VP know
                 yet?
-              </h2>
+              </h3>
               <p>
                 A blocker surfaces in Tuesday&apos;s standup that pushes the
                 launch by two weeks. The VP finds out on Friday. Ravi spends 4
@@ -1465,10 +1507,10 @@ export default function HomePage() {
           <div className="story reveal">
             <div className="story-content">
               <div className="story-tag">Customer Support</div>
-              <h2>
+              <h3>
                 Your support team follows a workflow that changed last week. Do
                 they know?
-              </h2>
+              </h3>
               <p>
                 The refund policy changed Tuesday. Three reps gave the old
                 policy Wednesday. Training takes weeks to propagate. The best
@@ -1516,10 +1558,10 @@ export default function HomePage() {
           <div className="story reveal">
             <div className="story-content">
               <div className="story-tag">Legal Services</div>
-              <h2>
+              <h3>
                 Your client mentioned a key detail in the third call. Can you
                 find it?
-              </h2>
+              </h3>
               <p>
                 Attorney Kim has 40 active matters. Each client call surfaces
                 new facts. She bills 6 hours but spends 2 more on documentation.
@@ -1566,9 +1608,9 @@ export default function HomePage() {
           <div className="story reveal">
             <div className="story-content">
               <div className="story-tag">Multi-Location Operations</div>
-              <h2>
+              <h3>
                 Location 7 figured out intake. The other 11 don&apos;t know yet.
-              </h2>
+              </h3>
               <p>
                 Regional director overseeing 12 locations. Best practices
                 trapped in one manager&apos;s head. Three weeks just getting
@@ -1633,79 +1675,83 @@ export default function HomePage() {
       </section>
 
       {/* ENGINES */}
-      <section className="section" style={{ background: "var(--paper-warm)" }}>
+      <section
+        className="section"
+        style={{ background: "var(--paper-warm)" }}
+        aria-labelledby="engines-heading"
+      >
         <div className="section-inner reveal">
           <div className="section-label">The platform</div>
-          <div className="section-title">
+          <h2 id="engines-heading" className="section-title">
             Eight engines. One conversation
             <br />
             <em>to power them all.</em>
-          </div>
+          </h2>
           <div className="engines">
-            <div className="engine">
-              <div className="engine-icon">📞</div>
-              <h4>Conversation Capture</h4>
+            <article className="engine">
+              <div className="engine-icon" aria-hidden="true">📞</div>
+              <h3>Conversation Capture</h3>
               <p>
                 Calls, meetings, standups, support tickets, plus paper sessions
                 via photo upload.
               </p>
-            </div>
-            <div className="engine">
-              <div className="engine-icon">📄</div>
-              <h4>Auto-Documentation</h4>
+            </article>
+            <article className="engine">
+              <div className="engine-icon" aria-hidden="true">📄</div>
+              <h3>Auto-Documentation</h3>
               <p>
                 Notes, case files, SOAP records, intake forms, PRDs:
                 generated, not typed.
               </p>
-            </div>
-            <div className="engine">
-              <div className="engine-icon">💬</div>
-              <h4>Conversation Guides</h4>
+            </article>
+            <article className="engine">
+              <div className="engine-icon" aria-hidden="true">💬</div>
+              <h3>Conversation Guides</h3>
               <p>
                 Real-time prompts, reminders, and key details surfaced during
                 live calls.
               </p>
-            </div>
-            <div className="engine">
-              <div className="engine-icon">📊</div>
-              <h4>Reports & Goals</h4>
+            </article>
+            <article className="engine">
+              <div className="engine-icon" aria-hidden="true">📊</div>
+              <h3>Reports & Goals</h3>
               <p>
                 Grant reports, KPI dashboards, pipeline reviews. Alerts when
                 targets are hit.
               </p>
-            </div>
-            <div className="engine">
-              <div className="engine-icon">🔄</div>
-              <h4>Program Tracking</h4>
+            </article>
+            <article className="engine">
+              <div className="engine-icon" aria-hidden="true">🔄</div>
+              <h3>Program Tracking</h3>
               <p>
                 Multi-session treatments, training programs, client journeys.
                 Completion for compliance.
               </p>
-            </div>
-            <div className="engine">
-              <div className="engine-icon">📚</div>
-              <h4>Knowledge System</h4>
+            </article>
+            <article className="engine">
+              <div className="engine-icon" aria-hidden="true">📚</div>
+              <h3>Knowledge System</h3>
               <p>
                 Policies, workflows, SOPs captured from practice. Updates push
                 org-wide instantly.
               </p>
-            </div>
-            <div className="engine">
-              <div className="engine-icon">📈</div>
-              <h4>Workforce Intelligence</h4>
+            </article>
+            <article className="engine">
+              <div className="engine-icon" aria-hidden="true">📈</div>
+              <h3>Workforce Intelligence</h3>
               <p>
                 Team performance visibility without asking. Training recs from
                 efficiency data.
               </p>
-            </div>
-            <div className="engine">
-              <div className="engine-icon">📸</div>
-              <h4>IRL-to-Digital</h4>
+            </article>
+            <article className="engine">
+              <div className="engine-icon" aria-hidden="true">📸</div>
+              <h3>IRL-to-Digital</h3>
               <p>
                 No internet? Print attendance sheets, snap a photo. Everything
                 gets logged automatically.
               </p>
-            </div>
+            </article>
           </div>
         </div>
       </section>
@@ -1814,6 +1860,8 @@ export default function HomePage() {
           )}
         </div>
       </section>
+
+      </main>
 
       {/* FOOTER */}
       <MarketingFooter />
