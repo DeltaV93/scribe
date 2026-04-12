@@ -432,9 +432,10 @@ export default function HomePage() {
         .mobile-menu-overlay {
           display: none; position: fixed; inset: 0;
           background: rgba(0, 0, 0, 0.4); z-index: 99;
-          opacity: 0; transition: opacity 0.3s var(--ease);
+          opacity: 0; pointer-events: none;
+          transition: opacity 0.3s var(--ease);
         }
-        .mobile-menu-overlay.open { opacity: 1; }
+        .mobile-menu-overlay.open { opacity: 1; pointer-events: auto; }
         .mobile-menu {
           display: none; position: fixed; top: 0; right: 0; bottom: 0;
           width: min(320px, 85vw); background: var(--paper); z-index: 101;
