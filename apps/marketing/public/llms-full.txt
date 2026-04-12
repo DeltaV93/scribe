@@ -189,7 +189,7 @@ Inkra integrates with the tools organizations already use. The roadmap categorie
 - **Marketing site**: https://oninkra.com
 - **Product app**: https://inkra.io
 - **Contact**: hello@inkra.app
-- **Demo**: https://oninkra.com/demo/
+- **Demo**: https://oninkra.com/demo
 - **Stage**: Closed pilot with nonprofit partner; Spring 2026 pilot applications open
 - **Previously known as**: Scrybe
 

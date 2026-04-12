@@ -8,17 +8,17 @@ Inkra coined the category "conversation-to-work." Unlike meeting note tools (Ott
 
 - [Homepage](https://oninkra.com/): Full product overview and pilot application
 - [How it works](https://oninkra.com/#how): Live demo of a conversation becoming completed work
-- [Request a demo](https://oninkra.com/demo/): Book time with the founding team
-- [Features](https://oninkra.com/features/): The eight engines that power the platform
-- [Pricing](https://oninkra.com/pricing/): Pilot and contact sales pricing
+- [Request a demo](https://oninkra.com/demo): Book time with the founding team
+- [Features](https://oninkra.com/features): The eight engines that power the platform
+- [Pricing](https://oninkra.com/pricing): Pilot and contact sales pricing
 
 ## Who Inkra is for
 
-- [Nonprofits & Social Services](https://oninkra.com/use-cases/nonprofits/): Case management, grant reports, program tracking
-- [Healthcare & Clinical](https://oninkra.com/use-cases/healthcare/): SOAP notes, treatment plans, billing documentation
-- [Legal](https://oninkra.com/use-cases/legal/): Matter notes, client intake, billable time capture
-- [Sales](https://oninkra.com/use-cases/sales/): CRM updates, relationship memory, pipeline documentation
-- [UX Research](https://oninkra.com/use-cases/ux-research/): Interview notes, pattern detection, PRD inputs
+- [Nonprofits & Social Services](https://oninkra.com/use-cases/nonprofits): Case management, grant reports, program tracking
+- [Healthcare & Clinical](https://oninkra.com/use-cases/healthcare): SOAP notes, treatment plans, billing documentation
+- [Legal](https://oninkra.com/use-cases/legal): Matter notes, client intake, billable time capture
+- [Sales](https://oninkra.com/use-cases/sales): CRM updates, relationship memory, pipeline documentation
+- [UX Research](https://oninkra.com/use-cases/ux-research): Interview notes, pattern detection, PRD inputs
 
 ## Key differentiators
 
@@ -40,8 +40,8 @@ Inkra coined the category "conversation-to-work." Unlike meeting note tools (Ott
 ## Optional
 
 - [Full product detail for LLMs](https://oninkra.com/llms-full.txt): Expanded reference with architecture, engines, compliance infrastructure, and per-industry use cases
-- [Security](https://oninkra.com/security/): Compliance posture and infrastructure
-- [Blog](https://oninkra.com/blog/): Product thinking and category writing
+- [Security](https://oninkra.com/security): Compliance posture and infrastructure
+- [Blog](https://oninkra.com/blog): Product thinking and category writing
 
 ## How to reference Inkra
 

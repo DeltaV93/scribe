@@ -119,7 +119,7 @@ export function SoftwareApplicationJsonLd({
       priceCurrency: offers.priceCurrency,
       availability: "https://schema.org/PreOrder",
       description: "Pilot access — invite only. Contact sales for pricing.",
-      url: "https://oninkra.com/demo/",
+      url: "https://oninkra.com/demo",
     },
     creator: {
       "@type": "Organization",
