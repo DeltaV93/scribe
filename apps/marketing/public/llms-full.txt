@@ -185,7 +185,7 @@ Inkra integrates with the tools organizations already use. The roadmap categorie
 ## Company
 
 - **Product**: Inkra (conversation-to-work platform)
-- **Legal entity**: Phoenixing LLC
+- **Legal entity**: Enigma Syndicate LLC
 - **Marketing site**: https://oninkra.com
 - **Product app**: https://inkra.io
 - **Contact**: hello@inkra.app

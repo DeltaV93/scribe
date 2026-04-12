@@ -77,7 +77,7 @@ export default function TermsPage() {
       <footer className="py-10 px-6 border-t border-[var(--border-light)]">
         <div className="max-w-4xl mx-auto flex flex-wrap items-center justify-between gap-4">
           <span className="text-xs text-[var(--ink-faint)]">
-            © 2026 Inkra · Phoenixing LLC
+            © 2026 Inkra · Enigma Syndicate LLC
           </span>
           <div className="flex gap-6">
             <Link href="/privacy" className="text-sm text-[var(--ink-muted)] hover:text-[var(--ink-blue-accent)]">Privacy</Link>
