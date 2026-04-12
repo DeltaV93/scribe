@@ -119,7 +119,7 @@ export function SoftwareApplicationJsonLd({
       priceCurrency: offers.priceCurrency,
       availability: "https://schema.org/PreOrder",
       description: "Pilot access — invite only. Contact sales for pricing.",
-      url: "https://oninkra.com/demo",
+      url: "https://oninkra.com/demo/",
     },
     creator: {
       "@type": "Organization",
@@ -273,6 +273,6 @@ export const inkraFAQs = [
   {
     question: "Is Inkra available now?",
     answer:
-      "Inkra is currently in a closed pilot with a nonprofit partner and accepting applications for the Spring 2026 pilot program. Visit oninkra.com/demo to request access.",
+      "Inkra is currently in a closed pilot with a nonprofit partner and accepting applications for the Spring 2026 pilot program. Visit oninkra.com/demo/ to request access.",
   },
 ];
