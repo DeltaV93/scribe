@@ -73,6 +73,14 @@ export function MarketingFooter() {
           gap: 12px;
         }
 
+        .footer-brand-link {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          text-decoration: none;
+          color: inherit;
+        }
+
         .footer-name {
           font-weight: 800;
           font-size: 20px;
@@ -178,16 +186,19 @@ export function MarketingFooter() {
           {/* Brand column */}
           <div className="footer-brand">
             <div className="footer-brand-top">
-              <Image
-                src="/inkra-logo.svg"
-                alt="Inkra"
-                width={40}
-                height={12}
-              />
-              <span className="footer-name">Inkra</span>
+              <Link href="/" aria-label="Inkra home — Conversation-to-Work Platform" className="footer-brand-link">
+                <Image
+                  src="/inkra-logo.svg"
+                  alt="Inkra — Conversation-to-Work Platform logo"
+                  width={40}
+                  height={12}
+                  loading="lazy"
+                />
+                <span className="footer-name">Inkra</span>
+              </Link>
             </div>
             <p className="footer-tagline">
-              Conversation-to-Work Platform.
+              The conversation-to-work platform.
               <br />
               Your words become completed work.
             </p>
