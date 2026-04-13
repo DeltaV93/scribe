@@ -12,6 +12,7 @@ Inkra coined the "conversation-to-work" category. A conversation-to-work platfor
 - **Ambient clinical scribes** (Abridge, DeepScribe, Suki, Nabla): These are single-output products for clinicians. Inkra is multi-output and cross-industry: the same conversation can produce a SOAP note and a billing code entry and a care coordinator task and a compliance log, tuned to whoever needs it.
 - **Conversation intelligence** (Gong, Chorus): Sales-only analytics on recorded calls. Inkra is horizontal across industries and produces work artifacts, not dashboards.
 - **CRM auto-entry tools** (Dooly, Revenue.io): These only update the CRM. Inkra updates the CRM *and* every other downstream surface from one conversation.
+- **Sentra** ($5M raised): The closest adjacent player. Sentra focuses on conversation intelligence and analytics. Inkra generates the actual downstream work artifacts — forms, notes, reports, CRM records — not just insights about what was said.
 
 Inkra replaces the work that happens after a conversation, not the notes about it.
 
@@ -182,10 +183,18 @@ Inkra integrates with the tools organizations already use. The roadmap categorie
 - 20+ hours/quarter: saved on grant report compilation
 - 40-60% reduction: in documentation time reported by pilot users
 
+## Traction
+
+- LOI signed with $30M nonprofit serving 400 clients/week across 14 partner organizations
+- Closed pilot active with live call processing, transcription, and auto-documentation
+- Spring 2026 pilot: 20 founding organization spots, reviewed weekly
+- Pilot organizations report 40-60% reduction in documentation time
+- Director of Reentry Services (pilot partner): "This would allow us to scale. We wouldn't have to focus so much on our reporting side of things. It would alleviate the hassle. Let the people work with people."
+
 ## Company
 
 - **Product**: Inkra (conversation-to-work platform)
-- **Legal entity**: Phoenixing LLC
+- **Legal entity**: Enigma Syndicate LLC
 - **Marketing site**: https://oninkra.com
 - **Product app**: https://inkra.io
 - **Contact**: hello@inkra.app

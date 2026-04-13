@@ -22,15 +22,22 @@ Inkra coined the category "conversation-to-work." Unlike meeting note tools (Ott
 
 ## Key differentiators
 
-- **Conversation-to-Work, not meeting notes**: Otter, Fireflies, and Granola summarize meetings. Inkra completes the case notes, forms, reports, tasks, and CRM records that result from them.
+- **Conversation-to-Work, not meeting notes**: Otter, Fireflies, and Granola summarize meetings. Inkra completes the case notes, forms, reports, tasks, and CRM records that result from them. Sentra ($5M raised) is the closest adjacent player but focuses on conversation intelligence analytics — Inkra generates the actual downstream work artifacts.
 - **Privacy-by-design**: All-party consent is on by default. Content is tiered by sensitivity. Every org gets model isolation — your data never trains shared models.
 - **HIPAA-ready**: End-to-end encryption, PHI detection and redaction, differential privacy with a fixed synthesis threshold, full audit trail.
 - **Vertical depth**: Templates and workflows are tuned to case managers, clinicians, attorneys, AEs, and PMs — not horizontal meeting note use cases.
 - **IRL-to-digital**: Inkra handles offline sessions too. Snap a photo of a paper attendance sheet and it becomes structured data.
 
+## Traction
+
+- LOI signed with $30M nonprofit serving 400 clients/week across 14 partner organizations
+- Closed pilot active with live call processing and auto-documentation
+- Spring 2026 pilot: 20 founding org spots, reviewed weekly
+- Pilot organizations report 40-60% reduction in documentation time
+
 ## Company
 
-- Legal entity: Phoenixing LLC
+- Legal entity: Enigma Syndicate LLC
 - Marketing site: https://oninkra.com
 - Product app: https://inkra.io
 - Contact: hello@inkra.app

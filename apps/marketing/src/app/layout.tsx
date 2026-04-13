@@ -40,7 +40,7 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: "Inkra", url: "https://oninkra.com" }],
   creator: "Inkra",
-  publisher: "Phoenixing LLC",
+  publisher: "Enigma Syndicate LLC",
   metadataBase: new URL("https://oninkra.com"),
   alternates: {
     canonical: "/",

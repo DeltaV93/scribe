@@ -243,7 +243,7 @@ export function MarketingFooter() {
 
         {/* Bottom bar */}
         <div className="footer-bottom">
-          <span>&copy; 2026 Inkra &middot; Phoenixing LLC</span>
+          <span>&copy; 2026 Inkra &middot; Enigma Syndicate LLC</span>
           <div className="footer-legal">
             {legalLinks.map((link) => (
               <Link key={link.href} href={link.href}>

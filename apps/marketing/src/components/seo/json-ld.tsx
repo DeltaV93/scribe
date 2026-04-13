@@ -25,8 +25,8 @@ export function OrganizationJsonLd({
     "@type": "Organization",
     "@id": "https://oninkra.com/#organization",
     name,
-    alternateName: ["Inkra (by Phoenixing LLC)", "oninkra"],
-    legalName: "Phoenixing LLC",
+    alternateName: ["Inkra (by Enigma Syndicate LLC)", "oninkra"],
+    legalName: "Enigma Syndicate LLC",
     url,
     logo: {
       "@type": "ImageObject",
@@ -125,7 +125,7 @@ export function SoftwareApplicationJsonLd({
       "@type": "Organization",
       "@id": "https://oninkra.com/#organization",
       name: "Inkra",
-      legalName: "Phoenixing LLC",
+      legalName: "Enigma Syndicate LLC",
       url: "https://oninkra.com",
       email: "hello@inkra.app",
       description:
@@ -273,6 +273,6 @@ export const inkraFAQs = [
   {
     question: "Is Inkra available now?",
     answer:
-      "Inkra is currently in a closed pilot with a nonprofit partner and accepting applications for the Spring 2026 pilot program. Visit oninkra.com/demo to request access.",
+      "Inkra is currently in a closed pilot with a nonprofit partner and accepting applications for the Spring 2026 pilot program. Visit oninkra.com/demo/ to request access.",
   },
 ];

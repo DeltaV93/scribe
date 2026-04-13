@@ -137,11 +137,13 @@ jobs:
         run: pnpm --filter @inkra/web exec prisma db push
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/inkra_test
+          DIRECT_URL: postgresql://postgres:postgres@localhost:5432/inkra_test
 
       - name: Build application
         run: pnpm turbo run build --filter=@inkra/web
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/inkra_test
+          DIRECT_URL: postgresql://postgres:postgres@localhost:5432/inkra_test
           NEXT_PUBLIC_SUPABASE_URL: https://test.supabase.co
           NEXT_PUBLIC_SUPABASE_ANON_KEY: test-anon-key
           NEXT_PUBLIC_APP_URL: http://localhost:3000
@@ -150,6 +152,7 @@ jobs:
         run: pnpm turbo run test:e2e --filter=@inkra/web
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/inkra_test
+          DIRECT_URL: postgresql://postgres:postgres@localhost:5432/inkra_test
           REDIS_URL: redis://localhost:6379
           NEXT_PUBLIC_SUPABASE_URL: https://test.supabase.co
           NEXT_PUBLIC_SUPABASE_ANON_KEY: test-anon-key
@@ -196,6 +199,7 @@ jobs:
         run: pnpm turbo run build
         env:
           DATABASE_URL: postgresql://user:pass@localhost:5432/inkra
+          DIRECT_URL: postgresql://user:pass@localhost:5432/inkra
           NEXT_PUBLIC_SUPABASE_URL: https://test.supabase.co
           NEXT_PUBLIC_SUPABASE_ANON_KEY: test-anon-key
           NEXT_PUBLIC_APP_URL: https://app.oninkra.com
@@ -353,6 +357,7 @@ jobs:
         run: pnpm --filter @inkra/web exec prisma migrate deploy
         env:
           DATABASE_URL: ${{ steps.db-creds.outputs.DATABASE_URL }}
+          DIRECT_URL: ${{ steps.db-creds.outputs.DATABASE_URL }}
 
   notify:
     name: Notify
