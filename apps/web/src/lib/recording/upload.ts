@@ -46,7 +46,8 @@ export async function getPresignedUploadUrl(
   contentType: string = "audio/webm",
   expiresIn: number = 3600 // 1 hour default
 ): Promise<PresignedUploadUrl> {
-  const extension = contentType.split("/")[1] || "webm";
+  // Strip codec suffix (e.g., "webm;codecs=opus" → "webm")
+  const extension = contentType.split("/")[1]?.split(";")[0] || "webm";
   const key = generateRecordingKey(orgId, conversationId, extension);
 
   // Uses KMS encryption via secure-s3 module
@@ -97,7 +98,8 @@ export async function uploadRecording(
   blob: Blob | Buffer,
   contentType: string = "audio/webm"
 ): Promise<string> {
-  const extension = contentType.split("/")[1] || "webm";
+  // Strip codec suffix (e.g., "webm;codecs=opus" → "webm")
+  const extension = contentType.split("/")[1]?.split(";")[0] || "webm";
   const key = generateRecordingKey(orgId, conversationId, extension);
 
   const body = blob instanceof Blob ? Buffer.from(await blob.arrayBuffer()) : blob;

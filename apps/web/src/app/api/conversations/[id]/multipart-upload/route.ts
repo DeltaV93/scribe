@@ -68,7 +68,8 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     }
 
     // Generate S3 key
-    const extension = contentType.split("/")[1] || "webm";
+    // Strip codec suffix (e.g., "webm;codecs=opus" → "webm")
+    const extension = contentType.split("/")[1]?.split(";")[0] || "webm";
     const key = generateRecordingKey(conversation.orgId, conversation.id, extension);
 
     // Initiate multipart upload

@@ -19,5 +19,22 @@ export async function register() {
         headersTimeout: 60_000,
       })
     );
+
+    // Start BullMQ worker for background job processing
+    // Only start if Redis is configured (REDIS_URL env var)
+    if (process.env.REDIS_URL) {
+      try {
+        // Import processors to register them (side-effect imports)
+        await import("./lib/jobs/processors");
+
+        // Start the worker
+        const { startWorker } = await import("./lib/jobs/worker");
+        startWorker();
+
+        console.log("[Instrumentation] BullMQ worker started");
+      } catch (error) {
+        console.error("[Instrumentation] Failed to start BullMQ worker:", error);
+      }
+    }
   }
 }
