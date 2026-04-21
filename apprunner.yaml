@@ -6,6 +6,7 @@ build:
       - corepack enable
       - corepack prepare pnpm@9.0.0 --activate
     build:
+      - export NODE_OPTIONS="--max-old-space-size=2560"
       - pnpm install --frozen-lockfile
       - pnpm --filter @inkra/web db:generate
       - pnpm turbo run build --filter=@inkra/web
