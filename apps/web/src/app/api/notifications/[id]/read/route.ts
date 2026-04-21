@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth";
 import { markAsRead } from "@/lib/services/notifications";
+import { handleApiError } from "@/lib/api/errors";
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -28,11 +29,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       data: notification,
     });
   } catch (error) {
-    console.error("Error marking notification as read:", error);
-    return NextResponse.json(
-      { error: { code: "INTERNAL_ERROR", message: "Failed to update notification" } },
-      { status: 500 }
-    );
+    return handleApiError(error, "Failed to update notification");
   }
 }
 

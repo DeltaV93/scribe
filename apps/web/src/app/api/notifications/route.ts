@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth";
 import { listNotifications, markAllNotificationsRead } from "@/lib/services/notifications";
+import { handleApiError } from "@/lib/api/errors";
 
 /**
  * GET /api/notifications - List notifications for the current user
@@ -38,11 +39,7 @@ export async function GET(request: NextRequest) {
       unreadCount: result.unreadCount,
     });
   } catch (error) {
-    console.error("Error listing notifications:", error);
-    return NextResponse.json(
-      { error: { code: "INTERNAL_ERROR", message: "Failed to list notifications" } },
-      { status: 500 }
-    );
+    return handleApiError(error, "Failed to list notifications");
   }
 }
 
@@ -70,10 +67,6 @@ export async function POST(request: NextRequest) {
       { status: 400 }
     );
   } catch (error) {
-    console.error("Error updating notifications:", error);
-    return NextResponse.json(
-      { error: { code: "INTERNAL_ERROR", message: "Failed to update notifications" } },
-      { status: 500 }
-    );
+    return handleApiError(error, "Failed to update notifications");
   }
 }

@@ -15,6 +15,7 @@ import { requireAuth } from "@/lib/auth";
 import { createKnowledgeEntry } from "@/lib/services/knowledge";
 import { extractTextFromPdf } from "@/lib/services/document-extraction/ocr";
 import { anthropic, FAST_MODEL } from "@/lib/ai/client";
+import { handleApiError } from "@/lib/api/errors";
 
 // Maximum file size: 25MB
 const MAX_FILE_SIZE = 25 * 1024 * 1024;
@@ -260,21 +261,6 @@ export async function POST(request: NextRequest) {
       { status: 201 }
     );
   } catch (error) {
-    console.error("Error uploading document to knowledge base:", error);
-
-    // Handle redirect errors from requireAuth
-    if (error instanceof Error && error.message.includes("NEXT_REDIRECT")) {
-      throw error;
-    }
-
-    return NextResponse.json(
-      {
-        error: {
-          code: "INTERNAL_ERROR",
-          message: "Failed to process document upload",
-        },
-      },
-      { status: 500 }
-    );
+    return handleApiError(error, "Failed to process document upload");
   }
 }

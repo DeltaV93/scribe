@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth";
 import { markAllAsRead } from "@/lib/services/notifications";
+import { handleApiError } from "@/lib/api/errors";
 
 /**
  * POST /api/notifications/mark-all-read - Mark all notifications as read
@@ -19,10 +20,6 @@ export async function POST() {
       },
     });
   } catch (error) {
-    console.error("Error marking all notifications as read:", error);
-    return NextResponse.json(
-      { error: { code: "INTERNAL_ERROR", message: "Failed to mark notifications as read" } },
-      { status: 500 }
-    );
+    return handleApiError(error, "Failed to mark notifications as read");
   }
 }
