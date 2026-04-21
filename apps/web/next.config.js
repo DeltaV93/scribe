@@ -13,6 +13,8 @@ const nextConfig = {
     serverActions: {
       bodySizeLimit: '10mb',
     },
+    // Disable build worker to reduce memory usage on constrained environments
+    webpackBuildWorker: false,
   },
   images: {
     remotePatterns: [
