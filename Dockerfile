@@ -79,6 +79,9 @@ ENV NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=${NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY}
 ENV SKIP_DB_CHECK=true
 ENV DATABASE_URL=postgresql://placeholder:placeholder@localhost:5432/placeholder
 
+# Increase Node.js memory for large codebase build (GH Actions has 7GB available)
+ENV NODE_OPTIONS="--max-old-space-size=6144"
+
 # Build the web app
 RUN pnpm turbo run build --filter=@inkra/web
 
