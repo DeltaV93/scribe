@@ -106,7 +106,9 @@ jobs:
               {"name": "AWS_S3_BUCKET_RECORDINGS", "value": "inkra-recordings-prod"},
               {"name": "EMAIL_ENABLED", "value": "true"},
               {"name": "MARKETING_URL", "value": "https://oninkra.com"},
-              {"name": "NEXT_PUBLIC_APP_URL", "value": "https://app.oninkra.com"}
+              {"name": "NEXT_PUBLIC_APP_URL", "value": "https://app.oninkra.com"},
+              {"name": "TWILIO_ACCOUNT_SID", "value": "${{ vars.TWILIO_ACCOUNT_SID }}"},
+              {"name": "TWILIO_PHONE_NUMBER", "value": "${{ vars.TWILIO_PHONE_NUMBER }}"}
             ]
           secrets: |
             [
@@ -117,11 +119,9 @@ jobs:
               {"name": "DEEPGRAM_API_KEY", "valueFrom": "arn:aws:secretsmanager:us-east-2:318928518060:secret:inkra/runtime-secrets-SIkCQf:DEEPGRAM_API_KEY::"},
               {"name": "STRIPE_SECRET_KEY", "valueFrom": "arn:aws:secretsmanager:us-east-2:318928518060:secret:inkra/runtime-secrets-SIkCQf:STRIPE_SECRET_KEY::"},
               {"name": "STRIPE_WEBHOOK_SECRET", "valueFrom": "arn:aws:secretsmanager:us-east-2:318928518060:secret:inkra/runtime-secrets-SIkCQf:STRIPE_WEBHOOK_SECRET::"},
-              {"name": "TWILIO_ACCOUNT_SID", "valueFrom": "arn:aws:secretsmanager:us-east-2:318928518060:secret:inkra/runtime-secrets-SIkCQf:TWILIO_ACCOUNT_SID::"},
               {"name": "TWILIO_AUTH_TOKEN", "valueFrom": "arn:aws:secretsmanager:us-east-2:318928518060:secret:inkra/runtime-secrets-SIkCQf:TWILIO_AUTH_TOKEN::"},
               {"name": "TWILIO_API_KEY", "valueFrom": "arn:aws:secretsmanager:us-east-2:318928518060:secret:inkra/runtime-secrets-SIkCQf:TWILIO_API_KEY::"},
               {"name": "TWILIO_API_SECRET", "valueFrom": "arn:aws:secretsmanager:us-east-2:318928518060:secret:inkra/runtime-secrets-SIkCQf:TWILIO_API_SECRET::"},
-              {"name": "TWILIO_PHONE_NUMBER", "valueFrom": "arn:aws:secretsmanager:us-east-2:318928518060:secret:inkra/runtime-secrets-SIkCQf:TWILIO_PHONE_NUMBER::"},
               {"name": "MFA_ENCRYPTION_KEY", "valueFrom": "arn:aws:secretsmanager:us-east-2:318928518060:secret:inkra/runtime-secrets-SIkCQf:MFA_ENCRYPTION_KEY::"},
               {"name": "TRUSTED_DEVICE_SECRET", "valueFrom": "arn:aws:secretsmanager:us-east-2:318928518060:secret:inkra/runtime-secrets-SIkCQf:TRUSTED_DEVICE_SECRET::"},
               {"name": "CRON_SECRET", "valueFrom": "arn:aws:secretsmanager:us-east-2:318928518060:secret:inkra/runtime-secrets-SIkCQf:CRON_SECRET::"}
