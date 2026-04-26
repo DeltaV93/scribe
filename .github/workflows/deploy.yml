@@ -110,19 +110,19 @@ jobs:
             ]
           secrets: |
             [
-              {"name": "DATABASE_URL", "valueFrom": "arn:aws:secretsmanager:us-east-2:318928518060:secret:inkra/runtime-secrets:DATABASE_URL::"},
-              {"name": "DIRECT_URL", "valueFrom": "arn:aws:secretsmanager:us-east-2:318928518060:secret:inkra/runtime-secrets:DIRECT_URL::"},
-              {"name": "SUPABASE_SERVICE_ROLE_KEY", "valueFrom": "arn:aws:secretsmanager:us-east-2:318928518060:secret:inkra/runtime-secrets:SUPABASE_SERVICE_ROLE_KEY::"},
-              {"name": "ANTHROPIC_API_KEY", "valueFrom": "arn:aws:secretsmanager:us-east-2:318928518060:secret:inkra/runtime-secrets:ANTHROPIC_API_KEY::"},
-              {"name": "DEEPGRAM_API_KEY", "valueFrom": "arn:aws:secretsmanager:us-east-2:318928518060:secret:inkra/runtime-secrets:DEEPGRAM_API_KEY::"},
-              {"name": "STRIPE_SECRET_KEY", "valueFrom": "arn:aws:secretsmanager:us-east-2:318928518060:secret:inkra/runtime-secrets:STRIPE_SECRET_KEY::"},
-              {"name": "STRIPE_WEBHOOK_SECRET", "valueFrom": "arn:aws:secretsmanager:us-east-2:318928518060:secret:inkra/runtime-secrets:STRIPE_WEBHOOK_SECRET::"},
-              {"name": "TWILIO_ACCOUNT_SID", "valueFrom": "arn:aws:secretsmanager:us-east-2:318928518060:secret:inkra/runtime-secrets:TWILIO_ACCOUNT_SID::"},
-              {"name": "TWILIO_AUTH_TOKEN", "valueFrom": "arn:aws:secretsmanager:us-east-2:318928518060:secret:inkra/runtime-secrets:TWILIO_AUTH_TOKEN::"},
-              {"name": "TWILIO_API_KEY", "valueFrom": "arn:aws:secretsmanager:us-east-2:318928518060:secret:inkra/runtime-secrets:TWILIO_API_KEY::"},
-              {"name": "TWILIO_API_SECRET", "valueFrom": "arn:aws:secretsmanager:us-east-2:318928518060:secret:inkra/runtime-secrets:TWILIO_API_SECRET::"},
-              {"name": "TWILIO_PHONE_NUMBER", "valueFrom": "arn:aws:secretsmanager:us-east-2:318928518060:secret:inkra/runtime-secrets:TWILIO_PHONE_NUMBER::"},
-              {"name": "MFA_ENCRYPTION_KEY", "valueFrom": "arn:aws:secretsmanager:us-east-2:318928518060:secret:inkra/runtime-secrets:MFA_ENCRYPTION_KEY::"},
-              {"name": "TRUSTED_DEVICE_SECRET", "valueFrom": "arn:aws:secretsmanager:us-east-2:318928518060:secret:inkra/runtime-secrets:TRUSTED_DEVICE_SECRET::"},
-              {"name": "CRON_SECRET", "valueFrom": "arn:aws:secretsmanager:us-east-2:318928518060:secret:inkra/runtime-secrets:CRON_SECRET::"}
+              {"name": "DATABASE_URL", "valueFrom": "arn:aws:secretsmanager:us-east-2:318928518060:secret:inkra/runtime-secrets-SIkCQf:DATABASE_URL::"},
+              {"name": "DIRECT_URL", "valueFrom": "arn:aws:secretsmanager:us-east-2:318928518060:secret:inkra/runtime-secrets-SIkCQf:DIRECT_URL::"},
+              {"name": "SUPABASE_SERVICE_ROLE_KEY", "valueFrom": "arn:aws:secretsmanager:us-east-2:318928518060:secret:inkra/runtime-secrets-SIkCQf:SUPABASE_SERVICE_ROLE_KEY::"},
+              {"name": "ANTHROPIC_API_KEY", "valueFrom": "arn:aws:secretsmanager:us-east-2:318928518060:secret:inkra/runtime-secrets-SIkCQf:ANTHROPIC_API_KEY::"},
+              {"name": "DEEPGRAM_API_KEY", "valueFrom": "arn:aws:secretsmanager:us-east-2:318928518060:secret:inkra/runtime-secrets-SIkCQf:DEEPGRAM_API_KEY::"},
+              {"name": "STRIPE_SECRET_KEY", "valueFrom": "arn:aws:secretsmanager:us-east-2:318928518060:secret:inkra/runtime-secrets-SIkCQf:STRIPE_SECRET_KEY::"},
+              {"name": "STRIPE_WEBHOOK_SECRET", "valueFrom": "arn:aws:secretsmanager:us-east-2:318928518060:secret:inkra/runtime-secrets-SIkCQf:STRIPE_WEBHOOK_SECRET::"},
+              {"name": "TWILIO_ACCOUNT_SID", "valueFrom": "arn:aws:secretsmanager:us-east-2:318928518060:secret:inkra/runtime-secrets-SIkCQf:TWILIO_ACCOUNT_SID::"},
+              {"name": "TWILIO_AUTH_TOKEN", "valueFrom": "arn:aws:secretsmanager:us-east-2:318928518060:secret:inkra/runtime-secrets-SIkCQf:TWILIO_AUTH_TOKEN::"},
+              {"name": "TWILIO_API_KEY", "valueFrom": "arn:aws:secretsmanager:us-east-2:318928518060:secret:inkra/runtime-secrets-SIkCQf:TWILIO_API_KEY::"},
+              {"name": "TWILIO_API_SECRET", "valueFrom": "arn:aws:secretsmanager:us-east-2:318928518060:secret:inkra/runtime-secrets-SIkCQf:TWILIO_API_SECRET::"},
+              {"name": "TWILIO_PHONE_NUMBER", "valueFrom": "arn:aws:secretsmanager:us-east-2:318928518060:secret:inkra/runtime-secrets-SIkCQf:TWILIO_PHONE_NUMBER::"},
+              {"name": "MFA_ENCRYPTION_KEY", "valueFrom": "arn:aws:secretsmanager:us-east-2:318928518060:secret:inkra/runtime-secrets-SIkCQf:MFA_ENCRYPTION_KEY::"},
+              {"name": "TRUSTED_DEVICE_SECRET", "valueFrom": "arn:aws:secretsmanager:us-east-2:318928518060:secret:inkra/runtime-secrets-SIkCQf:TRUSTED_DEVICE_SECRET::"},
+              {"name": "CRON_SECRET", "valueFrom": "arn:aws:secretsmanager:us-east-2:318928518060:secret:inkra/runtime-secrets-SIkCQf:CRON_SECRET::"}
             ]
