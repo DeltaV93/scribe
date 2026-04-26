@@ -250,12 +250,28 @@ Create permissions policy `github-actions-permissions.json`:
       "Sid": "ECSExpressDeploy",
       "Effect": "Allow",
       "Action": [
+        "ecs:CreateCluster",
+        "ecs:RegisterTaskDefinition",
+        "ecs:CreateExpressGatewayService",
+        "ecs:UpdateExpressGatewayService",
+        "ecs:DescribeExpressGatewayService",
+        "ecs:DescribeClusters",
         "ecs:DescribeServices",
-        "ecs:DescribeTaskDefinition",
-        "ecs:UpdateService",
-        "ecs:DescribeExpressGatewayServices"
+        "ecs:ListServiceDeployments",
+        "ecs:DescribeServiceDeployments",
+        "ecs:TagResource",
+        "ecs:UntagResource"
       ],
       "Resource": "*"
+    },
+    {
+      "Sid": "PassRole",
+      "Effect": "Allow",
+      "Action": "iam:PassRole",
+      "Resource": [
+        "arn:aws:iam::YOUR_ACCOUNT_ID:role/InkraECSTaskExecutionRole",
+        "arn:aws:iam::YOUR_ACCOUNT_ID:role/InkraECSInfrastructureRole"
+      ]
     }
   ]
 }
