@@ -1,4 +1,4 @@
-name: Build and Deploy to ECS Express Mode
+name: Build and Deploy to ECS Fargate
 
 on:
   push:
@@ -15,6 +15,8 @@ env:
   ECR_REPOSITORY: inkra-web
   ECS_SERVICE: inkra-prod
   ECS_CLUSTER: default
+  TASK_DEFINITION: .aws/task-definition.json
+  CONTAINER_NAME: web
 
 jobs:
   build-and-deploy:
@@ -77,53 +79,18 @@ jobs:
             NEXT_PUBLIC_SUPABASE_ANON_KEY=${{ steps.params.outputs.BUILD_NEXT_PUBLIC_SUPABASE_ANON_KEY }}
             NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=${{ steps.params.outputs.BUILD_NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY }}
 
-      - name: Deploy to ECS Express Mode
-        uses: aws-actions/amazon-ecs-deploy-express-service@v1
+      - name: Render ECS task definition
+        id: render-task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
-          service-name: ${{ env.ECS_SERVICE }}
-          cluster: ${{ env.ECS_CLUSTER }}
+          task-definition: ${{ env.TASK_DEFINITION }}
+          container-name: ${{ env.CONTAINER_NAME }}
           image: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
-          execution-role-arn: arn:aws:iam::318928518060:role/InkraECSTaskExecutionRole
-          infrastructure-role-arn: arn:aws:iam::318928518060:role/InkraECSInfrastructureRole
-          cpu: 1024
-          memory: 2048
-          container-port: 3000
-          health-check-path: /api/health
-          min-task-count: 1
-          max-task-count: 10
-          auto-scaling-metric: AVERAGE_CPU
-          auto-scaling-target-value: 70
-          environment-variables: |
-            [
-              {"name": "NODE_ENV", "value": "production"},
-              {"name": "PORT", "value": "3000"},
-              {"name": "HOSTNAME", "value": "0.0.0.0"},
-              {"name": "AWS_REGION", "value": "us-east-2"},
-              {"name": "AWS_S3_BUCKET", "value": "inkra-uploads-prod"},
-              {"name": "AWS_S3_BUCKET_AUDIT_LOGS", "value": "inkra-audit-logs-prod"},
-              {"name": "AWS_S3_BUCKET_BACKUPS", "value": "inkra-backups-prod"},
-              {"name": "AWS_S3_BUCKET_EXPORTS", "value": "inkra-exports-prod"},
-              {"name": "AWS_S3_BUCKET_RECORDINGS", "value": "inkra-recordings-prod"},
-              {"name": "EMAIL_ENABLED", "value": "true"},
-              {"name": "MARKETING_URL", "value": "https://oninkra.com"},
-              {"name": "NEXT_PUBLIC_APP_URL", "value": "https://app.oninkra.com"},
-              {"name": "TWILIO_PHONE_NUMBER", "value": "${{ vars.TWILIO_PHONE_NUMBER }}"}
-            ]
-          secrets: |
-            [
-              {"name": "DATABASE_URL", "valueFrom": "arn:aws:secretsmanager:us-east-2:318928518060:secret:inkra/runtime-secrets-SIkCQf:DATABASE_URL::"},
-              {"name": "DIRECT_URL", "valueFrom": "arn:aws:secretsmanager:us-east-2:318928518060:secret:inkra/runtime-secrets-SIkCQf:DIRECT_URL::"},
-              {"name": "REDIS_URL", "valueFrom": "arn:aws:secretsmanager:us-east-2:318928518060:secret:inkra/runtime-secrets-SIkCQf:REDIS_URL::"},
-              {"name": "SUPABASE_SERVICE_ROLE_KEY", "valueFrom": "arn:aws:secretsmanager:us-east-2:318928518060:secret:inkra/runtime-secrets-SIkCQf:SUPABASE_SERVICE_ROLE_KEY::"},
-              {"name": "ANTHROPIC_API_KEY", "valueFrom": "arn:aws:secretsmanager:us-east-2:318928518060:secret:inkra/runtime-secrets-SIkCQf:ANTHROPIC_API_KEY::"},
-              {"name": "DEEPGRAM_API_KEY", "valueFrom": "arn:aws:secretsmanager:us-east-2:318928518060:secret:inkra/runtime-secrets-SIkCQf:DEEPGRAM_API_KEY::"},
-              {"name": "STRIPE_SECRET_KEY", "valueFrom": "arn:aws:secretsmanager:us-east-2:318928518060:secret:inkra/runtime-secrets-SIkCQf:STRIPE_SECRET_KEY::"},
-              {"name": "STRIPE_WEBHOOK_SECRET", "valueFrom": "arn:aws:secretsmanager:us-east-2:318928518060:secret:inkra/runtime-secrets-SIkCQf:STRIPE_WEBHOOK_SECRET::"},
-              {"name": "TWILIO_ACCOUNT_SID", "valueFrom": "arn:aws:secretsmanager:us-east-2:318928518060:secret:inkra/runtime-secrets-SIkCQf:TWILIO_ACCOUNT_SID::"},
-              {"name": "TWILIO_AUTH_TOKEN", "valueFrom": "arn:aws:secretsmanager:us-east-2:318928518060:secret:inkra/runtime-secrets-SIkCQf:TWILIO_AUTH_TOKEN::"},
-              {"name": "TWILIO_API_KEY", "valueFrom": "arn:aws:secretsmanager:us-east-2:318928518060:secret:inkra/runtime-secrets-SIkCQf:TWILIO_API_KEY::"},
-              {"name": "TWILIO_API_SECRET", "valueFrom": "arn:aws:secretsmanager:us-east-2:318928518060:secret:inkra/runtime-secrets-SIkCQf:TWILIO_API_SECRET::"},
-              {"name": "MFA_ENCRYPTION_KEY", "valueFrom": "arn:aws:secretsmanager:us-east-2:318928518060:secret:inkra/runtime-secrets-SIkCQf:MFA_ENCRYPTION_KEY::"},
-              {"name": "TRUSTED_DEVICE_SECRET", "valueFrom": "arn:aws:secretsmanager:us-east-2:318928518060:secret:inkra/runtime-secrets-SIkCQf:TRUSTED_DEVICE_SECRET::"},
-              {"name": "CRON_SECRET", "valueFrom": "arn:aws:secretsmanager:us-east-2:318928518060:secret:inkra/runtime-secrets-SIkCQf:CRON_SECRET::"}
-            ]
+
+      - name: Deploy to ECS
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
+        with:
+          task-definition: ${{ steps.render-task-def.outputs.task-definition }}
+          service: ${{ env.ECS_SERVICE }}
+          cluster: ${{ env.ECS_CLUSTER }}
+          wait-for-service-stability: true
