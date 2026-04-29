@@ -1,10 +1,11 @@
 # AWS + GitHub Actions Setup for HIPAA-Compliant CI/CD
 
-This guide sets up a secure CI/CD pipeline using **ECS Express Mode** with a hybrid secrets strategy:
+This guide sets up a secure CI/CD pipeline using **ECS Fargate** with VPC endpoints for HIPAA compliance:
 - **No secrets stored in GitHub**
 - GitHub authenticates to AWS via OIDC (no long-lived credentials)
 - **Secrets Manager** (~$0.40/month): Rotating credentials (DB, API keys, auth tokens)
-- **Parameter Store** (Free): Static configuration that rarely changes
+- **Parameter Store** (Free): Static build-time configuration
+- **VPC Endpoints**: Private connectivity to AWS services (no internet traversal)
 - Full audit trail via CloudTrail
 
 ## Architecture
@@ -20,24 +21,107 @@ GitHub Actions (build, 7GB RAM)
        │
        ├──► ECR (Docker image storage)
        │
-       └──► ECS Express Mode (runtime)
-              ├── Auto-provisioned ALB with HTTPS
-              ├── Auto-scaling based on CPU/memory
+       └──► ECS Fargate (runtime)
+              ├── Private subnets (no public IP)
+              ├── VPC Endpoints (ECR, Secrets Manager, S3, Logs)
+              ├── Application Load Balancer (public subnets)
               ├── Secrets Manager → rotating credentials
-              └── Parameter Store → static config
+              └── Auto-scaling based on CPU
+```
+
+## Network Architecture (HIPAA Compliant)
+
+```
+Internet
+    │
+    ▼
+┌─────────────────────────────────────────────────────────────┐
+│                         VPC                                  │
+│  ┌─────────────────────────────────────────────────────┐    │
+│  │              PUBLIC SUBNETS                          │    │
+│  │  ┌─────────────┐    ┌─────────────────────────────┐ │    │
+│  │  │ Internet    │    │ Application Load Balancer   │ │    │
+│  │  │ Gateway     │◄───│ (ALB) - HTTPS termination   │ │    │
+│  │  └─────────────┘    └─────────────────────────────┘ │    │
+│  └─────────────────────────────────────────────────────┘    │
+│                              │                               │
+│                              ▼ (port 3000)                   │
+│  ┌─────────────────────────────────────────────────────┐    │
+│  │              PRIVATE SUBNETS                         │    │
+│  │  ┌─────────────────┐    ┌─────────────────────────┐ │    │
+│  │  │ ECS Fargate     │    │ VPC Endpoints           │ │    │
+│  │  │ Tasks           │◄──►│ - ECR API/DKR           │ │    │
+│  │  │ (inkra-web)     │    │ - Secrets Manager       │ │    │
+│  │  └─────────────────┘    │ - CloudWatch Logs       │ │    │
+│  │          │              │ - S3 (Gateway)          │ │    │
+│  │          │              └─────────────────────────┘ │    │
+│  │          ▼ (port 5432)                              │    │
+│  │  ┌─────────────────┐                                │    │
+│  │  │ RDS PostgreSQL  │                                │    │
+│  │  │ (private only)  │                                │    │
+│  │  └─────────────────┘                                │    │
+│  └─────────────────────────────────────────────────────┘    │
+└─────────────────────────────────────────────────────────────┘
 ```
 
 ## Cost Breakdown
 
 | Service | Items | Cost |
 |---------|-------|------|
-| Secrets Manager | 1 secret (13 key/value pairs in JSON) | ~$0.40/month |
-| Parameter Store | ~14 parameters (static config) | Free (Standard tier) |
-| **Total Secrets** | | ~$0.40/month |
+| Secrets Manager | 1 secret (15+ key/value pairs in JSON) | ~$0.40/month |
+| Parameter Store | ~4 parameters (build-time config) | Free (Standard tier) |
+| VPC Endpoints | 4 Interface + 1 Gateway | ~$30/month |
+| **Total Infrastructure** | | ~$30.40/month |
 
 ---
 
-## Step 1: Create ECR Repository
+## Current Production Configuration
+
+### AWS Account: 318928518060
+### Region: us-east-2 (Ohio)
+
+### Resource IDs
+
+| Resource | ID/ARN |
+|----------|--------|
+| VPC | `vpc-0eb6ee9cd198ad718` |
+| Private Subnet 1 (us-east-2a) | `subnet-06556239ea5b298fd` |
+| Private Subnet 2 (us-east-2b) | `subnet-0cae9bde3531d89bd` |
+| Public Subnet 1 (us-east-2a) | `subnet-068439ed67891abd9` |
+| Public Subnet 2 (us-east-2b) | `subnet-0dda06e9cc3341bfa` |
+| App Security Group | `sg-00e3f789895090238` (scrybe-app-sg) |
+| ALB Security Group | `sg-0b22ed81096814b45` (inkra-alb-sg) |
+| Internet Gateway | `igw-05390a6fc6fc4ae8b` |
+| ECR Repository | `318928518060.dkr.ecr.us-east-2.amazonaws.com/inkra-web` |
+| ECS Cluster | `default` |
+| ECS Service | `inkra-prod` |
+| ALB | `inkra-alb` |
+| ALB DNS | `Internet-facing-1644845505.us-east-2.elb.amazonaws.com` |
+| Target Group | `inkra-tg` |
+| Secrets Manager Secret | `inkra/runtime-secrets-SIkCQf` |
+
+### IAM Roles
+
+| Role | Purpose |
+|------|---------|
+| `InkraECSTaskExecutionRole` | ECS task execution (pull images, get secrets) |
+| `GitHubActionsInkraDeployRole` | GitHub Actions OIDC authentication |
+
+### VPC Endpoints
+
+| Endpoint | Service | Type |
+|----------|---------|------|
+| `inkra-secretsmanager-endpoint` | `com.amazonaws.us-east-2.secretsmanager` | Interface |
+| `inkra-ecr-api-endpoint` | `com.amazonaws.us-east-2.ecr.api` | Interface |
+| `inkra-ecr-dkr-endpoint` | `com.amazonaws.us-east-2.ecr.dkr` | Interface |
+| `inkra-logs-endpoint` | `com.amazonaws.us-east-2.logs` | Interface |
+| `inkra-s3-endpoint` | `com.amazonaws.us-east-2.s3` | Gateway |
+
+---
+
+## Step-by-Step Setup Guide
+
+### Step 1: Create ECR Repository
 
 ```bash
 aws ecr create-repository \
@@ -47,21 +131,18 @@ aws ecr create-repository \
   --encryption-configuration encryptionType=AES256
 ```
 
-Save the repository URI (e.g., `123456789.dkr.ecr.us-east-2.amazonaws.com/inkra-web`).
-
-## Step 2: Create OIDC Identity Provider for GitHub
+### Step 2: Create OIDC Identity Provider for GitHub
 
 ```bash
-# Create the OIDC provider (only needs to be done once per AWS account)
 aws iam create-open-id-connect-provider \
   --url https://token.actions.githubusercontent.com \
   --client-id-list sts.amazonaws.com \
   --thumbprint-list 6938fd4d98bab03faadb97b34396831e3780aea1
 ```
 
-## Step 3: Create IAM Roles
+### Step 3: Create IAM Roles
 
-### 3.1 Task Execution Role (for ECS to access secrets/parameters)
+#### 3.1 Task Execution Role
 
 Create trust policy `ecs-task-trust-policy.json`:
 
@@ -80,23 +161,19 @@ Create trust policy `ecs-task-trust-policy.json`:
 }
 ```
 
-Create the role:
+Create the role and attach policies:
 
 ```bash
 aws iam create-role \
   --role-name InkraECSTaskExecutionRole \
   --assume-role-policy-document file://ecs-task-trust-policy.json
-```
 
-Attach the managed policy:
-
-```bash
 aws iam attach-role-policy \
   --role-name InkraECSTaskExecutionRole \
   --policy-arn arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
 ```
 
-Create custom secrets/parameters access policy `ecs-secrets-policy.json`:
+Create custom secrets/logs access policy `ecs-secrets-policy.json`:
 
 ```json
 {
@@ -106,7 +183,7 @@ Create custom secrets/parameters access policy `ecs-secrets-policy.json`:
       "Sid": "SecretsManagerAccess",
       "Effect": "Allow",
       "Action": "secretsmanager:GetSecretValue",
-      "Resource": "arn:aws:secretsmanager:us-east-2:YOUR_ACCOUNT_ID:secret:inkra/*"
+      "Resource": "arn:aws:secretsmanager:us-east-2:318928518060:secret:inkra/*"
     },
     {
       "Sid": "ParameterStoreAccess",
@@ -116,21 +193,23 @@ Create custom secrets/parameters access policy `ecs-secrets-policy.json`:
         "ssm:GetParameters",
         "ssm:GetParametersByPath"
       ],
-      "Resource": "arn:aws:ssm:us-east-2:YOUR_ACCOUNT_ID:parameter/inkra/*"
+      "Resource": "arn:aws:ssm:us-east-2:318928518060:parameter/inkra/*"
+    },
+    {
+      "Sid": "CloudWatchLogs",
+      "Effect": "Allow",
+      "Action": [
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream",
+        "logs:PutLogEvents"
+      ],
+      "Resource": "arn:aws:logs:us-east-2:318928518060:log-group:/ecs/*"
     },
     {
       "Sid": "KMSDecrypt",
       "Effect": "Allow",
-      "Action": "kms:Decrypt",
-      "Resource": "arn:aws:kms:us-east-2:YOUR_ACCOUNT_ID:key/*",
-      "Condition": {
-        "StringEquals": {
-          "kms:ViaService": [
-            "secretsmanager.us-east-2.amazonaws.com",
-            "ssm.us-east-2.amazonaws.com"
-          ]
-        }
-      }
+      "Action": ["kms:Decrypt", "kms:DescribeKey"],
+      "Resource": "*"
     }
   ]
 }
@@ -145,26 +224,7 @@ aws iam put-role-policy \
   --policy-document file://ecs-secrets-policy.json
 ```
 
-### 3.2 Infrastructure Role (for ECS Express Mode)
-
-```bash
-aws iam create-role \
-  --role-name InkraECSInfrastructureRole \
-  --assume-role-policy-document '{
-    "Version": "2012-10-17",
-    "Statement": [{
-      "Effect": "Allow",
-      "Principal": {"Service": "ecs.amazonaws.com"},
-      "Action": "sts:AssumeRole"
-    }]
-  }'
-
-aws iam attach-role-policy \
-  --role-name InkraECSInfrastructureRole \
-  --policy-arn arn:aws:iam::aws:policy/service-role/AmazonECSInfrastructureRoleforExpressGatewayServices
-```
-
-### 3.3 GitHub Actions Role
+#### 3.2 GitHub Actions Role
 
 Create trust policy `github-actions-trust-policy.json`:
 
@@ -175,7 +235,7 @@ Create trust policy `github-actions-trust-policy.json`:
     {
       "Effect": "Allow",
       "Principal": {
-        "Federated": "arn:aws:iam::YOUR_ACCOUNT_ID:oidc-provider/token.actions.githubusercontent.com"
+        "Federated": "arn:aws:iam::318928518060:oidc-provider/token.actions.githubusercontent.com"
       },
       "Action": "sts:AssumeRoleWithWebIdentity",
       "Condition": {
@@ -189,14 +249,6 @@ Create trust policy `github-actions-trust-policy.json`:
     }
   ]
 }
-```
-
-Create the role:
-
-```bash
-aws iam create-role \
-  --role-name GitHubActionsInkraDeployRole \
-  --assume-role-policy-document file://github-actions-trust-policy.json
 ```
 
 Create permissions policy `github-actions-permissions.json`:
@@ -223,7 +275,7 @@ Create permissions policy `github-actions-permissions.json`:
         "ecr:UploadLayerPart",
         "ecr:CompleteLayerUpload"
       ],
-      "Resource": "arn:aws:ecr:us-east-2:YOUR_ACCOUNT_ID:repository/inkra-web"
+      "Resource": "arn:aws:ecr:us-east-2:318928518060:repository/inkra-web"
     },
     {
       "Sid": "ParameterStoreRead",
@@ -233,34 +285,17 @@ Create permissions policy `github-actions-permissions.json`:
         "ssm:GetParameters",
         "ssm:GetParametersByPath"
       ],
-      "Resource": "arn:aws:ssm:us-east-2:YOUR_ACCOUNT_ID:parameter/inkra/*"
+      "Resource": "arn:aws:ssm:us-east-2:318928518060:parameter/inkra/*"
     },
     {
-      "Sid": "KMSDecrypt",
-      "Effect": "Allow",
-      "Action": "kms:Decrypt",
-      "Resource": "arn:aws:kms:us-east-2:YOUR_ACCOUNT_ID:key/*",
-      "Condition": {
-        "StringEquals": {
-          "kms:ViaService": "ssm.us-east-2.amazonaws.com"
-        }
-      }
-    },
-    {
-      "Sid": "ECSExpressDeploy",
+      "Sid": "ECSDeployment",
       "Effect": "Allow",
       "Action": [
-        "ecs:CreateCluster",
         "ecs:RegisterTaskDefinition",
-        "ecs:CreateExpressGatewayService",
-        "ecs:UpdateExpressGatewayService",
-        "ecs:DescribeExpressGatewayService",
-        "ecs:DescribeClusters",
+        "ecs:DescribeTaskDefinition",
         "ecs:DescribeServices",
-        "ecs:ListServiceDeployments",
-        "ecs:DescribeServiceDeployments",
-        "ecs:TagResource",
-        "ecs:UntagResource"
+        "ecs:UpdateService",
+        "ecs:DescribeClusters"
       ],
       "Resource": "*"
     },
@@ -268,32 +303,84 @@ Create permissions policy `github-actions-permissions.json`:
       "Sid": "PassRole",
       "Effect": "Allow",
       "Action": "iam:PassRole",
-      "Resource": [
-        "arn:aws:iam::YOUR_ACCOUNT_ID:role/InkraECSTaskExecutionRole",
-        "arn:aws:iam::YOUR_ACCOUNT_ID:role/InkraECSInfrastructureRole"
-      ]
+      "Resource": "arn:aws:iam::318928518060:role/InkraECSTaskExecutionRole"
     }
   ]
 }
 ```
 
-Attach the policy:
+Create role and attach:
 
 ```bash
+aws iam create-role \
+  --role-name GitHubActionsInkraDeployRole \
+  --assume-role-policy-document file://github-actions-trust-policy.json
+
 aws iam put-role-policy \
   --role-name GitHubActionsInkraDeployRole \
   --policy-name InkraDeployPermissions \
   --policy-document file://github-actions-permissions.json
 ```
 
-## Step 4: Create Parameters in Parameter Store (Free Tier)
+### Step 4: Create VPC Endpoints
 
-### Build-time Parameters (prefix: `/inkra/build/`)
+VPC endpoints allow ECS tasks in private subnets to access AWS services without internet access.
 
-These are needed during `docker build` for Next.js client-side code:
+#### Interface Endpoints (in private subnets)
 
 ```bash
-# NEXT_PUBLIC_* vars (baked into client bundle)
+# Secrets Manager
+aws ec2 create-vpc-endpoint \
+  --vpc-id vpc-0eb6ee9cd198ad718 \
+  --service-name com.amazonaws.us-east-2.secretsmanager \
+  --vpc-endpoint-type Interface \
+  --subnet-ids subnet-06556239ea5b298fd subnet-0cae9bde3531d89bd \
+  --security-group-ids sg-00e3f789895090238 \
+  --private-dns-enabled
+
+# ECR API
+aws ec2 create-vpc-endpoint \
+  --vpc-id vpc-0eb6ee9cd198ad718 \
+  --service-name com.amazonaws.us-east-2.ecr.api \
+  --vpc-endpoint-type Interface \
+  --subnet-ids subnet-06556239ea5b298fd subnet-0cae9bde3531d89bd \
+  --security-group-ids sg-00e3f789895090238 \
+  --private-dns-enabled
+
+# ECR Docker
+aws ec2 create-vpc-endpoint \
+  --vpc-id vpc-0eb6ee9cd198ad718 \
+  --service-name com.amazonaws.us-east-2.ecr.dkr \
+  --vpc-endpoint-type Interface \
+  --subnet-ids subnet-06556239ea5b298fd subnet-0cae9bde3531d89bd \
+  --security-group-ids sg-00e3f789895090238 \
+  --private-dns-enabled
+
+# CloudWatch Logs
+aws ec2 create-vpc-endpoint \
+  --vpc-id vpc-0eb6ee9cd198ad718 \
+  --service-name com.amazonaws.us-east-2.logs \
+  --vpc-endpoint-type Interface \
+  --subnet-ids subnet-06556239ea5b298fd subnet-0cae9bde3531d89bd \
+  --security-group-ids sg-00e3f789895090238 \
+  --private-dns-enabled
+```
+
+#### S3 Gateway Endpoint
+
+```bash
+aws ec2 create-vpc-endpoint \
+  --vpc-id vpc-0eb6ee9cd198ad718 \
+  --service-name com.amazonaws.us-east-2.s3 \
+  --vpc-endpoint-type Gateway \
+  --route-table-ids rtb-00fc7fd6176eeb2ac rtb-0c0b86a49cc5d9eab
+```
+
+### Step 5: Create Parameter Store Parameters
+
+Build-time parameters (needed during Docker build):
+
+```bash
 aws ssm put-parameter --name "/inkra/build/NEXT_PUBLIC_APP_URL" \
   --value "https://app.oninkra.com" --type String --overwrite
 
@@ -307,48 +394,9 @@ aws ssm put-parameter --name "/inkra/build/NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY" \
   --value "pk_live_..." --type String --overwrite
 ```
 
-### Runtime Parameters (prefix: `/inkra/runtime/`)
+### Step 6: Create Secrets Manager Secret
 
-Static configuration injected at container start:
-
-```bash
-# AWS Configuration
-aws ssm put-parameter --name "/inkra/runtime/AWS_REGION" \
-  --value "us-east-2" --type String --overwrite
-
-aws ssm put-parameter --name "/inkra/runtime/AWS_S3_BUCKET" \
-  --value "inkra-uploads" --type String --overwrite
-
-aws ssm put-parameter --name "/inkra/runtime/AWS_S3_BUCKET_AUDIT_LOGS" \
-  --value "inkra-audit-logs" --type String --overwrite
-
-aws ssm put-parameter --name "/inkra/runtime/AWS_S3_BUCKET_BACKUPS" \
-  --value "inkra-backups" --type String --overwrite
-
-aws ssm put-parameter --name "/inkra/runtime/AWS_S3_BUCKET_EXPORTS" \
-  --value "inkra-exports" --type String --overwrite
-
-aws ssm put-parameter --name "/inkra/runtime/AWS_S3_BUCKET_RECORDINGS" \
-  --value "inkra-recordings" --type String --overwrite
-
-# Feature Flags & Config
-aws ssm put-parameter --name "/inkra/runtime/EMAIL_ENABLED" \
-  --value "true" --type String --overwrite
-
-aws ssm put-parameter --name "/inkra/runtime/MARKETING_URL" \
-  --value "https://oninkra.com" --type String --overwrite
-
-# Twilio (non-secret identifiers)
-aws ssm put-parameter --name "/inkra/runtime/TWILIO_ACCOUNT_SID" \
-  --value "AC..." --type String --overwrite
-
-aws ssm put-parameter --name "/inkra/runtime/TWILIO_PHONE_NUMBER" \
-  --value "+1..." --type String --overwrite
-```
-
-## Step 5: Create Secrets in Secrets Manager
-
-Create a single JSON secret containing all rotating credentials (~$0.40/month):
+Create a JSON secret containing all runtime credentials:
 
 ```bash
 aws secretsmanager create-secret \
@@ -362,6 +410,7 @@ aws secretsmanager create-secret \
     "DEEPGRAM_API_KEY": "...",
     "STRIPE_SECRET_KEY": "sk_live_...",
     "STRIPE_WEBHOOK_SECRET": "whsec_...",
+    "TWILIO_ACCOUNT_SID": "AC...",
     "TWILIO_AUTH_TOKEN": "...",
     "TWILIO_API_KEY": "...",
     "TWILIO_API_SECRET": "...",
@@ -371,157 +420,231 @@ aws secretsmanager create-secret \
   }'
 ```
 
-**Note:** Do NOT store `AWS_ACCESS_KEY_ID` or `AWS_SECRET_ACCESS_KEY` - ECS tasks get AWS credentials automatically from the task execution role (more secure).
+**Note the full ARN** (includes random suffix like `-SIkCQf`):
+```bash
+aws secretsmanager describe-secret --secret-id inkra/runtime-secrets --query 'ARN'
+```
 
-## Step 6: Create ECS Express Mode Service
+### Step 7: Create Security Groups
 
-In the AWS Console:
+#### ALB Security Group
 
-1. Navigate to **ECS → Create service (Express Mode)**
-2. Configure:
-   - **Service name**: `inkra-prod`
-   - **Container image**: ECR URI (after first push)
-   - **Port**: 3000
-   - **Health check path**: `/api/health`
-   - **CPU**: 1 vCPU
-   - **Memory**: 2 GB
-   - **Auto-scaling**: Min 1, Max 10, CPU target 70%
+```bash
+aws ec2 create-security-group \
+  --group-name inkra-alb-sg \
+  --description "Inkra ALB security group" \
+  --vpc-id vpc-0eb6ee9cd198ad718
 
-### Environment Variables Configuration
+# Allow HTTP/HTTPS from internet
+aws ec2 authorize-security-group-ingress \
+  --group-id sg-0b22ed81096814b45 \
+  --protocol tcp --port 80 --cidr 0.0.0.0/0
 
-**From Parameter Store (static config):**
+aws ec2 authorize-security-group-ingress \
+  --group-id sg-0b22ed81096814b45 \
+  --protocol tcp --port 443 --cidr 0.0.0.0/0
+```
 
-| Name | Source |
-|------|--------|
-| `AWS_REGION` | `/inkra/runtime/AWS_REGION` |
-| `AWS_S3_BUCKET` | `/inkra/runtime/AWS_S3_BUCKET` |
-| `AWS_S3_BUCKET_AUDIT_LOGS` | `/inkra/runtime/AWS_S3_BUCKET_AUDIT_LOGS` |
-| `AWS_S3_BUCKET_BACKUPS` | `/inkra/runtime/AWS_S3_BUCKET_BACKUPS` |
-| `AWS_S3_BUCKET_EXPORTS` | `/inkra/runtime/AWS_S3_BUCKET_EXPORTS` |
-| `AWS_S3_BUCKET_RECORDINGS` | `/inkra/runtime/AWS_S3_BUCKET_RECORDINGS` |
-| `EMAIL_ENABLED` | `/inkra/runtime/EMAIL_ENABLED` |
-| `MARKETING_URL` | `/inkra/runtime/MARKETING_URL` |
-| `TWILIO_ACCOUNT_SID` | `/inkra/runtime/TWILIO_ACCOUNT_SID` |
-| `TWILIO_PHONE_NUMBER` | `/inkra/runtime/TWILIO_PHONE_NUMBER` |
+#### App Security Group (scrybe-app-sg)
 
-**From Secrets Manager (rotating credentials):**
+```bash
+# Allow port 3000 from ALB
+aws ec2 authorize-security-group-ingress \
+  --group-id sg-00e3f789895090238 \
+  --protocol tcp --port 3000 \
+  --source-group sg-0b22ed81096814b45
 
-| Name | Secret ARN | Key |
-|------|------------|-----|
-| `DATABASE_URL` | `inkra/runtime-secrets` | `DATABASE_URL` |
-| `DIRECT_URL` | `inkra/runtime-secrets` | `DIRECT_URL` |
-| `REDIS_URL` | `inkra/runtime-secrets` | `REDIS_URL` |
-| `SUPABASE_SERVICE_ROLE_KEY` | `inkra/runtime-secrets` | `SUPABASE_SERVICE_ROLE_KEY` |
-| `ANTHROPIC_API_KEY` | `inkra/runtime-secrets` | `ANTHROPIC_API_KEY` |
-| `DEEPGRAM_API_KEY` | `inkra/runtime-secrets` | `DEEPGRAM_API_KEY` |
-| `STRIPE_SECRET_KEY` | `inkra/runtime-secrets` | `STRIPE_SECRET_KEY` |
-| `STRIPE_WEBHOOK_SECRET` | `inkra/runtime-secrets` | `STRIPE_WEBHOOK_SECRET` |
-| `TWILIO_AUTH_TOKEN` | `inkra/runtime-secrets` | `TWILIO_AUTH_TOKEN` |
-| `TWILIO_API_KEY` | `inkra/runtime-secrets` | `TWILIO_API_KEY` |
-| `TWILIO_API_SECRET` | `inkra/runtime-secrets` | `TWILIO_API_SECRET` |
-| `MFA_ENCRYPTION_KEY` | `inkra/runtime-secrets` | `MFA_ENCRYPTION_KEY` |
-| `TRUSTED_DEVICE_SECRET` | `inkra/runtime-secrets` | `TRUSTED_DEVICE_SECRET` |
-| `CRON_SECRET` | `inkra/runtime-secrets` | `CRON_SECRET` |
+# Allow HTTPS for VPC endpoints (self-referencing)
+aws ec2 authorize-security-group-ingress \
+  --group-id sg-00e3f789895090238 \
+  --protocol tcp --port 443 \
+  --source-group sg-00e3f789895090238
 
-**Hardcoded in Dockerfile (no external storage needed):**
+# Outbound rules (should already exist)
+# - HTTPS (443) to 0.0.0.0/0
+# - PostgreSQL (5432) to 0.0.0.0/0
+# - Redis (6379) to 0.0.0.0/0
+```
 
-| Name | Value |
-|------|-------|
-| `NODE_ENV` | `production` |
-| `NODE_OPTIONS` | `--max-old-space-size=6144` |
-| `PORT` | `3000` |
-| `HOSTNAME` | `0.0.0.0` |
+### Step 8: Create Application Load Balancer
 
-## Step 7: Configure GitHub Repository Variables
+```bash
+# Create ALB in public subnets
+aws elbv2 create-load-balancer \
+  --name inkra-alb \
+  --subnets subnet-068439ed67891abd9 subnet-0dda06e9cc3341bfa \
+  --security-groups sg-0b22ed81096814b45 \
+  --scheme internet-facing \
+  --type application
+
+# Create target group
+aws elbv2 create-target-group \
+  --name inkra-tg \
+  --protocol HTTP \
+  --port 3000 \
+  --vpc-id vpc-0eb6ee9cd198ad718 \
+  --target-type ip \
+  --health-check-path /api/health
+
+# Create listener
+aws elbv2 create-listener \
+  --load-balancer-arn <ALB_ARN> \
+  --protocol HTTP \
+  --port 80 \
+  --default-actions Type=forward,TargetGroupArn=<TARGET_GROUP_ARN>
+```
+
+### Step 9: Create ECS Service
+
+Via AWS Console:
+1. **ECS → Clusters → default → Create Service**
+2. **Launch type:** FARGATE
+3. **Task definition:** `inkra-web`
+4. **Service name:** `inkra-prod`
+5. **Desired tasks:** 1
+6. **Networking:**
+   - VPC: `vpc-0eb6ee9cd198ad718`
+   - Subnets: Private subnets only
+   - Security group: `sg-00e3f789895090238`
+   - Public IP: OFF
+7. **Load balancing:**
+   - ALB: `inkra-alb`
+   - Target group: `inkra-tg`
+
+### Step 10: Configure GitHub Repository
 
 In GitHub → Repository → Settings → Secrets and variables → Actions → Variables:
 
 | Variable Name | Value |
 |---------------|-------|
-| `AWS_ROLE_ARN` | `arn:aws:iam::YOUR_ACCOUNT_ID:role/GitHubActionsInkraDeployRole` |
+| `AWS_ROLE_ARN` | `arn:aws:iam::318928518060:role/GitHubActionsInkraDeployRole` |
+| `TWILIO_PHONE_NUMBER` | `+16267901480` |
 
-**Note:** The `APP_RUNNER_SERVICE_ARN` variable is no longer needed for ECS Express Mode.
+---
 
-## Verification Checklist
+## Deployment Workflow
 
-- [ ] ECR repository created with encryption enabled
-- [ ] OIDC provider created in IAM
-- [ ] Task Execution Role created (`InkraECSTaskExecutionRole`)
-- [ ] Infrastructure Role created (`InkraECSInfrastructureRole`)
-- [ ] GitHub Actions IAM role created with trust policy
-- [ ] IAM permissions attached (ECR, Parameter Store, ECS)
-- [ ] Build parameters created in Parameter Store (`/inkra/build/*`)
-- [ ] Runtime parameters created in Parameter Store (`/inkra/runtime/*`)
-- [ ] Runtime secrets created in Secrets Manager (`inkra/runtime-secrets`)
-- [ ] GitHub repository variables configured (`AWS_ROLE_ARN`)
-- [ ] ECS Express Mode service created and healthy
-- [ ] Environment variables configured to pull from Parameter Store and Secrets Manager
+The deployment is handled by `.github/workflows/deploy.yml`:
 
-## Testing
+1. **Checkout** code
+2. **Authenticate** to AWS via OIDC
+3. **Fetch build parameters** from Parameter Store
+4. **Build and push** Docker image to ECR
+5. **Render task definition** with new image
+6. **Deploy** to ECS (update service)
 
-1. **ECR Push Test**: Manually trigger workflow, verify image appears in ECR
-2. **ECS Service**: Verify service starts and reaches healthy state
-3. **Health Check**: Curl the ALB endpoint at `/api/health`
-4. **Secrets**: Verify environment variables are populated (check ECS logs)
-5. **Full Flow**: Make a code change, verify automatic deployment
-6. **Rollback**: Verify you can deploy a previous image tag
+---
 
-## Security Notes
+## Secrets Configuration
 
-### HIPAA Compliance
-- ✅ No PHI in GitHub (secrets in AWS)
-- ✅ Rotating credentials in AWS Secrets Manager (audit trail, rotation support)
-- ✅ Static config in Parameter Store (SecureString for sensitive values)
-- ✅ Encryption at rest (ECR, Secrets Manager, Parameter Store SecureString)
-- ✅ Encryption in transit (ALB HTTPS)
-- ✅ Audit trail (CloudTrail logs all API calls)
-- ✅ No long-lived credentials (OIDC federation)
-- ✅ Non-root container user
-- ✅ Health checks enabled
+### Secrets Manager (Runtime)
 
-### Rotation
-Set up automatic rotation for secrets:
+Full secret ARN: `arn:aws:secretsmanager:us-east-2:318928518060:secret:inkra/runtime-secrets-SIkCQf`
 
-```bash
-aws secretsmanager rotate-secret \
-  --secret-id inkra/runtime-secrets \
-  --rotation-rules AutomaticallyAfterDays=90
-```
+| Key | Description |
+|-----|-------------|
+| `DATABASE_URL` | PostgreSQL connection string (pooled) |
+| `DIRECT_URL` | PostgreSQL direct connection (migrations) |
+| `REDIS_URL` | Redis connection string |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase admin key |
+| `ANTHROPIC_API_KEY` | Claude API key |
+| `DEEPGRAM_API_KEY` | Transcription API key |
+| `STRIPE_SECRET_KEY` | Stripe live secret key |
+| `STRIPE_WEBHOOK_SECRET` | Stripe webhook signing secret |
+| `TWILIO_ACCOUNT_SID` | Twilio account identifier |
+| `TWILIO_AUTH_TOKEN` | Twilio auth token |
+| `TWILIO_API_KEY` | Twilio API key |
+| `TWILIO_API_SECRET` | Twilio API secret |
+| `MFA_ENCRYPTION_KEY` | MFA TOTP encryption key |
+| `TRUSTED_DEVICE_SECRET` | Device trust signing key |
+| `CRON_SECRET` | Cron job authentication |
+
+### Environment Variables (Hardcoded in Task Definition)
+
+| Variable | Value |
+|----------|-------|
+| `NODE_ENV` | `production` |
+| `PORT` | `3000` |
+| `HOSTNAME` | `0.0.0.0` |
+| `AWS_REGION` | `us-east-2` |
+| `AWS_S3_BUCKET` | `inkra-uploads-prod` |
+| `AWS_S3_BUCKET_AUDIT_LOGS` | `inkra-audit-logs-prod` |
+| `AWS_S3_BUCKET_BACKUPS` | `inkra-backups-prod` |
+| `AWS_S3_BUCKET_EXPORTS` | `inkra-exports-prod` |
+| `AWS_S3_BUCKET_RECORDINGS` | `inkra-recordings-prod` |
+| `EMAIL_ENABLED` | `true` |
+| `MARKETING_URL` | `https://oninkra.com` |
+| `NEXT_PUBLIC_APP_URL` | `https://app.oninkra.com` |
+
+---
 
 ## Troubleshooting
 
-### Build fails with "AccessDenied"
-- Check IAM role permissions
-- Verify OIDC provider thumbprint
-- Check repository name in trust policy condition
+### Task fails to start with "ResourceInitializationError"
 
-### ECS can't pull image
-- Verify Task Execution Role has ECR access
-- Check image URI is correct
+**Symptoms:** Cannot pull secrets or registry auth
 
-### Secrets not available
-- Verify secret ARN format
-- Check Task Execution Role has `secretsmanager:GetSecretValue` permission
-- Ensure secret key names match exactly
+**Cause:** Network connectivity issue - tasks can't reach AWS services
 
-### Parameter Store values not loading
-- Check parameter path matches `/inkra/runtime/*`
-- Verify Task Execution Role has `ssm:GetParameter*` permissions
-- For SecureString, ensure KMS decrypt permission
+**Solution:**
+1. Verify VPC endpoints exist and are in **Available** status
+2. Verify endpoints are in the **same private subnets** as ECS tasks
+3. Verify security group allows **inbound HTTPS (443)** from itself
+4. Verify Private DNS is enabled on endpoints
 
-## Migration from App Runner
+### Task fails with "CannotPullContainerError"
 
-If migrating from an existing App Runner deployment:
+**Symptoms:** dial tcp timeout to ECR
 
-1. Keep App Runner service running during migration
-2. Deploy to ECS Express Mode and verify it works
-3. Update DNS/routing to point to ECS ALB
-4. Monitor for issues
-5. After confirmation, delete App Runner service
+**Cause:** Missing or misconfigured ECR endpoints
 
-### Rollback Plan
+**Solution:**
+1. Verify `ecr.api` and `ecr.dkr` endpoints exist
+2. Verify S3 Gateway endpoint is associated with correct route tables
+3. Check endpoint security groups
 
-If ECS Express Mode fails:
-1. App Runner service remains active during migration
-2. Update DNS/routing to point back to App Runner
-3. Investigate and fix ECS configuration
+### Secrets not found
+
+**Symptoms:** "secret not found" or "json key not found"
+
+**Cause:** Wrong secret ARN or missing key
+
+**Solution:**
+1. Use full ARN including random suffix (e.g., `-SIkCQf`)
+2. Verify key names match exactly (case-sensitive)
+3. Check IAM permissions on task execution role
+
+### ALB returns 502/503
+
+**Symptoms:** Bad gateway errors
+
+**Cause:** Tasks not healthy or not registered
+
+**Solution:**
+1. Check target group health
+2. Verify tasks are in RUNNING state
+3. Check container logs for startup errors
+4. Verify health check path (`/api/health`)
+
+---
+
+## HIPAA Compliance Checklist
+
+- [x] No PHI in GitHub (secrets in AWS)
+- [x] Rotating credentials in AWS Secrets Manager
+- [x] VPC endpoints (traffic never leaves AWS network)
+- [x] Private subnets for compute (no public IPs)
+- [x] Encryption at rest (ECR, Secrets Manager, RDS)
+- [x] Encryption in transit (ALB HTTPS, VPC endpoint TLS)
+- [x] Audit trail (CloudTrail logs all API calls)
+- [x] No long-lived credentials (OIDC federation)
+- [x] Non-root container user
+- [x] Health checks enabled
+
+---
+
+## Related Documentation
+
+- [Disaster Recovery Runbook](./compliance/runbooks/inkra-web-disaster-recovery.md)
+- [ECS Recovery Runbook](./compliance/runbooks/ecs-recovery.md)
+- [Infrastructure Launch Checklist](./deployment/INFRASTRUCTURE_LAUNCH_CHECKLIST.md)
