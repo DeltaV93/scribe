@@ -313,7 +313,53 @@ aws iam put-role-policy \
   --policy-document file:///tmp/ecs-secrets.json
 ```
 
-#### 3.2 GitHub Actions Role
+#### 3.2 ECS Task Role (for ECS Exec)
+
+This role is attached to running tasks and enables ECS Exec for debugging.
+
+```bash
+# Create trust policy
+cat > /tmp/ecs-task-trust.json << 'EOF'
+{
+  "Version": "2012-10-17",
+  "Statement": [{
+    "Effect": "Allow",
+    "Principal": {"Service": "ecs-tasks.amazonaws.com"},
+    "Action": "sts:AssumeRole"
+  }]
+}
+EOF
+
+# Create role
+aws iam create-role \
+  --role-name InkraECSTaskRole \
+  --assume-role-policy-document file:///tmp/ecs-task-trust.json \
+  --description "Task role for Inkra ECS tasks with ECS Exec support"
+
+# Add ECS Exec policy for SSM Session Manager
+cat > /tmp/ecs-exec-policy.json << 'EOF'
+{
+  "Version": "2012-10-17",
+  "Statement": [{
+    "Effect": "Allow",
+    "Action": [
+      "ssmmessages:CreateControlChannel",
+      "ssmmessages:CreateDataChannel",
+      "ssmmessages:OpenControlChannel",
+      "ssmmessages:OpenDataChannel"
+    ],
+    "Resource": "*"
+  }]
+}
+EOF
+
+aws iam put-role-policy \
+  --role-name InkraECSTaskRole \
+  --policy-name ECSExecPolicy \
+  --policy-document file:///tmp/ecs-exec-policy.json
+```
+
+#### 3.3 GitHub Actions Role
 
 ```bash
 # Create OIDC provider (if not exists)
@@ -353,7 +399,7 @@ cat > /tmp/github-perms.json << 'EOF'
     {"Effect": "Allow", "Action": ["ecr:BatchCheckLayerAvailability", "ecr:GetDownloadUrlForLayer", "ecr:BatchGetImage", "ecr:PutImage", "ecr:InitiateLayerUpload", "ecr:UploadLayerPart", "ecr:CompleteLayerUpload"], "Resource": "arn:aws:ecr:us-east-2:318928518060:repository/inkra-web"},
     {"Effect": "Allow", "Action": ["ssm:GetParameter", "ssm:GetParameters", "ssm:GetParametersByPath"], "Resource": "arn:aws:ssm:us-east-2:318928518060:parameter/inkra/*"},
     {"Effect": "Allow", "Action": ["ecs:RegisterTaskDefinition", "ecs:DescribeTaskDefinition", "ecs:DescribeServices", "ecs:UpdateService", "ecs:DescribeClusters"], "Resource": "*"},
-    {"Effect": "Allow", "Action": "iam:PassRole", "Resource": "arn:aws:iam::318928518060:role/InkraECSTaskExecutionRole"}
+    {"Effect": "Allow", "Action": "iam:PassRole", "Resource": ["arn:aws:iam::318928518060:role/InkraECSTaskExecutionRole", "arn:aws:iam::318928518060:role/InkraECSTaskRole"]}
   ]
 }
 EOF
@@ -575,6 +621,44 @@ After recovery, verify:
 2. Verify health check path is correct (`/api/health`)
 3. Verify security group allows ALB → ECS traffic on port 3000
 
+### Database migrations fail (P3009 or P3018)
+
+**Cause:** Migration partially applied or failed state in `_prisma_migrations` table
+
+**Fix using ECS Exec:**
+
+1. Temporarily skip migrations in `start.sh`:
+   ```bash
+   # Comment out prisma migrate deploy in scripts/start.sh
+   ```
+
+2. Deploy to get a running container
+
+3. Enable ECS Exec on the service:
+   ```bash
+   aws ecs update-service --cluster default --service inkra-prod --enable-execute-command --force-new-deployment
+   ```
+
+4. Connect to running container:
+   ```bash
+   # Get task ID
+   TASK_ID=$(aws ecs list-tasks --cluster default --service-name inkra-prod --query 'taskArns[0]' --output text | cut -d'/' -f3)
+
+   # Connect (requires Session Manager plugin: brew install --cask session-manager-plugin)
+   aws ecs execute-command --cluster default --task $TASK_ID --container web --interactive --command "/bin/sh"
+   ```
+
+5. Inside container, fix the migration:
+   ```sh
+   export HOME=/tmp
+   prisma migrate status                                           # See current state
+   prisma migrate resolve --rolled-back <migration_name>           # Clear failed state
+   prisma migrate resolve --applied <migration_name>               # Mark as applied if changes exist
+   prisma migrate deploy                                           # Apply remaining migrations
+   ```
+
+6. Restore `start.sh` and redeploy
+
 ---
 
 ## Recovery Contacts
@@ -591,4 +675,5 @@ After recovery, verify:
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 1.1 | 2026-04-30 | Added ECS Task Role (3.2), ECS Exec debugging, migration troubleshooting |
 | 1.0 | 2026-04-29 | Initial version |
